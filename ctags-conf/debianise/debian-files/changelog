@@ -1,0 +1,11 @@
+dn-ctags-conf (1.1-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- David Nebauer <david@nebauer.org>  Sat, 09 May 2015 16:01:55 +0930
+
+dn-ctags-conf (1.0-1) unstable; urgency=low
+
+  * Initial release (Closes: #101)
+
+ -- David Nebauer <david@nebauer.org>  Sun, 28 Jul 2013 17:57:11 +0930

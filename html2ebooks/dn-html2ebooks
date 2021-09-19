@@ -1,0 +1,415 @@
+#!/usr/bin/env perl
+
+use Moo;    # {{{1
+use strictures 2;
+use 5.006;
+use 5.22.1;
+use version; our $VERSION = qv('0.1');
+use namespace::clean;    # }}}1
+
+# package Dn::Html2Ebooks::Format    {{{1
+{
+
+    package Dn::Html2Ebooks::Format;
+
+    use Moo;             # {{{2
+    use strictures 2;
+    use namespace::clean -except => [ '_options_data', '_options_config' ];
+    use MooX::HandlesVia;
+    use Readonly;
+    use Types::Standard;    # }}}2
+
+    # attributes
+
+    # name    {{{2
+    has 'name' => (
+        is  => 'ro',
+        isa => Types::Standard::Str,
+        doc => 'Format name',
+    );
+
+    # args, add_args    {{{2
+    has '_arguments_list' => (
+        is          => 'rw',
+        isa         => Types::Standard::ArrayRef [Types::Standard::Str],
+        default     => sub { [] },
+        handles_via => 'Array',
+        handles     => {
+            args     => 'elements',
+            add_args => 'push',
+        },
+        doc => 'Arguments for conversion command',
+    );    # }}}2
+
+}    # }}}1
+
+{
+
+    package Dn::Html2Ebooks;
+
+    use Moo;    # {{{1
+    use strictures 2;
+    use namespace::clean -except => [ '_options_data', '_options_config' ];
+    use Carp qw(confess);
+    use Curses;
+    use Function::Parameters;
+    use IPC::Cmd qw(run);
+    use MooX::HandlesVia;
+    use MooX::Options protect_argv => 0;
+    use Readonly;
+    use String::ShellQuote;
+    use Types::Standard;
+
+    with qw(
+        Dn::Role::HasPath
+        Dn::Role::HasString
+    );
+
+    Readonly my $TRUE  => 1;
+    Readonly my $FALSE => 0;    # }}}1
+
+    # options
+
+    # base_name (-b)    {{{1
+    option 'base_name' => (
+        is       => 'ro',
+        format   => 's',
+        required => $TRUE,
+        short    => 'b',
+        doc      => 'Basename of input and output files',
+    );
+
+    # title    (-t)    {{{1
+    option 'title' => (
+        is       => 'ro',
+        format   => 's',
+        required => $TRUE,
+        short    => 't',
+        doc      => 'Title of book',
+    );
+
+    # author   (-a)    {{{1
+    option 'author' => (
+        is       => 'ro',
+        format   => 's',
+        required => $TRUE,
+        short    => 'a',
+        doc      => 'Author(s) of book',
+    );    # }}}1
+
+    # attributes
+
+    # _converter    {{{1
+    has '_converter' => (
+        is  => 'lazy',
+        isa => Types::Standard::Str,
+        doc => 'Shown in usage',
+    );
+
+    # abort if ebook-convert is not available
+
+    method _build__converter () {
+
+        my $converter = 'ebook-convert';
+        if ( not $self->path_executable($converter) ) {
+            die "Cannot locate ebook converter '$converter'\n";
+        }
+        return $converter;
+    }
+
+    # _source    {{{1
+    has '_source' => (
+        is  => 'lazy',
+        isa => Types::Standard::Str,
+        doc => 'Source html file',
+    );
+
+    # abort if no source file
+
+    method _build__source () {
+        my $source;
+        my $basename = $self->base_name;
+        for my $ext (qw(html htm)) {
+            my $file = $basename . q[.] . $ext;
+            if ( $self->file_readable($file) ) {
+                $source = $file;
+            }
+        }
+        if ( not $source ) {
+            die "Can't find source file '$basename.htm[l]'\n";
+        }
+        return $source;
+    }
+
+    # _cover    {{{1
+    has '_cover' => (
+        is  => 'lazy',
+        isa => Types::Standard::Maybe [Types::Standard::Str],
+        doc => 'Cover png file',
+    );
+
+    method _build__cover () {
+        my $file = $self->base_name . '.png';
+        return $self->file_readable($file) ? $file : undef;
+    }
+
+    # _today    {{{1
+    has '_today' => (
+        is  => 'lazy',
+        isa => Types::Standard::Str,
+        doc => q[ Today's date in ISO 8601 format ],
+    );
+
+    method _build__today () {
+        return $self->date_current_iso();
+    }
+
+    # _formats    {{{1
+    has '_formats_list' => (
+        is  => 'lazy',
+        isa => Types::Standard::ArrayRef [
+            Types::Standard::InstanceOf ['Dn::Html2Ebooks::Format']
+        ],
+        handles_via => 'Array',
+        handles     => { _formats => 'elements', },
+        doc         => 'Array of format objects',
+    );
+
+    method _build__formats_list () {
+
+        # variables    {{{2
+        my $converter = $self->_converter;
+        my $source    = $self->_source;
+        my $base      = $self->file_base($source);
+        my $cover     = $self->_cover;
+        my $date      = $self->_today;
+        my $title     = $self->title;
+        my $author    = $self->author;               # }}}2
+
+        my @formats;
+
+        # Mobipocket e-book (mobi)    {{{2
+        my $mobi
+            = Dn::Html2Ebooks::Format->new( name => 'Mobipocket e-book', );
+        $mobi->add_args(
+            $converter,            $source,
+            $base . '.mobi',       '--no-inline-toc',
+            '--pretty-print',      '--smarten-punctuation',
+            '--insert-blank-line', '--keep-ligatures',
+            '--title=' . $title,   '--authors=' . $author,
+            '--language=en_AU',    '--pubdate=' . $date,
+        );
+        if ($cover) {
+            $mobi->add_args( '--cover=' . $cover );
+        }
+        push @formats, $mobi;
+
+        # Electronic publication (epub)    {{{2
+        my $epub
+            = Dn::Html2Ebooks::Format->new( name => 'Electronic publication',
+            );
+        $epub->add_args(
+            $converter,              $source,
+            $base . '.epub',         '--pretty-print',
+            '--smarten-punctuation', '--insert-blank-line',
+            '--keep-ligatures',      '--title=' . $title,
+            '--authors=' . $author,  '--language=en_AU',
+            '--pubdate=' . $date,
+        );
+        if ($cover) {
+            $epub->add_args( '--cover=' . $cover );
+        }
+        push @formats, $epub;
+
+        # Kindle Format 8 (azw3)    {{{2
+        my $azw3 = Dn::Html2Ebooks::Format->new( name => 'Kindle Format 8', );
+        $azw3->add_args(
+            $converter,            $source,
+            $base . '.azw3',       '--no-inline-toc',
+            '--pretty-print',      '--smarten-punctuation',
+            '--insert-blank-line', '--keep-ligatures',
+            '--title=' . $title,   '--authors=' . $author,
+            '--language=en_AU',    '--pubdate=' . $date,
+        );
+        if ($cover) {
+            $azw3->add_args( '--cover=' . $cover );
+        }
+        push @formats, $azw3;    # }}}2
+
+        return [@formats];
+    }    # }}}1
+
+    # methods
+
+    # main()    {{{1
+    #
+    # does:   main method
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method main () {
+
+        # produce ebooks
+        for my $format ( $self->_formats ) {
+            my $name = $format->name;
+            my @args = $format->args;
+            say "\nConverting to $name" or confess 'No terminal!';
+            $self->_run_cmd( [@args] );
+        }
+        say 'Completed conversion to ebooks' or confess 'No terminal!';
+    }
+
+    # _run_cmd($cmd)    {{{1
+    #
+    # does:   run system command
+    # params: $cmd - command to run [array reference, required]
+    # prints: display all shell feedback
+    # return: boolean
+    # note:   command feedback, if provided, is displayed after command
+    #         execution completes -- for a long-running command this can
+    #         result in an apparently unresponsive terminal
+    # uses:   Curses, IPC::Cmd
+    method _run_cmd ($cmd) {
+
+        # variables
+        my ( $div_top, $div_bottom ) = $self->_dividers;
+        my $cmd_string = String::ShellQuote::shell_quote @{$cmd};
+
+        # run command
+        say $div_top or confess 'No terminal!';
+        my ( $succeed, $err, $full, $stdout, $stderr )
+            = IPC::Cmd::run( command => $cmd_string, verbose => $TRUE );
+
+        # provide feedback
+        if ($err) { warn "$err\n"; }
+        say $div_bottom or confess 'No terminal!';
+        if ( not $succeed ) {
+            say "Command failed\n" or confess 'No terminal!';
+            if ( not $err ) { warn "No error message available\n"; }
+            die "Stopping execution due to error\n";
+        }
+
+        return $succeed;
+    }
+
+    # _dividers()    {{{1
+    #
+    # does:   construct dividers
+    # params: nil
+    # prints: nil
+    # return: List of two strings
+    # uses:   Curses
+    method _dividers () {
+
+        my ( $div_top, $div_bottom, $height,  $width );
+        my $mwh = Curses->new();
+        $mwh->getmaxyx( $height, $width );    # terminal dimensions
+        endwin();
+        $width      = $width > 61 ? 60 : $width--;
+        $div_top    = q{-} x $width;
+        $div_bottom = q{=} x $width;
+
+        return ( $div_top, $div_bottom );
+
+    }    # }}}1
+
+}
+
+my $p = Dn::Html2Ebooks->new_with_options->main;
+
+1;
+
+# POD    {{{1
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+dn-html2ebooks - convert html file to ebook formats
+
+=head1 USAGE
+
+B<dn-html2ebooks> B<-b> I<basename> B<-t> I<title> B<-a> I<author>
+
+B<dn-html2ebooks -h>
+
+=head1 REQUIRED OPTIONS
+
+=over
+
+=item B<-b>  B<--basename> I<basename>
+
+Basename (file name without extension) of source html file.
+
+Scalar string. Required.
+
+=item B<-t>  B<--title> I<title>
+
+Title of book. Enclose in quotes if it contains spaces.
+
+Scalar string. Required.
+
+=item B<-a>  B<--author> I<author>
+
+Author (or authors) of book. Enclose in quotes if it contains spaces.
+
+Scalar string. Required.
+
+=back
+
+=head1 DESCRIPTION
+
+Converts an html file in the current directory named F<basename.html> or
+F<basename.htm> where "basename" is the option provided to the C<-b> option.
+This source file is converted to the following formats and output files:
+
+=over
+
+=item Mobipocket e-book (F<basename.mobi>)
+
+=item Electronic publication (F<basename.epub>)
+
+=item Kindle Format 8 (F<basename.epub>)
+
+=back
+
+Output files are written to the current directory and silently overwrite any
+existing output files of the same name.
+
+If there is a png image file in the current directory called F<basename.png> it
+will be used as a cover image for the ebooks.
+
+The conversions are performed by F<ebook-convert>, part of the Calibre suite on
+debian systems.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+Carp, Curses, Dn::Role::HasPath, Dn::Role::HasString, Function::Parameters,
+IPC::Cmd, Moo, MooX::HandlesVia, MooX::Options, namespace::clean, Readonly,
+strictures, String::ShellQuote, Types::Standard.
+
+=head2 Executables
+
+ebook-convert.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 AUTHOR
+
+David Nebauer (david at nebauer dot org)
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2017 David Nebauer (david at nebauer dot org)
+
+This script is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
+# vim:fdm=marker
+

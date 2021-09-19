@@ -1,0 +1,34 @@
+Source: dn-cronsudo
+Section: admin
+Priority: extra
+Maintainer: David Nebauer <david@nebauer.org>
+Build-Depends: debhelper-compat (= 12)
+Standards-Version: 3.9.2
+
+Package: dn-cronsudo
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends},
+ bsdutils (>= 1:2.20.1-5),
+ get-iplayer (>= 2.82-1),
+ mlocate (>= 0.23.1-1),
+ rdate (>= 1:1.2-5),
+ rss2email (>= 1:3.12.2-2),
+ sudo (>= 1.8.3p2-1.1),
+ ucf (>= 3.0030),
+ vim-gtk (>= 2:7.3.547-1) | vim-gtk3 (>= 2:8.2.0439-1)
+Description: supply cron files for automated tasks
+ This package supplies cron files for repeated tasks:
+ .
+ Daily
+  - download new BBC Radio podcasts for user 'david'
+  - check rss feeds
+  - update system clock
+  - update file database for 'locate' utility
+ .
+ Weekly
+  - update vim bundles for user 'david'
+ .
+ The package also supplies sudoers files for package
+ management and file editing.
+ .
+ See 'man dn-cronsudo' for more information.

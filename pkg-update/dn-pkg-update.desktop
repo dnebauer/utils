@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Package Updater DN
+Type=Application
+TryExec=dn-pkg-update
+Exec=dn-pkg-update
+Icon=dn-pkg-update
+Categories=System;PackageManager
+Actions=NewWindow;
+X-DBUS-StartupType=Unique
+StartupNotify=true

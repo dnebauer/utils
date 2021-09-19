@@ -1,0 +1,606 @@
+#!/usr/bin/perl 
+
+use Moo;    #                                                          {{{1
+use strictures 2;
+use 5.006;
+use 5.22.1;
+use version; our $VERSION = qv('0.1');
+use namespace::clean;    #                                             }}}1
+
+{
+
+    package Dn::Internal;
+
+    use Moo;    #                                                      {{{1
+    use strictures 2;
+    use namespace::clean -except => [ '_options_data', '_options_config' ];
+    use Config::Tiny;
+    use Dn::InteractiveIO;
+    use Dn::MboxenSplit;
+    use English qw(-no_match_vars);
+    use File::Basename;
+    use File::HomeDir;
+    use File::Spec;
+    use File::Temp;
+    use File::Touch;
+    use File::Util;
+    use Function::Parameters;
+    use LWP::Simple;
+    use MooX::HandlesVia;
+    use MooX::Options;
+    use Readonly;
+    use Sys::Syslog qw(:DEFAULT setlogsock);
+    use Types::Standard;
+    use experimental 'switch';
+
+    Readonly my $TRUE  => 1;
+    Readonly my $FALSE => 0;
+    my $io = Dn::InteractiveIO->new;
+    Sys::Syslog::openlog( File::Basename::basename($PROGRAM_NAME), 'user' );
+
+    #                                                                 }}}1
+
+    # options
+
+    # log (-l)                                                         {{{1
+    option 'log' => (
+        is            => 'ro',
+        short         => 'l',
+        documentation => 'Whether to log feedback',
+    );    #                                                            }}}1
+
+    # attributes
+
+    # _ntg_context_archives_url                                        {{{1
+    has '_ntg_context_archives_url' => (
+        is      => 'ro',
+        isa     => Types::Standard::Str,
+        default => 'https://mailman.ntg.nl/pipermail/ntg-context/index.html',
+        documentation => 'URL of ntg-context mailing list archive',
+    );
+
+    # _years, _add_year                                                {{{1
+    has '_years_list' => (
+        is          => 'rw',
+        isa         => Types::Standard::ArrayRef [Types::Standard::Int],
+        lazy        => $TRUE,
+        builder     => '_build__years',
+        handles_via => 'Array',
+        handles     => {
+            _years    => 'elements',
+            _add_year => 'push',
+        },
+        documentation => 'Years for archives are to be processed',
+    );
+
+    method _build__years () {
+        my $year = $self->_current_year;
+        return [$year];
+    }
+
+    # _output_dir                                                      {{{1
+    has '_output_dir' => (
+        is  => 'ro',
+        isa => Types::Standard::Str,
+        default =>
+            '/home/david/data/computing/text-processing/context/mail-list/',
+        documentation => 'Output directory for email mbox files',
+    );
+
+    # _temp_dir                                                        {{{1
+    has '_temp_dir' => (
+        is            => 'lazy',
+        isa           => Types::Standard::InstanceOf ['File::Temp::Dir'],
+        documentation => 'Temporary directory for retrieved archive file',
+    );
+
+    method _build__temp_dir () {
+        return File::Temp->newdir();
+    }
+
+    # _conf_file                                                       {{{1
+    has '_conf_file' => (
+        is            => 'lazy',
+        isa           => Types::Standard::Str,
+        documentation => 'Configuration file path',
+    );
+
+    method _build__conf_file () {
+        my $prog_name = $self->_path_file($PROGRAM_NAME);
+
+        # config file in home directory (second-choice)
+        my $home_file = ".${prog_name}rc";
+        my $home_dir  = File::HomeDir->my_home;
+        my $home_conf = File::Spec->catfile( $home_dir, $home_file );
+
+        # config file in ~/.config directory (preferred)
+        my $config_file = "$prog_name.conf";
+        my $config_dir  = File::Spec->catdir( $home_dir, '.config' );
+        my $config_conf = File::Spec->catfile( $config_dir, $config_file );
+
+        # if already exists, return path
+        for my $file ( $config_conf, $home_conf ) {
+            if ( -f $file ) { return $file; }
+        }
+
+        # if doesn't exist, create file and return path
+        my $conf_new;
+        if   ( -d $config_dir ) { $conf_new = $config_conf; }
+        else                    { $conf_new = $home_conf; }
+        if ( not File::Touch::touch($conf_new) ) {
+            $self->_fail("Can't create config file '$conf_new");
+        }
+
+        return $conf_new;
+
+    }    #                                                             }}}1
+
+    # methods
+
+    # main()                                                           {{{1
+    #
+    # does:   main method
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method main () {
+        $self->_handle_year_change;
+        $self->_download_archives;
+        $self->_write_new_email_files;
+    }
+
+    # _log($msg, $type)                                                {{{1
+    #
+    # does:   log message if logging
+    # params: $msg  - message [scalar string, required]
+    #         $type - message type [scalar string]
+    #                 can be EMERG|ALERT|CRIT|ERR|WARNING|NOTICE|INFO|DEBUG
+    # prints: nil
+    # return: n/a, dies on failure
+    # note:   appends most recent system error message for message types
+    #         EMERG, ALERT, CRIT and ERR
+    method _log ($msg, $type) {
+
+        # only log if logging
+        return if not $self->log;
+
+        # check parameters
+        return if not $type;
+        my %valid_type = map { ( $_ => $TRUE ) }
+            qw(EMERG ALERT CRIT ERR WARNING NOTICE INFO DEBUG);
+        if ( not $valid_type{$type} ) {
+            $self->_fail("Invalid type '$type'");
+        }
+        return if not $msg;
+
+        # display system error message for serious message types
+        my %error_type = map { ( $_ => $TRUE ) } qw(EMERG ALERT CRIT ERR);
+        if ( $error_type{$type} ) { $msg .= ': %m'; }
+
+        # log message
+        Sys::Syslog::syslog( $type, $msg );
+
+        return;
+    }
+
+    # _fail($msg)                                                      {{{1
+    #
+    # does:   exit with error message (display on stderr and logged)
+    # params: $msg  - message [scalar string, required]
+    # prints: message if not logging
+    # return: n/a, exits when done
+    method _fail ($msg) {
+
+        if ($msg) {       # display message to stderr and log message
+            $io->warn($msg);
+            $self->_log( $msg, 'ERR' );
+        }
+
+        exit 1;           # error/failure
+    }
+
+    # _path_file($path)                                                {{{1
+    #
+    # does:   get file name part of path
+    #
+    # params: $path - file path [scalar string, required]
+    # prints: error on failure
+    # return: scalar string, file name
+    method _path_file ($path) {
+
+        # check params
+        if ( not $path ) { $self->_fail('No path provided'); }
+
+        return ( File::Spec->splitpath($path) )[2];
+    }
+
+    # _handle_year_change()                                            {{{1
+    #
+    # does:   deal with year changing since previous update
+    #
+    # params: nil
+    # prints: error if fails
+    # return: n/a, dies on failure
+    # note:   main issue is that if year has changed need to do
+    #         final update of previous year, as well as update
+    #         for current year
+    # note:   use year value stored in configuration file
+    method _handle_year_change () {
+        my $current_year = $self->_current_year;
+        my $config_year  = $self->_config_year;
+
+        # if have moved into new year since previous update
+        if ( $current_year gt $config_year ) {
+
+            # add previous year to list of year archives to download
+            my $last_year = $self->_current_year - 1;
+            $self->_add_year($last_year);
+
+            # update year value in config file
+            $self->_config_year($current_year);
+        }
+
+        return;
+    }
+
+    # _current_year()                                                  {{{1
+    #
+    # does:   get the current year
+    #
+    # params: nil
+    # prints: nil
+    # return: scalar integer
+    method _current_year () {
+        return (localtime)[5] + 1900;
+    }
+
+    # _config_year([$year])                                            {{{1
+    #
+    # does:   read or write year value in configuration file
+    #
+    # params: $year - if provided, write year value [optional]
+    # prints: error if fails
+    # return: n/a, dies on failure
+    method _config_year ($year = undef) {
+
+        # get current configuration
+        my $conf_file = $self->_conf_file;
+        my $conf      = Config::Tiny->read( $self->_conf_file );
+        if ( not $conf ) { $self->_fail("Could not read '$conf_file'"); }
+
+        if ($year) {              # setting year
+            $conf->{_}->{'year'} = $year;
+            $conf->write($conf_file)
+                or $self->_fail('Unable to write config year');
+            return;
+        }
+        else {                    # retrieving year
+            $year = $conf->{_}->{'year'};
+            if ( not $year ) {    # no value in conf file, so add it
+                $year = $self->_current_year;
+                $conf->{_}->{'year'} = $year;
+                $conf->write($conf_file);
+            }
+            return $year;
+        }
+    }
+
+    # _download_archives()                                             {{{1
+    #
+    # does:   download email archives
+    #
+    # params: nil
+    # prints: feedback
+    # return: n/a, exits on failure
+    method _download_archives () {
+
+        # loop through years
+        my @years = $self->_years;
+        for my $year (@years) {
+
+            # get archive url
+            my $url = $self->_archive_url($year);
+
+            # get filepath of download file
+            my $file = $self->_path_file($url);
+            my $fp = File::Spec->catfile( $self->_temp_dir, $file );
+
+            # download archive file to temporary directory
+            $io->say("Downloading '$file'...");
+            my $status = LWP::Simple::getstore( $url, $fp );
+            if ( LWP::Simple::is_success($status) ) {
+                $io->say('Retrieved OK');
+            }
+            else { $self->_fail("Retrieval of $url failed"); }
+        }
+
+        return;
+    }
+
+   # _archive_url($year)                                               {{{1
+   #
+   # does:   get url of archive file for given year
+   #
+   # params: year - year of archive [scalar integer, required]
+   # prints: error if fails
+   # return: scalar string, url
+   #         dies on failure
+   # note:   we could use HTML::TableExtract to extract the table
+   #         from the archives page, walk its structure and retrieve
+   #         the file name of the most recent archive, relying on the
+   #         ntg-context archive page having a single table:
+   #           <table xxxxx>
+   #             <tr>
+   #               <td>Archive</td>
+   #               <td>View by:</td>
+   #               <td>Downloadable version</td>
+   #             </tr>
+   #             <tr>
+   #               <td>2020:</td>
+   #               <td>
+   #                 <a href="2020/thread.html">[ Thread ]</a>
+   #                 <a href="2020/subject.html">[ Subject ]</a>
+   #                 <a href="2020/author.html">[ Author ]</a>
+   #                 <a href="2020/date.html">[ Date ]</a>
+   #               </td>
+   #               <td><a href="2020.txt.gz">[ Gzip'd Text xxxxx KB ]</a></td>
+   #               <!--    ==>  ^^^^^^^^^^^  <== datum to extract -->
+   #             </tr>
+   #             <tr>
+   #               <td>2019:</td>
+   #               <td>
+   #                 <a href="2019/thread.html">[ Thread ]</a>
+   #                 <a href="2019/subject.html">[ Subject ]</a>
+   #                 <a href="2019/author.html">[ Author ]</a>
+   #                 <a href="2019/date.html">[ Date ]</a>
+   #               </td>
+   #               <td><a href="2019.txt.gz">[ Gzip'd Text xxxxx KB ]</a></td>
+   #             </tr>
+   #             ...
+   #             <tr>
+   #               <td>2002:</td>
+   #               <td>
+   #                 <a href="2002/thread.html">[ Thread ]</a>
+   #                 <a href="2002/subject.html">[ Subject ]</a>
+   #                 <a href="2002/author.html">[ Author ]</a>
+   #                 <a href="2002/date.html">[ Date ]</a>
+   #               </td>
+   #               <td><a href="2002.txt.gz">[ Gzip'd Text xxxxx KB ]</a></td>
+   #             </tr>
+   #           </table>
+   #         but instead do quick and dirty url munging by assuming the
+   #         file is in the same directory as the archives table, and is
+   #         named '<year>.txt.gz'
+    method _archive_url ($year) {
+
+        # get url path
+        my $page = $self->_ntg_context_archives_url;
+        my $path = $self->_path_dir($page);
+
+        # construct url
+        my $url  = "$path/$year.txt.gz";
+        my $seen = 0;
+        $url =~ s{(/+)}{$seen++?'/':$1}ge;  # change all but first '//' to '/'
+
+        return $url;
+    }
+
+    # _path_dir($path)                                                 {{{1
+    #
+    # does:   get directory part of path
+    #
+    # params: $path - file path [scalar string, required]
+    # prints: error on failure
+    # return: scalar string, directory
+    method _path_dir ($path) {
+
+        # check params
+        if ( not $path ) { $self->_fail('No path provided'); }
+
+        return ( File::Spec->splitpath($path) )[1];
+    }
+
+    # _write_new_email_files()                                         {{{1
+    #
+    # does:   write new email files to output directory
+    #
+    # params: nil
+    # prints: feedback
+    # return: n/a, exits on failure
+    method _write_new_email_files () {
+
+        # get parameters for Dn::MboxenSplit module
+        my @mboxes = $self->_mbox_paths;    # downloaded mbox files
+        my $dir    = $self->_output_dir;
+
+        # count files before writing
+        my $before = $self->_output_file_count;
+
+        # write files
+        my $ms = Dn::MboxenSplit->new(
+            mbox_uris  => [@mboxes],
+            output_dir => $dir
+        );
+        my $succeed = $TRUE;
+        $ms->split or $succeed = $FALSE;
+
+        # count files after writing
+        my $after = $self->_output_file_count;
+
+        # log result
+        my $written = $after - $before;
+        my $msg;
+        for ($written) {
+            when ( $_ == 0 ) { $msg = 'No new message files to write'; }
+            when ( $_ == 1 ) { $msg = 'Wrote one new message file'; }
+            when ( $_ >= 2 ) { $msg = "Wrote $written new message files"; }
+        }
+        if ( $written > 0 ) { $io->say($msg); }    # module reports if no files
+        $self->_log( $msg, 'INFO' );
+
+        # handle failure
+        if ( not $succeed ) { $self->_fail('Module Dn::MboxenSplit failed'); }
+
+        return;
+    }
+
+    # _mbox_paths()                                                    {{{1
+    #
+    # does:   get paths of downloaded mailbox files
+    #
+    # params: nil
+    # prints: feedback
+    # return: list, paths
+    #         exits on failure
+    method _mbox_paths () {
+
+        # get list of files from temporary download directory
+        my $temp  = $self->_temp_dir;
+        my @files = $self->_dir_files($temp);
+        my $count = scalar @files;
+        if ( $count eq 0 ) {
+            $self->_fail("Could not find downloaded files\n");
+        }
+
+        # prepend with file transport protocol handler
+        my @prepended
+            = map { File::Spec->catfile( 'file:/', $temp, $_ ) } @files;
+
+        return @prepended;
+    }
+
+    # _dir_files($dir)                                                 {{{1
+    #
+    # does:   get files in directory
+    #
+    # params: $dir - directory to examine [scalar string, required]
+    # prints: error if fails
+    # return: list, file names
+    #         exits on failure
+    method _dir_files ($dir) {
+
+        # check params
+        if ( not $dir )    { $self->_fail('No directory provided'); }
+        if ( not -d $dir ) { $self->_fail("Invalid directory '$dir'"); }
+
+        # get list of files in directory
+        return File::Util->new()->list_dir( $dir, { files_only => $TRUE } );
+    }
+
+    # _output_file_count()                                             {{{1
+    #
+    # does:   count files in output directory
+    #
+    # params: nil
+    # prints: feedback
+    # return: scalar integer
+    #         exits on failure
+    method _output_file_count () {
+
+        # get list of files from output directory
+        my $dir   = $self->_output_dir;
+        my $opts  = { files_only => $TRUE };
+        my @files = $self->_dir_files($dir);
+
+        # return file count
+        return scalar @files;
+    }    #                                                             }}}1
+
+}
+
+my $p = Dn::Internal->new_with_options->main;
+
+1;
+
+# POD                                                                  {{{1
+__END__
+
+=head1 NAME
+
+dn-update-context-maillist - updates local copy of ntg-context mailing list
+
+=head1 USAGE
+
+B<dn-update-context-maillist> [ B<-l> ]
+
+B<dn-update-context-maillist -h>
+
+=head1 OPTIONS
+
+=over
+
+=item B<-l>  B<--log>
+
+Log output rather than display on screen. Note that the Dn::MboxenSplit module
+will display some screen output regardless of this option.
+
+Boolean. Optional. Default: false.
+
+=item B<-h>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+Download the ntg_context mailing list archive for the current year. (If
+performing the first update of the year, also do a final update of the previous
+year.)
+
+Uses the C<Dn::MboxenSplit> module to extract individual emails and writes to
+F<~/data/computing/text-processing/context/mail-list/> an mbox file for every
+email message which is not already captured in the directory.
+
+Displays feedback on screen unless the C<-l> option is used, in which case the
+result (and any errors or warnings) are written to the system log. 
+
+=head1 CONFIGURATION AND ENVIRONMENT
+
+Uses a configuration file to save the year of the most recent update. When
+running the script looks in turn for the configuration files:
+
+=over
+
+=item *
+
+F<~/.config/dn-update-context-maillist.conf>
+
+=item *
+
+F<~/.dn-update-context-maillistrc>
+
+=back
+
+and uses the first one it finds.
+
+If neither configuration file exists, it will create
+F<~/.config/dn-update-context-maillist.conf> if the F<~/.config> directory
+exists, otherwise it creates F<~/.dn-update-context-maillistrc>.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+Config::Tiny, Dn::InteractiveIO, Dn::MboxenSplit, English, experimental,
+File::Basename, File::HomeDir, File::Spec, File::Temp, File::Touch, File::Util,
+Function::Parameters, LWP::Simple, Moo, MooX::HandlesVia, MooX::Options,
+namespace::clean, Readonly, strictures, Sys::Syslog, Types::Standard, version.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 AUTHOR
+
+David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2016 David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+# vim:fdm=marker

@@ -1,0 +1,769 @@
+#!/bin/bash
+# shellcheck disable=1117
+# $Id: dn-build-deb,v 1.10 2011/02/27 16:30:14 David_Nebauer Exp $
+
+# File: build-deb
+# Author: David Nebauer
+# Purpose: Generic build deb script for packages
+# Created: 2007-09-12
+
+
+# VARIABLES
+
+# provided by libdncommon-bash, but avoid shellcheck error SC2154
+declare dn_self dn_divider
+args="${*}"
+msg="Loading libraries" ; echo -ne "\\033[1;37;41m${msg}\\033[0m"
+# hard code path rather than use @lib_dir@ because path is actually pkglibexec
+source "/usr/libexec/libdncommon-bash/liball"  # supplies functions
+dnEraseText "${msg}"
+# provided by libdncommon-bash: dn_self,dn_divider[_top|_bottom]
+global_conf="@pkgconf_dir@/${dn_self}rc"
+local_conf="${HOME}/.${dn_self}rc"
+usage="Usage:"
+parameters="-r <root_dir> -n <name> -e <email> -p <pkg> [-t] [-d]"
+keep_debian_files=()  # default debian control files to keep
+name=  # package maintainer name
+email=  # package maintainer email
+root=  # root file of project to be debianised
+pkg=  # package name
+tar_prep="tar-dir-prepare"  # file sourced to prepare tarbuild dir files
+deb_prep="deb-dir-prepare"  # file sourced to prepare debsource dir files
+build_from_dist=$(false; echo $?)  # whether starting with dist targzip
+create_template=$(false; echo $?)  # whether creating project template only
+tar_auto=  # directory: tarball/autotools
+tar_build=  # directory: tarball/build
+tar_archive=  # directory: tarball/archive
+deb_debian=  # directory: debianise/debian-files
+deb_source=  # directory: debianise/source
+deb_scripts=  # directory: debianise/scripts
+mand_dirs=()  # mandatory project directories (filled once root known)
+stnd_dirs=()  # standard-projects-only directories (filled once root known)
+args=
+unset param_pad msg
+
+
+# PROCEDURES
+
+# Show usage
+#   params: nil
+#   prints: nil
+#   return: nil
+displayUsage () {
+cat << _USAGE
+${dn_self}: build debian package
+
+Automated system for building deb packages.
+
+Requires the source project be organised in a specific
+manner. See manpage for details.
+
+Can create an empty project template consisting only of
+required directory structure, empty customisation files,
+a wrapper for this script and subsidiary build scripts.
+If this option is used the script exits after template
+creation.
+
+Note: The subsidiary build scripts will convert any
+occurrence of '@pkg_name@' in debian control files to
+the package name.
+
+${usage} ${dn_self} ${parameters}
+       ${dn_self} [-h]
+
+Options: -r VAL  root directory of build tree [required]
+         -n VAL  package maintainer name [required]
+         -e VAL  package maintainer email address [required]
+         -p VAL  package name [required]
+         -t      create empty project template [optional]
+         -d      build from dist tarzip in debian source dir [optional]
+_USAGE
+}
+# Process configuration files
+#   params: 1 - global config filepath (optional)
+#           2 - local config filepath (optional)
+#   prints: nil
+#   return: nil
+#   notes:  set variables [  ]
+processConfigFiles () {
+	# set variables
+	local conf='' name='' val=''
+	local global_conf
+	global_conf="$( dnNormalisePath "${1}" )"
+	local local_conf
+	local_conf="$( dnNormalisePath "${2}" )"
+	# process config files
+	for conf in "${global_conf}" "${local_conf}" ; do
+		if [ -r "${conf}" ] ; then
+			while read -r name val ; do
+				if [ -n "${val}" ] ; then
+					# remove enclosing quotes if present
+					val="$( dnStripEnclosingQuotes "${val}" )"
+					# load vars depending on name
+					case ${name} in
+					'keep_debian_file' )
+						keep_debian_files[${#keep_debian_files}]="${val}";;
+					esac
+				fi
+			done < "${conf}"
+		fi
+	done
+}
+# Process command line
+#   params: all command line parameters
+#   prints: feedback
+#   return: nil
+processCommandLine () {
+	# Read the command line options
+	#   - if optstring starts with ':' then error reporting is suppressed
+	#   - leave ':' at start as '\?' and ':' error capturing require it
+	#   - if option is followed by ':' then it is expected to have an argument
+	while getopts ":hr:n:e:p:td" opt ; do
+		case ${opt} in
+			h  ) displayUsage && exit 0;;
+			r  ) root="${OPTARG}";;
+			n  ) name="${OPTARG}";;
+			e  ) email="${OPTARG}";;
+			p  ) pkg="${OPTARG}";;
+			t  ) willCreateTemplate 'true';;
+            d  ) buildFromDist 'true';;
+			\? ) echo -e "Error: Invalid flag '${OPTARG}' detected"
+				 echo -e "Usage: ${dn_self} ${parameters}"
+				 echo -e "Try '${dn_self} -h' for help"
+                 echo -ne "$(printf '\a')"
+				 exit 1;;
+			: ) echo -e "Error: No argument supplied for flag '${OPTARG}'"
+				 echo -e "Usage: ${dn_self} ${parameters}"
+				 echo -e "Try '${dn_self} -h' for help"
+                 echo -ne "$(printf '\a')"
+				 exit 1;;
+		esac
+	done
+	shift $(( OPTIND - 1 ))
+	args="${*}"  # reset arguments
+	unset usage parameters
+}
+# Whether source is a perl module
+#   params: nil
+#   prints: nil
+#   return: boolean (0=true|1=false)
+projectIsPerlModule () {
+    # yes, it is a shell redirection
+    # shellcheck disable=SC2065
+    return "$( test -f "${tar_build}/Makefile.PL" ; echo $? )"
+}
+# Building from distribution targzip (getter/setter)
+#   params: nil (getter)
+#           1 - value (setter)
+#   prints: nil
+#   return: boolean - value (getter)
+#           nil (setter)
+buildFromDist () {
+	if [ ${#} -eq 0 ] ; then  # getter
+		return "${build_from_dist}"
+	else  # setter
+		build_from_dist="$( dnStandardiseBoolean "${1}" )"
+	fi
+}
+# Creating template (getter/setter)
+#   params: nil (getter)
+#           1 - value (setter)
+#   prints: nil
+#   return: boolean - value (getter)
+#           nil (setter)
+willCreateTemplate () {
+	if [ ${#} -eq 0 ] ; then  # getter
+		return "${create_template}"
+	else  # setter
+		create_template="$( dnStandardiseBoolean "${1}" )"
+	fi
+}
+# Create template only
+#   params: nil
+#   prints: nil
+#   return: boolean (0=succeeded|1=failed)
+createTemplate () {
+	# create file and directory variables
+	local retval=0
+	local debscripts="${root}/debianise/scripts"
+	local tarprep="${debscripts}/tar-dir-prepare"
+	local debprep="${debscripts}/deb-dir-prepare"
+	local wrapper="${debscripts}/build-deb"
+    local mand_dir='' stnd_dir=''
+	# must have empty directory
+	dnDirEmpty "${root}" || dnFailScript "Root directory not empty"
+	# create directories
+	for mand_dir in "${mand_dirs[@]}" ; do
+		mkdir -p "${mand_dir}" 2>/dev/null
+		if ! dnFlagTrue ${?} ; then retval=1 ; break ; fi
+	done
+	for stnd_dir in "${stnd_dirs[@]}" ; do
+		mkdir -p "${stnd_dir}" 2>/dev/null
+		if ! dnFlagTrue ${?} ; then retval=1 ; break ; fi
+	done
+	dnFlagTrue ${retval} \
+		|| dnFailScript "Unable to create directories in:" "  '${root}'"
+	# create file: customisation file 1
+	touch "${tarprep}" 2>/dev/null \
+		|| dnFailScript "Unable to create file:" "  '${tarprep}'"
+    # falsely triggered by filename in heredoc, but is safe
+    # shellcheck disable=2094
+	cat > "${tarprep}" <<- EOF
+		#!/bin/sh
+
+		# File: $( dnExtractFilename "${tarprep}" )
+
+		# Package: ${pkg}
+
+		# This file will be sourced by ${dn_self} just prior to building
+		# the source distribution in 'tarball/build'.  That directory is
+		# the cwd when this file is sourced.  Must be in same dir before
+		# finish.
+
+		# Some useful variables available to this file are:
+		#   pkg         - package name
+		#   root        - directory: project root
+		#   tar_build   - directory: <root>/tarball/build
+		#   tar_archive - directory: <root>/tarball/archive
+		#   deb_scripts - directory: <root>/debianise/scripts
+		#   deb_source  - directory: <root>/debianise/source
+		#   deb_debian  - directory: <root>/debianise/debian-files
+
+		################################################################
+
+# VARIABLES
+
+x_dir= x_dirs='source autotools'
+
+# MAIN
+
+# delete current contents of build directory
+rm -fr * &>/dev/null \
+	|| dnEndScript 1 "Can't delete contents of:" "  '\$( pwd )'"
+
+# copy files fron 'autotools' and 'source' directories
+dnInfo "Adding build files"
+for x_dir in \${x_dirs} ; do
+	cp -r -L ../\${x_dir}/* ./ 2>/dev/null \
+		|| dnEndScript 1 "Error copying \${x_dir} files"
+done
+unset x_dir x_dirs
+	EOF
+	if ! dnFlagTrue ${?} ; then
+		dnError "Unable to write content to file:" "  '${tarprep}'"
+		retval=1
+	fi
+	# create file: customisation file 2
+	touch "${debprep}" 2>/dev/null \
+		|| dnFailScript "Unable to create file:" "  '${debprep}'"
+    # falsely triggered by filename in heredoc, but is safe
+    # shellcheck disable=2094
+	cat > "${debprep}" << EOF
+#!/bin/sh
+
+# File: $( dnExtractFilename "${debprep}" )
+
+# Package: ${pkg}
+
+# This file will be sourced by ${dn_self} after copying customised
+# debian control files to the debian package source and just prior
+# to building the package.  The cwd directory during the sourcing is
+# '${deb_source}/<archive>'
+# where <archive> is the top-level directory in the source project
+# tarzipped distribution built in 'tarball/build'.  Must be in same
+# dir when finished.
+
+# Some useful variables available to this file are:
+#   pkg         - package name
+#   root        - directory: project root
+#   tar_build   - directory: <root>/tarball/build
+#   tar_archive - directory: <root>/tarball/archive
+#   deb_scripts - directory: <root>/debianise/scripts
+#   deb_source  - directory: <root>/debianise/source
+#   deb_debian  - directory: <root>/debianise/debian-files
+#   source_base - directory: <root>/debianise/source/archive
+
+####################################################################
+
+#VARIABLES
+
+declare xfile=""
+declare xpkg="${pkg}"
+
+
+# MAIN
+
+# Bug workaround: Missing 'distclean' target
+#
+# dh_make bug creates 'rules' file with rule calling target 'distclean'
+# but that target is missing; so
+# if a rule uses target 'distclean' but that target is missing,
+# then delete the rule
+if \$( grep -F "\\\$(MAKE) distclean" ${deb_debian}/rules &>/dev/null ) ; then
+	if \$( grep "	distclean: " ${deb_debian}/rules &>/dev/null ) ; then : ; else
+		dnWarn  "## BUG WORKAROUND: START ##" \\
+				"dh_make creates rules depending on target 'distclean'" \\
+				"but that target is missing." \\
+				"Workaround is to remove rules using target 'distclean'" \\
+				"with the command:" \\
+				"  sed -i -e '/\$(MAKE) distclean/d' rules"
+		cp ${deb_debian}/rules ${deb_debian}/rules.old
+		dnInfon "Removing problem rules... "
+		sed -i -e '/\$(MAKE) distclean/d' ${deb_debian}/rules &>/dev/null
+		diff ${deb_debian}/rules ${deb_debian}/rules.old &>/dev/null
+		dnOpFail ${?}
+		dnReport ${?}
+		rm -f ${deb_debian}/rules.old &>/dev/null
+		dnWarn "## BUG WORKAROUND: END ##"
+	fi
+fi
+
+# Variable replacement: @pkg_name@ = ${pkg}
+dnInfon "Inserting pkg name in control scripts... " 
+for xfile in debian/* ; do
+	if test -f "\${xfile}" ; then
+		sed -i -e "s/@pkg_name@/\${xpkg}/g" "\${xfile}"
+	fi
+done
+echo "Done"
+EOF
+	if ! dnFlagTrue ${?} ; then
+		dnError "Unable to write content to file:" "  '${debprep}'"
+		retval=1
+	fi
+	# create file: script wrapper
+	touch "${wrapper}" 2>/dev/null \
+		|| dnFailScript "Unable to create file:" "  '${wrapper}'"
+    # falsely triggered by filename in heredoc, but is safe
+    # shellcheck disable=2094
+	cat > "${wrapper}" <<- EOF
+		#!/bin/sh
+
+		# File: $( dnExtractFilename "${wrapper}" )  [wrapper for '${dn_self}']
+		
+
+		# PARAMETERS
+		
+		# root directory of project
+		root="${root}"
+		
+		# package name
+		pkg="${pkg}"
+		
+		# package maintainer's name
+		name="${name}"
+
+		# package maintainer's email address
+		email="${email}"
+
+		
+		# RUN SCRIPT
+		
+		${dn_self} -r "\${root}" -p "\${pkg}" -n "\${name}" -e "\${email}"
+	EOF
+	if ! dnFlagTrue ${?} ; then
+		dnError "Unable to write content to file:" "  '${wrapper}'"
+		retval=1
+	fi
+	chmod 0744 "${wrapper}" 2>/dev/null
+	if ! dnFlagTrue ${?} ; then
+		dnError "Unable to make executable the script:" "  '${wrapper}'"
+		retval=1
+	fi
+	# final feedback
+	if dnFlagTrue "${retval}" ; then
+		dnInfo "Created project template in:" "  '${root}'"
+		return 0
+	else
+		dnWarn "Errors occurred during project template creation"
+		return 1
+	fi
+}
+# Set directory variables
+#   params: 1 - root directory
+#   prints: nil
+#   return: nil
+setDirectoryVariables () {
+	tar_auto="${root}/tarball/autotools"
+	tar_build="${root}/tarball/build"
+	tar_archive="${root}/tarball/archive"
+	deb_debian="${root}/debianise/debian-files"
+	deb_source="${root}/debianise/source"
+	deb_scripts="${root}/debianise/scripts"
+	tar_prep="${deb_scripts}/${tar_prep}"
+	deb_prep="${deb_scripts}/${deb_prep}"
+	mand_dirs[${#mand_dirs[*]}]="${root}/debianise/debian-files"
+	mand_dirs[${#mand_dirs[*]}]="${root}/debianise/scripts"
+	mand_dirs[${#mand_dirs[*]}]="${root}/debianise/source"
+	mand_dirs[${#mand_dirs[*]}]="${root}/tarball/build"
+	mand_dirs[${#mand_dirs[*]}]="${root}/tarball/archive"
+	stnd_dirs[${#stnd_dirs[*]}]="${root}/tarball/autotools"
+	stnd_dirs[${#stnd_dirs[*]}]="${root}/tarball/source"
+}
+# Check that mandatory project directories are present
+#   params: nil
+#   prints: nil
+#   return: boolean (0=true|1=false)
+#   needs:  variable [ mand_dirs() ]
+mandatoryProjectDirsPresent () {
+	# check for directories required in both project types
+	local retval=0 mand_dir=''
+	for mand_dir in "${mand_dirs[@]}" ; do
+		dnDirValid "${mand_dir}" || retval=1
+	done
+	return ${retval}
+}
+# Check that those directories required only by standard projects are present
+#   params: nil
+#   prints: nil
+#   return: boolean (0=true|1=false)
+#   needs:  variable [ stnd_dirs() ]
+standardProjectDirsPresent () {
+	# check for directories required in both project types
+	local retval=0 stnd_dir=''
+	for stnd_dir in "${stnd_dirs[@]}" ; do
+		dnDirValid "${stnd_dir}" || retval=1
+	done
+	return ${retval}
+}
+# Add new version entry to package changelog
+#   params: 1 - version
+#   prints: feedback
+#   return: nil
+addPkgChangelogEntry () {
+	# set variables
+	local tmp_dir="" tar_cl="" tmp_cl="" msg=""
+	tmp_dir="$( dnTempDir )" || dnEndScript 1 "Can't make temp file"
+	dnTempTrap "${tmp_dir}"
+	tar_cl="${tar_auto}/ChangeLog"
+	tmp_cl="${tmp_dir}/ChangeLog"
+	# get changelog message
+	while [ -z "${msg}" ] ; do
+		msg="$( dnGetInput "Enter change log message: " )"
+		[ -n "${msg}" ] || dnWarn "Input required" 
+	done
+	cat > "${tmp_cl}" << EOF
+$( date +"%F" )  ${name}  <${email}>
+
+	* ${msg}
+
+EOF
+	cat "${tar_cl}" >> "${tmp_cl}" \
+		|| dnEndScript 1 "Unable to alter package changelog file"
+	cp "${tmp_cl}" "${tar_cl}" \
+		|| dnEndScript 1 "Unable to alter package changelog file"
+	rm -fr "${tmp_dir}" &>/dev/null
+	dnTempKill "${tmp_dir}"
+	dnInfo "Added new version entry to package changelog file"
+}
+# Add new version entry to debian changelog
+#   params: 1 - version
+#   prints: feedback
+#   return: nil
+addDebChangelogEntry () {
+	local tmp_dir="" deb_cl="" tmp_cl=""
+	tmp_dir="$( dnTempDir )" || dnEndScript 1 "Can't make temp file"
+	dnTempTrap "${tmp_dir}"
+	deb_cl="${deb_debian}/changelog"
+	tmp_cl="${tmp_dir}/changelog"
+	cat > "${tmp_cl}" << EOF
+${pkg} (${1}-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- ${name} <${email}>  $( date -R )
+
+EOF
+	cat "${deb_cl}" >> "${tmp_cl}" \
+		|| dnEndScript 1 "Unable to alter debian changelog file"
+	cp "${tmp_cl}" "${deb_cl}" \
+		|| dnEndScript 1 "Unable to alter debian changelog file"
+	rm -fr "${tmp_dir}" &>/dev/null
+	dnTempKill "${tmp_dir}"
+	dnInfo "Added new version entry to debian changelog file"
+}
+# Update package version
+#   params: nil
+#   prints: feedback
+#   return: nil
+updatePackageVersion () {
+	local old_ver="" new_ver="" init_line="" chk_ver=""
+	local conf="${tar_auto}/configure.ac" init_grep="" sed_grep=""
+	init_grep="^[[:space:]]*AC_INIT[[:space:]]*([[:space:]]"
+	init_grep="${init_grep}\(\[[[:print:]]\+\][[:space:]]*,[[:space:]]*\)\{4\}"
+	init_grep="${init_grep})[[:space:]]*$"
+	sed_grep="^[[:space:]]*AC_INIT[[:space:]]*([[:space:]]"
+	sed_grep="${sed_grep}\[[[:print:]]\+\][[:space:]]*,[[:space:]]*"
+	sed_grep="${sed_grep}\[\([[:print:]]\+\)\][[:space:]]*,[[:space:]]*"
+	sed_grep="${sed_grep}\(\[[[:print:]]\+\][[:space:]]*,[[:space:]]*\)\{2\}"
+	sed_grep="${sed_grep})[[:space:]]*$"
+	sed_chng="^\([[:space:]]*AC_INIT[[:space:]]*([[:space:]]"
+	sed_chng="${sed_chng}\[[[:print:]]\+\][[:space:]]*,[[:space:]]*"
+	sed_chng="${sed_chng}\[\)[[:print:]]\+\(\][[:space:]]*,[[:space:]]*"
+	sed_chng="${sed_chng}\[[[:print:]]\+\][[:space:]]*,[[:space:]]*"
+	sed_chng="${sed_chng}\[[[:print:]]\+\][[:space:]]*,[[:space:]]*"
+	sed_chng="${sed_chng})[[:space:]]*\)$"
+	# exit if no 'configure.ac' file
+	[ -e "${conf}" ] || return
+	# exit if cannot find AC_INIT macro in expected format
+	init_line="$( grep -- "${init_grep}" "${conf}" )"
+	[ -n "${init_line}" ] || return
+	# extract existing version
+    # - too complex to mess about with variable replacement vis SC2001
+    # shellcheck disable=2001
+	old_ver="$( echo "${init_line}" | sed -e "s?${sed_grep}?\1?" )"
+	local new_ver=''
+	read -rp "${dn_query_prefix:?}Package version [${old_ver}]: " new_ver
+	dnContainsSpace "${new_ver}" \
+		&& dnEndScript 1 "Version cannot contains spaces"
+	if [ -n "${new_ver}" ] ; then  # changing version
+		# change version in resources file
+		local err="Unable to change package version in 'configure.ac' file"
+		sed -i -e "s=${sed_chng}=\1${new_ver}\2=" "${conf}"
+		dnFlagTrue ${?} || dnEndScript 1 "${msg}"
+		init_line="$( grep -- "${init_grep}" "${conf}" )"
+        # - too complex to mess about with variable replacement vis SC2001
+        # shellcheck disable=2001
+		chk_ver="$( echo "${init_line}" | sed -e "s?${sed_grep}?\1?" )"
+		[ "${chk_ver}" = "${new_ver}" ] || dnEndScript 1 "${err}"
+		dnInfo "Package version changed to: ${new_ver}"
+		addPkgChangelogEntry "${new_ver}"
+		addDebChangelogEntry "${new_ver}"
+	else  # keep existing version
+		dnInfo "Package version remains at: ${old_ver}"
+	fi
+}
+# Escape filename characters in './configure' files
+#   params: nil
+#   prints: feedback
+#   return: nil
+escapeConfigureFilenameChars () {
+	local -a chars=( '&' )
+	local find_file='' file='' char='' escaped=''
+	while IFS= read -r -d '' find_file ; do
+		file="${find_file#./}"
+		file="${file%.in}"
+		for char in "${chars[@]}" ; do
+			if [[ "${file}" = *"${char}"* ]] ; then
+                # way too complex to figure out escaping now!
+                # shellcheck disable=2001
+				escaped="$( echo "${file}" | \
+					        sed -e "s=${char}=\\\\\\\\\\\\${char}=g" )"
+				sed -i -e "s=${file}=${escaped}=g" configure
+			fi
+		done
+    done <   <(find . -print0)
+}
+# Install deb package
+#   params: nil
+#   prints: feedback
+#   return: nil
+installPackage () {
+	local deb_count="" pkg=""
+	cd "${deb_source}" || dnEndScript 1 "Unable to change to source directory"
+	deb_count=$( dir -1 "${deb_source}"/* | grep -c -- "\.deb$" )
+	if [ "${deb_count}" -eq 0 ] ; then
+		dnWarn "No deb packages in final directory"
+	elif [ "${deb_count}" -eq 1 ] ; then
+		pkg="$( dnExtractFilename "$( dir -1 "${deb_source}"/*.deb )" )"
+		if dnConfirm "Install package '${pkg}'?" ; then
+			# first try sudo dpkg
+			sudo dpkg -i "${deb_source}"/"${pkg}"
+			# if sudo failed, use su
+			if ! dnFlagTrue ${?} ; then
+				dnInfo "Enter root password"
+                # gdebi fails due to python problem
+				#su -c "gdebi ${deb_source}/${pkg}"
+				su -c "dpkg -i ${deb_source}/${pkg}"
+			fi
+		fi
+	else dnWarn "Multiple deb packages in final directory"
+	fi
+}
+# Display command feedback before exiting
+#   params: 1 - exit message
+#   prints: feedback
+#   return: nil
+cmdFailed () {
+	echo "${dn_divider}"
+	cat "${capture}"
+	echo "${dn_divider}"
+	dnEndScript 1 "${1}"
+}
+
+
+# MAIN
+
+# Process configuration files
+msg="Reading configuration files" ; echo -ne "$( dnRedReverseText "${msg}" )"
+processConfigFiles "${global_conf}" "${local_conf}"
+dnEraseText "${msg}"
+unset global_conf local_conf msg
+
+# Process command line
+processCommandLine "${@}"
+while [ "${*}" != "${args}" ] ; do shift ; done
+unset args
+
+# Check arguments
+# root directory [-r] (check dir structure after '-t' check)
+[ -z "${root}" ] && dnFailScript "No root directory supplied"
+root="$( dnNormalisePath "${root}" )"
+dnDirValid "${root}" || dnFailScript "Invalid root directory"
+# maintainer name [-n]
+[ -z "${name}" ] && dnFailScript "No maintainer name supplied"
+# maintainer email [-e]
+[ -z "${email}" ] && dnFailScript "No maintainer email address supplied"
+# package name [-p]
+[ -z "${pkg}" ] && dnFailScript "No package name supplied"
+# create template [-t]
+setDirectoryVariables  # needed for template creation and structure checking
+# if user specified, then create project template and exit
+if willCreateTemplate ; then
+    createTemplate
+    dnEndScript ${?}
+fi
+# check for directories required in both project types
+mandatoryProjectDirsPresent \
+	|| dnFailScript "Invalid project directory structure" \
+                    "Maybe you forgot to include '-t'"
+
+# Create all purpose capture file for command feedback
+# It can be displayed when there is an error
+capture="$( dnTempFile )" || dnEndScript 1 "Can't make temp file"
+dnTempTrap "${capture}"
+
+# Informational message
+dnInfo "${dn_self} is running ..." \
+       "Building package '${pkg}'" \
+       "Source directory:" "  '${deb_source}'"
+
+if buildFromDist ; then
+    dnInfo 'Received -d flag: skipping build step, expecting single tarball'
+else
+    # Delete all files/directories in debian source directory
+    rm -rf "${deb_source:?}"/* &> /dev/null
+
+    # Prepare to build tarball
+    dnInfo "Changing to tarball build directory"
+    cd "${tar_build}" &>"${capture}" \
+        || cmdFailed "Unable to cd to '${tar_build}"
+
+    # Change package version if desired
+    updatePackageVersion
+
+    # Project-specific changes to project source
+    # shellcheck source=/dev/null
+    dnFileValid "${tar_prep}" && source "${tar_prep}"
+    unset tar_prep
+
+    # (Re)build tarball
+    rm -f ./*.tar.gz &> /dev/null
+    if projectIsPerlModule ; then
+        dnInfo "Project is a Perl module"
+        dnInfo "Building tarball"
+        rm -f Makefile &> /dev/null
+        dnInfo "Build Makefile:"
+        perl Makefile.PL \
+            || dnEndScript 1 "Unable to build Makefile"
+        dnInfo "Run any Makefile tests:"
+        dnInfo "${dn_divider}"
+        make test \
+            || dnEndScript 1 "Makefile test(s) failed"
+        dnInfo "${dn_divider}"
+        dnInfo "Build distribution tarball:"
+        dnInfo "${dn_divider}"
+        make dist \
+            || dnEndScript 1 "Unable to build distribution tarball"
+        dnInfo "${dn_divider}"
+    else  # source is standard autotools project
+        # check for directories required in both project types
+        standardProjectDirsPresent \
+            || dnFailScript 'Invalid project directory structure'
+        dnInfo "Assuming project is a standard autotools project"
+        dnInfo "Building distribution tarball"
+        dnInfo "..running 'autoreconf'"
+        autoreconf --install &>"${capture}" || cmdFailed "'autoreconf' failed"
+        dnInfo "..escape special filename characters in './configure'"
+        escapeConfigureFilenameChars
+        dnInfo "..running './configure'"
+        ./configure &>"${capture}" || cmdFailed "'./configure' failed"
+        dnInfo "..running 'make dist'"
+        make dist || dnEndScript 1 "'make dist' failed"
+    fi
+    cp ./*.tar.gz "${tar_archive}" &>"${capture}" \
+        || cmdFailed "Unable to archive tarball"
+    dnInfo "Copying tarball to debian build directory"
+    cp "${tar_build}"/*.tar.gz "${deb_source}" \
+        || dnEndScript 1 "Unable to copy tarball to deb source directory"
+fi
+
+# Change to source directory
+dnInfo "Changing to debian build directory"
+cd "${deb_source}" || dnEndScript 1 "Unable to change to source directory"
+
+# Should have one archive in source directory
+[ "$( dnCountTarzip "${deb_source}" )" -eq 1 ] \
+	|| dnEndScript 1 "Need exactly one *.tar.gz file in source directory"
+
+# Extract source
+dnInfo "Extracting source from distribution archive"
+archive=$( dir -1 )
+tar zxf ./*.tar.gz || dnEndScript 1 "Unable to extract archive"
+  # trap meaningless error 'tar: write error' in following tar command
+source_base="$( tar -ztf "${archive}" 2>/dev/null | head -n 1 - | cut -d '/' -f 1 )"
+source_base="${deb_source}/${source_base}"
+cd "${source_base}" || dnEndScript 1 "Unable to cd to '${source_base}'"
+
+# Debianise source
+dnInfo "Initial debianisation using 'dh_make':"
+dnInfo "${dn_divider}"
+dh_make --single --email "${email}" --file ../"${archive}"
+dnInfo "${dn_divider}"
+unset archive email
+
+# Remove unneeded files in debian
+dnInfo "Removing unnecessary files in the debian/ subdirectory"
+for file in $( dir debian/ ) ; do
+	dnElementInArray "${file}" "${keep_debian_files[@]}" \
+        || rm debian/"${file}"
+done
+unset keep_debian_files file
+
+# Copy needed files to debian/
+if ! dnDirEmpty "${deb_debian}" ; then
+	dnInfo "Copy customised files to debian subdirectory"
+	cp -r "${deb_debian}"/* debian/ \
+		|| dnEndScript 1 "Unable to copy files"
+fi
+
+# Project-specific changes to debian source
+# shellcheck source=/dev/null
+dnFileValid "${deb_prep}" && source "${deb_prep}"
+unset deb_prep deb_scripts deb_debian
+unset tar_build tar_archive source_base
+
+# Build package
+dnInfo "Build package ['dpkg-buildpackage -rfakeroot -us -uc']:"
+dnInfo "${dn_divider}"
+  # 2010-08-22: bug workaround
+  # dpkg-buildpackage calls dpkg-source
+  # the default dpkg-source build format is '3.0 (quilt)'
+  # this causes dpkg-source to fail with a spurious error that it cannot find
+  #   an 'orig.tar.gz' file
+  # pass dpkg-source an option to make format '3.0 (native)' to avoid bug
+  # 2013-12-24: bug resolution
+  # builds began failing with error like:
+  #   dpkg-source: error: can't build with source format '3.0 (native)': \
+  #   native package version may not have a revision
+  # removal of the --source-format option allowed packages to build without error
+dpkg-buildpackage -rfakeroot -us -uc \
+	|| dnEndScript 1 "Package build failed"
+dnInfo "${dn_divider}"
+
+# Install package
+installPackage
+unset deb_source
+
+# Finished
+dnEndScript 0 "Build of '${pkg}' complete"

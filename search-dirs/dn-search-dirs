@@ -1,0 +1,305 @@
+#!/usr/bin/perl 
+
+use Moo;    #                                                          {{{1
+use strictures 2;
+use 5.014_002;
+use version; our $VERSION = qv('0.1');
+use namespace::clean;    #                                             }}}1
+
+{
+
+    package Dn::Internal;
+
+    use Moo;             # {{{1
+    use strictures 2;
+    use namespace::clean -except => [ '_options_data', '_options_config' ];
+    use autodie qw(open close);
+    use Dn::Common;
+    use File::HomeDir;
+    use File::Path qw(make_path);
+    use Function::Parameters;
+    use MooX::HandlesVia;
+    use MooX::Options;
+    use Readonly;
+    use Term::Clui;
+    local $ENV{CLUI_DIR} = 'OFF';    # do not remember responses
+    use Types::Standard qw(ArrayRef Str);
+    use Data::Dumper::Simple;
+
+    my $cp = Dn::Common->new();
+
+    Readonly my $TRUE  => 1;
+    Readonly my $FALSE => 0;
+
+    # debug
+    use Data::Dumper::Simple;    #                                     }}}1
+
+    # options
+
+    # list_dirs (-l)                                                   {{{1
+    option 'list_dirs' => (
+        is            => 'ro',
+        required      => $FALSE,
+        short         => 'l',
+        documentation => 'List search directories',
+    );
+
+    # edit_dirs (-e)                                                   {{{1
+    option 'edit_dirs' => (
+        is            => 'ro',
+        required      => $FALSE,
+        short         => 'e',
+        documentation => 'Edit directory list',
+    );    #                                                            }}}1
+
+    # attributes
+
+    # _config_dir                                                      {{{1
+    has '_config_dir' => (
+        is            => 'lazy',
+        isa           => Types::Standard::Str,
+        documentation => 'Directory containing the configuration file',
+    );
+
+    method _build__config_dir () {
+        my $dir = File::HomeDir->my_home;
+        $dir = $cp->dir_add_dir( $dir, '.config' );
+        $dir = $cp->dir_add_dir( $dir, 'dn-search-dirs' );
+        return $dir;
+    }
+
+    # _config_file                                                     {{{1
+    has '_config_file' => (
+        is            => 'lazy',
+        isa           => Types::Standard::Str,
+        documentation => 'Configuration file containing directory listing',
+    );
+
+    method _build__config_file () {
+        my $path = $self->_config_dir;
+        $path = $cp->dir_add_file( $path, 'dir-list' );
+        return $path;
+    }
+
+    # _add_dirs, _dirs, _has_dirs                                      {{{1
+    has 'directory_list' => (
+        is          => 'rw',
+        isa         => Types::Standard::ArrayRef [Types::Standard::Str],
+        lazy        => $TRUE,
+        default     => sub { [] },
+        handles_via => 'Array',
+        handles     => {
+            _dirs     => 'elements',
+            _add_dirs => 'push',
+            _has_dir  => 'count',
+        },
+        documentation => 'List of directories',
+    );    #                                                            }}}1
+
+    # methods
+
+    # main()                                                           {{{1
+    #
+    # does:   main method
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method main () {
+        $self->_load_dirs;
+
+        # list or edit directories if requested (edit takes precedence)
+        if ( $self->list_dirs and not $self->edit_dirs ) { $self->_list_dirs; }
+        if ( $self->edit_dirs ) { $self->_edit_dirs; }
+
+        $self->_search_dirs;
+
+        return;
+    }
+
+    # _load_dirs()                                                     {{{1
+    #
+    # does:   read config file and get directory names
+    #
+    # params: nil
+    # prints: error messages
+    # return: n/a, ignores errors
+    method _load_dirs () {
+        my $conf = $self->_config_file;
+        if ( not -e $conf ) {
+            warn "WARNING: Configuration file '$conf' is missing\n";
+            return;
+        }
+        my @dirs;
+        open my $fh, '<', $conf;
+        chomp( my @lines = <$fh> );
+        close $fh;
+        for my $line (@lines) {
+            next if $line =~ /^\#/xsm;
+            next if $line eq q{};
+            $line =~ s/ # .* $//xsm;
+            if ( -d $line ) { push @dirs, $line; }
+            else            { warn "Invalid directory: $line\n"; }
+        }
+        if (@dirs) { $self->_add_dirs(@dirs); }
+    }
+
+    # _list_dirs()                                                     {{{1
+    #
+    # does:   print directory names
+    #
+    # params: nil
+    # prints: directory names
+    # return: n/a, exits at conclusion
+    method _list_dirs () {
+        my @dirs = $self->_dirs;
+        if   (@dirs) { 
+            for my $dir (@dirs) { say $dir; }
+        }
+        else {
+            warn "No directories are configured\n";
+        }
+        exit;
+    }
+
+    # _edit_dirs()                                                     {{{1
+    #
+    # does:   edit directory list
+    #
+    # params: nil
+    # prints: user feedback
+    # return: n/a, exits at conclusion
+    method _edit_dirs () {
+        my $conf = $self->_config_file;
+
+        # deal with case of missing configuration file
+        if ( not -e $conf ) {
+            my $conf_dir = $self->_config_dir;
+            File::Path::make_path($conf_dir)
+                or die "Unable to create directory '$conf_dir'\n";
+            open my $fh, '>', $conf;
+            say {$fh} '# dn-search-dirs configuration file';
+            say {$fh} '# add one directory per line';
+            close $fh;
+        }
+
+        Term::Clui::edit($conf);
+        exit;
+    }
+
+    # _search_dirs()                                                   {{{1
+    #
+    # does:   repeatedly search directories
+    #
+    # params: nil
+    # prints: user feedback
+    # return: n/a
+    method _search_dirs () {
+        my @dirs = $self->_dirs;
+        if ( not @dirs ) { die "No directories configured\n"; }
+        print "\n";
+        say 'Searching the following directories:';
+        for my $dir (@dirs) { say "- $dir"; }
+        print "\n";
+        say 'Enter an empty search string to exit';
+        while ($TRUE) {
+            my @results;
+            print "\n";
+            my $frag = $cp->input_ask('Enter part of file name:');
+            last if not $frag;
+            my $pattern = q{*} . $frag . q{*};
+            for my $dir (@dirs) {
+                my @matches = $cp->find_files_in_dir( $dir, $pattern );
+                push @results, @matches;
+            }
+            my $count = scalar @results;
+            say "MATCHES: $count";
+            for my $result (@results) { say $result; }
+        }
+        return;
+    }    #                                                             }}}1
+
+}
+
+my $p = Dn::Internal->new_with_options->main;
+
+1;
+
+# POD                                                                  {{{1
+__END__
+
+=head1 NAME
+
+dn-search-dirs - repeatedly search a set of directories
+
+=head1 USAGE
+
+B<dn-search-dirs>
+
+B<dn-search-dirs -l>
+
+B<dn-search-dirs -e>
+
+B<dn-search-dirs -h>
+
+=head1 OPTIONS
+
+=over
+
+=item B<-l>
+
+List configured directories. Boolean.
+
+Optional. Default: false.
+
+=item B<-e>
+
+Edit configured directories. Boolean.
+
+Optional. Default: false.
+
+=item B<-h>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+A list of directories is kept in a configuration file
+(F<~/.config/dn-search-dirs/dir-list>) that can be listed on screen (option
+C<-l>) and edited (option C<-e>).
+
+When run without an option the user is prompted for a file name fragment. All
+configured directories are then searched for matching files. Note that these
+directory searches are not recursive. When the search is complete a total match
+count and all matching file paths are displayed. The user is then prompted for
+another file name fragment.
+
+To exit the user presses enter without entering a search fragment, i.e., an
+empty search string.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+autodie, Dn::Common, File::HomeDir, File::Path, Function::Parameters, Moo,
+MooX::HandlesVia, MooX::Options, namespace::clean, Readonly, strictures,
+Term::Clui, Types::Standard, version.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 AUTHOR
+
+David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2015 David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+# vim:fdm=marker

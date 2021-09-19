@@ -1,0 +1,7 @@
+# sudoers file supplied by package dn-cronsudo
+# do not edit directly but modify the package
+
+# filesystem manipulation
+david ALL= NOPASSWD: /bin/mount
+david ALL= NOPASSWD: /bin/umount
+david ALL= NOPASSWD: /bin/eject

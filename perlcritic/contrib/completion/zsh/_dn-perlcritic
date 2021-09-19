@@ -1,0 +1,23 @@
+#compdef dn-perlcritic
+
+_severity() {
+  local -a _severity
+  _severity=(1 2 3 4 5)
+  _values 'severity' "${_severity[@]}"
+}
+
+local rc=1
+
+_arguments -S \
+  - '(help_options)' \
+    '-h[Show a compact help message]' \
+    '--help[Show a long help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-p --policies)'{-p,--policies}'[List loaded policies and exit]' \
+    '(-s --severity)'{-s,--severity}'[Severity of checking (1-5, default=5)]:severity:_severity' \
+    '*:perl file to check:_files' \
+  && rc=0
+
+return rc

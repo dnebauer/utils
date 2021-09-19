@@ -1,0 +1,1269 @@
+#!/usr/bin/perl
+
+use Moo;    #                                                          {{{1
+use strictures 2;
+use 5.014_002;
+use version; our $VERSION = qv('0.1');
+use namespace::clean;    #                                             }}}1
+
+# package Dn::Distro::Archive                                          {{{1
+{
+
+    package Dn::Distro::Archive;
+
+    # Purpose                                                          {{{2
+
+    # Models behaviour of different type of distribution archive
+
+    # For each archive type this package provides:
+
+    # - a glob that matches the archive file name
+    #   . usually a distinctive suffix
+    #   . string
+    #   . in targz archives = '*.tar.gz'
+
+    # - number of elements in the suffix
+    #   . useful for snipping them off filenames
+    #   . integer
+    #   . in targz archives = 2
+
+    # - shell command to extract archive
+    #   . used to extract archive contents
+    #   . reference to array of strings (each word in
+    #     the command is an array element)
+    #   . include element '::FILE::' to represent the
+    #     archive name
+    #   . for targx archives = [ 'tar', 'zxvf', '::FILE::' ]
+    #                                                                  }}}2
+
+    use Moo;
+    use strictures 2;
+    use namespace::clean;
+    use Carp qw(confess);
+    use Function::Parameters;
+    use Readonly;
+    use Types::Standard;
+
+    Readonly my $TRUE       => 1;
+    Readonly my $file_token => '::FILE::';
+
+    has 'match' => (
+        is       => 'rw',
+        isa      => Types::Standard::Str,
+        required => $TRUE,
+        doc      => 'Glob for matching file name',
+    );
+
+    has 'ext_snips' => (
+        is       => 'rw',
+        isa      => Types::Standard::Int,
+        required => $TRUE,
+        doc      => 'Number of filetype extensions',
+    );
+
+    has 'extract_cmd_parts' => (
+        is       => 'rw',
+        isa      => Types::Standard::ArrayRef [Types::Standard::Str],
+        traits   => ['Array'],
+        required => $TRUE,
+        handles  => { extract_command => 'elements', },
+        doc      => 'Command to extract archive',
+    );
+
+    method extract_cmd ($file) {
+        if ( not $file ) { confess 'No file provided'; }
+        my @cmd = @{ $self->extract_cmd_parts };
+        foreach my $part (@cmd) {
+            if ( $part eq $file_token ) { $part = $file; }
+        }
+        return [@cmd];
+    }
+}
+
+# package Dn::Distro::File                                             {{{1
+{
+
+    package Dn::Distro::File;
+
+    # Purpose                                                          {{{2
+
+    # Stores the following information about a distribution file:
+
+    # - name
+    #   . file name
+    #   . string
+
+    # module_ver
+    #   . part of the file name representing module name and version
+    #   . string
+
+    # distro_type
+    #   . key value to the corresponding distribution type
+    #     in Dn::BuildModule attribute '_distro_types_details'
+    #   . string
+    #                                                                  }}}2
+
+    use Moo;
+    use strictures 2;
+    use namespace::clean;
+    use Readonly;
+    use Types::Standard;
+
+    Readonly my $TRUE => 1;
+
+    has 'name' => (
+        is       => 'rw',
+        isa      => Types::Standard::Str,
+        required => $TRUE,
+        doc      => 'Distribution file name',
+    );
+
+    has 'module_ver' => (
+        is       => 'rw',
+        isa      => Types::Standard::Str,
+        required => $TRUE,
+        doc      => 'Module version',
+    );
+
+    has 'distro_type' => (
+        is       => 'rw',
+        isa      => Types::Standard::Str,
+        required => $TRUE,
+        doc      => 'Distribution type keyword',
+
+        # keyword is one of the keys of the Dn::BuildModule
+        # attribute '_distro_types_details' hash
+    );
+}    #                                                                 }}}1
+
+{
+
+    package Dn::BuildModule;
+
+    use Moo;    #                                                      {{{1
+    use strictures 2;
+    use namespace::clean -except => [ '_options_data', '_options_config' ];
+    use MooX::Options;
+    use MooX::HandlesVia;
+    use Function::Parameters;
+    use Try::Tiny;
+    use English qw(-no_match_vars);
+    use Carp qw(confess);
+    use Readonly;
+    use Dn::Common;    # instantiated below
+    use File::Basename;
+    use File::Copy::Recursive;
+    use File::DirSync;
+    use File::chdir;    # provides $CWD
+    use Path::Tiny;
+    use Types::Dn;      # custom subtypes
+    use Types::Path::Tiny;
+    use Types::Standard;
+    use experimental qw(switch);
+
+    Readonly my $TRUE  => 1;
+    Readonly my $FALSE => 0;
+
+    # abort on failed system command
+    my $cp = Dn::Common->new( run_command_fatal => $TRUE );    #       }}}1
+
+    # Options
+
+    # email        (-e)                                                {{{1
+    option 'email' => (
+        is       => 'ro',
+        format   => 's',
+        required => $FALSE,
+        short    => 'e',
+        doc      => 'Package maintainer email',
+
+        # this option is not used directly, but it used in
+        # construction of attribute '_email'
+    );
+
+    # export_email (-x)                                                {{{1
+    option 'export_email' => (
+        is       => 'ro',
+        required => $FALSE,
+        short    => 'x',
+        doc      => 'Export email as environmental variable',
+
+        # in March 2017 a dh-make-perl bug (#856532,
+        # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=856532)
+        # surfaced which prevented it running; one workaround
+        # is to set the environmental variable EMAIL to the
+        # package maintainer email
+    );
+
+    # no_builddeps (-d)                                                {{{1
+    option 'no_builddeps' => (
+        is       => 'ro',
+        required => $FALSE,
+        short    => 'd',
+        doc      => 'Prevent debuild checking build dependencies',
+
+       # debuild's default behaviour is to run dpkg-checkbuilddeps to check
+       # build dependencies and conflicts;
+       # occasionally this check will declare that a locally installed module
+       # is an unmet dependency even if a suitable version of it is correctly
+       # installed;
+       # this option runs debuild with its '-d' option, which prevents it
+       # running dpkg-checkbuilddeps;
+       # this solves the immediate problem of the failed dependency check, but
+       # be aware it may obscure other build problems
+    );
+
+    # no_install   (-n)                                                {{{1
+    option 'no_install' => (
+        is       => 'ro',
+        required => $FALSE,
+        short    => 'n',
+        doc      => 'Suppress installation of debian package',
+    );    #                                                            }}}1
+
+    # Attributes
+
+    # _base_dir                                                        {{{1
+    has '_base_dir_path' => (
+        is       => 'ro',
+        isa      => Types::Path::Tiny::AbsDir,
+        coerce   => $TRUE,
+        required => $TRUE,
+        default  => sub { $cp->parent_dir( $cp->cwd() ) },
+        doc      => q{Base directory (parent of 'source' and 'build')},
+    );
+
+    method _base_dir () {
+        return $self->_base_dir_path->canonpath();
+    }
+
+    # _build_dir                                                       {{{1
+    has '_build_dir_path' => (
+        is     => 'lazy',
+        isa    => Types::Path::Tiny::AbsDir,
+        coerce => $TRUE,
+        doc    => 'Build directory',
+    );
+
+    method _build__build_dir_path () {
+        my $path = $self->_base_dir;
+        return $cp->dir_add_dir( $path, 'build' );
+    }
+
+    method _build_dir () {
+        return $self->_build_dir_path->canonpath();
+    }
+
+    # _deb_file                                                        {{{1
+    has '_deb_file_name' => (
+        is       => 'rw',
+        isa      => Types::Path::Tiny::File,
+        coerce   => $TRUE,
+        required => $FALSE,
+        doc      => 'Debian package filename',
+
+        # example: libdn-perltidy_0.1-1_all.deb
+    );
+
+    method _deb_file () {
+        if ( $self->_deb_file_name->basename ) {
+            return $self->_deb_file_name->basename();
+        }
+        else {
+            return;
+        }
+    }
+
+    # _debian_dir                                                      {{{1
+    has '_debian_dir_path' => (
+        is     => 'lazy',
+        isa    => Types::Path::Tiny::AbsDir,
+        coerce => $TRUE,
+        doc    => 'Module build debian directory',
+
+        # = <base_dir>/build/MODULENAME-VERSION/debian
+    );
+
+    method _build__debian_dir_path () {
+        if ( not $self->_distro_name_ver ) {
+            confess "Cannot construct module debian directory pathname\n";
+        }
+        my $path = $self->_base_dir;
+        return $cp->dir_add_dir( $path, 'build', $self->_distro_name_ver,
+            'debian' );
+    }
+
+    method _debian_dir () {
+        return $self->_debian_dir_path->canonpath();
+    }
+
+    # _distro_file                                                     {{{1
+    has '_distro_file_name' => (
+        is       => 'rw',
+        isa      => Types::Path::Tiny::File,
+        coerce   => $TRUE,
+        required => $FALSE,
+        doc      => 'Distribution filename',
+
+        # example: Dn-PerlTidy-v0.1.tar.gz
+    );
+
+    method _distro_file () {
+        if ( $self->_distro_file_name ) {
+            return $self->_distro_file_name->basename();
+        }
+        else {
+            return;
+        }
+    }
+
+    # _distro_name_ver                                                 {{{1
+    has '_distro_name_ver' => (
+        is       => 'rw',
+        isa      => Types::Standard::Str,
+        required => $FALSE,
+        doc      => 'Basename of distro gzipped tarball',
+
+        # example: Dn-PerlTidy-v0.1
+    );
+
+    # _distro_types_details                                            {{{1
+    has '_distro_types_details' => (
+        is  => 'ro',
+        isa => Types::Standard::HashRef [
+            Types::Standard::InstanceOf ['Dn::Distro::Archive']
+        ],
+        reader      => '_distro_types_details',
+        builder     => '_build_distro_types_details',
+        handles_via => 'Hash',
+        handles     => { _distro_types => 'keys', _distro_type => 'get', },
+        doc         => 'Details of distribution types',
+    );
+
+    method _build_distro_types_details () {
+
+        # include '::FILE::' token in each extract
+        # command to represent the file name
+        return {
+            targz => Dn::Distro::Archive->new(
+                match             => '*.tar.gz',
+                ext_snips         => 2,
+                extract_cmd_parts => [ 'tar', 'zxvf', '::FILE::' ],
+            ),
+        };
+    }
+
+    # _email                                                           {{{1
+    has '_email' => (
+        is  => 'lazy',
+        isa => Types::Dn::EmailAddress,
+        doc => 'Package maintainer email',
+    );
+
+    method _build__email () {
+        return $self->email ? $self->email : 'david@nebauer.org';
+    }
+
+    # _module_dir                                                      {{{1
+    has '_module_dir_path' => (
+        is     => 'lazy',
+        isa    => Types::Path::Tiny::AbsDir,
+        coerce => $TRUE,
+        doc    => 'Module directory',
+
+        # = <base_dir>/build/MODULENAME-VERSION
+    );
+
+    method _build__module_dir_path () {
+        if ( not $self->_distro_name_ver ) {
+            confess "Cannot construct module directory pathname\n";
+        }
+        my $path = $self->_base_dir;
+        return $cp->dir_add_dir( $path, 'build', $self->_distro_name_ver );
+    }
+
+    method _module_dir () {
+        return $self->_module_dir_path->canonpath();
+    }
+
+    # _required_dir                                                    {{{1
+    has '_required_dir_path' => (
+        is     => 'lazy',
+        isa    => Types::Path::Tiny::AbsDir,
+        coerce => $TRUE,
+        doc    => 'Required directory',
+    );
+
+    method _build__required_dir_path () {
+        my $path = $self->_base_dir;
+        $path = $cp->dir_add_dir( $path, 'build', 'required' );
+    }
+
+    method _required_dir () {
+        return $self->_required_dir_path->canonpath();
+    }
+
+    # _source_dir                                                      {{{1
+    has '_source_dir_path' => (
+        is     => 'lazy',
+        isa    => Types::Path::Tiny::AbsDir,
+        coerce => $TRUE,
+        doc    => 'Source directory',
+    );
+
+    method _build__source_dir_path () {
+        my $path = $self->_base_dir;
+        return $cp->dir_add_dir( $path, 'source' );
+    }
+
+    method _source_dir () {
+        return $self->_source_dir_path->canonpath();
+    }
+
+    # _this_distro_type                                                {{{1
+    has '_this_distro_type' => (
+        is       => 'rw',
+        isa      => Types::Standard::Str,
+        required => $FALSE,
+        doc      => 'Distro file archive type',
+
+        # one of the keys from attribute '_distro_types_details'
+    );    #                                                            }}}1
+
+    # Methods
+
+    # main()                                                           {{{1
+    #
+    # does:  builds debian package from module
+    # params: nil
+    # prints: nil
+    # return: n/a
+    method main () {
+        if ( not $self->_tools_available ) { return; }
+        $self->_build_dist;
+        $self->_extract_module_name_version_type;
+        $self->_extract_distribution;
+        $self->_create_debian_build_files;
+        $self->_amend_debian_rules;
+        $self->_copy_required_files;
+        $self->_create_debian_package;
+        $self->_retrieve_deb_file_name;
+        $self->_install_package;
+    }
+
+    # _tools_available()                                               {{{1
+    #
+    # does:   check that required executables are on system
+    # params: nil
+    # prints: messages if required tools are not available
+    # return: boolean
+    method _tools_available () {
+        my @tools = qw(debuild make tar);
+        return $cp->tools_available(@tools);
+    }
+
+    # _build_dist()                                                    {{{1
+    #
+    # does:   build module distribution (.tar.gz)
+    # params: nil
+    # prints: nil
+    # return: nil, die on error
+    method _build_dist () {
+        $self->_copy_source_to_build;
+        if ( $self->_has_dist_ini ) {
+            $self->_build_dist_using_milla;
+            return;
+        }
+        if ( $self->_has_makefile_pl ) {
+            $self->_build_dist_using_extutils_makemaker;
+            return;
+        }
+        if ( $self->_has_build_pl ) {
+            $self->_build_dist_using_module_build;
+            return;
+        }
+        die "No Makefile.PL, Build.PL or dist.ini found\n";
+    }
+
+    # _copy_source_to_build                                            {{{1
+    #
+    # does:   recursive copy of contents of source directory
+    #         to build directory
+    # params: nil
+    # prints: nil
+    # return: nil, die on error
+    method _copy_source_to_build () {
+        my $source = $self->_source_dir;
+        my $build  = $self->_build_dir;
+        if ( not -e $source ) {
+            die "Cannot locate source directory '$source'\n";
+        }
+        if ( not -e $build ) {
+            die "Cannot locate build directory '$build'\n";
+        }
+        try {    # ensure nocache so does full copy each time
+            my $dirsync
+                = File::DirSync->new(
+                { src => $source, dst => $build, nocache => $TRUE } );
+            $dirsync->dirsync();
+            say 'Copied source to build directory';
+        }
+        catch {
+            warn "Copy of source to build directory failed with error:\n";
+            confess $_;    # Try::Tiny puts error in $_
+        };
+    }
+
+    # _has_dist_ini()                                                  {{{1
+    #
+    # does:   check whether build directory contains file 'dist.ini'
+    # params: nil
+    # prints: nil
+    # return: boolean
+    method _has_dist_ini () {
+        my $build_dir = $self->_build_dir;
+        return $cp->find_files_in_dir( $build_dir, qr/^dist.ini$/xsm );
+    }
+
+    # _build_dist_using_milla()                                        {{{1
+    #
+    # does:   build distribution using milla
+    # params: nil
+    # prints: nil
+    # return: nil, die on error
+    method _build_dist_using_milla () {
+        local $File::chdir::CWD = $File::chdir::CWD;
+        $File::chdir::CWD = $self->_build_dir;
+        $cp->run_command( [ 'prove', '-l', 't' ] );    # prove -l t
+        $cp->run_command( [ 'milla', 'test' ] );       # milla test
+        $cp->run_command( [ 'milla', 'build' ] );      # milla build
+    }
+
+    # _has_makefile_pl()                                               {{{1
+    #
+    # does:   check whether build directory contains file 'Makefile.PL'
+    # params: nil
+    # prints: nil
+    # return: boolean
+    method _has_makefile_pl () {
+        my $build_dir = $self->_build_dir;
+        return $cp->find_files_in_dir( $build_dir, qr/^Makefile.PL$/xsm );
+    }
+
+    # _build_dist_using_extutils_makemaker                             {{{1
+    #
+    # does:   build distribution using Makefile.PL
+    # params: nil
+    # prints: nil
+    # return: nil, die on error
+    method _build_dist_using_extutils_makemaker () {
+        local $File::chdir::CWD = $File::chdir::CWD;
+        $File::chdir::CWD = $self->_build_dir;
+        $cp->run_command( [ 'perl', 'Makefile.PL' ] );    # perl Makefile.PL
+        $cp->run_command( [ 'make', 'test' ] );           # make test
+        $cp->run_command( [ 'make', 'dist' ] );           # make dist
+    }
+
+    # _has_build_pl()                                                  {{{1
+    #
+    # does:   check whether build directory contains file 'Build.PL'
+    # params: nil
+    # prints: nil
+    # return: boolean
+    method _has_build_pl () {
+        my $build_dir = $self->_build_dir;
+        return $cp->find_files_in_dir( $build_dir, qr/^Build.PL$/xsm );
+    }
+
+    # _build_dist_using_module_build                                   {{{1
+    #
+    # does:   build distribution using Build.PL
+    # params: nil
+    # prints: nil
+    # return: nil, die on error
+    method _build_dist_using_module_build () {
+        local $File::chdir::CWD = $File::chdir::CWD;
+        $File::chdir::CWD = $self->_build_dir;
+        $cp->run_command( [ 'perl', 'Build.PL' ] );    # perl Build.PL
+        $cp->run_command( ['./Build'] );               # ./Build
+        $cp->run_command( [ './Build', 'test' ] );     # ./Build test
+        $cp->run_command( [ './Build', 'dist' ] );     # ./Build dist
+    }
+
+    # _extract_module_name_version_type()                              {{{1
+    #
+    # does:   locates distribution file and gets name
+    #         extracts module name-version from distribution file name
+    #         assigns archive type of distribution file
+    #         sets attributes for file name and type, and module-version
+    # params: nil
+    # prints: nil
+    # return: nil, die on error
+    method _extract_module_name_version_type () {
+        local $File::chdir::CWD = $File::chdir::CWD;
+        $File::chdir::CWD = $self->_build_dir;
+        my @distro_types = $self->_distro_types;
+        my @results;
+        foreach my $type (@distro_types) {        # cycle through distro types
+            my $num_snips    = $self->_distro_type($type)->ext_snips;
+            my $pattern      = $self->_distro_type($type)->match;
+            my @file_matches = $cp->find_files_in_dir( $CWD, $pattern );
+            foreach my $file_match (@file_matches) {   # expect 0 or 1 matches
+                my $distro_file = $cp->get_filename($file_match);
+                my $module_ver = $distro_file;         # get module-ver
+                for ( 1 .. $num_snips ) {
+                    my ( $file, $dir, $suffix )
+                        = File::Basename::fileparse( $module_ver,
+                        qr/[.][^.]*/xsm );
+                    $module_ver = $file;
+                }
+                my $result = Dn::Distro::File->new(
+                    name        => $distro_file,
+                    module_ver  => $module_ver,
+                    distro_type => $type,
+                );
+                push @results, $result;
+            }
+        }
+
+        # success only if one distribution file found
+        for ( scalar @results ) {
+            when ( $_ == 0 ) {    # error
+                my $msg = 'Unable to extract module name and version ';
+                $msg .= 'from distribution file';
+                confess $msg;
+            }
+            when ( $_ > 1 ) {     # error
+                my @msg = "Multiple distribution files detected:\n";
+                foreach my $result (@results) {
+                    my $file = $result->name;
+                    push @msg, "  $file\n";
+                }
+                die @msg;
+            }
+            default {             # success
+                my $result = $results[0];
+                $self->_distro_file_name( $result->name );
+                $self->_distro_name_ver( $result->module_ver );
+                $self->_this_distro_type( $result->distro_type );
+            }
+        }
+    }
+
+    # _extract_distribution()                                          {{{1
+    #
+    # does:   extracts distribution file in build directory
+    # params: nil
+    # prints: nil
+    # return: nil, die on error
+    method _extract_distribution () {
+
+        # assemble extraction command
+        my $type = $self->_this_distro_type;
+        my $file = $self->_distro_file;
+        my $cmd  = $self->_distro_type($type)->extract_cmd($file);
+
+        # run command
+        local $File::chdir::CWD = $File::chdir::CWD;
+        $File::chdir::CWD = $self->_build_dir;
+        $cp->run_command($cmd);
+    }
+
+    # _create_debian_build_files()                                     {{{1
+    #
+    # does:   run dh-make-perl to create debian package files
+    # params: nil
+    # prints: nil
+    # return: nil, die on error
+    method _create_debian_build_files () {
+        my $email      = $self->_email;
+        my $export_cmd = [ 'export', "EMAIL=$email" ];
+        my $dh_cmd     = ['dh-make-perl'];
+        my $connected  = $cp->internet_connection($TRUE);
+        if ( not $connected ) {
+            say "\nRunning dh-make-perl with '--no-network'";
+            $dh_cmd = $cp->push_arrayref( $dh_cmd, '--no-network' );
+        }
+        $dh_cmd = $cp->push_arrayref( $dh_cmd, '--email', $email,
+            $self->_distro_name_ver );
+        local $File::chdir::CWD = $File::chdir::CWD;
+        $File::chdir::CWD = $self->_build_dir;
+        if ( $self->export_email ) { $cp->run_command($export_cmd); }
+        $cp->run_command($dh_cmd);
+    }
+
+    # _derive_pkg_name_from_changelog()                                {{{1
+    #
+    # does:   extract debian package name from changelog
+    # params: nil
+    # prints: nil
+    # return: scalar string, die on error
+    method _derive_pkg_name_from_changelog () {
+
+        # get content of changelog
+        my $debian_dir = $self->_debian_dir;
+        my $changelog = $cp->dir_add_file( $debian_dir, 'changelog' );
+        if ( not( -f $changelog ) ) {
+            confess "Cannot locate changelog '$changelog'";
+        }
+        open my $fh, '<', $changelog;
+        my @log = <$fh>;
+        close $fh;
+        chomp @log;
+
+        # get package name from first line
+        my $line = $log[0];
+        my $pkg = ( split /\s+/xsm, $line )[0];
+        if ( not $pkg ) { confess 'Unable to extract package name'; }
+
+        return $pkg;
+    }
+
+    # _amend_debian_rules()                                            {{{1
+    #
+    # does:   make changes to debian rules file
+    # params: nil
+    # prints: nil
+    # return: n/a, die on failure
+    method _amend_debian_rules () {
+
+        # reused variables
+        my ( $fh, @new_rule );
+
+        # get debian subdirectory
+        my $debian_dir = $self->_debian_dir;
+        my $rules_fp = $cp->dir_add_file( $debian_dir, 'rules' );
+        if ( not -f $rules_fp ) { confess 'Cannot find rules file'; }
+
+        # read in default rules file
+        open $fh, '<', $rules_fp;
+        my @rules = <$fh>;
+        close $fh;
+        chomp @rules;
+
+        # remove empty lines at end of file
+        while (1) {
+            my $last         = $rules[-1];
+            my $next_to_last = $rules[-2];
+            last if ( not( not $last and not $next_to_last ) );
+            pop @rules;
+        }
+
+        # add bash completion if bash completion file provided in
+        # 'required' directory
+        # - must have form: 'PKG_NAME.bash-completion'
+        my $pkg_name = $self->_derive_pkg_name_from_changelog;
+        my $required = $self->_required_dir;
+        my $bashcomp
+            = $cp->dir_add_file( $required, $pkg_name ) . '.bash-completion';
+        if ( -e $bashcomp ) {
+            foreach my $line (@rules) {
+                if ( $line =~ /^\s*dh\s+/xsm ) {
+                    $line .= ' --with bash-completion';
+                }
+            }
+        }
+
+        # new rule: set sharedstatedir
+        @new_rule = (
+            q{},
+            q{# Make directory variable sharedstatedir debian compliant},
+            q{override_dh_auto_configure:},
+            q{	dh_auto_configure -- --sharedstatedir=/var/lib},
+            q{},
+        );
+        push @rules, @new_rule;
+
+        # new rule: do not sign package
+        @new_rule = (
+            q{# Suppress digital signing of package},
+            q{override_dh_md5sums:}, q{},
+        );
+        push @rules, @new_rule;
+
+        # new rule: prevent stripping of information from files
+        @new_rule = (
+            q{# Suppress stripping of information from files},
+            q{override_dh_strip_nondeterminism:},
+            q{},
+        );
+        push @rules, @new_rule;
+
+        # write back amended file
+        open $fh, '>', $rules_fp;
+        foreach my $line (@rules) {
+            say {$fh} $line
+                or confess "Unable to write to $rules_fp: $OS_ERROR";
+        }
+        close $fh;
+    }
+
+    # _copy_required_files()                                           {{{1
+    #
+    # does:   copy any required files to debian subdirectory
+    # params: nil
+    # prints: number of files copied
+    # return: nil, die on error
+    method _copy_required_files () {
+
+        # set source and target directories
+        my $src = $self->_required_dir;
+        my $dst = $self->_debian_dir;
+
+        # remove target file before copy, and copy top level directory only
+        local $File::Copy::Recursive::RMTrgFil = $TRUE;
+        local $File::Copy::Recursive::MaxDepth = 1;
+        my ( $files_and_dirs_num, $dirs_num, $depth )
+            = File::Copy::Recursive::dircopy( $src, $dst )
+            or confess "Copy of required debian files failed\n";
+
+        # report outcome
+        if ( $files_and_dirs_num > 0 ) {
+            my $files_num = $files_and_dirs_num - $dirs_num;
+            say q{ };
+            say "Copied $files_num required debian files to build tree";
+        }
+    }
+
+    # _create_debian_package()                                         {{{1
+    #
+    # does:   runs debuild to build package
+    # params: nil
+    # prints: nil
+    # return: nil, die on error
+    method _create_debian_package () {
+        say q{ };
+        say 'Building debian package';
+
+        # debuild options: -i  = filter out revision control system files
+        #                  -us = do not sign source package
+        #                  -uc = do not sign .changes file
+        #                  -b  = binary build only - no source files
+        #                  -d  = do not check building dependencies
+        my $cmd = [qw/debuild -i -us -uc -b/];
+        if ( $self->no_builddeps ) {
+            $cmd = $cp->push_arrayref( $cmd, '-d' );
+        }
+        local $File::chdir::CWD = $File::chdir::CWD;
+        $File::chdir::CWD = $self->_module_dir;
+        $cp->run_command($cmd);
+    }
+
+    # _retrieve_deb_file_name()                                        {{{1
+    #
+    # does:   locates distribution file and gets name
+    #         extracts module name-version from distribution file name
+    #         assigns archive type of distribution file
+    #         sets attributes for file name and type, and module-version
+    # params: nil
+    # prints: name of deb file
+    # return: nil, die on error
+    method _retrieve_deb_file_name () {
+        local $File::chdir::CWD = $File::chdir::CWD;
+        $File::chdir::CWD = $self->_build_dir;
+        my @debs = $cp->find_files_in_dir( $CWD, '*.deb' );
+        if ( scalar @debs == 0 ) {      # error
+            confess "Unable to find built deb file\n";
+        }
+        elsif ( scalar @debs > 1 ) {    # error
+            my @msg = ("Multiple distribution files detected:\n");
+            foreach my $deb (@debs) {
+                push @msg, "  $deb\n";
+            }
+            die @msg;
+        }
+        else {                          # success
+            my $deb_path = $debs[0];
+            my $deb_name = $cp->get_filename($deb_path);
+            say q{ };
+            say "Built deb file '../build/$deb_name'";
+            $self->_deb_file_name($deb_name);
+        }
+    }
+
+    # _install_package()                                               {{{1
+    #
+    # does:   installs debian package
+    # prints: question and feedback
+    # params: nil
+    # return: n/a
+    method _install_package () {
+
+        # shall we install?
+        if ( $self->no_install ) {
+            say q{ };
+            say 'Not installing package at your request';
+            return;
+        }
+
+        # okay, let's install
+        my $deb = '../build/' . $self->_deb_file;
+        $cp->debian_install_deb($deb);
+    }    #                                                             }}}1
+
+}
+
+my $p = Dn::BuildModule->new_with_options->main;
+
+1;
+
+# POD                                                                  {{{1
+
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+dn-build-perl-mod-deb - build debian package
+
+=head1 USAGE
+
+B<dn-build-perl-mod-deb> [B<-e> I<email>] [B<-x>] [B<-d>] [B<-n>]
+
+B<dn-build-perl-mod-deb -h>
+
+=head1 OPTIONS
+
+=over
+
+=item B<-e>  B<--email> I<email>
+
+Debian package maintainer email. Default = C<david@nebauer.org>
+
+=item B<-x>  B<--export_email>
+
+Run S<< C<dh-make-perl> >> with the environmental variable C<EMAIL> set to the
+package maintainer's email. Default = FALSE.
+
+Note: this option was introduced to work around a S<< C<dh-make-perl> >> bug.
+See L<debian bug
+#856532|https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=856532> for details.
+
+=item B<-d>  B<--no_builddeps>
+
+C<debuild> default behaviour is to run S<< C<dpkg-checkbuilddeps> >> to check
+build dependencies and conflicts. Sometimes this check will declare that a
+locally installed module is an unmet dependency even if a suitable version of
+it is correctly installed.
+
+This option runs C<debuild> with its C<-d> option, which prevents it running
+S<< C<dpkg-checkbuilddeps> >>. This solves the immediate problem of the failed
+dependency check, but be aware it may obscure other build problems.
+
+=item B<-n>  B<--no_install>
+
+Suppress installation of debian package after it is built. Default = FALSE
+
+=item B<-h>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+=head2 Preparation
+
+This script assumes the following directory structure:
+
+    |
+    `-- project-directory
+        |-- build
+        `-- source
+            `-- required
+
+The modules's source files and subdirectories are in the F<source> directory.
+In addition to the module files the F<source> directory has an additional
+subdirectory: F<required>.
+
+This script assumes the following build process has been followed at least
+once:
+
+=over
+
+=item
+
+Install module source in the F<source> directory. This may invove a command
+sequence like:
+
+    $ cd path/to/project-directory/source
+
+    $ cpan -g The::Module
+    Checking The::Module
+    CPAN: Storable loaded ok (v2.49_01)
+    Reading '/home/david/.cpan/Metadata'
+      Database was generated on Sat, 09 May 2015 12:29:02 GMT
+
+    $ dir
+    TheModule-1.23.tar.gz
+
+    $ tar zxvf TheModule-1.23.tar.gz
+    TheModule-1.23/
+    TheModule-1.23/META.yml
+    ...
+
+    $ mv TheModule-1.23/* ./
+
+    $ rmdir TheModule-1.23
+
+    $ rm TheModule-1.23.tar.gz
+
+=item
+
+Create F<required> subdirectory:
+
+    $ cd path/to/source
+    $ mkdir required
+
+=item
+
+Add executable scripts
+
+Scripts to be installed to S<< F</usr/bin/> >> are put in
+S<< F<source/script> >>. This directory needs to be created. The scripts are
+not set as executable in this directory; that is handled during packaging.
+
+=item
+
+Add bash completion script
+
+S<< C<dn-build-perl-mod-deb> >> provides support for a single bash completion
+file. The file must be called S<< F<PACKAGE.bash-completion> >> where 'PACKAGE'
+is the name of the debian package to be created. For example, the perl module
+S<< F<My::Module> >> may be packaged as S<< F<libmy-module-perl> >>. If
+executable scripts are included in the package, the accompanying bash
+completion file in the source tree would be
+S<< F<source/required/libmy-module-perl.bash-completion> >>, and would install
+to S<< F</usr/share/bash-completion/completions/libmy-module-perl> >>.
+
+=item
+
+Add files for installation to other directories
+
+There is a mechanism for installing files to any system location. The files
+must be installed under the F<source> directory in any subdirectory path. It is
+a convention to install files under S<< F<source/contrib> >>. For example, a
+zsh completion script may be located at S<<
+F<source/contrib/completion/zsh/_my-script> >> in the source tree. The install
+destination is specified in S<< F<source/required/PACKAGE.install> >> where
+PACKAGE is the debian package name. Each file to be installed must be listed in
+this file with a destination directory. Here is the line that might be used for
+the zsh completion file mentioned above:
+
+    contrib/completion/zsh/_my-script /usr/share/zsh/vendor-completions
+
+The location of the source file, relative to the F<source> directory, is given
+first, followed by the destination directory. Note that the destination does
+not include the file name as it uses the name of the source file.
+
+=item
+
+Copy all source files to F<build> directory:
+
+    $ cd ../build
+    $ cp -r ../source/. ./
+
+Note the use of S<< C<../source/.> >> rather than the more usual S<<
+C<../source/*> >>. This ensures hidden files and directories are copied as
+well. This is important in some cases where failure to copy hidden files
+results in S<< C<milla test> >> and S<< C<milla build> >> failing because it
+cannot find the distribution.
+
+=item
+
+Build distribution file. Supported build methods are:
+
+=over
+
+=item
+
+Dist::Milla (relies on detecting a S<< F<dist.ini> >> file in the project root
+directory)
+
+    $ prove -l t
+    $ milla test
+    $ milla build
+
+=item
+
+ExtUtils::MakeMaker (relies on detecting a S<< F<Makefile.PL> >> file in the
+project root directory)
+
+    $ perl Makefile.PL
+    $ make test
+    $ make dist
+
+=item
+
+Module::Build (relies on detecting a S<< F<Build.PL> >> file in the root
+directory)
+
+    $ perl Build.PL
+    $ ./Build
+    $ ./Build test
+    $ ./Build dist
+
+=item
+
+Extract the distribution file, creating a subdirectory containing a copy of the
+distribution files:
+
+    $ tar zxvf TheModule-1.23.tar.gz
+
+Note: the Dist::Milla build process results in the creation of a subdirectory
+of this name being built, so that subdirectory must be deleted before
+S<< C<tar zxvf> >> is run.
+
+=item
+
+Create debian package build files using S<< C<dh-make-perl> >>:
+
+    $ dh-make-perl TheModule-1.23
+
+This command may fail if module dependencies are not met. Install any required
+modules before proceeding.
+
+=item
+
+Perform initial build of debian package using C<debuild>:
+
+    $ cd TheModule-1.23
+    $ debuild
+
+Note that this operation is performed from the module directory.
+
+=item
+
+The initial buld operation will generate a number of lintian warnings. These
+require changes to the F<control>, F<copyright> and F<changelog> files in the
+debian subdirectory. These are copied to the F<build> directory's F<required>
+subdirectory:
+
+    $ for x in control copyright changelog ; do \
+      cp debian/${x} ../required/ ; done
+
+or use C<mc> to copy them manually:
+
+    $ mc debian/ ../required/
+
+These files are then edited to remove the warnings.
+
+The commonest warnings are fixed with the following:
+
+=over
+
+=item
+
+The last two lines of the F<control> file are autogenerated content and need to
+be removed
+
+=item
+
+The F<copyright> file contains an autogenerated disclaimer, usually beginning
+around line 5, that needs to be removed.
+
+=item
+
+The F<changelog> file needs the details of the initial change altered to
+something like:
+
+    * Local package
+    * Initial release
+    * Closes: 2001
+
+=back
+
+Of course, make any additional alterations to these files to fix additional
+lintian warnings and to ensure they are correct and complete.
+
+When these files have been fixed, copy them back to the debian subdirectory:
+
+    cp ../required/* debian/
+
+Also copy them to the S<< F<source/required> >> subdirectory so they are
+included in the next build sequence.
+
+=item
+
+Repeat the previous step until no lintian warnings appear during the package
+build.
+
+=back
+
+=back
+
+=head2 Use of this script
+
+Once the initial build has been performed, this script is run from the
+F<source> directory. It performs the following tasks:
+
+=over
+
+=item
+
+Copies the directory contents to sibling directory F<build>
+
+=item
+
+Builds a distribution
+
+=item
+
+Extracts the distribution into its subdirectory
+
+=item
+
+Runs S<< C<dh-make-perl> >> on the extracted module source
+
+=item
+
+Changes to the extracted module directory and runs C<debuild>
+
+=item
+
+Copies all files in the S<< F<build/required> >> directory to the module's
+F<debian> directory
+
+=item
+
+Installs the created package.
+
+=back
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+Carp, Dn::Common, English, experimental, File::Basename, File::chdir,
+File::Copy::Recursive, File::DirSync, Function::Parameters, Moo,
+MooX::HandlesVia, MooX::Options, namespace::clean, Path::Tiny, Readonly,
+strictures, Try::Tiny, Types::Dn, Types::Path::Tiny, Types::Standard, version.
+
+=head2 Executables
+
+debuild, dh-make-perl, make, milla, prove, tar.
+
+=head2 Debian packaging
+
+The executable 'milla' is part of the Dist::Milla perl module, but that module
+is not available from standard debian repositories.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 AUTHOR
+
+David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2015 David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+
+This script is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
+
+# vim:fdm=marker

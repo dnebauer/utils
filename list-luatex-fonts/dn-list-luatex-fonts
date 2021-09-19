@@ -1,0 +1,24 @@
+#!/usr/bin/env texlua
+
+-- based on Kurt Pfeifle's script at
+-- http://tex.stackexchange.com/a/30656
+
+local kpse = require('kpse')
+
+kpse.set_program_name("dn-list-luatex-fonts")
+
+local cachefile  = kpse.expand_var("$TEXMFVAR")
+    .. "/luatex-cache/generic/names/luaotfload-names.luc"
+local fontlist = dofile(cachefile)
+assert(fontlist,"Could not load font name database")
+
+local tmp = {}
+
+for _,font in ipairs(fontlist.mappings) do
+  tmp[#tmp + 1] = font.fontname
+end
+table.sort(tmp)
+
+for _,fontname in ipairs(tmp) do
+  print(fontname)
+end

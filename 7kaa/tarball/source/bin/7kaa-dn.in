@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# File: 7kaa-dn
+# Author: David Nebauer
+# Purpose: Wrapper for 7kaa
+# Created: 2011-02-28 Created
+
+# This wrapper is necessary because the 7kaa executable 
+# will not run successfully unless its own directory is
+# the working directory
+cd @pkggame_dir@
+./7kaa

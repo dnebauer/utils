@@ -1,0 +1,92 @@
+dn-cronsudo (1.9-1) UNRELEASED; urgency=low
+
+  * sudo: add debsums to package managers
+
+ -- David Nebauer <david@nebauer.org>  Sat, 18 Sep 2021 21:24:53 +0930
+
+dn-cronsudo (1.8-1) UNRELEASED; urgency=low
+
+  * daily cron: check rss feeds
+
+ -- David Nebauer <david@nebauer.org>  Sun, 20 Jun 2021 23:45:49 +0930
+
+dn-cronsudo (1.7-1) UNRELEASED; urgency=low
+
+  * sudo: add network file
+
+ -- David Nebauer <david@nebauer.org>  Sat, 18 Jan 2020 20:31:57 +0930
+
+dn-cronsudo (1.6-1) unstable; urgency=low
+
+  * sudo: add npm to package managers
+
+ -- David Nebauer <david@nebauer.org>  Fri, 28 Dec 2018 15:18:53 +0930
+
+dn-cronsudo (1.5-1) unstable; urgency=low
+
+  * sudo: add gem to package managers
+
+ -- David Nebauer <david@nebauer.org>  Mon, 08 Oct 2018 18:04:23 +0930
+
+dn-cronsudo (1.4-1) unstable; urgency=low
+
+  * daily cron: add flush of mail queue
+
+ -- David Nebauer <david@nebauer.org>  Wed, 21 Mar 2018 03:24:59 +0930
+
+dn-cronsudo (1.3-1) unstable; urgency=low
+
+  * update sudoers: add dselect
+
+ -- David Nebauer <david@nebauer.org>  Fri, 20 Jan 2017 00:00:56 +0930
+
+dn-cronsudo (1.2-1) unstable; urgency=low
+
+  * update daily: add log rotation
+
+ -- David Nebauer <david@nebauer.org>  Fri, 20 Jan 2017 00:00:56 +0930
+
+dn-cronsudo (1.1-2) unstable; urgency=low
+
+  * update weekly: change vim cmd to dein#update()
+
+ -- David Nebauer <david@nebauer.org>  Wed, 20 Jul 2016 20:45:42 +0930
+
+dn-cronsudo (1.1-1) unstable; urgency=low
+
+  * add dn-wireless and change man page accordingly
+
+ -- David Nebauer <david@nebauer.org>  Wed, 20 Jul 2016 20:48:01 +0930
+
+dn-cronsudo (1.0-4) unstable; urgency=low
+
+  * daily weekly: check_user: change method of getting users
+  * update man page to reflect changes from 1.0-3 and 1.0-4
+
+ -- David Nebauer <david@nebauer.org>  Sun, 20 Mar 2016 16:24:33 +0930
+
+dn-cronsudo (1.0-3) unstable; urgency=low
+
+  * daily tasks: check_user: change method of getting users
+  * daily tasks: add recoll reindexing of ntg-context collection
+
+ -- David Nebauer <david@nebauer.org>  Sun, 20 Mar 2016 16:24:33 +0930
+
+dn-cronsudo (1.0-2) unstable; urgency=low
+
+  * Update vim plugin update command
+
+ -- David Nebauer <david@nebauer.org>  Mon, 15 Jun 2015 01:24:40 +0930
+
+dn-cronsudo (1.0-1) unstable; urgency=low
+
+  * Refactor postinst and postrm conf file handling
+  * Add conf file dn-filesys
+
+ -- David Nebauer <david@nebauer.org>  Sun, 24 Aug 2014 14:03:31 +0930
+
+dn-cronsudo (0.1-1) unstable; urgency=low
+
+  * Initial release (Closes: #101)
+
+ -- David Nebauer <david@nebauer.org>  Sun, 24 Jun 2012 14:47:41 +0930

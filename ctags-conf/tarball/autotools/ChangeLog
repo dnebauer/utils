@@ -1,0 +1,7 @@
+2015-05-09  David Nebauer  <david@nebauer.org>
+
+	* Add support for modern perl constructs
+
+2013-07-28  David Nebauer  <david@nebauer.org>
+
+    * Initial packaging

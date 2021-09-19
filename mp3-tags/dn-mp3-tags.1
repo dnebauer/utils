@@ -1,0 +1,255 @@
+.\" Hey, EMACS: -*- nroff -*-
+ 
+.\" Filename: dn-mp3-tags.1
+.\" Author:   David Nebauer
+.\" History:  2013-06-16 - created
+ 
+.\" -----------------------------------------------------------------
+.\" NOTES
+.\" -----------------------------------------------------------------
+.ig
+
+For header (.TH), first parameter, NAME, should be all caps
+Second parameter, SECTION, should be 1-8, maybe w/ subsection
+Other parameters are allowed: see man(7), man(1)
+Please adjust the date whenever revising the manpage.
+
+Some roff macros, for reference:
+.nh        disable hyphenation
+.hy        enable hyphenation
+.ad l      left justify
+.ad b      justify to both left and right margins
+.nf        disable filling
+.fi        enable filling
+.br        insert line break
+.sp <n>    insert n+1 empty lines
+for manpage-specific macros, see man(7)
+
+Formatting [see groff_char (7) and man (7) for details]:
+\(aq  : escape sequence for (')
+\[lq] : left/open double quote
+\[rq] : right/close double quote
+`     : left/open single quote
+'     : right/close single quote
+\(em  : escape sequence for em dash
+\(en  : escape sequence for en dash
+\.    : escape sequence for period/dot
+\(rg  : registration symbol
+\(tm  : trademark symbol
+\fX   : escape sequence that changes font, where 'X' can be 'R|I|B|BI'
+        (R = roman/normal | I = italic | B = bold | BI = bold-italic)
+\fP   : switch to previous font
+        in this case '\fR' could also have been used
+.B    : following arguments are boldened
+.I    : following arguments are italicised
+.BI   : following arguments are bold alternating with italics
+.BR   : following arguments are bold alternating with roman
+.IB   : following arguments are italics alternating with bold
+.IR   : following arguments are italics alternating with roman
+.RB   : following arguments are roman alternating with bold
+.RI   : following arguments are roman alternating with italics
+.SM   : following arguments are small (scaled 9/10 of the regular size)
+.SB   : following arguments are small bold (not small alternating with bold) 
+        [note: if argument in alternating pattern contains whitespace,
+               enclose in whitespace]
+.RS x : indent following lines by x characters
+.RE   : end indent
+
+Bulleted list:
+   A bulleted list:
+   .IP \[bu] 2
+   lawyers
+   .IP \[bu]
+   guns
+   .IP \[bu]
+   money
+Numbered list:
+   .nr step 1 1
+   A numbered list:
+   .IP \n[step] 3
+   lawyers
+   .IP \n+[step]
+   guns
+   .IP \n+[step]
+   money
+..
+
+.\" -----------------------------------------------------------------
+.\" SETUP
+.\" -----------------------------------------------------------------
+
+.\" Package: -mwww macro package of web-related functions
+.\"  note: -mwww package is part of GNU 'troff'.
+.\"        The '.g' register is only found in GNU 'troff'
+.\"        and is set to '1' (true).
+.\"        The '\n' escape returns the value of a register.
+.\"        So, this 'if' command ensures GNU 'troff' is
+.\"        running before attempting to load the -mwww
+.\"        macro package
+.if \n[.g] .mso www.tmac
+
+.\" Macro: Format URL
+.\"  usage:  .UR "http:\\www.gnu.org" "GNU Project" " of the"
+.\"  params: arg 1 = url ; arg 2 = link text/name ; arg 3 = postamble (optional)
+.de UR
+\\$2 \(laURL: \\$1 \(ra\\$3
+..
+
+.\" Macro: Ellipsis
+.\"  usage: .ellipsis
+.\"  note: only works at beginning of line
+.de ellipsis
+.cc ^
+...
+^cc
+..
+
+.\" String: Command name
+.ds self dn-mp3-tags
+
+.\" -----------------------------------------------------------------
+.\" MANPAGE CONTENT
+.\" -----------------------------------------------------------------
+
+.TH "dn-mp3-tags" "1" "2013-06-16" "" "Dn-mp3-tags Manual"
+.SH "NAME"
+\*[self] \- set mp3 tags for audio files in directory
+.SH "SYNOPSIS"
+.BR "\*[self] " "["
+.BR "\-n" " ] ["
+.BR "\-t" " ] ["
+.BR "\-p" " ] ["
+.BR "\-a" " ] ["
+.BR "\-b" " ] ["
+.BI "\-f" " path"
+] [
+.BR "\-e" " ] ["
+.BR "\-i" " ]"
+
+.SH "DESCRIPTION"
+\*[self] is used to set mp3 tags that commonly change with each track
+in an album. All mp3 files in the current directory are
+processed sequentially (using bash's default file listing
+order).
+.PP
+If the
+.B "\-n"
+flag is used the tracks are numbered in file sort
+order. Numbering starts at one and automatically increments.
+.PP
+The title and performer can be set manually for each file in
+turn. Use the
+.B "\-t"
+flag to set the track title and the
+.B "\-p"
+or
+.B "\-a"
+flag to set performer/artist.
+.PP
+For track performer the default suggestion for each file is
+identical to the existing tag. For track title the default
+default suggestion for each file is the existing tag
+converted to title case.
+.PP
+The suggestions for track performer and/or title are
+suppressed with the
+.B "\-b"
+flag.
+.PP
+The
+.B "\-f"
+option can be used when setting performers or
+titles, but not both. This option nominates a file
+containing default options, one per line. Lines starting
+with \(aq##\(aq are skipped. Processing of the file stops at any
+line which is empty or contains nothing but \(aq-\(aq and/or \(aq=\(aq
+(i.e., dividers). It is assumed the values are given in the
+same sort order as file names. These performers or titles
+are used without alteration as default suggestions for the
+mp3 files. There must be the same number of values extracted
+from the file as mp3 files in the directory, or the script
+will exit with an error. If both the
+.B "\-b"
+flag and
+.B "\-f"
+option are present, the
+.B "\-b"
+flag is ignored.
+.PP
+By default, mp3info2 is used to alter file tags. The tools
+eyeD3 or id3v2 can be used instead if the
+.B "\-e"
+or
+.B "\-i"
+flag is used, respectively.
+.PP
+At least one of the
+.BR "\-n" ","
+.BR "\-t" ","
+.BR "\-p" " or"
+.B "\-a"
+flags is required for the script to perform any action. If no flags are
+provided a help message is displayed.
+.SH "OPTIONS"
+.TP 
+.B "\-n  \-\-number"
+Automatically set track numbers. Uses bash's default list order for files,
+starts at 1 and increments for each file. Optional.
+.TP 
+.B "\-t  \-\-title"
+User is given the option of editing each file's mp3 title tag. For each file a
+default title is presented to the user. The default title is the existing title
+converted to use title case. This default suggestion can be overridden by the
+.B "\-b"
+flag (no default is given) or
+.B "\-f"
+option (default titles provided by file). Optional.
+.TP 
+.B "\-p  \-\-performer"
+User is given the option of editing each file's performer (artist) tag. For
+each file a default performer is presented to the user. This default performer
+is the existing performer. Optional.
+.TP 
+.B "\-a  \-\-artist"
+Synonym for 
+.BR "\-p" "."
+Included for users who think of 'artist' rather than 'performer'. Optional.
+.TP 
+.B "\-b  \-\-blank"
+Do not provide a suggested value for performer (artist) or title. Optional.
+.TP
+.BI "\-f  \-\-file" " path"
+Path to a file containing titles for all tracks or performers for all tracks.
+(A single file cannot contain both tracks or performers, unless all of one
+category are commented out.) Each track title or track performer(s) must be on
+a separate line. The sort order of titles or performers must match that of the
+directory's mp3 files.  Optional.
+.TP
+.B "\-e  \-\-eyed3"
+Use eyeD3 to alter file tags rather than mp3info2. Cannot be used with the
+.B "\-i"
+flag. Optional.
+.TP
+.B "\-i  \-\-id3v2"
+Use id3v2 to alter file tags rather than mp3info2. Cannot be used with the
+.B "\-e"
+flag. Optional.
+.TP
+.B "\-v  \-\-verbose"
+Print script lines to the console as they are processed. Optional.
+.TP
+.B "\-d  \-\-debug"
+Fully expand script lines before printing them to the console as they are
+processed. Optional.
+.TP
+.B "\-h  \-\-help"
+Display a help message and exit. Optional.
+.SH "SEE ALSO"
+.BR "mp3info2 " "(1)," 
+.BR "eyeD3 " "(1)," 
+.BR "id3v2 " "(1)." 
+.SH "AUTHOR"
+\*[self] was written by David Nebauer <david@nebauer.org>.
+.PP 
+This manual page was written by David Nebauer <david@nebauer.org>
+for the Debian project (but may be used by others).

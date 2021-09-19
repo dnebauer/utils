@@ -1,0 +1,1482 @@
+#!/usr/bin/env lua
+
+--- Utility to generate keyword data tables for pander script
+-- @script keyword-table
+-- @author David Nebauer
+-- @license GPL-3+
+-- @copyright David Nebauer
+
+--[[ Variables ]]--
+
+-- script    {{{1
+local script = arg[0]:match('[^%/]-$')
+
+-- datadir    {{{1
+local function path_exists(path)
+    local result = pcall(
+        function ()
+            local fh = io.open(path, 'r')
+            fh:close()
+        end
+    )
+    return result
+end
+local function dir_exists(dir)
+    return path_exists(dir..'/')
+end
+local datadir
+do
+    local dir, home
+    -- preference 1 = $XDG_DATA_HOME/pandoc
+    local xdg_data_home = os.getenv('XDG_DATA_HOME')
+    if xdg_data_home then
+        dir = xdg_data_home..'/pandoc'
+        if dir_exists(dir) then datadir = dir end
+    end
+    -- preference 2 = ~/.local/share/pandoc
+    if not datadir then
+        home = os.getenv('HOME')
+        dir = home..'/.local/share/pandoc'
+        if dir_exists(dir) then datadir = dir end
+    end
+    -- preference 3 = ~/.pandoc
+    if not datadir then
+        datadir = home..'/.pandoc'
+    end
+end
+
+-- style keyword master table    {{{1
+
+-- see manpage for details of table structure
+
+local keyword_data = {
+
+    -- Include:      include other files    {{{2
+
+    Include = {
+        description = 'include other files',
+        expand_groups = {},
+        conflict_groups = {},
+        actions = {
+            all = {
+                filters = {
+                    -- filters are from github pandoc/lua-filters repo
+                    {'include-files.lua', 10, true},
+                    {'include-code-files.lua', 10, true},
+                },
+            },
+        },
+    },
+
+    -- IncludeAuto:  include other files (shift headers automatically)    {{{2
+
+    IncludeAuto = {
+        description = 'include other files (shift headers automatically)',
+        expand_groups = {},
+        conflict_groups = {},
+        actions = {
+            all = {
+                metadata = {
+                    ['include-auto'] = true,
+                },
+                filters = {
+                    -- filters are from github pandoc/lua-filters repo
+                    {'include-files.lua', 10, true},
+                    {'include-code-files.lua', 10, true},
+                },
+            },
+        },
+    },
+
+    -- Latex8pt:     set font size to 8 pt in latex output    {{{2
+
+    Latex8pt = {
+        description = 'set font size to 8 pt in latex output',
+        expand_groups = {},
+        conflict_groups = {'documentclass', 'font-size'},
+        actions = {
+            latex = {
+                metadata = {
+                    documentclass = 'extarticle',
+                    fontsize = '8pt',
+                },
+            },
+        },
+    },
+
+    -- Latex9pt:     set font size to 9 pt in latex output    {{{2
+
+    Latex9pt = {
+        description = 'set font size to 9 pt in latex output',
+        expand_groups = {},
+        conflict_groups = {'documentclass', 'font-size'},
+        actions = {
+            latex = {
+                metadata = {
+                    documentclass = 'extarticle',
+                    fontsize = '9pt',
+                },
+            },
+        },
+    },
+
+    -- Latex10pt:    set font size to 10 pt in latex output    {{{2
+
+    Latex10pt = {
+        description = 'set font size to 10 pt in latex output',
+        expand_groups = {},
+        conflict_groups = {'font-size'},
+        actions = {
+            latex = {
+                metadata = {
+                    fontsize = '10pt',
+                },
+            },
+        },
+    },
+
+    -- Latex11pt:    set font size to 11 pt in latex output    {{{2
+
+    Latex11pt = {
+        description = 'set font size to 11 pt in latex output',
+        expand_groups = {},
+        conflict_groups = {'font-size'},
+        actions = {
+            latex = {
+                metadata = {
+                    fontsize = '11pt',
+                },
+            },
+        },
+    },
+
+    -- Latex12pt:    set font size to 12 pt in latex output    {{{2
+
+    Latex12pt = {
+        description = 'set font size to 12 pt in latex output',
+        expand_groups = {},
+        conflict_groups = {'font-size'},
+        actions = {
+            latex = {
+                metadata = {
+                    fontsize = '12pt',
+                },
+            },
+        },
+    },
+
+    -- Latex14pt:    set font size to 14 pt in latex output    {{{2
+
+    Latex14pt = {
+        description = 'set font size to 14 pt in latex output',
+        expand_groups = {},
+        conflict_groups = {'documentclass', 'font-size'},
+        actions = {
+            latex = {
+                metadata = {
+                    documentclass = 'extarticle',
+                    fontsize = '14pt',
+                },
+            },
+        },
+    },
+
+    -- Latex17pt:    set font size to 17 pt in latex output    {{{2
+
+    Latex17pt = {
+        description = 'set font size to 17 pt in latex output',
+        expand_groups = {},
+        conflict_groups = {'documentclass', 'font-size'},
+        actions = {
+            latex = {
+                metadata = {
+                    documentclass = 'extarticle',
+                    fontsize = '17pt',
+                },
+            },
+        },
+    },
+
+    -- Latex20pt:    set font size to 20 pt in latex output    {{{2
+
+    Latex20pt = {
+        description = 'set font size to 20 pt in latex output',
+        expand_groups = {},
+        conflict_groups = {'documentclass', 'font-size'},
+        actions = {
+            latex = {
+                metadata = {
+                    documentclass = 'extarticle',
+                    fontsize = '20pt',
+                },
+            },
+        },
+    },
+
+    -- Letter:       style theme for writing letters    {{{2
+
+    Letter = {
+
+        -- only half-adapted from the 'Letter' style defined in github repo
+        -- msprev/dot-panzer
+
+        description = 'style theme for writing letters',
+        expand_groups = {},
+        conflict_groups = {'documentclass', 'theme'},
+        actions = {
+            all = {
+                metadata = {
+                    --[[
+                    In the panzer original all non-boolean metadata
+                    fields were wrapped in double quotes.
+                    --]]
+                    opening = false,
+                    closing = 'Yours sincerely,',
+                    letterhead = {
+                        image = datadir..'/template/img/eulogo.pdf',
+                        name = 'Mr David Nebauer',
+                        position = 'Senior Complaints and Consumer '
+                            ..'Liaison Officer',
+                        affiliation = 'Ministerial Liaison and '
+                            ..'Complaints Unit',
+                        address = {
+                            'Royal Darwin Hospital',
+                            '105 Rocklands Drive',
+                            'Tiwi NT 0810',
+                        },
+                        phone = '+61 (0)8 8922 8631',
+                        email = 'david.nebauer@nt.gov.au',
+                        website = 'www.health.nt.gov.au',
+                    },
+                    cc = false,
+                    ps = false,
+                    incl = false,
+                    signed = true,  -- sign using image below
+                    signature = datadir..'/resources/signature.png',
+                },
+                latex = {
+                    template = 'UoE-letter.latex',
+                    metadata = {
+                        fontsize = '11pt',
+                        documentclass = 'infletr',
+                        classoption = {
+                            'LFCS',
+                        },
+                        fontfamily = 'txfonts',
+                        graphics = true,
+                    },
+                    filters = {
+                        'heading2bold.py',
+                    },
+                },
+            },
+        },
+    },
+
+    -- PageBreak:    process LaTeX \newpage instructions    {{{2
+
+    PageBreak = {
+        description = 'process LaTeX \\newpage instructions',
+        expand_groups = {},
+        conflict_groups = {'paginate'},
+        actions = {
+            all = {
+                filters = {
+                    -- filter is from github pandoc/lua-filters repo
+                    'pagebreak.lua'
+                },
+            },
+        },
+    },
+
+    -- Pause:        pause before exiting script    {{{2
+
+    Pause = {
+        description = 'pause before exiting script',
+        expand_groups = {},
+        conflict_groups = {},
+        actions = {
+            all = {
+                post_run = {
+                    'pause',
+                },
+            },
+        },
+    },
+
+    -- SaveTrees:    compact format for printing    {{{2
+
+    SaveTrees = {
+        description = 'compact format for printing',
+        expand_groups = {},
+        conflict_groups = {},
+        actions = {
+            latex = {
+                metadata = {
+                    fontsize = '10pt',
+                    ['compact-headings'] = 'true',
+                    geometry = {
+                        'top=1.5cm',
+                        'bottom=1.5cm',
+                    },
+                },
+            },
+        },
+    },
+
+    -- SectFlush:    flush all sections before they end    {{{2
+
+    SectFlush = {
+
+        --  from a StackExchange question at
+        --  https://tex.stackexchange.com/a/118667)
+
+        description = 'flush all sections before they end',
+        expand_groups = {},
+        conflict_groups = {},
+        actions = {
+            latex = {
+                metadata = {
+                    ['header-includes'] = {
+                        '\\usepackage[section]{placeins}',
+                    },
+                },
+            },
+        },
+    },
+
+    -- SectNewpage:  start each section on a new page    {{{2
+
+    SectNewpage = {
+        description = 'start each section on a new page',
+        expand_groups = {},
+        conflict_groups = {'paginate'},
+        actions = {
+            html = {
+                filters = {
+                    'paginatesects.py',
+                },
+            },
+            latex = {
+                filters = {
+                    'paginatesects.py',
+                },
+            },
+        },
+    },
+
+    -- Standard:     default style theme    {{{2
+
+    Standard = {
+
+        -- the '--header-includes' is taken from Michael Franzl's blog at
+        -- https://michaelfranzl.com/2014/12/10/..
+        -- ..xelatex-unicode-font-fallback-unsupported-characters/
+
+        -- IPAexMincho font provided in debian by package `texlive-lang-cjk`
+
+        description = 'default style theme',
+        expand_groups = {},
+        conflict_groups = {'theme'},
+        actions = {
+            all = {
+                metadata = {
+                    lang = 'en-AU',
+                    numbersections = false,
+                    papersize = 'a4',
+                    ['eqnos-cleveref'] = true,
+                    ['eqnos-plus-name'] = 'equation',
+                    ['fignos-cleveref'] = true,
+                    ['fignos-plus-name'] = 'figure',
+                    ['secnos-cleveref'] = true,
+                    ['tablenos-cleveref'] = true,
+                },
+                extensions = {
+                    '+footnotes',
+                    '+inline_notes',
+                    '+smart',
+                },
+                options = {
+                    ['--self-contained'] = true,
+                    ['--standalone'] = true,
+                },
+                filters = {
+                    'pandoc-fignos',
+                    'pandoc-eqnos',
+                    'pandoc-tablenos',
+                },
+            },
+            context = {
+                metadata = {
+                    linkcolor = 'gray',
+                    microtypeoptions = 'babel',
+                    papersize = 'A4',
+                    ['header-includes'] = {
+                        '\\usepackage{xcolor}',
+                        '\\usepackage{fontspec}',
+                        '\\setmainfont{Junicode}',
+                        '\\newfontfamily\\myregularfont{Junicode}',
+                        '\\newfontfamily\\mychinesefont{IPAexMincho}',
+                        '\\usepackage[CJK]{ucharclasses}',
+                        '\\setTransitionsForCJK{\\mychinesefont}'
+                        ..'{\\myregularfont}',
+                    },
+                },
+            },
+            epub = {
+                metadata = {
+                    ['cover-image'] = '::cover_image::',
+                },
+                post_run = {
+                    'create_mobi',
+                },
+            },
+            html = {
+                metadata = {
+                    css = datadir..'/templates/css/buttondown.css',
+                },
+            },
+            latex = {
+                metadata = {
+                    linkcolor = 'gray',
+                    filecolor = 'gray',
+                    citecolor = 'gray',
+                    toccolor = 'gray',
+                    urlcolor = 'gray',
+                    microtypeoptions = 'babel',
+                    papersize = 'a4',
+                    ['header-includes'] = {
+                        '\\usepackage{xcolor}',
+                        '\\usepackage{fontspec}',
+                        '\\setmainfont{Junicode}',
+                        '\\newfontfamily\\myregularfont{Junicode}',
+                        '\\newfontfamily\\mychinesefont{IPAexMincho}',
+                        '\\usepackage[CJK]{ucharclasses}',
+                        '\\setTransitionsForCJK{\\mychinesefont}'
+                        ..'{\\myregularfont}',
+                        '\\usepackage{xcolor}',
+                    },
+                },
+            },
+        },
+    },
+
+    -- SubsectFlush: flush all subsections before they end    {{{2
+
+    SubsectFlush = {
+
+        --  from a StackExchange question at
+        --  https://tex.stackexchange.com/a/118667)
+
+        description = 'flush all subsections before they end',
+        expand_groups = {},
+        conflict_groups = {},
+        actions = {
+            latex = {
+                metadata = {
+                    --[[
+                    Not sure if need to make last three lines into
+                    raw latex, i.e., precede with '```{=latex}' line
+                    and follow with '```' line.
+                    In panzer it was necessary to 'double' each
+                    '\expandafter' command because one was consumed
+                    during metadata extraction.
+                    --]]
+                    ['header-includes'] = {
+                        '```{=latex}',
+                        '\\usepackage[section]{placeins}',
+                        '\\makeatletter',
+                        '\\AtBeginDocument{\\expandafter\\renewcommand'
+                        ..'\\expandafter\\subsection\\expandafter'
+                        ..'{\\expandafter\\@fb@secFB\\subsection}}',
+                        '\\makeatother',
+                        '```',
+                    },
+                },
+            },
+        },
+    },
+
+    -- Tufte:        style theme based on Edward R. Tufte's designs    {{{2
+
+    Tufte = {
+        description = "style theme based on Edward R. Tufte's designs",
+        expand_groups = {},
+        conflict_groups = {'documentclass', 'theme'},
+        actions = {
+            all = {
+                metadata = {
+                    lang = 'en-AU',
+                    numbersections = false,
+                    papersize = 'A4',
+                    ['eqnos-cleveref'] = true,
+                    ['eqnos-plus-name'] = 'equation',
+                    ['fignos-cleveref'] = true,
+                    ['fignos-plus-name'] = 'figure',
+                    ['secnos-cleveref'] = true,
+                    ['tablenos-cleveref'] = true,
+                },
+                extensions = {
+                    '+footnotes',
+                    '+inline_notes',
+                    '+smart',
+                },
+                options = {
+                    ['--self-contained'] = true,
+                    ['--standalone'] = true,
+                },
+                filters = {
+                    'pandoc-fignos',
+                    'pandoc-eqnos',
+                    'pandoc-tablenos',
+                },
+            },
+            context = {
+                metadata = {
+                    linkcolor = 'gray',
+                    microtypeoptions = 'babel',
+                    papersize = 'A4',
+                    ['header-includes'] = {
+                        '\\usepackage{xcolor}',
+                        '\\usepackage{fontspec}',
+                        '\\setmainfont{Junicode}',
+                        '\\newfontfamily\\myregularfont{Junicode}',
+                        '\\newfontfamily\\mychinesefont{IPAexMincho}',
+                        '\\usepackage[CJK]{ucharclasses}',
+                        '\\setTransitionsForCJK{\\mychinesefont}'
+                        ..'{\\myregularfont}',
+                    },
+                },
+            },
+            epub = {
+                metadata = {
+                    ['cover-image'] = '::cover_image::',
+                },
+                post_run = {
+                    'create_mobi',
+                },
+            },
+            html = {
+                metadata = {
+                    css = datadir..'/templates/css/tufte-otsaloma.css',
+                },
+            },
+            latex = {
+                --[[
+                Based on sample markdown file and tex template in github
+                repo jez/pandoc-starter: see directory
+                <https://github.com/jez/pandoc-starter/tree/master/..
+                ..tufte-handout/src>.
+                The template file includes a fix from a github issue post:
+                <https://github.com/Tufte-LaTeX/tufte-latex/issues/..
+                ..107#issuecomment-183679016>.
+                --]]
+                metadata = {
+                    documentclass = 'tufte-handout',
+                    fontsize = '12pt',
+                    mainfont = 'Linux Libertine O',
+                    monofont = 'Inconsolata',
+                    sansfont = 'Linux Biolinum O',
+                    -- mathfont = 'TeX Gyre Pagella Math',
+                    newtxmathoptions = {
+                        'cmintegrals',
+                        'cmbraces',
+                    },
+                    linkcolor = 'RoyalBlue',
+                    filecolor = 'RoyalBlue',
+                    citecolor = 'RoyalBlue',
+                    toccolor = 'RoyalBlue',
+                    urlcolor = 'RoyalBlue',
+                    microtypeoptions = 'babel',
+                    papersize = 'a4',
+                    ['header-includes'] = {
+                        '\\usepackage{xcolor}',
+                        '\\usepackage{fontspec}',
+                    },
+                },
+                options = {
+                    ['--template'] = 'tufte-jez.latex',
+                },
+            },
+        },
+    }, -- }}}2
+
+} -- }}}1
+
+--[[ External requirements ]]--
+
+-- localise specific functions    {{{1
+local sf = string.format
+
+-- load modules    {{{1
+-- serpent    {{{2
+--[[
+ * no debian package so incorporate the serpent module into the script
+ * taken from github pkulchenko/serpent repository at
+   https://github.com/pkulchenko/serpent
+ * (c) 2012-18 Paul Kulchenko
+ * MIT License
+ * only editing is to:
+   - indent by four spaces per level
+   - prevent lines longer than 80 characters
+   - adjust indent pattern to try and improve legibility
+--]]
+local serpent
+do
+    local _n, _v = "serpent", "0.302"
+    local _c, _d = "Paul Kulchenko", "Lua serializer and pretty printer"
+    local snum = {[tostring(1/0)]='1/0 --[[math.huge]]'
+        ,[tostring(-1/0)]='-1/0 --[[-math.huge]]',[tostring(0/0)]='0/0'}
+    local badtype = {thread = true, userdata = true, cdata = true}
+    local getmetatable = debug and debug.getmetatable or getmetatable
+    -- avoid using __pairs in Lua 5.2+
+    local pairs = function(t) return next, t end
+    local keyword, globals, G = {}, {}, (_G or _ENV)
+    for _,k in ipairs({'and', 'break', 'do', 'else', 'elseif', 'end',
+        'false', 'for', 'function', 'goto', 'if', 'in', 'local', 'nil',
+        'not', 'or', 'repeat', 'return', 'then', 'true', 'until', 'while',
+    }) do
+        keyword[k] = true
+    end
+    -- build func to name mapping
+    for k,v in pairs(G) do globals[v] = k end
+    for _,g in ipairs({
+            'coroutine', 'debug', 'io', 'math', 'string', 'table', 'os'
+    }) do
+        for k,v in pairs(type(G[g]) == 'table' and G[g] or {}) do
+            globals[v] = g..'.'..k
+        end
+    end
+
+    local function s(t, opts)
+        local name, indent, fatal, maxnum
+            = opts.name, opts.indent, opts.fatal, opts.maxnum
+        local sparse, custom, huge = opts.sparse, opts.custom, not opts.nohuge
+        local space = (opts.compact and '' or ' ')
+        local maxl = (opts.maxlevel or math.huge)
+        local maxlen = tonumber(opts.maxlength)
+        local metatostring = opts.metatostring
+        local iname = '_'..(name or '')
+        local comm = opts.comment and (tonumber(opts.comment) or math.huge)
+        local numformat = opts.numformat or "%.17g"
+        local seen, sref, syms, symn = {}, {'local '..iname..'={}'}, {}, 0
+        local function gensym(val)
+            -- tostring(val) is needed because __tostring
+            -- may return a non-string value
+            return '_'..(
+                tostring(tostring(val)):gsub("[^%w]","")
+                :gsub("(%d%w+)", function(s)
+                    if not syms[s] then symn = symn+1; syms[s] = symn end
+                    return tostring(syms[s])
+                end)
+            )
+        end
+        local function safestr(s)
+            return type(s) == "number"
+            and tostring(huge and snum[tostring(s)] or numformat:format(s))
+            or type(s) ~= "string"
+            and tostring(s)
+            -- escape NEWLINE/010 and EOF/026
+            or ("%q"):format(s):gsub("\010","n"):gsub("\026","\\026")
+        end
+        local function comment(s,l)
+            return comm
+            and (l or 0) < comm
+            and ' --[['..select(2, pcall(tostring, s))..']]'
+            or ''
+        end
+        local function globerr(s,l)
+            return globals[s]
+            and globals[s]..comment(s,l)
+            or not fatal
+            and safestr(select(2, pcall(tostring, s)))
+            or error("Can't serialize "..tostring(s))
+        end
+        local function safename(path, name)
+            -- generates foo.bar, foo[3], or foo['b a r']
+            local n = name == nil and '' or name
+            local plain = type(n) == "string"
+                and n:match("^[%l%u_][%w_]*$") and not keyword[n]
+            local safe = plain and n or '['..safestr(n)..']'
+            return (path or '')..(plain and path and '.' or '')..safe, safe
+        end
+        -- k=keys, o=originaltable, n=padding
+        local alphanumsort = type(opts.sortkeys) == 'function'
+        and opts.sortkeys
+        or function(k, o, n)
+            local maxn, to = tonumber(n) or 12, {number = 'a', string = 'b'}
+            local function padnum(d)
+                return ("%0"..tostring(maxn).."d"):format(tonumber(d))
+            end
+            table.sort(k, function(a,b)
+                -- sort numeric keys first: k[key] is not nil
+                -- for numerical keys
+                return (k[a] ~= nil and 0 or to[type(a)] or 'z')
+                ..(tostring(a):gsub("%d+",padnum))
+                < (k[b] ~= nil and 0 or to[type(b)] or 'z')
+                ..(tostring(b):gsub("%d+",padnum))
+            end)
+        end
+        local function val2str(t, name, indent, insref,
+                path, plainindex, level)
+            local ttype, level, mt = type(t), (level or 0), getmetatable(t)
+            local spath, sname = safename(path, name)
+            local tag = plainindex
+            and ((type(name) == "number") and '' or name..space..'='..space)
+            or (name ~= nil and sname..space..'='..space or '')
+            if seen[t] then -- already seen this element
+                sref[#sref+1] = spath..space..'='..space..seen[t]
+                return tag..'nil'..comment('ref', level)
+            end
+            -- protect from those cases where __tostring may fail
+            if type(mt) == 'table' and metatostring ~= false then
+                local to, tr = pcall(function() return mt.__tostring(t) end)
+                local so, sr = pcall(function() return mt.__serialize(t) end)
+                if (to or so) then -- knows how to serialize itself
+                    seen[t] = insref or spath
+                    t = so and sr or tr
+                    ttype = type(t)
+                end -- new value falls through to be serialized
+            end
+            if ttype == "table" then
+                if level >= maxl then
+                    return tag..'{}'..comment('maxlvl', level)
+                end
+                seen[t] = insref or spath
+                if next(t) == nil then
+                    return tag..'{}'..comment(t, level)
+                end -- table empty
+                if maxlen and maxlen < 0 then
+                    return tag..'{}'..comment('maxlen', level)
+                end
+                local maxn, o, out = math.min(#t, maxnum or #t), {}, {}
+                for key = 1, maxn do o[key] = key end
+                if not maxnum or #o < maxnum then
+                    -- n = n + 1; o[n] is much faster
+                    -- than o[#o+1] on large tables
+                    local n = #o
+                    for key in pairs(t) do
+                        if o[key] ~= key then n = n + 1; o[n] = key end
+                    end
+                end
+                if maxnum and #o > maxnum then o[maxnum+1] = nil end
+                if opts.sortkeys and #o > maxn then
+                    alphanumsort(o, t, opts.sortkeys)
+                end
+                -- disable sparsness if only numeric keys (shorter output)
+                local sparse = sparse and #o > maxn
+                for n, key in ipairs(o) do
+                    local value, ktype = t[key], type(key)
+                    local plainindex = n <= maxn and not sparse
+                    -- skip ignored values; do nothing
+                    if opts.valignore and opts.valignore[value]
+                    or opts.keyallow and not opts.keyallow[key]
+                    or opts.keyignore and opts.keyignore[key]
+                    or opts.valtypeignore
+                    -- skipping ignored value types
+                    and opts.valtypeignore[type(value)]
+                    -- skipping nils; do nothing
+                    or sparse and value == nil then
+                    elseif ktype == 'table' or ktype == 'function'
+                            or badtype[ktype] then
+                        if not seen[key] and not globals[key] then
+                            sref[#sref+1] = 'placeholder'
+                            -- iname is table for local variables
+                            local sname = safename(iname, gensym(key))
+                            sref[#sref] = val2str(key,sname,indent,
+                                sname,iname,true)
+                        end
+                        sref[#sref+1] = 'placeholder'
+                        local path = seen[t]..'['..tostring(seen[key]
+                            or globals[key] or gensym(key))..']'
+                        sref[#sref] = path..space..'='..space
+                            ..tostring(seen[value]
+                            or val2str(value,nil,indent,path))
+                    else
+                        out[#out+1] = val2str(value,key,indent,
+                            nil,seen[t],plainindex,level+1)
+                        if maxlen then
+                            maxlen = maxlen - #out[#out]
+                            if maxlen < 0 then break end
+                        end
+                    end
+                end
+                local prefix = string.rep(indent or '', level)
+                local head = indent and '{\n'..prefix..indent or '{'
+                local body = table.concat(
+                    out, ','..(indent and '\n'..prefix..indent or space)
+                )
+                local tail = indent and "\n"..prefix..'}' or '}'
+                return (
+                    custom and custom(tag,head,body,tail,level)
+                    or tag..head..body..tail
+                )..comment(t, level)
+            elseif badtype[ttype] then
+                seen[t] = insref or spath
+                return tag..globerr(t, level)
+            elseif ttype == 'function' then
+                seen[t] = insref or spath
+                if opts.nocode then
+                    return tag.."function() --[[..skipped..]] end"
+                    ..comment(t, level)
+                end
+                local ok, res = pcall(string.dump, t)
+                local func = ok and "((loadstring or load)("
+                ..safestr(res)..",'@serialized'))"..comment(t, level)
+                return tag..(func or globerr(t, level))
+            else
+                return tag..safestr(t)
+            end -- handle all other types
+        end
+        local sepr = indent and "\n" or ";"..space
+        local body = val2str(t, name, indent) -- this call also populates sref
+        local tail = #sref>1 and table.concat(sref, sepr)..sepr or ''
+        local warn = opts.comment and #sref>1 and space
+        .."--[[incomplete output with shared/self-references skipped]]" or ''
+        return not name and body..warn
+            or "do local "..body..sepr..tail.."return "..name..sepr.."end"
+    end
+
+    local function deserialize(data, opts)
+        local env = (opts and opts.safe == false) and G
+        or setmetatable({}, {
+            __index = function(t,k) return t end,
+            __call = function(t,...) error("cannot call functions") end
+        })
+        local f, res = (loadstring or load)('return '..data, nil, nil, env)
+        if not f then f, res = (loadstring or load)(data, nil, nil, env) end
+        if not f then return f, res end
+        if setfenv then setfenv(f, env) end
+        return pcall(f)
+    end
+
+    local function merge(a, b)
+        if b then
+            for k,v in pairs(b) do
+                a[k] = v
+            end
+        end
+        return a
+    end
+    serpent = {
+        _NAME = _n,
+        _COPYRIGHT = _c,
+        _DESCRIPTION = _d,
+        _VERSION = _v,
+        serialize = s,
+        load = deserialize,
+        dump = function(a, opts)
+            return s(
+                a, merge({name = '_', compact = true, sparse = true}, opts)
+            )
+        end,
+        line = function(a, opts)
+            return s(a, merge({sortkeys = true, comment = true}, opts))
+        end,
+        block = function(a, opts)
+            return s(
+                a, merge(
+                    {indent = '  ', sortkeys = true, comment = true}, opts
+                )
+            )
+        end
+    }
+end -- }}}2
+-- }}}1
+
+--[[ Functions ]]--
+
+-- forward declarations    {{{1
+local abort
+local list_keywords
+local split
+local serialise
+
+-- abort(err)    {{{1
+
+--- Exit script with error message and exit status (-1), but no stacktrace.
+-- @param string err Error message
+-- @treturn nil function exits script
+-- @local
+-- @function abort
+function abort(err)
+    io.stderr:write(sf('%s: %s', script, err))
+    os.exit(-1)
+end
+
+-- list_keywords()    {{{1
+
+--- List style keywords with descriptions.
+-- @return nil
+-- @local
+-- @function list_keywords
+function list_keywords()
+    -- assemble keyword and descriptions
+    local keywords_sorted = {}
+    local descriptions = {}
+    for keyword, data in pairs(keyword_data) do
+        local description = data.description
+        table.insert(keywords_sorted, keyword)
+        descriptions[keyword] = description
+    end
+    local compare_keywords = function (a, b)
+        local match = '^Latex%d%d?pt$'
+        if a:match(match) and b:match(match) then
+            local pts = '^Latex(%d+)pt$'
+            local a_pts = math.tointeger(a:match(pts))
+            local b_pts = math.tointeger(b:match(pts))
+            return (a_pts < b_pts)
+        else
+            return (a < b)
+        end
+    end
+    table.sort(keywords_sorted, compare_keywords)
+    -- format for output
+    local max_length = 0
+    for _, keyword in ipairs(keywords_sorted) do
+        max_length = (#keyword > max_length) and #keyword or max_length
+    end
+    local output = {}
+    for _, keyword in ipairs(keywords_sorted) do
+        local indent_size = max_length - #keyword
+        local indent = string.rep(' ', indent_size)
+        local line = sf('%s%s: %s\n', indent, keyword, descriptions[keyword])
+        table.insert(output, line)
+    end
+    -- display output
+    for _, line in ipairs(output) do io.stdout:write(line) end
+end
+
+-- split(str, sep)    {{{1
+
+--- Split string on separator and return list.
+-- @tparam string str string to split
+-- @tparam string sep separator
+-- @treturn table sequence of split elements
+-- @see serialise
+-- @local
+-- @function split
+function split(str, sep)
+    if sep == nil then
+        sep = '\n'
+    end
+
+    local res = {}
+    local func = function(w)
+        table.insert(res, w)
+    end
+
+    string.gsub(str, '[^'..sep..']+', func)
+    return res
+end
+
+-- serialise(name, tbl)    {{{1
+
+--- Write constructor for table to stdout.
+-- assumes variable is local
+-- @tparam string name name of table
+-- @tparam table tbl table to write contructor for
+function serialise(name, tbl)
+    -- check arg types
+    if type(name) ~= 'string' then
+        error('expected string, got '..type(name))
+    end
+    if type(tbl) ~= 'table' then
+        error('expected table, got '..type(tbl))
+    end
+    -- serialise table
+    -- use 'serpent.block' for multi-line, human-readable
+    -- use 'serpent.line' for compact single-line
+    local output = serpent.block(tbl)
+    -- remove meaningless table identifiers from output
+    output = output:gsub(' %-%-%[%[table: .-%]%]', '')
+    output = 'local ' .. name .. ' = ' .. output .. '\n'
+    -- adjust indent from two spaces to four spaces
+    local lines = split(output)
+    local constructor = {}
+    for _, line in ipairs(lines) do
+        local indent = line:match('^(%s*)')
+        table.insert(constructor, indent..line)
+    end
+    table.insert(constructor, '')  -- to force final newline
+    output = table.concat(constructor, '\n')
+    -- output result
+    io.stdout:write(output)
+end -- }}}1
+
+--[[ Process script arguments ]]--
+
+-- handle calls for help    {{{1
+do
+    local help = [[
+Generate lua construction code for these types of pander keyword data tables:
+actions, conflict, describe, expand, valid.
+
+keyword-table [-l] <table_type>
+
+    -l, --list-keywords    list style keywords with description
+    table_type             'actions'|'conflict'|'describe'|'expand'|'valid'
+
+]]
+    for _, v in ipairs(arg) do
+        if v == '-h' or v == '--help' then
+            io.stdout:write(help)
+            os.exit(0)
+        elseif v == '-l' or v == '--list-keywords' then
+            list_keywords()
+            os.exit(0)
+        end
+    end
+end
+
+-- process args    {{{1
+local table_type
+do
+    if #arg ~= 1 then
+        io.stderr:write(sf(
+            '%s: expected 1 argument, got %d\n', script, #arg
+        ))
+        os.exit(1)
+    end
+    local table_types = {
+        actions = true, conflict = true, describe = true,
+        expand = true, valid = true
+    }
+    table_type = arg[1]
+    if not table_types[table_type] then
+        io.stderr:write(sf(
+            "%s: invalid table type: '%s'\n", script, table_type
+        ))
+        os.exit(1)
+    end
+end -- }}}1
+
+--[[ Output constructors ]]--
+
+-- output actions    {{{1
+
+if table_type == 'actions' then
+    local keyword_actions_data = {}
+    for keyword, data in pairs(keyword_data) do
+        keyword_actions_data[keyword] = data.actions
+    end
+    serialise('keyword_actions_data', keyword_actions_data)
+
+-- output conflict    {{{1
+
+elseif table_type == 'conflict' then
+    local keyword_conflict_data = {}
+    for keyword, data in pairs(keyword_data) do
+        for _, group in ipairs(data.conflict_groups) do
+            if not keyword_conflict_data[group] then
+                keyword_conflict_data[group] = {}
+            end
+            keyword_conflict_data[group][keyword] = true
+        end
+    end
+    serialise('keyword_conflict_data', keyword_conflict_data)
+
+-- output describe    {{{1
+
+elseif table_type == 'describe' then
+    local keyword_describe_data = {}
+    for keyword, data in pairs(keyword_data) do
+        keyword_describe_data[keyword] = data.description
+    end
+    serialise('keyword_describe_data', keyword_describe_data)
+
+-- output expand    {{{1
+
+elseif table_type == 'expand' then
+    local keyword_expand_data = {}
+    for keyword, data in pairs(keyword_data) do
+        for _, group in ipairs(data.expand_groups) do
+            if not keyword_expand_data[group] then
+                keyword_expand_data[group] = {}
+            end
+            table.insert(keyword_expand_data[group], keyword)
+        end
+    end
+    serialise('keyword_expand_data', keyword_expand_data)
+
+-- output valid    {{{1
+
+elseif table_type == 'valid' then
+    local keyword_valid_data = {}
+    for k, _ in pairs(keyword_data) do keyword_valid_data[k] = true end
+    serialise('keyword_valid_data', keyword_valid_data)
+
+else abort('invalid table type: '..table_type)
+end -- }}}1
+
+-- manpage    {{{1
+--[[
+
+create manpage with command:
+
+    pod2man keyword-table > keyword-table.1
+
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+keyword-table - generate keyword data table constructors
+
+=head1 USAGE
+
+B<keyword-table> [B<-l>] B<table>
+
+B<keyword-table -h>
+
+=head1 REQUIRED ARGUMENTS
+
+=over
+
+=item B<table>
+
+The table to build and output a constructor for. Must be one of: 'actions',
+'conflict', 'describe', 'expand', 'valid'.
+
+Scalar string. Required.
+
+=back
+
+=head1 OPTIONS
+
+=over
+
+=item B<-l>  B<--list-keywords>
+
+List style keywords with descriptions, and then exit.
+
+=item B<-h>  B<--help>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+=head2 Supports pander
+
+This is a utility script supporting the C<pander> script. The C<pander> script
+contains five tables that collectively define a number of style keywords that
+can be added to metadata for a markdown document. Each defined style keyword is
+associated with metadata settings and command line options that are
+collectively used to define a pandoc document conversion command.
+
+The five tables are:
+
+=over
+
+=item *
+
+keyword-actions-data
+
+The metadata settings and command line options associated with style keywords.
+
+=item *
+
+keyword-conflict-data
+
+Defines sets of style keywords that are mutually exclusive, i.e., that cannot
+be used together.
+
+=item *
+
+keyword-describe-data
+
+A description of each style keyword.
+
+=item *
+
+keyword-expand-data
+
+This applies to style keywords that expand to a set of style keywords. Note:
+there are currently no style keywords that have this behaviour.
+
+=item *
+
+keyword-valid-data
+
+This is a simple list of all valid keywords.
+
+=back
+
+=head2 Role of keyword-table
+
+It is important to keep the four keyword tables synchronised. For example, if a
+new keyword is defined its actions must be added to the 'keyword-actions-data'
+table while the keyword itself must be added to the 'keyword-valid-data' table.
+
+To make this task easier it makes sense to have a single master table defining
+all this behaviour for the style keywords and then derive the four keyword data
+tables from it. This script contains that master table and can output to stdout
+constructors for each of the keyword data tables.
+
+=head2 Master table structure
+
+Here is an example definition of a style keyword in the master keyword data
+table:
+
+    keyword_data = {
+        Latex8pt = {
+            description = 'set font size to 8 pt in latex output',
+            expand_groups = {},
+            conflict_groups = {'documentclass', 'font-size'},
+            actions = {
+                latex = {
+                    metadata = {
+                        documentclass = 'extarticle',
+                        fontsize = '8pt',
+                    },
+                },
+            },
+        },
+        ...,
+    }
+
+The style keyword in this example is 'Latex8pt'. These keywords must be unique:
+this is enforced by lua since the style keywords are table keys and lua
+requires table keys to be unique. The custom is to use CamelCase for style
+keywords.
+
+=head3 description key
+
+This key defines the keyword description printed to stdout when the
+S<< C<--list-keywords> >> option is used.
+
+=head3 expand_groups key
+
+This key determines whether other style keywords expand into keyword sets that
+include this keyword. For example, if 'OtherKeyword' expanded into a set of
+keywords that included 'Latex8pt', then 'OtherKeyword' would be added to
+'Latex8pt's sequence value for the 'expand_groups' key.
+
+=head3 conflict_groups key
+
+This key lists any groups of style keywords that are mutually exclusive, i.e.,
+that cannot be used together in the same markdown document. In the example
+there are two such groups defined. The conflict groups are not defined in a
+single place; rather, they are defined by adding the name of the conflict group
+to the 'conflict_group' value for all the style keywords in the conflict group.
+In the example the fact that one of the conflict group names is the same as a
+metadata key is coincidental; it is not necessary for this to be the case.
+
+=head3 actions key
+
+Style keyword actions are at the heart of keyword definition. They are also
+what the C<pander> script spends most of its time processing.
+
+The primary key for actions are pandoc target format, e.g., html, latex, epub,
+etc., with the additional pseudo-target 'all' applying to all formats.
+
+Within each target format there are five types of actions that can be defined.
+Only one such action type, 'metadata', is shown in the example. Here are the
+details for each action type:
+
+=begin warning
+
+Do NOT reformat long roff lines between T{ and T} to hard wrap at line length!
+
+=end warning
+
+=begin roff
+
+.nr y0 (\n[.l]/10)
+.nr y1 (\n[y0])
+.nr y2 (\n[y0]*8)
+.TS
+tab(@) expand;
+rw(\n[y1]u) lw(\n[y2]u) .
+T{
+metadata
+T}@T{
+Table of "keyword = value" where the keyword and value are valid pandoc metadata settings, with exceptions as described below.
+T}
+@
+@T{
+A value can be a \fItoken\fR where a token has the value "::name::".
+T}
+@
+@T{
+The "metadata_token" function in the "pander" script has matching sets of processing instructions for each token name. It is a fatal error if there is no matching token name in that function.
+T}
+@
+@T{
+There is currently only one defined token: "cover_image" means the metadata value is to be replaced by a cover image file name. The cover image file has to be a png, jpg or gif file in the current directory with the same basename as the input markdown file. It is a fatal error if no image file is located.
+T}
+@
+T{
+extensions
+T}@T{
+Sequence of pandoc extension names.
+T}
+@
+@T{
+Prefix each extension name with "+" or "-" as per pandoc convention. If neither prefix is present the default is "+".
+T}
+@
+T{
+options
+T}@T{
+Table of "option = value".
+T}
+@
+@T{
+Use true value if the option is a flag. The option will be added to the pandoc command without a value.
+T}
+@
+@T{
+An option with a false value causes a fatal processing error.
+T}
+@
+T{
+filters
+T}@T{
+Sequence of (a) filter names or (b) sequences, the latter of which can have 1, 2 or 3 values as {filter_name, weighting, lua_type}.
+T}
+@
+@T{
+The "weighting" is an integer between 1 and 99 (default = 50).
+T}
+@
+@T{
+The "lua_type" is true if the filter is a lua filter and false if it is a non-lua filter (default = infer from presence or absence of a \fI.lua\fR extension).
+T}
+@
+T{
+post_run
+T}@T{
+Sequence of task names.
+T}
+@
+@T{
+These tasks are performed after pandoc document conversion has completed.
+T}
+@
+@T{
+The "post_process" function in the "pander" script has matching sets of instructions for each task keyword. It is a fatal error if there is no matching task in that function.
+T}
+@
+@T{
+The tasks currently defined are: "create_mobi" which uses "ebook-convert" to
+generate a 'mobi' file from an 'epub' file, and "pause" which causes "pander"
+to pause for the user to press the Enter key before exiting.
+T}
+.TE
+
+=end roff
+
+Warning: if you set any key value to I<nil> the key will not be added to the
+constructor that is output.
+
+Note that the variable C<datadir> is available to construct file paths. This
+variable is set to the following in order of preference:
+S<< F<$XGD_DATA_HOME/pandoc> >> if it exists,
+S<< F<$HOME/.local/share/pandoc> >> if it exists,
+or S<< F<$HOME/.pandoc> >>.
+
+=head3 Action precedence
+
+The actions for the generic format 'all' are processed first and then any
+format-specific actions are processed.
+
+The 'extensions', 'filters' and 'post_run' values are all stored in sequences
+and are simply added to those structures as the actions are processed.
+
+The order of post_run tasks does not matter as they are executed by pander.
+
+The extensions order is not significant since it does not matter to pandoc.
+
+In pandoc the order in which filters are processed can matter, so filters
+defined in style keywords appear in the pandoc command in weighting order with
+smallest weighting value first and largest weighting value last. Filters with
+the same weighting value occur in the pandoc command in the order they are
+processed, i.e., by style keyword, then format, then sequence order within
+format. Given this scheme, it can be seen that the situation where no
+weightings are assigned to any filters is a special case: since filters with no
+weighting value are assigned a weighting value of 50, all the filters will have
+the same value and so will appear in the order they are processed.
+
+Both 'metadata' and 'options' action data are stored in tables, i.e., with a
+C<key=value> structure.
+
+The rules applying when multiple styles and/or target formats attempt to modify
+the same metadata field or command line option can be complex. Here is a table
+comparing what happens when adding a new value to an existing value in each
+case. The new value may be a table (i.e., a sequence) or a non-table (i.e., a
+string). The existing value may be nil, or it may be a table (i.e., a sequence)
+or a non-table (i.e., a string) obtained from processing previous styles.
+
+=begin roff
+
+.TS
+tab(:);
+rb lb lb
+rb l  l .
+                     : New is string : New is sequence
+     Existing is nil : assign string : assign sequence
+  Existing is string : replace, WARN : ERROR
+Existing is sequence : ERROR         : append sequence
+.TE
+
+=end roff
+
+From this arises the following processing logic:
+
+    if existing == nil then
+        assign new string or sequence to it
+        goto end of value processing
+    end
+    if existing == sequence then
+        if new == sequence then
+            append new items to existing ones
+        else (new == string and existing == sequence)
+            issue error
+        end
+        goto end of value processing
+    end
+    if new == sequence (and existing == string)
+        issue error
+    else (new == string (and existing == string)) then
+        replace existing value
+        issue warning
+    end
+
+=head1 DEPENDENCIES
+
+lua (v5.3 or greater).
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 AUTHOR
+
+David Nebauer (david at nebauer dot org)
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2021 David Nebauer (david at nebauer dot org)
+
+This file is part of Pander.
+
+Pander is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Pander is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Pander.  If not, see <https://www.gnu.org/licenses/>
+=cut
+--]] -- }}}1
+
+-- vim:foldmethod=marker:

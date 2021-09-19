@@ -1,0 +1,12 @@
+#compdef dn-perltidy
+
+local rc=1
+
+_arguments -S \
+  - '(help)' \
+    {-h,--help}'[Show a compact help message]' \
+  - '(arguments)' \
+    '*:file:_files' \
+  && rc=0
+
+return rc

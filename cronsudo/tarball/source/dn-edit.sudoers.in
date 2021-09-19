@@ -1,0 +1,6 @@
+# sudoers file supplied by package dn-cronsudo
+# do not edit directly but modify the package
+
+# editors
+david ALL= NOPASSWD: /usr/bin/vim
+david ALL= NOPASSWD: /usr/bin/gvim

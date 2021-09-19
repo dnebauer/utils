@@ -1,0 +1,378 @@
+#!/usr/bin/env bash
+
+# File: dn-mp3-tags
+# Author: David Nebauer (david at nebauer dot org)
+# Purpose: Change artist and track number mp3 tags
+# Created: 2021-02-07
+
+
+# ERROR HANDLING
+
+# Exit on error. Append "|| true" if you expect an error.
+set -o errexit
+# Exit on error inside any functions or subshells.
+set -o errtrace
+# Do not allow use of undefined vars. Use ${VAR:-} to use an undefined VAR
+set -o nounset
+# Catch error in case mysqldump fails (but gzip succeeds) in `mysqldump |gzip`
+set -o pipefail
+# Turn on traces, useful while debugging but commented out by default
+# set -o xtrace
+
+# VARIABLES
+
+msg="Loading libraries" ; echo -ne "\\033[1;37;41m${msg}\\033[0m"
+source "@libexec_dir@/libdncommon-bash/liball"  # supplies functions
+dnEraseText "${msg}"
+usage="Usage:"
+# shellcheck disable=SC2034
+param_pad="$( dnRightPad "$( dnStrLen "${usage} ${dn_self}" )" )"
+parameters="[-n] [-t] [-p] [-a] [-s] [-f path] [-e] [-i]"
+required_tools=('mp3info2' 'eyeD3' 'id3v2' 'grep' 'sed')
+required_tools+=('dnEraseText' 'dnFlagTrue' 'dnGetInput')
+required_tools+=('dnInfo' 'dnResetIFS' 'dnTitleCase')
+do_numbers=${dn_false}        # flag: modifying numbers
+do_titles=${dn_false}         # flag: modifying track titles
+do_perform=${dn_false}        # flag: modifying track artist/performer
+do_thing=${dn_false}          # flag: modifying track artist/performer
+use_id3v2=${dn_false}         # flag: use id3v2 rather than mp3info
+use_eyed3=${dn_false}         # flag: use eyeD3 rather than mp3info
+blank_suggestion=${dn_false}  # flag: no default suggestion
+use_file=${dn_false}          # flag: use file for default tag values
+file_path=''                  # path to file containing tag values
+tag_values=()                 # tag values extracted from file
+tag_index=0                   # index of tag values array
+unset msg
+
+
+# PROCEDURES
+
+# Show usage
+#   params: nil
+#   prints: nil
+#   return: nil
+displayUsage () {
+cat << _USAGE
+${dn_self}: set mp3 tags for audio files in directory
+
+Used to set mp3 tags that commonly change with each track
+in an album. All mp3 files in the current directory are
+processed sequentially (using bash's default file listing
+order).
+
+If the 'n' flag is used the tracks are numbered in file sort
+order. Numbering starts at one and automatically increments.
+
+The title and performer can be set manually for each file in
+turn. Use the 't' flag to set the track title and the 'p' or
+'a' flag to set performer/artist.
+
+For track performer the default suggestion for each file is
+identical to the existing tag. For track title the default
+default suggestion for each file is the existing tag
+converted to title case.
+
+The suggestions for track performer and/or title are
+suppressed with the 'b' flag.
+
+The 'f' option can be used when setting performers or
+titles, but not both. This option nominates a file
+containing default options, one per line. Lines starting
+with '##' are skipped. Processing of the file stops at any
+line which is empty or contains nothing but '-' and/or '='
+(i.e., dividers). It is assumed the values are given in the
+same sort order as file names. These performers or titles
+are used without alteration as default suggestions for the
+mp3 files. There must be the same number of values extracted
+from the file as mp3 files in the directory, or the script
+will exit with an error. If both the 'b' flag and 'f' option
+are present, the 'b' flag is ignored.
+
+By default, mp3info2 is used to alter file tags. The tools
+eyeD3 or id3v2 can be used instead if the 'e' or 'i' flag is
+used, respectively.
+
+At least one of the 'n', 't', 'p' or 'a' flags is required
+for the script to perform any action. If no flags are
+provided a help message is displayed.
+
+${usage} ${dn_self} ${parameters}
+       ${dn_self} -h
+
+Options: -a       = synonym for '-p'     [optional]
+         -b       = no/blank suggestion  [optional]
+         -f path  = file path            [optional]
+         -n       = set track numbers    [optional]
+         -p       = set track performers [optional]
+         -t       = set track titles     [optional]
+         -e       = use eyeD3            [optional]
+         -i       = use id3v2            [optional]
+_USAGE
+}
+# Process command line options
+#   params: all command line parameters
+#   prints: feedback
+#   return: nil
+#   note:   after execution variable ARGS contains
+#           remaining command line args (after options removed)
+processOptions () {
+	# read the command line options
+    local OPTIONS="$(                     \
+        getopt                            \
+            --options hvdntpabf:ei        \
+            --long    help,verbose,debug,number,title,performer,artist,blank,file:,eyed3,id3v2 \
+            --name    "${BASH_SOURCE[0]}" \
+            -- "${@}"                     \
+    )"
+    [[ ${?} -eq 0 ]] || {
+        echo 'Invalid command line options' 1>&2
+        exit 1
+    }
+    eval set -- "${OPTIONS}"
+	while true ; do
+		case "${1}" in
+        -n | --number    ) do_numbers=${dn_true} ; do_thing=${dn_true} ; shift 1 ;;
+        -t | --title     ) do_titles=${dn_true} ; do_thing=${dn_true} ; shift 1 ;;
+        -p | --performer ) do_perform=${dn_true} ; do_thing=${dn_true} ; shift 1 ;;
+        -a | --artist    ) do_perform=${dn_true} ; do_thing=${dn_true} ; shift 1 ;;
+        -e | --eyed3     ) use_eyed3=${dn_true} ; shift 1 ;;
+        -i | --id3v2     ) use_id3v2=${dn_true} ; shift 1 ;;
+        -b | --blank     ) blank_suggestion=${dn_true} ; shift 1 ;;
+        -f | --file      ) use_file=${dn_true} ; file_path="${2}" ; shift 2 ;;
+        -h | --help      ) displayUsage   ; exit 0  ;;
+        -v | --verbose   ) set -o verbose ; shift 1 ;;
+        -d | --debug     ) set -o xtrace  ; shift 1 ;;
+        --               ) shift ; break ;;
+        *                ) break ;;
+		esac
+	done
+	ARGS="${@}"  # remaining arguments
+}
+# Join items
+#   params: 1  - delimiter
+#           2+ - items to be joined
+#   prints: string containing joined items
+#   return: nil
+function joinBy () {
+    local d=$1
+    shift
+    local f=$1
+    shift
+    printf %s "$f" "${@/#/$d}"
+}
+# Helper function for returning arrays
+#   params: 1 - array variable name [string, required]
+#   prints: nil
+#   return: array
+function returnArray () {
+    local r=$( declare -p $1 )
+    r=${r#declare\ -a\ *=}
+    echo ${r//\[[0-9]\]=}
+}
+# Extract tag values from file
+#   params: 1 - tag file path [string, required]
+#   prints: nil
+#   return: array of tag values
+function processTagFile () {
+    # check file exists
+    file_path="$1"
+    [[ -f "${file_path}" ]] \
+        || dnFailScript "Can't locate file: ${file_path}"
+    # get file contents
+    mapfile -t file_content <"${file_path}"
+    # extract tag values from file contents
+    local -a tag_values
+    for line in "${file_content[@]}" ; do
+        # skip comment lines (starting with ##)
+        local re_comment='^##'
+        [[ "${line}" =~ ${re_comment} ]] && continue
+        # truncate on empty line or dividing line
+        [[ -z "${line}" ]] && break
+        local re_divider='^[-=]{1,}$'
+        [[ "${line}" =~ ${re_divider} ]] && break
+        # add any other line
+        tag_values+=("${line}")
+    done
+    # return extracted tag values
+    returnArray tag_values
+}
+
+
+# MAIN
+
+# Check for required tools
+missing=()
+for tool in "${required_tools[@]}" ; do
+    command -v "${tool}" &>/dev/null || missing+=("${tool}")
+done
+[[ ${#missing[@]} -eq 0 ]] \
+    || dnFailScript "Can't run without: $(joinBy ', ' "${missing[@]}")"
+unset missing tools required_tools
+
+# Process command line options
+# - results in $ARGS holding remaining non-option command line arguments
+processOptions "${@}"
+
+# Check arguments
+# - require at least one flag
+if ! dnFlagTrue "${do_thing}" ; then
+    echo -e "Warning: No flags detected"
+    echo -e "Usage: ${dn_self} ${parameters}"
+    echo -e "Try '${dn_self} -h' for help"
+    echo -ne "\a"
+    exit 0
+fi
+# - if using file then file value count must match mp3 file count
+# - also load tag_values array
+if dnFlagTrue "${use_file}" ; then
+    eval declare -a tag_values="$(processTagFile "${file_path}")"
+    mapfile -t mp3_files < <(dir -1 *.mp3 2>/dev/null)
+    if [[ ${#tag_values[@]} != ${#mp3_files[@]} ]] ; then
+        echo "Tag values from file ${file_path}:" >&2
+        for idx in "${!tag_values[@]}" ; do
+            item_no=$((idx+1))
+            echo "  ${item_no}. ${tag_values[${idx}]}" >&2
+        done
+        echo "Audio (mp3) files:" >&2
+        for idx in "${!mp3_files[@]}" ; do
+            item_no=$((idx+1))
+            echo "  ${item_no}. ${mp3_files[${idx}]}" >&2
+        done
+        dnEndScript 1 'Tag value count does not match mp3 file count'
+    fi
+fi
+unset mp3_files
+# - cannot use both 'e' and 'i' flags
+if dnFlagTrue "${use_eyed3}" && dnFlagTrue "${use_id3v2}" ; then
+    dnFailScript "Cannot use both 'e' and 'i' flags"
+fi
+# - can use file is setting performer OR title, but not both
+if dnFlagTrue "${use_file}" \
+        && dnFlagTrue "${do_perform}" \
+        && dnFlagTrue "${do_titles}" ; then
+    dnFailScript 'Cannot use file if setting both artists and track titles'
+fi
+# - can only use file if setting performer or title
+#   . this test must follow previous test
+if dnFlagTrue "${use_file}" \
+        && ! (dnFlagTrue "${do_perform}" || dnFlagTrue "${do_titles}") ; then
+    dnFailScript 'Cannot use file if setting both performer and title'
+fi
+
+# Informational message
+dnInfo "${dn_self} is running..."
+echo "${dn_divider}"
+
+# Cycle through files
+track_number=1
+dnResetIFS
+for file in $( dir -1 *.mp3 2>/dev/null ) ; do
+    cmd=()
+    if dnFlagTrue "${use_eyed3}" ;   then cmd+=(eyeD3)
+    elif dnFlagTrue "${use_id3v2}" ; then cmd+=(id3v2)
+    else                                  cmd+=(mp3info2 -C write_v24=TRUE)
+    fi
+    echo "File: ${file}"  # show user the file being operated upon
+    run_cmd=${dn_false}
+    # track number
+    if dnFlagTrue ${do_numbers} ; then
+        dnInfo "Setting track number to ${track_number}"
+        if dnFlagTrue "${use_eyed3}" ;   then cmd+=(-n ${track_number})
+        elif dnFlagTrue "${use_id3v2}" ; then cmd+=(-T ${track_number})
+        else                                  cmd+=(-n ${track_number})
+        fi
+        run_cmd=${dn_true}
+    fi
+    # track title
+    if dnFlagTrue ${do_titles} ; then
+        # extract and display current track title
+        set +o pipefail
+        cur_title="$( mp3info2 "${file}" | \
+                 grep "^Title: " | \
+                 sed -e "s/[[:space:]]\+Track: [[:digit:]]\+\(\\/[[:digit:]]\+\)\?$//" | \
+                 sed -e "s/^Title:[[:space:]]\+//" \
+        )"
+        set -o pipefail
+        echo "Title: ${cur_title}"
+        # derive candidate title in title case
+        default_title="$( dnTitleCase "${cur_title}" )"
+        dnFlagTrue ${blank_suggestion} && default_title=''
+        if dnFlagTrue "${use_file}" ; then
+            default_title="${tag_values[$tag_index]}"
+            ((tag_index+=1))
+        fi
+        # user decides on new title
+        new_title="$( dnGetInput -p "Enter title: " -d "${default_title}" )"
+        # take action based on user choice
+        if [[ -z "${new_title}" ]] ; then
+            # new title is blank/empty
+            dnInfo "No title entered -- leave current title unchanged"
+        elif [[ "${new_title}" = "${cur_title}" ]] ; then
+            # new title is identical to old title
+            dnInfo "Same title entered -- leave current title unchanged"
+        else
+            # new title must be different to old title
+            dnInfo "New/altered title entered -- changing track title tag"
+            # double quotes are essential
+            if dnFlagTrue "${use_eyed3}" ;   then cmd+=(-t "${new_title}")
+            elif dnFlagTrue "${use_id3v2}" ; then cmd+=(-t "${new_title}")
+            else                                  cmd+=(-t "${new_title}")
+            fi
+            run_cmd=${dn_true}
+        fi
+    fi
+    # track performer
+    if dnFlagTrue ${do_perform} ; then
+        # extract and display current track performers
+        set +o pipefail
+        cur_perform="$( mp3info2 "${file}" | \
+                 grep "^Performer: " | \
+                 sed -e "s/Performer:[[:space:]]\+//" \
+        )"
+        set -o pipefail
+        echo "Performer(s): ${cur_perform}"
+        # derive candidate performers
+        default_perform="${cur_perform}"
+        dnFlagTrue ${blank_suggestion} && default_perform=''
+        if dnFlagTrue "${use_file}" ; then
+            default_perform="${tag_values[$tag_index]}"
+            ((tag_index+=1))
+        fi
+        # user decides on new performers
+        new_perform="$( dnGetInput -p "Enter performer(s): " -d "${default_perform}" )"
+        # take action based on user choice
+        if [[ -z "${new_perform}" ]] ; then
+            # new performers is blank/empty
+            dnInfo "No performers entered -- leave current performers unchanged"
+        elif [[ "${new_perform}" = "${cur_perform}" ]] ; then
+            # new performers is identical to old performers
+            dnInfo "Same performers entered -- leave current performers unchanged"
+        else
+            # new performers must be different to old performers
+            dnInfo "New/altered performers entered -- changing track performers tag"
+            # double quotes are essential
+            if dnFlagTrue "${use_eyed3}" ;   then cmd+=(-a "${new_perform}")
+            elif dnFlagTrue "${use_id3v2}" ; then cmd+=(-a "${new_perform}")
+            else                                  cmd+=(-a "${new_perform}")
+            fi
+            run_cmd=${dn_true}
+        fi
+    fi
+    # finalise and execute command
+    # - 'eval' required to prevent 'Not found...' error of unknown causation
+    cmd+=("$(printf '%q' ${file})")
+    if dnFlagTrue ${run_cmd} ; then
+        dnInfo "Executing this command:" "'${cmd[*]}'"
+        "${cmd[@]}"  # quotes are essential
+    else
+        dnInfo "No tags need to be changed" 
+    fi
+    # prepare for next loop iteration
+    echo "${dn_divider}"
+    ((track_number+=1))
+done
+
+# Finished
+dnInfo "${dn_self} is finished"
+
+# vim:foldmethod=marker:

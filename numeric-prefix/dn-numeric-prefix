@@ -1,0 +1,331 @@
+#!/usr/bin/perl
+
+use Moo;    #                                                          {{{1
+use strictures 2;
+use 5.006;
+use 5.22.1;
+use version; our $VERSION = qv('0.1');
+use namespace::clean;    #                                             }}}1
+
+{
+
+    package Dn::Internal;
+
+    use Moo;             # {{{1
+    use strictures 2;
+    use namespace::clean -except => [ '_options_data', '_options_config' ];
+    use autodie qw(open close);
+    use Carp qw(confess);
+    use English qw(-no_match_vars);
+    use Function::Parameters;
+    use List::MoreUtils qw(uniq);
+    use MooX::HandlesVia;
+    use MooX::Options protect_argv => 0;
+    use Readonly;
+    use Types::Standard;
+
+    with qw(
+        Dn::Role::HasNumber
+        Dn::Role::HasPath
+    );
+
+    Readonly my $TRUE  => 1;
+    Readonly my $FALSE => 0;    #                                      }}}1
+
+    # options
+
+    # current (-c)                                                     {{{1
+    option 'current' => (
+        is  => 'ro',
+        doc => q[ List current paths of specified files ]
+    );
+
+    # renamed (-r)                                                     {{{1
+    option 'renamed' => (
+        is  => 'ro',
+        doc => q[ List paths that specified files will have after renaming ],
+    );
+
+    # force   (-f)                                                     {{{1
+    option 'force' => (
+        is  => 'ro',
+        doc => q[ Overwrite existing files without warning],
+    );    #                                                            }}}1
+
+    # attributes
+
+    # _fps, _set_new_fp, _new_fp, _new_fps, _fp_pairs                  {{{1
+    has '_fp_hash' => (
+
+        is  => 'lazy',
+        isa => Types::Standard::HashRef [
+            Types::Standard::Maybe [Types::Standard::Str]
+        ],
+        handles_via => 'Hash',
+        handles     => {
+            _fps        => 'keys',
+            _set_new_fp => 'set',
+            _new_fp     => 'get',
+            _new_fps    => 'values',
+            _fp_pairs   => 'elements',
+        },
+        doc => 'File paths',
+    );
+
+    method _build__fp_hash () {
+        my @matches;            # get unique file names
+        for my $arg (@ARGV) { push @matches, glob "$arg"; }
+        my @unique_matches = List::MoreUtils::uniq @matches;
+        my @fps = grep { $self->file_readable($_) } @unique_matches;
+
+        my %fp_hash;
+        %fp_hash = map { $_ => undef } @fps;
+        return {%fp_hash};
+    }    #                                                             }}}1
+
+    # methods
+
+    # run()                                                            {{{1
+    #
+    # does:   main method
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method run () {
+
+        # check args
+        $self->_check_args;
+
+        # display filepaths if that's requested
+        if ( $self->current ) {
+            $self->_list_current_file_paths;
+            return;
+        }
+
+        # determine new file names
+        $self->_derive_new_paths;
+
+        # show new filepaths if that's requested
+        if ( $self->renamed ) {
+            $self->_list_renamed_file_paths;
+            return;
+        }
+
+        # if here, then user wants to rename files
+        $self->_add_numeric_prefixes;
+
+        return;
+    }
+
+    # _check_args()                                                    {{{1
+    #
+    # does:   check arguments
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method _check_args () {
+
+        # need at least one file path
+        my @fps = $self->_fps;
+        my $count = scalar @fps;
+        if ( not $count ) {
+            warn "No file paths specified\n";
+            exit 1;
+        }
+
+        return;
+    }
+
+    # _by_custom sort routine                                          {{{1
+    #
+    # does:   custom sort routine
+    #
+    # params: nil
+    # prints: nil
+    # return: -1, 0 or 1 as per sort routine convention
+    sub by_custom {
+        $a cmp $b;
+    }
+
+    # _list_current_file_paths()                                       {{{1
+    #
+    # does:   list current paths of specified files
+    #
+    # params: nil
+    # prints: file paths
+    # return: n/a, exits on failure
+    method _list_current_file_paths () {
+
+        my @fps = sort by_custom $self->_fps;
+        for my $fp (@fps) { say $fp; }
+
+        return;
+    }
+
+    # _derive_new_paths()                                              {{{1
+    #
+    # does:   determine new file names
+    # params: nil
+    # prints: nil, except error messages
+    # return: n/a, dies on failure
+    method _derive_new_paths () {
+
+        my @fps    = sort by_custom $self->_fps;
+        my $width  = length scalar @fps;
+        my $format = '%0' . $width . 's';
+        my $count  = 1;
+
+        for my $fp (@fps) {
+            my ( $dir, $file ) = $self->path_parts($fp);
+            my $prefix = sprintf( $format, $count ) . q{_};
+            my $new_fp = $dir . $prefix . $file;
+            $self->_set_new_fp( $fp => $new_fp );
+            $count++;
+        }
+
+        return;
+    }
+
+    # _list_renamed_file_paths()                                       {{{1
+    #
+    # does:   list paths that specified files will have after renaming
+    #
+    # params: nil
+    # prints: new file paths
+    # return: n/a, exits on failure
+    method _list_renamed_file_paths () {
+
+        my @fps = sort by_custom $self->_new_fps;
+        for my $fp (@fps) { say $fp; }
+
+        return;
+    }
+
+    # _add_numeric_prefixes()                                          {{{1
+    #
+    # does:   rename files with numeric prefixes
+    #
+    # params: nil
+    # prints: error message on failure
+    # return: n/a, exits on failure
+    method _add_numeric_prefixes () {
+
+        my @fps = sort by_custom $self->_fps;
+
+        # check whether overwriting existing files
+        my %fp_pairs = $self->_fp_pairs;
+        my @exists;
+        while ( my ( $fp, $new_fp ) = each %fp_pairs ) {
+            if ( -e $new_fp ) { push @exists, $fp; }
+        }
+        if ( @exists and not $self->force ) {
+            warn "The following renaming would overwrite existing files:\n";
+            for my $fp (@exists) { warn "  $fp -> $fp_pairs{$fp}\n"; }
+            warn "Use '--force' to overwrite existing files\n";
+            return;
+        }
+
+        # rename files
+        while ( my ( $fp, $new_fp ) = each %fp_pairs ) {
+            rename $fp, $new_fp
+                or die "Unable to rename '$fp' to '$new_fp': $OS_ERROR\n";
+        }
+
+        return;
+    }    #                                                             }}}1
+
+}
+
+my $p = Dn::Internal->new_with_options->run;
+
+1;
+
+# POD                                                                  {{{1
+
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+dn-numeric-prefix - add numeric prefix to file names
+
+=head1 USAGE
+
+B<dn-numeric-prefix> [ B<-c> ] [ B<-r> ] [ B<-f>] I<glob>
+...
+
+B<dn-numeric-prefix -h>
+
+=head1 REQUIRED ARGUMENTS
+
+=over
+
+=item I<glob>
+
+Glob specifying paths of files to which numeric prefixes will be added.
+String.  Required.
+
+=back
+
+=head1 OPTIONS
+
+=over
+
+=item B<-c>  B<--current>
+
+List paths of files to which numeric prefixes will be added. No files are
+actually renamed when this option is used. Boolean. Optional. Default: false.
+
+=item B<-r>  B<--renamed>
+
+Show paths of files that will result after numeric prefixes are added. No files
+are actually renamed when this option is used. Boolean. Optional. Default:
+false.
+
+=item B<-f>  B<--force>
+
+Proceed with file renaming even if existing files will be overwritten. Boolean.
+Optional. Default: false.
+
+=item B<-h>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+Add an incrementing numeric prefix to the file names of a group of files. For
+example, files F<a> and F<b> are renamed to F<1_a> and F<2_b>. File order is
+standard shell ascii order.
+
+If there are more than nine files to be processed, the numeric prefixes are
+left zero-padded. For example, if there were over a hundred files, files F<a>
+and F<b> may be renamed F<001_a> and F<002_b>.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+autodie, Carp, Dn::Role::HasNumber, Dn::Role::HasPath, English,
+Function::Parameters, List::MoreUtils, Moo, MooX::HandlesVia, MooX::Options,
+namespace::clean, Readonly, strictures, Types::Standard, version.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 AUTHOR
+
+David Nebauer (david at nebauer dot org)
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2017 David Nebauer (david at nebauer dot org)
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+# vim:fdm=marker

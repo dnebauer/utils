@@ -1,0 +1,166 @@
+#!/bin/bash
+# prerm script for dn-alsa-device
+#
+# see: dh_installdeb(1)
+
+####
+# An unexplained problem is causing debconf to fail to retrieve
+# the value for db_get dn-alsa-device/delete-alsa-conf-files
+# and this causes the script to fail.  This, in turn, causes
+# all package managers to fail.
+#
+# Until the problem is solved the only solution is to comment
+# out this script to prevent it executing.
+####
+
+set -e
+
+# summary of how this script can be called:
+#        * <prerm> `remove'
+#        * <old-prerm> `upgrade' <new-version>
+#        * <new-prerm> `failed-upgrade' <old-version>
+#        * <conflictor's-prerm> `remove' `in-favour' <package> <new-version>
+#        * <deconfigured's-prerm> `deconfigure' `in-favour'
+#          <package-being-installed> <version> `removing'
+#          <conflicting-package> <version>
+# for details, see http://www.debian.org/doc/debian-policy/ or
+# the debian-policy package
+
+
+. /usr/share/debconf/confmodule  # use debconf
+
+
+# VARIABLES
+
+#declare delete_files=""
+#declare pkg="@pkg@"
+#declare sys_conf_dir="/etc"
+#declare pkg_conf_dir="${sys_conf_dir}/${pkg}"
+#declare link_name="asound.conf"
+#declare conf_stub="asound.conf-dn."
+#
+#
+## PROCEDURES
+#
+## Remove /etc/asound.conf if it is a symlink to
+## a file named /etc/asound.conf-dn.*
+##  params: nil
+##  prints: feedback
+##  return: nil
+#function remove_config_symlink () {
+#	# variables
+#	local link_target=""
+#	# proceed only if main config is symlink
+#	if test -h "${sys_conf_dir}/${link_name}" ; then
+#		# proceed only if links to file named '/etc/asound.conf-dn.*'
+#		link_target="$( readlink -m "${sys_conf_dir}/${link_name}" )"
+#		link_target="${link_target##*/}"   # strip path
+#		link_target="${link_target:0:15}"  # first 15 chars only
+#		if test "${link_target}" = "${conf_stub}" ; then
+#			# can now proceed with deletion
+#			echo -n "Deleting ${sys_conf_dir}/${link_name}... "
+#			rm -f $"{sys_conf_dir}/${link_name}" &>/dev/null
+#			if test ${?} -eq 0 ; then echo "OK" ; else echo "Failed" ; fi
+#		else  # test -h "${sys_conf_dir}/${link_name}"
+#			# did not delete
+#			echo "Did not delete ${sys_conf_dir}/${link_name} as requested"
+#			echo "  -- it did not link to a file named '${conf_stub}*'"
+#		fi  # test "${link_target}" = "${conf_stub}"
+#	else  # test -h "${sys_conf_dir}/${link_name}"
+#		# not a symlink (or does not exist at all)
+#		echo "Did not delete ${sys_conf_dir}/${link_name} as requested"
+#		echo "  -- no symlink of that name exists in that location"
+#		# check whether it is a regular file
+#		if test -f "${sys_conf_dir}/${link_name}" ; then
+#			echo "  -- no regular file of that name exists in that location"
+#		fi
+#	fi  # test -h "${sys_conf_dir}/${link_name}"
+#}
+#
+## Remove config files named '/etc/asound.conf-dn.*' from
+## /etc/dn-alsa-device/
+##  params: nil
+##  prints: feedback
+##  return: nil
+#function remove_config_files () {
+#	# variables
+#	local conf_file="" conf_file_stub="" found_match=1 deleted_ok=0
+#	# process individual config files in turn
+#	for file in ${pkg_conf_dir}/${conf_stub}* ; do
+#		# where there is no match bash returns the file comparator
+#		# (in this case '${pkg_conf_dir}/${conf_stub}*') --
+#		# this presumably will not match any actual file as it contains
+#		# an unescaped asterisk, so the following test will screen
+#		# out the case where there are no matches
+#		if test -f "${conf_file}" ; then
+#			# check it matches the config file name pattern
+#			conf_file_stub="${conf_file_stub##*/}"   # strip path
+#			conf_file_stub="${conf_file_stub:0:15}"  # first 15 chars only
+#			if test "${conf_file_stub}" = "${conf_stub}" ; then
+#				found_match=0
+#				# can now proceed with deletion
+#				echo -n "Deleting ${pkg_conf_dir}/${conf_file}... "
+#				rm -f $"${pkg_conf_dir}/${conf_file}" &>/dev/null
+#				if test ${?} -eq 0 ; then
+#					echo "OK"
+#				else
+#					deleted_ok=1
+#					echo "Failed"
+#				fi  # test ${?} -eq 0
+#			fi  # test "${conf_file_stub}" = "${conf_stub}"
+#		fi  # test -f "${conf_file}"
+#	done  # for file in ${pkg_conf_dir}/${conf_stub}*
+#	# notify if no files found to delete
+#	if test ${found_match} -ne 0 ; then  # no match
+#		echo "Did not delete user-created alsa config files as requested"
+#		echo "  -- no files matched '${pkg_conf_dir}/${conf_stub}*'"
+#	fi  # test ${found_match} -ne 0
+#	# warn if any file deletion failed
+#	if test ${deleted_ok} -ne 0 ; then  # at least one deletion failed
+#		echo "Problems were encountered deleting user-created alsa config"
+#		echo "  files as requested -- this may prevent the operating system"
+#		echo "  deleting the package configuration directory"
+#		echo "  ('${pkg_conf_dir}') during package removal"
+#	fi  # test ${deleted_ok} -ne 0
+#}
+#
+#
+## MAIN
+#
+## Check whether to delete user-created alsa config files
+## - stores result in 'RET' variable
+#db_get @pkg@/delete-alsa-conf-files
+#delete_files="${RET}"
+#
+## Handle package events
+#case "$1" in
+#
+#'remove'|'deconfigure' )
+#
+#	case "${delete_files}" in
+#	'Delete' )
+#		remove_config_symlink
+#		remove_config_files
+#		;;
+#	esac
+#    ;;
+#
+#'upgrade'|'failed-upgrade')
+#
+#	# do not remove user-created config files on these events
+#    ;;
+#
+#* )
+#	echo "prerm called with unknown argument \`$1'" >&2
+#	exit 1
+#    ;;
+#
+#esac
+#
+#
+## dh_installdeb will replace this with shell code automatically
+## generated by other debhelper scripts.
+#
+##DEBHELPER#
+#
+#exit 0

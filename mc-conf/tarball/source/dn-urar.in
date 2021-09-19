@@ -1,0 +1,199 @@
+#! /bin/sh
+#
+# Written by andrey joukov
+# (C) 1996 2:5020/337.13@fidonet.org
+# Updated by christian.gennerat@alcatel.fr 1999
+#            Andrew V. Samoilov <sav@bcs.zp.ua> 2000
+# beta version 2.0
+#
+# Modified by David Nebauer
+# last changed 2013-08-25
+# - comments by modifier are suffixed with '::dn#'
+#
+# rar and unrar can be found on http://www.rarlabs.com/
+
+#dn_debug () { logger -t "`basename $0`" "$1"; }
+#dn_debug " "
+#params=("$@")
+#for (( i=0 ; i<$# ; i++ )) ; do
+#    dn_debug "param $i: ${params[$i]}"
+#done
+
+RAR=rar
+UNRAR=$RAR
+
+# Prefer unrar (freeware).  Try to find unrar in $PATH.
+save_IFS="$IFS"; IFS=:
+for dir in $PATH; do
+    IFS="$save_IFS"
+    test -z "$dir" && dir=.
+    if test -x "$dir/unrar" -a -f "$dir/unrar"; then
+	UNRAR="$dir/unrar"
+	break
+    fi
+done
+
+if [ ! -x $UNRAR -a -x $RAR ]; then
+    UNRAR=$RAR
+fi
+
+mcrarfs_list ()
+{
+# by default uses syntax of non-free rar                          ::dn#
+    #$UNRAR v -c- -cfg- "$1" | awk -v uid=`id -u` -v gid=`id -g` '
+# instead use syntax from free rar version                        ::dn#
+    $UNRAR --list "$1" | awk -v uid=`id -u` -v gid=`id -g` '
+BEGIN { flag=0 }
+/^-------/ { flag++; if (flag > 1) exit 0; next }
+flag==1 {
+    str = substr($0, 2)
+    getline
+    split($4, a, "-")
+    if (index($6, "D") != 0)
+	$6="drwxr-xr-x"
+    else
+	if (index($6, ".") != 0)
+	    $6="-rw-r--r--"
+    printf "%s 1 %s %s %d %02d/%02d/%02d %s ./%s\n", $6, uid, gid, $1, a[2], a[1], a[3], $5, str
+}'
+}
+
+mcrarfs_copyin ()
+{
+# unmodified code appears to work correctly, but the copied file  ::dn#
+#   is either absent upon re-running mc and re-examining the      ::dn#
+#   archive, or the file remains present but any operation        ::dn#
+#   performed on a copied file results in the error:              ::dn#
+#     cannot stat 'FILE': no such file or directory               ::dn#
+    msg="Copy operation is not supported on rar archives\n"
+    msg="${msg}Even if apparently successful the operation fails"
+    echo -e "$msg" > /dev/stderr
+    exit 1
+# copyin by christian.gennerat@alcatel.fr
+# preserve pwd. It is clean, but is it necessary?
+    pwd=`pwd`
+# Create a directory and copy in it the tmp file with the good name     
+    mkdir "$3.dir"
+    cd "$3.dir"
+    di="${2%/*}"
+# if file is to be written upper in the archive tree, make fake dir
+    if test x"$di" != x"${2##*/}" ; then
+        mkdir -p "$di"
+    fi
+    cp -fp "$3" "$3.dir/$2" 
+    $RAR a "$1" "$2" >/dev/null
+    cd "$pwd"
+    rm -rf "$3.dir"
+}
+
+mcrarfs_copyout ()
+{
+# params (from /usr/lib/mc/extfs.d/README)                        ::dn#
+# 1 - archive file name                                           ::dn#
+# 2 - target file path within archive to extract                  ::dn#
+# 3 - filepath to give to extracted file                          ::dn#
+#     is a unique temporary filepath assigned by mc               ::dn#
+
+# original command (commented out below) is for non-free unrar    ::dn#
+#   which is incompatible with free unrar syntax                  ::dn#
+    #$UNRAR p -p- -c- -cfg- -inul "$1" "$2" > "$3"
+
+# free unrar fails to extract files even with correct syntax      ::dn#
+
+    UNRAR=7z
+# following command uses 7zip with (non-free) rar module          ::dn#
+# 7z would automatically extract file to same directory as        ::dn#
+#   archive, except that a temporary directory is specified       ::dn#
+#   as the output directory                                       ::dn#
+# 7z automatically gives the extracted file the same name as      ::dn#
+#   the source file                                               ::dn#
+# -aoa: automatically overwrite existing file, though this        ::dn#
+#   should never happen                                           ::dn#
+# note: must rely on mc to move extracted file from its           ::dn#
+#   temporary filepath to the destination filepath specified      ::dn#
+#   by the user                                                   ::dn#
+    dir=`mktemp -d "${MC_TMPDIR:-/tmp}/mctmpdir-urar.XXXXXX"` || exit 1
+    trap "rm -fr $dir" EXIT
+    #dn_debug "created temporary directory '$dir'"
+    $UNRAR e -aoa -o$dir "$1" "$2" > /dev/null
+    exit_status=$?
+    #dn_debug "extracted file (exit status $exit_status)"
+    if test $exit_status -eq 0 ; then  # successfully extracted   ::dn#
+# move extracted file to temporary filepath assigned by mc        ::dn#
+        extracted=`basename "$2"`
+        #dn_debug "extracted filename is '$extracted'"
+        mv "$dir/$extracted" "$3"
+        exit_status=$?
+        #dn_debug "renamed extracted file (exit status $exit_status)"
+    fi
+    exit $exit_status
+}
+
+mcrarfs_mkdir ()
+{
+# all approaches at creating directories in an rar archive        ::dn#
+#   so far tried have failed -- see below for more details        ::dn#
+    msg="Mkdir operation is not supported on rar archives\n"
+    msg="${msg}Even if apparently successful the operation fails"
+    echo -e "$msg" > /dev/stderr
+    exit 1
+# the approach used in the default urar script gets around        ::dn#
+#   the problem of rar not being able to create an empty          ::dn#
+#   directory in an archive by creating the new directory with    ::dn#
+#   a dummy file and then deleting the dummy file, leaving the    ::dn#
+#   directory in place. This, unfortunately, does not work        ::dn#
+#   with the free version of rar used on the author's system      ::dn#
+#   (version 4.20 by Alexander Roshal, dated 9 Jun 2012). It      ::dn#
+#   seems the parent directory thus created exists only in        ::dn#
+#   relation to the dummy file. Deleting the dummy file causes    ::dn#
+#   the parent directory to also disappear. Strangely,            ::dn#
+#   however, in mc the operation appears to be successful.        ::dn#
+#   Even after navigating out of the archive and back into the    ::dn#
+#   new directory still appears to be there. It is only after     ::dn#
+#   exiting and re-starting mc the problem becomes apparent:      ::dn#
+#   the "directory" instead appears to be a zero-size plain       ::dn#
+#   file. If any files were previously copied into this           ::dn#
+#   "directory", apparently successfully, they have now           ::dn#
+#   disappeared.                                                  ::dn#
+# using p7zip (7z) also seemed to work, but any files copied      ::dn#
+#   into the directory could not be operated upon; doing so       ::dn#
+#   causes an error:                                              ::dn#
+#     cannot stat 'FILE': no such file or directory               ::dn#
+
+# preserve pwd. It is clean, but is it necessary?
+    pwd=`pwd`
+# Create a directory and create in it a tmp directory with the good name     
+    dir=`mktemp -d "${MC_TMPDIR:-/tmp}/mctmpdir-urar.XXXXXX"` || exit 1
+    cd "$dir"
+    mkdir -p "$2"  
+# rar cannot create an empty directory    
+    touch "$2"/.rarfs
+    $RAR a -r "$1" "$2" >/dev/null
+    $RAR d "$1" "$2/.rarfs" >/dev/null
+    cd "$pwd"
+    rm -rf "$dir"
+}
+
+mcrarfs_rm ()
+{
+# this operation appears to work correctly                        ::dn#
+    $RAR d "$1" "$2" >/dev/null
+}
+
+umask 077
+
+cmd="$1"
+shift
+
+case "$cmd" in
+  # Workaround for a bug in mc - directories must precede files to
+  # avoid duplicate entries, so we sort output by filenames
+  list)    mcrarfs_list    "$@" | sort -k 8 ;;
+  rm)      mcrarfs_rm      "$@" ;;
+  rmdir)   mcrarfs_rm      "$@" ;;
+  mkdir)   mcrarfs_mkdir   "$@" ;;
+  copyin)  mcrarfs_copyin  "$@" ;;
+  copyout) mcrarfs_copyout "$@" ;;
+  *) exit 1 ;;
+esac
+exit 0

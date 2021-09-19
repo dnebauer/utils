@@ -1,0 +1,5 @@
+# sudoers file supplied by package dn-cronsudo
+# do not edit directly but modify the package
+
+# network-related
+david ALL= NOPASSWD: /usr/sbin/ifup

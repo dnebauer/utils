@@ -1,0 +1,508 @@
+#!/usr/bin/perl 
+
+###############################################################################
+# The perlpod documentation in this script is designed to produce a man page. #
+# To perform the conversion, execute this command:                            #
+#                                                                             #
+# 		pod2man generate-initial-state generate-initial-state.1               #
+###############################################################################
+
+use strict;
+use warnings;
+
+=head1 NAME
+
+generate-initial-state - generates xml dump of initial dn-podcasts-rss object state
+
+=head1 SUMMARY
+
+The script dn-podcasts-rss saves its state between invocations.  When it runs for the first time it loads a default state.  This script generates an xml dump to serve as that initial state store.  The xml dump is saved to file 'dn-podcasts-rss-STORE-initial.xml' in the current directory.
+
+=head1 USAGE
+
+	generate-initial-state
+
+	generate-initial-state -h
+
+=head1 DEPENDENCIES
+
+The following perl modules are required:
+
+=over
+
+=item XML::Dumper
+
+Dumps hash to file as xml.
+
+Debian package: libxml-dumper-perl.
+
+=back
+
+=cut
+
+our $VERSION = '0.1';
+
+use constant TRUE => 1;
+use constant FALSE => 0;
+
+use XML::Dumper;
+my $dump = new XML::Dumper;
+my $file = 'dn-podcasts-rss-STORE-initial.xml.in';
+
+# main
+
+my $initial = {
+
+	'attributes'  =>  {
+	
+		'base_url'  =>  {
+
+			'value'     =>  'http://localhost/podcasts/' ,
+
+			'options'   =>  [] ,
+
+			'required'  =>  TRUE ,
+
+			'help'      =>  [
+				"this url will be prepended to all audio, image and xml file" ,
+				"urls in generated xml feed and opml files; a terminal slash" ,
+				"is not required; for example, if the mp3 files are located" ,
+				"in '/var/www/podcasts/mp3s/' then the channel base url may" ,
+				"be 'http://localhost/podcasts/mp3s'" ,
+			] ,
+
+		} ,
+	
+		'title'  =>  {
+
+			'value'     =>  '' ,
+
+			'options'   =>  [] ,
+
+			'required'  =>  TRUE ,
+
+			'help'      =>  [
+				"title of channel, e.g., 'My Podcast Channel'" ,
+			] ,
+
+		} ,
+	
+		'author'  =>  {
+
+			'value'     =>  '' ,
+
+			'options'   =>  [] ,
+
+			'required'  =>  TRUE ,
+
+			'help'      =>  [
+				"author/artist/performer of channel content" ,
+			] ,
+
+		} ,
+	
+		'summary'  =>  {
+
+			'value'     =>  '' ,
+
+			'options'   =>  [] ,
+
+			'required'  =>  TRUE ,
+
+			'help'      =>  [
+				 "description of channel contents; while the importer will" ,
+				 "take the entire value, the specification limits this value" ,
+				 "to 4000 characters and some aggregators may truncate beyond" ,
+				 "this limit or reject the channel entirely; this value is" ,
+				 "also used for a channel description tag" ,
+			] ,
+
+		} ,
+	
+		'image'  =>  {
+
+			'value'     =>  'image.jpg' ,
+
+			'options'   =>  [] ,
+
+			'required'  =>  TRUE ,
+
+			'help'      =>  [
+				 "file path of image file; this must be the file path from" ,
+				 "the working directory when the dn-podcasts-rss script is" ,
+				 "run; it must not include pseudo-directories such as" ,
+				 "'./' and '../'; note that during rss feed and opml file" ,
+				 "output the base url will be prepended to this path; there" ,
+				 "is no provision in dn-podcasts-rss for item-level images" ,
+				 "(though according to the specification this is possible by" ,
+				 "using the audio file's metadata); only jpg and png image" ,
+				 "types are supported -- other image formats will cause" ,
+				 "import to fail" ,
+			] ,
+
+		} ,
+	
+		'pubdate_method'  =>  {
+
+			'value'     =>  '' ,
+
+			'options'   =>  [
+				'descend' ,
+				'ascend' ,
+				'provide' ,
+			] ,
+
+			'required'  =>  TRUE ,
+
+			'help'      =>  [
+				"how podcast publication dates will be selected; there are" ,
+				"three values:" ,
+				"'descend' means arbitrary pubdates will be assigned to" ,
+				"podcasts in descending order (most recent first and then" ,
+				"getting older) having the effect of podcasts displaying in" ,
+				"the same order as they list with the perl glob function (use" ,
+				"for a discrete set of podcasts such as an audiobook)," ,
+				"'ascend' means arbitrary pubdates will be assigned to" ,
+				"podcasts in ascending order (oldest first and then getting" ,
+				"more recent) having the effect of podcasts displaying in the" ,
+				"reverse of the order they list with the perl glob function" ,
+				"(use for ongoing series), and" ,
+				"'provide' means pubdates are assigned by user; select only" ,
+				"one pubdate method" ,
+			] ,
+
+		} ,
+	
+		'sequence'  =>  {
+
+			'value'     =>  'base_url title author summary image pubdate_method sequence exclude' ,
+
+			'options'   =>  [] ,
+
+			'required'  =>  FALSE ,
+
+			'help'      =>  [
+				"the order in which these attributes are listed for editing; " ,
+				"a space-delimited list; any attributes not included in the" ,
+				"list are displayed in random order after the listed" ,
+				"attributes" ,
+			] ,
+
+		} ,
+	
+		'exclude'  =>  {
+
+			'value'     =>  '' ,
+
+			'options'   =>  [] ,
+
+			'required'  =>  FALSE ,
+
+			'help'      =>  [
+				"attributes *not* to be included for editing; a space-delimited" ,
+				"list; you can include 'exclude' in the list of attributes to" ,
+				"excluded, but the script will include it for editing anyway" ,
+				"-- otherwise you could never reverse its exclusion!" ,
+			] ,
+
+		} ,
+	
+	} , 
+
+	'items'  =>  {
+	
+		'file_attributes'  =>  {
+		
+			'series'  =>  {
+
+				'value'     =>  '' ,
+
+				'token'     =>  '%S' ,
+
+				'options'   =>  [] ,
+
+				'required'  =>  FALSE ,
+
+				'help'      =>  [
+					"series number; value may be used in file name or audio" ,
+					"file title or description tags" ,
+				] ,
+
+			} ,
+		
+			'episode'  =>  {
+
+				'value'     =>  '' ,
+
+				'token'     =>  '%E' ,
+
+				'options'   =>  [] ,
+
+				'required'  =>  FALSE ,
+
+				'help'      =>  [
+					"episode number; value may be used in file name or audio" ,
+					"file title or description tags" ,
+				] ,
+
+			} ,
+		
+			'disc'  =>  {
+
+				'value'     =>  '' ,
+
+				'token'     =>  '%D' ,
+
+				'options'   =>  [] ,
+
+				'required'  =>  FALSE ,
+
+				'help'      =>  [
+					"disc number; value may be used in file name or audio" ,
+					"file title or description tags; also used to set ID3" ,
+					"frame 'disk number" ,
+				] ,
+
+			} ,
+		
+			'part'  =>  {
+
+				'value'     =>  '' ,
+
+				'token'     =>  '%P' ,
+
+				'options'   =>  [] ,
+
+				'required'  =>  FALSE ,
+
+				'help'      =>  [
+					"part number; value may be used in file name or audio" ,
+					"file title or description tags" ,
+				] ,
+
+			} ,
+		
+			'track'  =>  {
+
+				'value'     =>  '' ,
+
+				'token'     =>  '%T' ,
+
+				'options'   =>  [] ,
+
+				'required'  =>  FALSE ,
+
+				'help'      =>  [
+					"track number; value may be used in file name or audio" ,
+					"file title or description tags; also used to set audio" ,
+					"file track number tag" ,
+				] ,
+
+			} ,
+		
+			'file_mask'  =>  {
+
+				'value'     =>  '' ,
+
+				'options'   =>  [] ,
+
+				'required'  =>  TRUE ,
+
+				'help'      =>  [
+					"mask for audio file name; must be lowercase and cannot" ,
+					"contain any spaces; can use the following tokens:" ,
+					"%S = series number," ,
+					"%E = episode number," ,
+					"%D = disc number," ,
+					"%P = part number," ,
+					"%T = track number, and" ,
+					"%U = pubdate" ,
+				] ,
+
+			} ,
+		
+			'title_mask'  =>  {
+
+				'value'     =>  '' ,
+
+				'options'   =>  [] ,
+
+				'required'  =>  TRUE ,
+
+				'help'      =>  [
+					"mask for file name; can contain any characters," ,
+					"including uppercase and spaces; can use same tokens" ,
+					"available to the file mask; corresponds to ID3 tag 'title'" ,
+				] ,
+
+			} ,
+		
+			'description_mask'  =>  {
+
+				'value'     =>  '' ,
+
+				'options'   =>  [] ,
+
+				'required'  =>  TRUE ,
+
+				'help'      =>  [
+					"mask for summary of individual podcast; to ID3 tag" ,
+					"'comment' can contain any characters, including" ,
+					"uppercase and spaces; can use same tokens available to" ,
+					"the file mask; corresponds to ID3 tag 'comment'" ,
+				] ,
+
+			} ,
+		
+			'performer'  =>  {
+
+				'value'     =>  '' ,
+
+				'options'   =>  [] ,
+
+				'required'  =>  TRUE ,
+
+				'help'      =>  [
+					"podcast artist; used to set ID3 tag 'artist'" ,
+				] ,
+
+			} ,
+		
+			'author'  =>  {
+
+				'value'     =>  '' ,
+
+				'options'   =>  [] ,
+
+				'required'  =>  TRUE ,
+
+				'help'      =>  [
+					"podcast author; used to set ID3 frame 'TCOM'" ,
+				] ,
+
+			} ,
+		
+			'genre'  =>  {
+
+				'value'     =>  'Podcast' ,
+
+				'options'   =>  [] ,
+
+				'required'  =>  TRUE ,
+
+				'help'      =>  [
+					"podcast genre; corresponds to ID3 tag 'genre'; is set to" ,
+					"'Podcast' by default -- this helps some mp3 devices to" ,
+					"treat these podcasts correctly, even though this value is" ,
+					"not one of the genres defined in the ID3 specification" ,
+				] ,
+
+			} ,
+		
+			'album'  =>  {
+
+				'value'     =>  '' ,
+
+				'options'   =>  [] ,
+
+				'required'  =>  FALSE ,
+
+				'help'      =>  [
+					"podcast album title; corresponds to ID3 tag 'album'; not" ,
+					"used in creating rss feed but included as a" ,
+					"convenience feature" ,
+				] ,
+
+			} ,
+		
+			'year'  =>  {
+
+				'value'     =>  '' ,
+
+				'options'   =>  [] ,
+
+				'required'  =>  FALSE ,
+
+				'help'      =>  [
+					"podcast year of publication; corresponds to ID3 tag" ,
+					"'year'; not used in creating rss feed but included as a" ,
+					"convenience feature" ,
+				] ,
+
+			} ,
+		
+			'increment'  =>  {
+
+				'value'     =>  'series episode disc part track' ,
+
+				'options'   =>  [] ,
+
+				'required'  =>  FALSE ,
+
+				'help'      =>  [
+					"the attributes which are incremented by one between" ,
+					"edits; has no effect on non-numeric or" ,
+					"empty/null/undefined values; usually used for series," ,
+					"episode, disc, part and/or track" ,
+				] ,
+
+			} ,
+		
+			'sequence'  =>  {
+
+				'value'     =>  'series episode disc part track pubdate year file_mask title_mask description_mask performer author album genre increment sequence exclude' ,
+
+				'options'   =>  [] ,
+
+				'required'  =>  FALSE ,
+
+				'help'      =>  [
+					"the order in which these attributes are listed for editing; " ,
+					"a space-delimited list; any attributes not included in the" ,
+					"list are displayed in random order after the listed" ,
+					"attributes" ,
+				] ,
+
+			} ,
+		
+			'exclude'  =>  {
+
+				'value'     =>  '' ,
+
+				'options'   =>  [] ,
+
+				'required'  =>  FALSE ,
+
+				'help'      =>  [
+					"attributes *not* to be included for editing; a space-delimited" ,
+					"list; you can include 'exclude' in the list of attributes to" ,
+					"excluded, but the script will include it for editing anyway" ,
+					"-- otherwise you could never reverse its exclusion!" ,
+				] ,
+
+			} ,
+	
+		} , 
+
+		'other_attributes' => {} ,
+
+	} ,
+
+	'flags'  =>  {
+
+		'all_podcasts'        =>  FALSE ,
+
+		'ignore_tag_content'  =>  FALSE ,
+
+	} ,
+
+};
+
+$dump->dtd();
+$dump->perl2xml( $initial , $file ) or die "Failed to dump initial state\n";
+print "Initial state dumped to '$file'\n";
+
+=head1 AUTHOR
+
+David Nebauer, david E<lt>atE<gt> nebauer E<lt>dotE<gt> org
+

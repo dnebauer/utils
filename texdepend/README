@@ -1,0 +1,56 @@
+NAME
+    texdepend - Find dependencies for a LaTeX file
+
+SYNOPSIS
+    texdepend [-help] [-expand] [-format *format-spec*] [-ignore *list*] [-
+    out *outfile*] [-print *flags*] [-styles *list*] [-verbose] *file*[.tex]
+
+DESCRIPTION
+    texdepend reads a .tex file, and (recursively) all \input{} and
+    \include{} files referenced therein, collecting the names of .tex, .sty,
+    .bib, .eps files as it goes. If the .log and .aux file for the same
+    file.tex file exist in the current directory, texdepend also reads
+    these, and parses names of included dependent files.
+
+    It creates the following lists. Only files which actually exist are
+    included.
+
+    @includes
+        from \input{} and \include{} commands in the .tex file and its
+        desendents.
+
+    @packages
+        the names of all style and class files from \usepackage{},
+        \documentclass{} and \documentstyle{} commands in the preamble of
+        the main .tex file.
+
+    @figs
+        the names of all graphics files from \includegraphics{} commands in
+        the .tex file.
+
+    @styles
+        the full path names of *all* style/tex/cfg files used directly or
+        indirectly, found in the .log file (except those config'd in @ignore
+        or specifed with the -ignore option).
+
+    @bibfiles
+        the full path names of .bib files found in the .aux file as
+        \bibdata{} files
+
+    @depends
+        the full path names of all files found in the .log and .aux files
+        (which includes everything in all lists except @figs).
+
+    By default, the program uses kpsewhich (if an executable exists) from
+    the teTeX/kpathsea distribution to locate tex/bst/sty files before
+    trying the various $TEXINPUTS, $BIBINPUTS, and $TEXFMTS paths, to
+    determine the full path names of input files. You may need to change the
+    $KPSEWHICH path in the configuration section of texdepend
+
+LICENSE
+    texdepend is distributed under the terms of the LaTeX Project Public
+    License (LPPL). This means that you may freely copy or distribute this
+    software, but if you modify it and distribute it (even locally) you must
+    change the name to avoid confusion. See: CTAN::
+    help/Catalog/Licenses.html.
+

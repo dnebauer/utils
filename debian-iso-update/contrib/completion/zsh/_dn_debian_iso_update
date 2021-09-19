@@ -1,0 +1,13 @@
+#compdef dn-debian-iso-update
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+  - 'script_options' \
+    '(-l --lower)'{-l,--lower}'[Lowest numbered iso image to process (integer)]:lower:' \
+    '(-u --upper)'{-u,--upper}'[Highest numbered iso image to process (integer)]:upper:' \
+  && rc=0
+
+return rc

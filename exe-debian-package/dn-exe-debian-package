@@ -1,0 +1,186 @@
+#!/usr/bin/perl 
+
+use Moo;
+use strictures 2;
+use 5.014_002;
+use version; our $VERSION = qv('0.1');
+
+{
+
+    package Dn::Internal;
+
+    use Moo;
+    use strictures 2;
+    use MooX::Options;
+    use namespace::clean -except => [ '_options_data', '_options_config' ];
+    use Types::Standard qw(Str);
+    use Function::Parameters;
+    use Carp qw(confess);
+    use Readonly;
+    use Dn::Common;
+    my $cp = Dn::Common->new();
+
+    Readonly my $TRUE  => 1;
+    Readonly my $FALSE => 0;
+
+    option 'exe' => (
+        is            => 'ro',
+        format        => 's',
+        required      => $TRUE,
+        short         => 'e',
+        order         => 1,
+        documentation => 'Executable name',
+    );
+
+    has '_exe_filepath' => (
+        is            => 'rw',
+        isa           => Str,
+        required      => $FALSE,
+        documentation => 'File from which module loaded',
+    );
+
+    has '_debian_package' => (
+        is            => 'rw',
+        isa           => Str,
+        required      => $FALSE,
+        documentation => 'Debian package providing module',
+    );
+
+    # _get_exe_filepath()
+    #
+    # does:   get path of file
+    # params: nil
+    # prints: nil
+    # return: scalar file path
+    method _get_exe_filepath () {
+        my $exe = $self->exe;
+        my $path = $cp->executable_path($exe);
+        $self->_exe_filepath( $cp->true_path($path));
+    }
+
+    # _get_debian_package()
+    #
+    # does:   get file loaded for module
+    # params: nil
+    # prints: nil
+    # return: scalar file path
+    method _get_debian_package () {
+        my $exe_path = $self->_exe_filepath;
+        my @cmd         = ( 'dpkg', '-S', $exe_path );
+        my @output      = `@cmd`;
+        chomp @output;
+        if ( not @output ) { exit; }    # error already displayed
+        if ( scalar @output != 1 ) {
+            my $msg = q{Unexpected output '} . join q{|}, @output . q{'};
+            confess $msg;
+        }
+        my $debian_package = ( split /:/xsm, $output[0] )[0];
+        $self->_debian_package($debian_package);
+    }
+
+    # _provide_feedback()
+    #
+    # does:   provide feedback to user
+    # params: nil
+    # prints: feedback
+    # return: n/a
+    method _provide_feedback () {
+        say "Executable name:     " . $self->exe;
+        say "Executable filepath: " . $self->_exe_filepath;
+        say "Debian package:      " . $self->_debian_package;
+    }
+
+    #   main()
+    #
+    #   does:   main method
+    #   params: nil
+    #   prints: feedback
+    #   return: result
+    method main () {
+        $self->_get_exe_filepath();
+        $self->_get_debian_package();
+        $self->_provide_feedback();
+    }
+}
+
+# MAIN PACKAGE
+
+my $p = Dn::Internal->new_with_options->main;
+
+1;
+
+__END__
+
+=head1 NAME
+
+dn-exe-debian-package - find debian package providing executable
+
+=head1 USAGE
+
+B<dn-exe-debian-package > -e executable
+
+B<dn-exe-debian-package -h>
+
+=head1 OPTIONS
+
+=over
+
+=item B<-e> executable
+
+The executable to analyse.
+
+Required.
+
+=item B<-h>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+Finds the true path of an executable and finds the debian package providing that file.
+
+=head1 DEPENDENCIES
+
+=over
+
+=item Carp
+
+=item Dn::Common
+
+=item Function::Parameters
+
+=item Moo
+
+=item MooX::Options
+
+=item namespace::clean
+
+=item Readonly
+
+=item strictures
+
+=item Types::Standard
+
+=item version
+
+=back
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 AUTHOR
+
+David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2015 David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+

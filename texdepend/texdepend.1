@@ -1,0 +1,385 @@
+.rn '' }`
+''' $RCSfile$$Revision$$Date$
+'''
+''' $Log$
+'''
+.de Sh
+.br
+.if t .Sp
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.de Ip
+.br
+.ie \\n(.$>=3 .ne \\$3
+.el .ne 3
+.IP "\\$1" \\$2
+..
+.de Vb
+.ft CW
+.nf
+.ne \\$1
+..
+.de Ve
+.ft R
+
+.fi
+..
+'''
+'''
+'''     Set up \*(-- to give an unbreakable dash;
+'''     string Tr holds user defined translation string.
+'''     Bell System Logo is used as a dummy character.
+'''
+.tr \(*W-|\(bv\*(Tr
+.ie n \{\
+.ds -- \(*W-
+.ds PI pi
+.if (\n(.H=4u)&(1m=24u) .ds -- \(*W\h'-12u'\(*W\h'-12u'-\" diablo 10 pitch
+.if (\n(.H=4u)&(1m=20u) .ds -- \(*W\h'-12u'\(*W\h'-8u'-\" diablo 12 pitch
+.ds L" ""
+.ds R" ""
+'''   \*(M", \*(S", \*(N" and \*(T" are the equivalent of
+'''   \*(L" and \*(R", except that they are used on ".xx" lines,
+'''   such as .IP and .SH, which do another additional levels of
+'''   double-quote interpretation
+.ds M" """
+.ds S" """
+.ds N" """""
+.ds T" """""
+.ds L' '
+.ds R' '
+.ds M' '
+.ds S' '
+.ds N' '
+.ds T' '
+'br\}
+.el\{\
+.ds -- \(em\|
+.tr \*(Tr
+.ds L" ``
+.ds R" ''
+.ds M" ``
+.ds S" ''
+.ds N" ``
+.ds T" ''
+.ds L' `
+.ds R' '
+.ds M' `
+.ds S' '
+.ds N' `
+.ds T' '
+.ds PI \(*p
+'br\}
+.\"	If the F register is turned on, we'll generate
+.\"	index entries out stderr for the following things:
+.\"		TH	Title 
+.\"		SH	Header
+.\"		Sh	Subsection 
+.\"		Ip	Item
+.\"		X<>	Xref  (embedded
+.\"	Of course, you have to process the output yourself
+.\"	in some meaninful fashion.
+.if \nF \{
+.de IX
+.tm Index:\\$1\t\\n%\t"\\$2"
+..
+.nr % 0
+.rr F
+.\}
+.TH TEXDEPEND 1 "perl 5.004, patch 04" "13/Jul/99" "User Contributed Perl Documentation"
+.UC
+.if n .hy 0
+.if n .na
+.ds C+ C\v'-.1v'\h'-1p'\s-2+\h'-1p'+\s0\v'.1v'\h'-1p'
+.de CQ          \" put $1 in typewriter font
+.ft CW
+'if n "\c
+'if t \\&\\$1\c
+'if n \\&\\$1\c
+'if n \&"
+\\&\\$2 \\$3 \\$4 \\$5 \\$6 \\$7
+'.ft R
+..
+.\" @(#)ms.acc 1.5 88/02/08 SMI; from UCB 4.2
+.	\" AM - accent mark definitions
+.bd B 3
+.	\" fudge factors for nroff and troff
+.if n \{\
+.	ds #H 0
+.	ds #V .8m
+.	ds #F .3m
+.	ds #[ \f1
+.	ds #] \fP
+.\}
+.if t \{\
+.	ds #H ((1u-(\\\\n(.fu%2u))*.13m)
+.	ds #V .6m
+.	ds #F 0
+.	ds #[ \&
+.	ds #] \&
+.\}
+.	\" simple accents for nroff and troff
+.if n \{\
+.	ds ' \&
+.	ds ` \&
+.	ds ^ \&
+.	ds , \&
+.	ds ~ ~
+.	ds ? ?
+.	ds ! !
+.	ds /
+.	ds q
+.\}
+.if t \{\
+.	ds ' \\k:\h'-(\\n(.wu*8/10-\*(#H)'\'\h"|\\n:u"
+.	ds ` \\k:\h'-(\\n(.wu*8/10-\*(#H)'\`\h'|\\n:u'
+.	ds ^ \\k:\h'-(\\n(.wu*10/11-\*(#H)'^\h'|\\n:u'
+.	ds , \\k:\h'-(\\n(.wu*8/10)',\h'|\\n:u'
+.	ds ~ \\k:\h'-(\\n(.wu-\*(#H-.1m)'~\h'|\\n:u'
+.	ds ? \s-2c\h'-\w'c'u*7/10'\u\h'\*(#H'\zi\d\s+2\h'\w'c'u*8/10'
+.	ds ! \s-2\(or\s+2\h'-\w'\(or'u'\v'-.8m'.\v'.8m'
+.	ds / \\k:\h'-(\\n(.wu*8/10-\*(#H)'\z\(sl\h'|\\n:u'
+.	ds q o\h'-\w'o'u*8/10'\s-4\v'.4m'\z\(*i\v'-.4m'\s+4\h'\w'o'u*8/10'
+.\}
+.	\" troff and (daisy-wheel) nroff accents
+.ds : \\k:\h'-(\\n(.wu*8/10-\*(#H+.1m+\*(#F)'\v'-\*(#V'\z.\h'.2m+\*(#F'.\h'|\\n:u'\v'\*(#V'
+.ds 8 \h'\*(#H'\(*b\h'-\*(#H'
+.ds v \\k:\h'-(\\n(.wu*9/10-\*(#H)'\v'-\*(#V'\*(#[\s-4v\s0\v'\*(#V'\h'|\\n:u'\*(#]
+.ds _ \\k:\h'-(\\n(.wu*9/10-\*(#H+(\*(#F*2/3))'\v'-.4m'\z\(hy\v'.4m'\h'|\\n:u'
+.ds . \\k:\h'-(\\n(.wu*8/10)'\v'\*(#V*4/10'\z.\v'-\*(#V*4/10'\h'|\\n:u'
+.ds 3 \*(#[\v'.2m'\s-2\&3\s0\v'-.2m'\*(#]
+.ds o \\k:\h'-(\\n(.wu+\w'\(de'u-\*(#H)/2u'\v'-.3n'\*(#[\z\(de\v'.3n'\h'|\\n:u'\*(#]
+.ds d- \h'\*(#H'\(pd\h'-\w'~'u'\v'-.25m'\f2\(hy\fP\v'.25m'\h'-\*(#H'
+.ds D- D\\k:\h'-\w'D'u'\v'-.11m'\z\(hy\v'.11m'\h'|\\n:u'
+.ds th \*(#[\v'.3m'\s+1I\s-1\v'-.3m'\h'-(\w'I'u*2/3)'\s-1o\s+1\*(#]
+.ds Th \*(#[\s+2I\s-2\h'-\w'I'u*3/5'\v'-.3m'o\v'.3m'\*(#]
+.ds ae a\h'-(\w'a'u*4/10)'e
+.ds Ae A\h'-(\w'A'u*4/10)'E
+.ds oe o\h'-(\w'o'u*4/10)'e
+.ds Oe O\h'-(\w'O'u*4/10)'E
+.	\" corrections for vroff
+.if v .ds ~ \\k:\h'-(\\n(.wu*9/10-\*(#H)'\s-2\u~\d\s+2\h'|\\n:u'
+.if v .ds ^ \\k:\h'-(\\n(.wu*10/11-\*(#H)'\v'-.4m'^\v'.4m'\h'|\\n:u'
+.	\" for low resolution devices (crt and lpr)
+.if \n(.H>23 .if \n(.V>19 \
+\{\
+.	ds : e
+.	ds 8 ss
+.	ds v \h'-1'\o'\(aa\(ga'
+.	ds _ \h'-1'^
+.	ds . \h'-1'.
+.	ds 3 3
+.	ds o a
+.	ds d- d\h'-1'\(ga
+.	ds D- D\h'-1'\(hy
+.	ds th \o'bp'
+.	ds Th \o'LP'
+.	ds ae ae
+.	ds Ae AE
+.	ds oe oe
+.	ds Oe OE
+.\}
+.rm #[ #] #H #V #F C
+.SH "NAME"
+texdepend \- Find dependencies for a LaTeX file
+.SH "SYNOPSIS"
+\fBtexdepend\fR
+[\fB\-help\fR]
+[\fB\-expand\fR]
+[\fB\-format\fR\ \fIformat-spec\fR]
+[\fB\-ignore\fR\ \fIlist\fR]
+[\fB\-out\fR\ \fIoutfile\fR]
+[\fB\-print\fR\ \fIflags\fR]
+[\fB\-styles\fR\ \fIlist\fR]
+[\fB\-verbose\fR]
+\fIfile\fR[.tex]
+.SH "DESCRIPTION"
+\fBtexdepend\fR reads a .tex file, and (recursively) all \einput{} and
+\einclude{} files referenced therein, collecting the names of .tex,
+\&.sty, .bib, .eps files as it goes.  If the .log and .aux file for
+the same \fIfile.tex\fR file exist in the current directory, texdepend
+also reads these, and parses names of included dependent files.
+.PP
+It creates the following lists.  Only files which actually exist are
+included.
+.Ip "@includes " 4
+from \einput{} and \einclude{} commands in the .tex file and its desendents.
+.Ip "@packages" 4
+the names of all style and class files from \eusepackage{},
+\edocumentclass{} and \edocumentstyle{}
+commands in the preamble of the main .tex file.
+.Ip "@figs" 4
+the names of all graphics files from \eincludegraphics{} commands in the .tex file.
+.Ip "@styles " 4
+the full path names of \fIall\fR style/tex/cfg files used directly
+or indirectly, found in the .log file (except those config'd in \f(CW@ignore\fR
+or specifed with the \fB\-ignore\fR option).
+.Ip "@bibfiles" 4
+the full path names of .bib files found in the .aux file 
+as \ebibdata{} files
+.Ip "@depends" 4
+the full path names of all files found in the .log and .aux files
+(which includes everything in all lists except \f(CW@figs\fR).
+.PP
+By default, the program uses kpsewhich (if an executable exists)
+from the teTeX/kpathsea distribution
+to locate tex/bst/sty files before trying the various \f(CW$TEXINPUTS\fR,
+\f(CW$BIBINPUTS\fR, and \f(CW$TEXFMTS\fR paths, to determine the full path names of input
+files.  You may need to change the \f(CW$KPSEWHICH\fR path in the configuration
+section of \fBtexdepend\fR
+.SH "OPTIONS AND ARGUMENTS"
+All options may be abbreviated to their unique truncations, so \fB\-h\fR, \fB\-he\fR,
+\fB\-hel\fR all print help.
+Options which take an argument may be followed by a blank or \*(L'=\*(R'.
+.Ip "\fB\-help\fR" 4
+Print a brief help message and exit.
+.Ip "\fB\-expand\fR" 4
+Expand all file names found in the .tex file to their full path names.
+(File names listed in the .log file always appear as full path names.)
+.Ip "\fB\-format\fR\ [make | perl | 1]" 4
+Determines the output format.  \fB\-format=make\fR prints these lists in the form
+of Makefile lists.  \fB\-format=perl\fR prints in the form of assignments to
+Perl string variables.  In these two cases, each list is printed as a single
+line, with filenames separated by one blank space.
+\fB\-format=1\fR prints these with one filename per line, each preceeded by
+a line beginning with a \*(L'#\*(R'.
+.Ip "\fB\-ignore\fR\ \fIlist\fR" 4
+Specifies a list (enclosed in \*(L' \*(L' if more than one)
+of one or more file extensions (without the leading \*(L'.')
+to be ignored as style files in the set of filenames found in the .log file.
+By default, \*(L'fd\*(R' files are always ignored.
+.Ip "\fB\-out\fR\ \fIfilename\fR" 4
+Send the output to a file
+.Ip "\fB\-print\fR\ [i|p|f|b|s|d]" 4
+Any one or more of the characters i (includes) p (packages)
+f (figs) b (bibfiles) s (styles) d (all dependencies) to specify which
+lists are produced in the output.
+.Ip "\fB\-styles\fR\ \fIlist\fR" 4
+Specifies a list (enclosed in \*(L' \*(L' if more than one)
+of one or more file extensions (without the leading \*(L'.')
+to be treated as style files in the set of filenames found in the .log file,
+in addition to \*(L'sty\*(R' files.
+.Ip "\fB\-verbose\fR" 4
+Lots of messages, written to \s-1STDERR\s0.
+.SH "EXAMPLES"
+To produce lists suitable for a Makefile,
+.PP
+.Vb 3
+\& texdepend -out=myfile.mak myfile.tex
+\& 
+\&Then in the Makefile, say
+.Ve
+.Vb 3
+\& include myfile.mak
+\& 
+\&A Makefile target ('make lists') which updates the lists could be written:
+.Ve
+.Vb 6
+\& MAIN = myfile
+\& include $(MAIN).mak
+\& ALLFILES = $(MAIN).tex $(INCLUDES) $(BIB_FILES) $(STYLES) $(FIGS)
+\& 
+\& lists:
+\&          texdepend -out=$(MAIN).mak $(MAIN).tex
+.Ve
+A common requirement for submitting a journal article as LaTeX
+source is to include in a .zip or .tar.gz file copies of all packages
+which have been used in the document.  One way to do this is to
+create symbolic links from each such package to a ./styles
+subdirectory.
+.PP
+.Vb 3
+\& texdepend -pr=p -fo=perl -out=packages.pin -expand myfile.tex
+\& perl -e 'do "packages.pin"; @p = split( /\es+/, $packages );' \e
+\&      -e 'foreach (@p) {symlink $_, "./styles";}'
+.Ve
+.SH "LIMITATIONS"
+The program is tuned to LaTeX, not TeX.  
+.PP
+The handling of graphics files is rudimentary.  No attempt is made to
+parse graphics files (for the \f(CW@figs\fR list)
+listed in the .log file because of the complex nesting
+of < > and \*(L"( )\*(R".  (Some experiments using \fIText::Balanced.pm\fR
+were made, but made the program very inefficient.)
+In parsing the .tex file, only a limited number
+of graphics commands are recognized, including \eincludegraphics{},
+\eepsfbox{}, and \eepsffile{}.  But, you should be using \eincludegraphics{}
+anyway!
+.PP
+Doesn't handle multiple .aux files for a single .tex file, or other
+complexities I've never thought of.
+.SH "BUGS"
+Output may break on systems which have a limitation on line length.
+.SH "SEE ALSO"
+the \fIlatexmk(1l)\fR manpage
+texfind: CTAN support/texfind
+.PP
+/usr/local/teTeX/bin/kpsewhich
+.SH "AUTHOR"
+Michael Friendly <friendly@yorku.ca>
+.SH "LICENSE"
+\fBtexdepend\fR is distributed under the terms of the LaTeX Project Public
+License (LPPL).  This means that you may freely copy or distribute this
+software, but if you modify it and distribute it (even locally) you must
+change the name to avoid confusion.
+See: CTAN:: help/Catalog/Licenses.html.  
+
+.rn }` ''
+.IX Title "TEXDEPEND 1"
+.IX Name "texdepend - Find dependencies for a LaTeX file"
+
+.IX Header "NAME"
+
+.IX Header "SYNOPSIS"
+
+.IX Header "DESCRIPTION"
+
+.IX Item "@includes "
+
+.IX Item "@packages"
+
+.IX Item "@figs"
+
+.IX Item "@styles "
+
+.IX Item "@bibfiles"
+
+.IX Item "@depends"
+
+.IX Header "OPTIONS AND ARGUMENTS"
+
+.IX Item "\fB\-help\fR"
+
+.IX Item "\fB\-expand\fR"
+
+.IX Item "\fB\-format\fR\ [make | perl | 1]"
+
+.IX Item "\fB\-ignore\fR\ \fIlist\fR"
+
+.IX Item "\fB\-out\fR\ \fIfilename\fR"
+
+.IX Item "\fB\-print\fR\ [i|p|f|b|s|d]"
+
+.IX Item "\fB\-styles\fR\ \fIlist\fR"
+
+.IX Item "\fB\-verbose\fR"
+
+.IX Header "EXAMPLES"
+
+.IX Header "LIMITATIONS"
+
+.IX Header "BUGS"
+
+.IX Header "SEE ALSO"
+
+.IX Header "AUTHOR"
+
+.IX Header "LICENSE"
+

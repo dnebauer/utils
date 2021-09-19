@@ -1,0 +1,12 @@
+dn-alsa-device (0.2-1) unstable; urgency=low
+
+  * udev rules file supplied by dh_installudev rather than autotools
+  * change to system sound card designation
+
+ -- David Nebauer <david@nebauer.org>  Sat, 26 May 2012 16:51:44 +0930
+
+dn-alsa-device (0.1-1) unstable; urgency=low
+
+  * Initial release (Closes: #101)
+
+ -- David Nebauer <david@nebauer.org>  Tue, 28 Dec 2010 12:20:54 +0930

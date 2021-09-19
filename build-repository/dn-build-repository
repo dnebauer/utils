@@ -1,0 +1,936 @@
+#!/bin/sh
+
+# File: dn-build-repository.sh
+# Author: David Nebauer
+# Purpose: Build a debian pooled repository
+# Notes:
+#   1. Structure of repository containing the 'foo' (ver 1.2) and
+#      'bar' (ver 6.4) packages:
+#   root
+#   |-- dists
+#   |   |-- testing
+#   |   |   `-- main
+#   |   |       |-- binary-i386
+#   |   |       |   |-- Packages.gz
+#   |   |       |   `-- Release
+#   |   |       |-- binary-sparc
+#   |   |       |   |-- Packages.gz
+#   |   |       |   `-- Release
+#   |   |       `-- source
+#   |   |           |-- Release
+#   |   |           `-- Sources.gz
+#   |   `-- unstable
+#   |       `-- main
+#   |           |-- binary-i386
+#   |           |   |-- Packages.gz
+#   |           |   `-- Release
+#   |           |-- binary-sparc
+#   |           |   |-- Packages.gz
+#   |           |   `-- Release
+#   |           `-- source
+#   |               |-- Release
+#   |               `-- Sources.gz
+#   `-- pool
+#       |-- b
+#       |   `-- bar
+#       |       |-- bar_6.4-1.diff.gz
+#       |       |-- bar_6.4-1.dsc
+#       |       |-- bar_6.4.orig.tar.gz
+#       |       |-- bar_6.4_i386.deb
+#       |       `-- bar_6.4_sparc.deb
+#       `-- f
+#           `-- foo
+#               |-- foo_1.2-1.diff.gz
+#               |-- foo_1.2-1.dsc
+#               |-- foo_1.2.orig.tar.gz
+#               |-- foo_1.2_i386.deb
+#               `-- foo_1.2_sparc.deb
+
+
+# VARIABLES
+
+args="${@}"
+msg="Loading libraries" ; echo -ne "\\033[1;37;41m${msg}\\033[0m"
+source "@lib_dir@/libdncommon-bash/liball"  # supplies functions
+dnEraseText "${msg}"
+# provided by libdncommon-bash: dn_self,dn_divider[_top|_bottom]
+usage="Usage:"
+parameters="[resources_file] [-t] [-p]"
+args=""
+tools_list="sed grep pwd echo test tr dir wc head rm basename mktemp awk"
+tools_list="${tools_list} cut gzip cat tempfile tar"  # needed tools
+rep_dir=""
+basename=""
+valid_flavours="unstable testing stable"
+res_default="rep-resources"
+res_file="${rep_resources}"
+component=""
+valid_components="main non-free contrib"
+origin=""
+label=""
+full_check=0                  # default = true (do full validity check)
+prompt_on_exit=1              # default = false (exit normally)
+declare -a archive=()         # stores archives flavours
+declare -a candidate_dirs=()  # potentially valid package directories
+declare -a pkg_dirs=()        # valid package directories
+declare -a invalid_dirs=()    # invalid package directories
+declare -a reasons=()         # reasons for package directory invalidity
+declare -a lookup=()          # used to look up reason after removing
+                              #   invalid dir duplicates
+declare -a pkg_debs=()        # valid package deb filenames (one per directory)
+declare -a pkgs=()            # package name
+declare -a rep_archs=()       # binary archs being used in repository
+declare -a all_archs=( 'i386' 'm68k'  'sparc' 'alpha'  'powerpc' \
+                       'arm'  'armel' 'mips'  'mipsel' 'hppa'    \
+                       'ia64' 's390'  'amd64' )
+                              # all archs -- used when arch = 'all'
+unset msg
+
+
+# PROCEDURES
+
+# Show usage
+#   params: nil
+#   prints: nil
+#   return: nil
+displayUsage () {
+	echo "${dn_self}: build debian pooled repository"
+	echo
+	echo -e "${usage} ${dn_self} ${parameters}"
+	echo "       ${dn_self} -h"
+	echo
+	echo "Automated system for building a Debian repository."
+	echo "The repository will contain package source and binaries"
+	echo "and use a pooled architecture."
+	echo
+	echo "Options: resource_file  filepath to resource file (optional)"
+	echo "                        [default='\$(cwd)/${res_default}'"
+	echo "         -t             creates template resources file"
+	echo "         -p             prompt before exiting script"
+	echo
+	echo "All script inputs are provided in a resource file.  The default"
+	echo "resource file is '\$(cwd)/${res_default}'.  See manpage for"
+	echo "details on how the resources file is formatted.  To create a"
+	echo "template resources file simply run this script with the '-t'"
+	echo "option.  The resources file will have the default name."
+	echo
+	echo "The resources file supplies a list of directories.  Each"
+	echo "directory is assumed to contain source and binary files"
+	echo "for a single package.  The required files are:"
+	echo "  - one or more binary '.deb' file(s),"
+	echo "  - one 'diff.gz' file,"
+	echo "  - one '.dsc' file, and"
+	echo "  - one '.orig.tar.gz' file."
+	echo "For example, the foo package (version 1.1) may consist of:"
+	echo "  foo_1.1-1_i386.deb, foo_1.1-1_sparc.deb, foo_1.1-1.diff.gz,"
+	echo "  foo_1.1-1.dsc and foo_1.1.orig.tar.gz."
+	echo
+	echo "The script will take the first '.deb' file it finds in the"
+	echo "directory (alphabetically) and assume it is from the"
+	echo "package to be added to the repository."
+	echo "The script does not check version numbers of files within"
+	echo "a directory.  For example, it assumes 'foo_xxxx_i386.deb'"
+	echo "and 'foo_xxxx.diff.gz' are from the same package, whether or"
+	echo "not 'xxxx' are identical, or even contain the same number"
+	echo "of characters."
+	echo "If multiple files match a single pattern the directory is"
+	echo "declared invalid.  An example would be the presence of"
+	echo "'foo_1.1-1_i386.deb' and 'foo_20041012.0.0.1-1_i386.deb' in"
+	echo "the same directory."
+	echo 
+	echo "Other information supplied by the resources file:"
+	echo "repository directory"
+	echo "  - must exist, be readable, and be empty"
+	echo "repository name"
+	echo "  - base of repository archive name, e.g., 'foo' gives 'foo.tar.gz'"
+	echo "archive flavour"
+	echo "  - can be $( dnFormatList "${valid_flavours}" )"
+	echo "  - can use multiple flavours"
+	echo "component"
+	echo "  - can be $( dnFormatList "${valid_components}" )"
+	echo "origin"
+	echo "  - person or organisation creating archive, often contains"
+	echo "    email address, e.g., 'John Citizen <j.citizen@isp.net>'"
+	echo "label"
+	echo "  - user-created label for repository, often an explanation"
+	echo "    of the repository's purpose, e.g., 'My personal packages'"
+	echo "validity checking"
+	echo "  - validity checking of package directories can be relaxed"
+	echo "  - warning: this is dangerous and only included for the (rare)"
+	echo "             cases where one or more source files have a different"
+	echo "             name and/or version to the deb file(s)"
+	echo 
+	echo "Major Limitations of this Script:"
+	echo "1. Archive 'flavours': A repository can contain multiple 'flavours'."
+	echo "Valid flavours are $( dnFormatList "${valid_flavours}" )."
+	echo "All specified packages are included in each selected archive"
+	echo "flavour sub-tree.  Each archive flavour sub-tree is identical"
+	echo "-- you cannot	have different packages, or different versions"
+	echo "of the same package, between archive flavours."
+	echo "2. Component: Repositories created by this script can contain"
+	echo "only one component.  Valid components are"
+	echo "($( dnFormatList "${valid_components}" )).  All packages, and"
+	echo "archive flavours, are put in that component sub-tree."
+	echo "3. Spaces in paths: File and directory paths must not contain"
+	echo "any spaces. Although they can contain spaces and still be"
+	echo "acceptable to the file system, this script will not accept them,"
+	echo "even if the spaces are escaped or the path is enclosed in quotes."
+}
+# Process resource file
+#   params: 1 - resource filepath
+#   prints: nil
+#   return: nil
+#   notes:  set variables [  ]
+processResourcesFile () {
+	# set and check variables
+	[ "x${1}" = "x" ] && return 1  # fail if no resource file supplied
+	local res="$( dnNormalisePath "${1}" )"
+	dnFileValid "${res}" || return 1  # fail if invalid resource file
+	local name= val=
+	# process resource file
+	while read name val ; do
+		if [ -n "${val}" ] || [ "${name}" = "relax_check" ] ; then
+			# remove enclosing quotes if present
+			val="$( dnStripEnclosingQuotes "${val}" )"
+			# load vars depending on name
+			case ${name} in
+			'repository_dir'  ) rep_dir="${val}";;
+			'repository_name' ) basename="${val}";;
+			'flavour'         ) archive[${#archive[@]}]="${val}";;
+			'component'       ) component="${val}";;
+			'origin'          ) origin="${val}";;
+			'label'           ) label="${val}";;
+			'relax_check'     ) fullCheck 'off';;
+			'package_dir'     ) 
+				candidate_dirs[${#candidate_dirs[*]}]="${val}";;
+			esac
+		fi
+	done < "${res}"
+}
+# Process command line
+#   params: all command line parameters
+#   prints: feedback
+#   return: nil
+processCommandLine () {
+	# Read the command line options
+	#   - if optstring starts with ':' then error reporting is suppressed
+	#     leave ':' at start as '\?' and '\:' error capturing require it
+	#   - if option is followed by ':' then it is expected to have an argument
+	while getopts ":htp" opt ; do
+		case ${opt} in
+			h  ) displayUsage && dnEndScriptPrompt "-";;
+			t  ) createTemplate;;
+			p  ) promptOnExit 'on';;
+			\? ) echo -e "Error: Invalid flag '${OPTARG}' detected"
+				 echo -e "Usage: ${dn_self} ${parameters}"
+				 echo -e "Try '${dn_self} -h' for help"
+				 echo -ne "\a"
+				 dnEndScriptPrompt 1;;
+			\: ) echo -e "Error: No argument supplied for flag '${OPTARG}'"
+				 echo -e "Usage: ${dn_self} ${parameters}"
+				 echo -e "Try '${dn_self} -h' for help"
+				 echo -ne "\a"
+				 dnEndScriptPrompt 1;;
+		esac
+	done
+	shift $(( ${OPTIND} - 1 ))
+	args="${@}"  # reset arguments
+	unset usage parameters
+}
+# Create template resources file
+#   params: nil
+#   prints: nil
+#   return: nil
+#   notes:  When completed this function will exit the script
+createTemplate () {
+	if [ -r "${res_default}" ] ; then
+		dnWarn "Resources file '${res_default}' is already present"
+		if dnConfirm "${dnQuery}Overwrite with new template file?" ; then
+			rm -f "${res_default}" 2>/dev/null
+		else dnEndScriptPrompt "-" "exiting at user request"
+		fi
+	fi
+	local date="$( date +"%Y-%m-%d" )" time="$( date +"%H:%M" )"
+	cat > "${res_default}" <<- EOF
+	# ${dn_self} resources file
+	# [generated by ${dn_self} on ${date} at ${time}]
+	# ${dn_divider}
+	# Each line consists of name-value pairs separated by
+	# whitespace (with one exception, explained below).
+	# If any name contains whitespace it must be enclosed
+	# by double quotation marks.
+	# Empty lines and comment lines (beginning with hashes)
+	# are ignored.
+	# An unrecognised name may generate a warning but will
+	# not stop processing.
+	# Some names can be used only once (singular) while others
+	# can be used multiple times.  If a singular name is used
+	# multiple times, all instances except the last will be
+	# ignored.
+	# ${dn_divider}
+	
+	# Repository directory
+	# Directory in which repository is to be created.
+	# Must not contain whitespace.
+	# Must exist, be readable and be empty.
+	# Required.  One only.
+	repository_dir /path/to/repository/dir
+	
+	# Repository name
+	# Base of repository archive name, e.g. 'foo' gives 'foo.tar.gz'.
+	# Required.  One only.
+	repository_name repository
+	
+	# Flavour
+	# Debian comes in different 'releases', 'distributions' or
+	# 'versions', referred to here as 'flavours' to minimise confusion.
+	# A repository commonly has two levels: flavour/component.
+	# Valid flavours: $( dnFormatList "${valid_flavours}" ).
+	# A single repository can contain multiple flavours.
+	# Required.  Multiple allowed.
+	flavour unstable
+	flavour testing
+	flavour stable
+
+	# Component
+	# A repository commonly has two levels: flavour/component.
+	# Each flavour can contain multiple components.
+	# Valid components: $( dnFormatList "${valid_components}" )
+	# Note: Repositories created by ${dn_self} can have multiple
+	#       flavours, but each flavour has the same single component.
+	# Required.  One only.
+	component main
+	#component non-free
+	#component contrib
+
+	# Origin
+	# Person or organisation creating the repository.
+	# Often contains an email address.
+	# Required.  One only.
+	origin John Citizen <j.citizen@isp.net>
+
+	# Label
+	# User-created label for repository.
+	# Often is an explanation of the repository's purpose.
+	# Required.  One only.
+	label My personal packages
+
+	# Relax Check
+	# ${dn_self} will, by default, perform extensive checks
+	# on the package files in each package directory.  Checks include:
+	# - ensuring package files match on name, version and extension
+	# - check only one deb package of each type is present,
+	#   e.g., 'i386', 'sparc' and 'alpha', and
+	# - ensure no package file type is missing, e.g., requires
+	#   'diff.gz', 'dsc', 'orig.tar.gz' and 'deb' files.
+	# If you uncheck this option, these checks will not be performed.
+	# This is dangerous and should be done with caution.
+	# This option is intended for (rare) cases where one or more
+	# source files have a different name and/or version to
+	# corresponding deb files.
+	# Note: This setting is an exception in that it is not a
+	#       'name value' pair but simply a 'name'.
+	# Optional.  One only.
+	#relax_check
+
+	# Package Directories
+	# Directories containing package files.
+	# Required.  Multiple allowed.
+	package_dir /path/to/pkg/dir
+	EOF
+	dnInfo "template file '${res_default}' created"
+	dnEndScriptPrompt "-"
+}
+# Are we doing exhaustive package directory validity checking?
+# Setter and getter
+#   params: nil
+#   prints: nil
+#   return: 0|1 (full checking|minimal checking)
+fullCheck () {
+	if [ "x${1}" = "x" ] ; then  # no param, therefore getter
+		return ${full_check}
+	else  # is param, therefore setter
+		full_check=$( dnStandardiseBoolean "${1}" )
+	fi
+}
+# Are we prompting the user before exiting?
+# Setter and getter
+#   params: nil
+#   prints: nil
+#   return: 0|1 (prompt|no prompt)
+promptOnExit () {
+	if [ "x${1}" = "x" ] ; then  # no param, therefore getter
+		return ${prompt_on_exit}
+	else  # is param, therefore setter
+		prompt_on_exit=$( dnStandardiseBoolean "${1}" )
+	fi
+}
+# Valid package directory
+#   params: 1 - directory
+#   prints: error message
+#   return: 0|1 (valid|not valid)
+#   invoke: if pkgDirValid "${dir}" &> /dev/null ; then ...
+#           invalid_reason="$( pkgDirValid "${dir}" )"
+#   note:   ignores errors when script invoked relaxed checking
+pkgDirValid () {
+	# assumes file names of the following form:
+      # foo_1.2-1.diff.gz, foo_1.2-1.dsc, foo_1.2.orig.tar.gz
+	  # foo_1.2_i386.deb  (assume deb files contain two underscores only)
+      # foo_1.2_sparc.deb
+	# first, normalise and ensure directory exists
+	local dir="$( dnNormalisePath "${1}" )"
+	if ! dnDirValid "${dir}" ; then
+		echo "directory does not exist"
+		return 1
+	fi
+	# let's get the first deb file
+	local deb_file="$( dir -1 ${dir}/*.deb 2> /dev/null | head -n 1 )"
+	if [ -z "${deb_file}" ] ; then
+		echo "no binary packages ['.deb' file(s)] found"
+		return 1
+	fi
+	# extract name+version
+	local deb_base="$( basename ${deb_file} )"
+	deb_base="$( echo ${deb_base} | sed -e 's/^\(.*\)_.*$/\1/' )"
+	if [ -z "${deb_base}" ] ; then
+		echo "unable to extract pkg base name (? deb with invalid filename)"
+		return 1
+	fi
+	# check on other files (diff.gz, dsc)
+	# note: 'diff.gz' not produced when package name differs from source
+	local count=
+	for ext in diff.gz dsc ; do
+		if fullCheck ; then  # match on file name, version and extension
+			count=$( dir -1 ${dir}/${deb_base}*.${ext} 2> /dev/null | wc -l )
+			if [ ${count} -ne 1 ] ; then
+				if [ ${count} -eq 0 ] ; then
+					echo "no file matching '${deb_base}*.${ext}'"
+				else
+					local msg="${count} files match '${deb_base}*.${ext}'"
+					msg="${msg} (should be 1)"
+					echo "${msg}"
+				fi
+				return 1
+			fi
+		else  # match only on extension
+			count=$( dir -1 ${dir}/*.${ext} 2> /dev/null | wc -l )
+			if [ ${count} -ne 1 ] ; then
+				if [ ${count} -eq 0 ] ; then
+					echo "no file matching '*.${ext}'"
+				else
+					local msg="${count} files match '*.${ext}'"
+					msg="${msg} (should be 1)"
+					echo "${msg}"
+				fi
+				#return 1
+				return 0  # ignore as can miss diff.gz if pkg name changed
+			fi
+		fi
+	done
+	# check on other files (.orig.tar.gz)
+	local deb_name="$( echo ${deb_base} | sed -e 's/^\(.*\)_.*$/\1/' )"
+	for ext in orig.tar.gz ; do
+		if fullCheck ; then  # match on file name, version and extension
+			count=$( dir -1 ${dir}/${deb_name}*.${ext} 2> /dev/null | wc -l )
+			if [ ${count} -ne 1 ] ; then
+				if [ ${count} -eq 0 ] ; then
+					echo "no file matching '${deb_name}*.${ext}'"
+				else
+					msg="${count} files match '${deb_name}*.${ext}'"
+					msg="${msg} (should be 1)"
+					echo "${msg}"
+				fi
+				return 1
+			fi
+		else  # match only on extension
+			count=$( dir -1 ${dir}/*.${ext} 2> /dev/null | wc -l )
+			if [ ${count} -ne 1 ] ; then
+				if [ ${count} -eq 0 ] ; then
+					echo "no file matching '*.${ext}'"
+				else
+					msg="${count} files match '*.${ext}'"
+					msg="${msg} (should be 1)"
+					echo "${msg}"
+				fi
+				return 1
+			fi
+		fi
+	done
+	# deb checking
+	local -a debs=()
+	local deb= raw_count= fragment=
+	if fullCheck ; then  # strict checking
+		# check only one of each deb type exists
+		for deb in $( dir -1 ${dir}/${deb_name}*.deb 2> /dev/null ) ; do
+			fragment="$( echo ${deb} | sed -e 's/^.*_\(.*\)\.deb$/\1/' )"
+			debs[${#debs[*]}]="${fragment}"
+		done
+		raw_count=${#debs[*]}
+		debs=($( dnRemoveDuplicates "${debs[*]}" ))
+		if [ ${raw_count} -ne ${#debs[*]} ] ; then
+			echo "multiple binary debs found for architecture(s)"
+			return 1
+		fi
+	else  # minimal checking
+		# check only one deb package present in directory
+		for deb in $( dir -1 ${dir}/*.deb 2> /dev/null ) ; do
+			fragment="$( echo ${deb} | sed -e 's/^\(.*\)_.*\.deb$/\1/' )"
+			debs[${#debs[*]}]="${fragment}"
+		done
+		debs=($( dnRemoveDuplicates "${debs[*]}" ))
+		if [ ${#debs[*]} -ne 1 ] ; then
+			echo "multiple binary deb packages found"
+			return 1
+		fi
+	fi
+	# if made it to here, presume directory contains appropriate pkg files
+	return 0
+}
+# Extract package name from deb filename
+#   params: 1 - deb filename
+#   prints: package name (e.g. 'foo_1.1-1_i386.deb' -> 'foo')
+#   return: nil
+extractPkgName () {
+	# assumes deb name of form 'foo_1.2_i386.deb'  (two underscores only)
+	echo "$( echo "${1}" | cut -d '_' -f 1 )"
+}
+# Extract package version from deb filename
+#   params: 1 - deb filename
+#   prints: package version (e.g. 'foo_1.1-1_i386.deb' -> '1.1-1')
+#   return: nil
+extractPkgVersion () {
+	# assumes deb name of form 'foo_1.2_i386.deb'  (two underscores only)
+	echo "$( echo "${1}" | cut -d '_' -f 2 )"
+}
+# Extract package architecture from deb filename
+#   params: 1 - deb filename
+#   prints: package version (e.g. 'foo_1.1-1_i386.deb' -> '1.1-1')
+#   return: nil
+extractPkgArch () {
+	# assumes deb name of form 'foo_1.2_i386.deb'  (two underscores only)
+	echo "$( echo "${1}" | cut -d '_' -f 3 | cut -d '.' -f 1 )"
+}
+# Get deb filename from directory
+#   params: 1 - directory
+#   prints: deb filename (e.g. 'foo_1.1-1_i386.deb')
+#   return: nil
+getDebFilename () {
+	# assumes directory is valid
+	echo "$( basename "$( dir -1 ${1}/*.deb 2> /dev/null | head -n 1 )" )"
+}
+# Create pool directory from package name
+#   params: 1 - package name
+#   prints: pool directory
+#   return: nil
+derivePoolDir () {
+	echo "pool/$( echo ${1} | cut -c -1 )/${1}"
+}
+# Create flavour directory from archive flavour
+#   params: 1 - archive flavour
+#   prints: flavour directory
+#   return: nil
+deriveFlavourDir () {
+	echo "dists/${1}"
+}
+# Create source directory from archive flavour
+#   params: 1 - archive flavour
+#   prints: source directory
+#   return: nil
+deriveSourceDir () {
+	echo "dists/${1}/${component}/source"
+}
+# Create binary architecture directory from archive flavour and arch
+#   params: 1 - archive flavour
+#           2 - arch
+#   prints: arch directory
+#   return: nil
+deriveArchDir () {
+	echo "dists/${1}/${component}/binary-${2}"
+}
+# Extract and format for presentation the package name and version
+#   params: 1 - deb filename
+#   prints: formatted package name and version (e.g. 'foo (1.1-1)')
+#   return: nil
+formatPkgName () {
+	# assumes deb name of form 'foo_1.2_i386.deb' (two underscores only)
+	echo "$( extractPkgName "${1}" ) ($( extractPkgVersion "${1}" ))"
+}
+# Check validity of repository directory
+# Must exist and be writable
+#   params: 1 - repository directory
+#   prints: error message if invalid
+#   return: boolean
+validRepositoryDir () {
+	local dir="${1}" retval=1
+	local count_1=$( dnDirFileDirCount "${dir}" )
+	local tmpfile="$( mktemp -qp "${dir}" )"
+	local count_2=$( dnDirFileDirCount "${dir}" )
+	dnTempTrap "${tmpfile}"
+	# must exist and be readable
+	if ! dnDirValid ${dir} &> /dev/null ; then
+		dnError "cannot find repository directory"
+	# must be writable
+	elif [ $(( ${count_1} + 1 )) -ne ${count_2} ] ; then
+		dnError "repository directory is not writable"
+	# if made it to here, then directory is valid
+	else retval=0
+	fi
+	# clean up
+	rm -fr ${tmpfile} &> /dev/null
+	dnTempKill "${tmpfile}"
+	# done
+	return ${retval}
+}
+# Convert 'Sources' and 'Packages' files to use pool architecture
+#   params: 1 - file name
+#           2 - file type ('source'|'package')
+#   prints: nil
+#   return: 0|1 (success|failure)
+poolise () {
+	# define variables
+	local file="${1}" type="${2}" search_string= tmpfile= line= count= pkg=
+	local pool_dir= newline= deb=
+	case "${type}" in
+		'source'  ) search="Directory: ";;
+		'package' ) search="Filename: ";;
+		    *     ) msg="Invalid param '${type}' to function '${FUNCNAME[0]}'"
+		            dnEndScriptPrompt 1 "${msg}";;
+	esac
+	# create working file
+	tmpfile=$( dnTempFile ) \
+		|| dnEndScriptPrompt 1 "Unable to make temporary file"
+	dnTempTrap "${tmpfile}"
+	# cycle through file
+	# ensure IFS != SPC when read line or eats initial space
+	read_ifs=$'\006' old_ifs="${IFS}" IFS="${read_ifs}"
+	while read line ; do
+		IFS="${old_ifs}"
+		newline="${line}"
+		# line may contain current package name
+		# - derive pkg name for use on file or directory line
+		if [ $( echo "${line}" | grep -c -- "^Package: " ) -eq 1 ] ; then
+			# assume line has structure: 'Package: foo'
+			# get pkg name and derive pool directory
+			pkg="$( echo "${line}" | cut -d ' ' -f 2 )"
+			pool_dir="$( derivePoolDir "${pkg}" )"
+		fi
+		# line may contain file ('package') or directory ('source')
+		if [ $( echo "${line}" | grep -c -- "^${search}" ) -eq 1 ] ; then
+			case "${type}" in
+				source  ) newline="Directory: ${pool_dir}";;
+				package ) deb="$( echo ${line} | awk -F "/" '{ print $NF }' )"
+				          newline="Filename: ${pool_dir}/${deb}";;
+			esac
+		fi
+		# append line to temporary file
+		echo "${newline}" >> ${tmpfile}
+		IFS="${read_ifs}"
+	done < ${file}
+	IFS="${old_ifs}"
+	# copy tmpfile over old file and clean up
+	cp -f ${tmpfile} ${file}
+	rm -f ${tmpfile}
+	dnTempKill "${tmpfile}"
+}
+
+
+# MAIN
+
+# Process command line
+processCommandLine "${@}"
+while [ "${*}" != "${args}" ] ; do shift ; done
+unset args
+[ "x${1}" != "x" ] && res_file="${1}"  # have custom-named resources file
+
+# Check for necessary tools
+msg="Unable to proceed without missing tools"
+dnToolsAvailable "${tools_list}" || dnEndScriptPrompt 1 "${msg}"
+
+# Informational message
+dnInfo "${dn_self} is running..."
+
+# Process resources file
+if [ -n "${res_file}" -a "x${res_file}" != "x${res_default}" ] ; then
+	dnInfo "using supplied resources file name"
+else
+	res_file="$( pwd )/${res_default}"
+	dnInfo "using default resources file name"
+fi
+res_file="$( dnNormalisePath "${res_file}" )"
+dnInfo "resources file:" "  '${res_file}'"
+dnFileValid "${res_file}" \
+	|| dnEndScriptPrompt 1 "unable to read resources file"
+dnInfon "processing resources file... "
+processResourcesFile "${res_file}" &> /dev/null
+echo "done"
+dnInfo "${dn_divider}"
+dnInfo "Processing Repository Settings:"
+# check repository directory (rep_dir)
+[ -z "${rep_dir}" ] \
+	&& dnEndScriptPrompt 1 "repository directory has not been set"
+rep_dir="$( dnNormalisePath ${rep_dir} )"
+dnInfo "directory: '${rep_dir}'"
+validRepositoryDir "${rep_dir}" \
+	|| dnEndScriptPrompt 1 "invalid repository directory"
+if [ $( dnDirFileDirCount "${rep_dir}" ) -gt 0 ] ; then
+	rm -fr ${rep_dir}/* \
+		|| dnEndScriptPrompt 1 "unable to empty repository directory"
+fi
+# check repository basename (basename)
+msg="invalid repository archive filename '${basename}.tar.gz'"
+dnNoSpace "${basename}" || dnEndScriptPrompt 1 "${msg}"
+tmpfile="$( tempfile -n "${basename}" )" || dnEndScriptPrompt 1 "${msg}"
+rm -f "${tmpfile}"
+basename="${tmpfile}"
+dnInfo "filename: '${basename}.tar.gz'"
+unset tmpfile
+# check archive flavours (archive)
+valid_flavours="unstable testing stable"
+archive=($( dnRemoveDuplicates "${archive[*]}" ))
+flavours=""  # remove duplicates and invalid values
+for flavour in "${archive[@]}" ; do
+	count=$( echo "${valid_flavours}" | grep -c -- "\b${flavour}\b" )
+	if [ ${count} -ne 1 ] ; then
+		dnWarn "invalid archive ('${flavour}') -- deleting."
+	else flavours="${flavour} ${flavours}"
+	fi
+done
+if [ -z "${flavours}" ] ; then archive=()
+else archive=( ${flavours} )
+fi
+if [ ${#archive[*]} -eq 0 ] ; then
+	dnEndScriptPrompt 1 "no repository flavours set"
+elif [ ${#archive[*]} -eq 1 ] ; then
+	msg="flavour"
+else 
+	msg="flavours"
+fi
+dnInfo "${msg}: $( dnFormatList "${archive[*]}" )"
+unset valid_flavours flavours count flavour
+# check repository component (component)
+if [ -n "${component}" ] ; then
+	count=$( echo "${valid_components}" | grep -c -- "\b${component}\b" )
+	[ ${count} -ne 1 ] && component=""
+fi
+[ -z ${component} ] && dnEndScriptPrompt 1 "repository component not set"
+dnInfo "component: '${component}'"
+unset valid_components
+# check origin (origin)
+[ -z "${origin}" ] && dnEndScriptPrompt 1 "repository origin has not been set"
+dnInfo "origin: '${origin}'"
+# check label (label)
+[ -z "${label}" ] && dnEndScriptPrompt 1 "repository label not set"
+dnInfo "label: '${label}'"
+# check minimal package directory validity checking
+fullCheck \
+	|| dnWarn "relaxed checking mode has been invoked: this turns off full" \
+		      "validity checking of package directories, which can lead to" \
+		      "errors; this is not recommended and should only be used in" \
+		      "the (rare) situation where one or more source files have a" \
+		      "different name and/or version to the deb files, e.g." \
+		      "'foo_0.0-cvs-20050925_i386.deb' versus" \
+		      "'foo_0.9.6-pre2-4.diff.gz'."
+# check package directories are valid
+dnInfon "scanning package directories..."
+valid_dir_count=0 invalid_dir_count=0 index=
+for candidate in "${candidate_dirs[@]}" ; do  # process pkg dirs in turn
+	echo -n "."
+	pkg_dir="$( dnStripComment "${candidate}" )"  # strip comment
+	if [ -n "${pkg_dir}" ] ; then  # exclude comment/blank lines
+		if pkgDirValid "${pkg_dir}" &> /dev/null ; then  # valid
+			valid_dir_count=$( dnIncrement ${valid_dir_count} )
+			pkg_dirs[${#pkg_dirs[*]}]="${pkg_dir}"
+		else  # invalid
+			invalid_dir_count=$( dnIncrement ${invalid_dir_count} )
+			invalid_dirs[${#invalid_dirs[*]}]="${pkg_dir}"
+			lookup[${#lookup[*]}]="${pkg_dir}"
+			reasons[${#reasons[*]}]="$( pkgDirValid "${pkg_dir}" )"
+		fi
+	fi
+done
+echo -ne " done\n"
+if [ ${valid_dir_count} -gt 0 ] ; then
+	pkg_dirs=($( dnRemoveDuplicates "${pkg_dirs[*]}" ))
+	msg="valid package director"
+	if [ ${#pkg_dirs[*]} -eq 1 ] ; then msg="${msg}y:"
+	else msg="${msg}ies:"
+	fi
+	dnInfo "${msg}"
+	for pkg_dir in ${pkg_dirs[@]} ; do dnInfo "  '${pkg_dir}'" ; done
+fi
+if [ ${invalid_dir_count} -gt 0 ] ; then
+	invalid_dirs=($( dnRemoveDuplicates "${invalid_dirs[*]}" ))
+	msg="invalid package director"
+	if [ ${#invalid_dirs[*]} -eq 1 ] ; then msg="${msg}y:"
+	else msg="${msg}ies:"
+	fi
+	dnInfo "${msg}"
+	index=''
+	for (( i=0 ; i < ${#invalid_dirs[*]} ; i++ )) ; do
+		for (( j=0 ; j < ${#lookup[*]} ; j++ )) ; do
+			if [ "${lookup[${j}]}" = "${invalid_dirs[${i}]}" ] ; then
+				index=${j}
+				break
+			fi
+		done
+		dnInfo "  '${invalid_dirs[${i}]}'" "   -> ${reasons[${j}]}"
+	done
+fi
+[ ${#pkg_dirs[*]} -gt 0 ] \
+	|| dnEndScriptPrompt 1 "no valid package directories supplied"
+# list packages
+for (( i=0 ; i <  ${#pkg_dirs[*]} ; i++ )) ; do
+	pkg_debs[${i}]="$( getDebFilename "${pkg_dirs[${i}]}" )"
+done
+for (( i=0 ; i < ${#pkg_dirs[*]} ; i++ )) ; do
+	pkgs[${#pkgs[*]}]="$( formatPkgName "${pkg_debs[${i}]}" )"
+done
+msg="package"
+[ ${#pkgs[*]} -gt 1 ] && msg="${msg}s"
+dnInfo "${msg}:"
+for (( i=0 ; i < ${#pkgs[*]} ; i++ )) ; do
+	dnInfo "  ${pkgs[${i}]}"
+done
+dnInfo "${dn_divider}"
+unset candidate pkg_dir candidate_dirs reasons msg index lookup
+unset invalid_dirs invalid_dir_count valid_dir_count pkgs i
+
+
+# Build repository
+dnInfo "creating repository"
+cd ${rep_dir} || dnEndScriptPrompt 1 "Unable to cd to repository directory"
+# loop through packages
+for (( i=0 ; i < ${#pkg_dirs[*]} ; i++ )) ; do
+	# get relevant information
+	pkg_dir="${pkg_dirs[${i}]}"
+	pkg_deb="${pkg_debs[${i}]}"
+	pkg_name="$( extractPkgName "${pkg_deb}" )"
+	pool_dir="$( derivePoolDir "${pkg_name}" )"
+	dnInfo "processing package: '${pkg_name}'"
+	# create and populate (with package files) the 'pool' sub-dir
+	if [ ! -d "${pool_dir}" ] ; then
+		msg="unable to create pool directory '${rep_dir}/${pool_dir}'"
+		mkdir -p "${pool_dir}" &> /dev/null || dnEndScriptPrompt 1 "${msg}"
+	fi
+	msg="error copying '${pkg_name}' package files to pool directory"
+	for ext in diff.gz dsc orig.tar.gz deb ; do
+		if fullCheck ; then
+			cp ${pkg_dir}/${pkg_name}_*.${ext} ${pool_dir} \
+				|| dnEndScriptPrompt 1 "${msg}"
+		else  # assume only one file with that extension in directory
+			# allow diff.gz to be missing --
+			# happens if pkg name different to source
+			cp ${pkg_dir}/*.${ext} ${pool_dir}
+			test ${?} -ne 0 && test "${ext}" != "diff.gz" \
+					&& dnEndScriptPrompt 1 "${msg}"
+		fi
+	done
+	# now create and populate the 'dists' sub-tree
+	for flavour in "${archive[@]}" ; do
+		# create and populate (with symlinks) the 'source' sub-dir
+		source_dir="$( deriveSourceDir "${flavour}" )"
+		if [ ! -d "${source_dir}" ] ; then
+			msg="unable to create source directory '${rep_dir}}/${source_dir}'"
+			mkdir -p "${source_dir}" &> /dev/null \
+				|| dnEndScriptPrompt 1 "${msg}"
+		fi
+		for ext in diff.gz dsc orig.tar.gz ; do
+			linkfile=$( dir -1 ${pool_dir}/*.${ext} )
+			linkfile="$( echo ${linkfile} | awk -F "/" '{ print $NF }' )"
+			ln -s ../../../../${pool_dir}/${linkfile} ${source_dir}/
+		done
+		# now create and populate the binary arch sub-dirs
+		for deb in $( dir -1 ${pool_dir}/*.deb ) ; do
+			# get relevant information
+			deb_arch="$( extractPkgArch "${deb}" )"
+			if [ "${deb_arch}" = 'all' ] ; then  # adding to all architectures
+				archs="${all_archs[@]}"
+			else  # adding to one architecture only
+				archs="${deb_arch}"
+			fi
+			for arch in ${archs} ; do
+				arch_dir="$( deriveArchDir "${flavour}" "${arch}" )"
+				# if new arch add to arch list
+				rep_archs=( $( dnRemoveDuplicates "${rep_archs[*]} ${arch}" ) )
+				# create arch sub-dir if needed
+				if [ ! -d "${arch_dir}" &>/dev/null ] ; then
+					msg="unable to create arch dir '${rep_dir}/${arch_dir}'"
+					mkdir -p "${arch_dir}" &> /dev/null \
+						|| dnEndScriptPrompt 1 "${msg}"
+				fi
+				# add symlink to arch dir
+				linkfile=$( dir -1 ${pool_dir}/*_${deb_arch}.deb )
+				linkfile="$( echo ${linkfile} | awk -F "/" '{ print $NF }' )"
+				ln -s ../../../../${pool_dir}/${linkfile} ${arch_dir}/
+			done  # cycle through archive architectures
+		done  # cycle through deb files in package directory
+	done  # cycle through archive flavours
+done  # cycle through packages/package directories
+unset pkg_dir pkg_deb pkg_name pool_dir ext flavour source_dir linkfile 
+unset arch arch_dir i deb_arch archs
+
+# Create 'Packages', 'Packages.gz', 'Sources.gz' and 'Release' files
+for flavour in "${archive[@]}" ; do  # cycle through archive flavours
+	dnInfo "creating repository files for archive: '${flavour}'"
+	# 1. flavour dir
+	flavour_dir="$( deriveFlavourDir "${flavour}" )"
+	cat > ${flavour_dir}/Release <<- EOF
+	Origin: ${origin}
+	Label: ${label}
+	Archive: ${flavour}
+	Components: ${component}
+	Architectures: ${rep_archs[@]}
+	Date: $( date --utc )
+	EOF
+	# 2. source dir
+	source_dir="$( deriveSourceDir "${flavour}" )"
+	# create 'Sources.gz'
+	dnInfo "  sources"
+	source_file="${rep_dir}/${source_dir}/Sources"
+	# see note at end of script regarding dpkg-scansources/perl problem
+	dpkg-scansources ${source_dir} /dev/null 2> /dev/null \
+		> ${source_file}
+	poolise "${source_file}" "source"
+	gzip -9 ${source_file}
+	# remove symlinks
+	for ext in diff.gz dsc orig.tar.gz ; do
+		rm -f ${source_dir}/*.${ext}
+	done
+	# create 'Release'
+	cat > ${source_dir}/Release <<- EOF
+	Archive: ${flavour}
+	Component: ${component}
+	Origin: ${origin}
+	Label: ${label}
+	Architecture: source
+	EOF
+	# 3. arch dirs
+	for arch in "${rep_archs[@]}" ; do
+		# create 'Packages' and 'Packages.gz'
+		dnInfo "  binary (${arch})"
+		arch_dir="$( deriveArchDir "${flavour}" "${arch}" )"
+		arch_file="${rep_dir}/${arch_dir}/Packages"
+		dpkg-scanpackages ${arch_dir} /dev/null 2> /dev/null \
+			> ${arch_file}
+		poolise "${arch_file}" "package"
+		gzip -c -9 ${arch_file} > ${arch_file}.gz
+		# remove symlinks
+		rm -f ${arch_dir}/*.deb
+		# create 'Release'
+		cat > ${arch_dir}/Release <<- EOF
+		Archive: ${flavour}
+		Component: ${component}
+		Origin: ${origin}
+		Label: ${label}
+		Architecture: ${arch}
+		EOF
+	done
+done
+unset flavour source_dir source_file ext arch arch_dir arch_file 
+
+# Build compressed archive
+dnInfo "compressing"
+tar czf ${basename}.tar.gz dists pool
+
+# Finished
+dnEndScriptPrompt 0 "repository successfully built"

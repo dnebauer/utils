@@ -1,0 +1,9 @@
+dn-ctags-conf README
+====================
+
+dn-ctags-conf provides the system-wide ctags configuration
+file:
+    /etc/ctags.conf
+
+It contains langdef, langmap and regex statements for
+generating latex tags.

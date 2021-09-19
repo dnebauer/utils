@@ -1,0 +1,17 @@
+#compdef tw-select-plugins
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '-h[Show a compact help message]' \
+    '--help[Show a long help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-f --font)'{-f,--font}'[Font to use for listbox widget]' \
+    '(-i --indent)'{-i,--indent}'[Size of indent in output]' \
+    '(-d --plugin_directory)'{-d,--plugin_directory}'[Server plugin directory]' \
+  && rc=0
+
+return rc

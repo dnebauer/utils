@@ -1,0 +1,23 @@
+#compdef dn-qk-deb
+
+local rc=1
+
+_arguments -S \
+  - '(help_options)' \
+    '-h[Show a compact help message]' \
+    '--help[Show a long help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'template_option' \
+    '(-t --create_template)'{-t,--create_template}'[Create template "deb-resources" file and exit (flag)]' \
+  - 'script_options' \
+    '(-f --autotools_feedback)'{-f,--autotools_feedback}'[Show feedback from autotools commands (flag)]' \
+    '(-d --deb_only)'{-d,--deb_only}'[Save generated ".deb" package file only (flag)]' \
+    '(-i --ignore_errors)'{-i,--ignore_errors}'[Turn all errors into warnings (flag)]' \
+    '(-k --keep_version)'{-k,--keep_version}'[Keep current version number (flag)]' \
+    '(-l --library_package)'{-l,--library_package}'[Library package - put in pkgdatadir or pkglibexecdir (flag)]' \
+    '(-n --no_install)'{-n,--no_install}'[Do not install built debian package (flag)]' \
+    '(-m --suppress_podman)'{-m,--suppress_podman}'[Prevent creation of manpage from main script pod (flag)]' \
+  && rc=0
+
+return rc

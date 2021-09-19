@@ -1,0 +1,361 @@
+#!/usr/bin/perl 
+
+use Moo;    #                                                          {{{1
+use strictures 2;
+use 5.014_002;
+use version; our $VERSION = qv('0.1');
+use namespace::clean;    #                                             }}}1
+
+# package Dn::Episode                                                  {{{1
+{
+
+    package Dn::Episode;
+
+    use Moo;             # {{{2
+    use strictures 2;
+    use namespace::clean;
+    use Dn::Common;
+    use English qw(-no_match_vars);
+    use Function::Parameters;
+    use Readonly;
+    use Time::Simple;
+    use Types::URI -all;
+    use Types::DateTime -all;
+    use Types::Standard -all;
+
+    my $cp = Dn::Common->new();
+
+    Readonly my $TRUE  => 1;
+    Readonly my $FALSE => 0;    #                                      }}}2
+
+    # attributes                                                       {{{2
+
+    # url                                                              {{{3
+    has 'url' => (
+        is            => 'ro',
+        isa           => Types::URI::Uri,
+        coerce        => $TRUE,
+        required      => $TRUE,
+        documentation => 'URL of mp3 file',
+    );
+
+    # title                                                            {{{3
+    has 'title' => (
+        is            => 'ro',
+        isa           => Types::Standard::Str,
+        required      => $TRUE,
+        documentation => 'Title of mp3 file',
+    );
+
+    # date                                                             {{{3
+    has 'date' => (
+        is => 'ro',
+        isa =>
+            Types::DateTime::DateTime->plus_coercions( Format ['ISO8601'] ),
+        coerce        => $TRUE,
+        required      => $TRUE,
+        documentation => 'Date of release of mp3 file (ISO format)',
+    );
+
+    # time                                                             {{{3
+    has 'time' => (
+        is            => 'ro',
+        isa           => Types::Standard::Str,
+        required      => $FALSE,
+        builder       => '_build_time',
+        documentation => 'Time of day on which mp3 file was released',
+    );
+
+    # validated_time                                                   {{{3
+    has 'validated_time' => (
+        is            => 'ro',
+        isa           => Types::Standard::Str,
+        required      => $FALSE,
+        lazy          => $TRUE,
+        builder       => $TRUE,
+        documentation => 'Validated time of mp3 file release',
+    );
+
+    method _build_validated_time () {
+        return if not $self->time;
+        my $time = $self->time;
+
+        # "colonify" 4-digit time value
+        if ( $time =~ /^ ( \d{2} ) ( \d{2} ) \z/xsm ) { $time = "$1:$2"; }
+
+        # evaluate time value
+        my $valid = eval { Time::Simple->new($time); 1 };
+        if ( not $valid ) {
+            my $url = $self->url;
+            die "Invalid time value '$time' for url '$url'";
+        }
+        return $self->time;
+    }
+
+    # file_name                                                        {{{3
+    has 'file_name' => (
+        is            => 'ro',
+        isa           => Types::Standard::Str,
+        required      => $FALSE,
+        lazy          => $TRUE,
+        builder       => $TRUE,
+        documentation => 'Name of downloaded file',
+    );
+
+    method _build_file_name () {
+
+        # prefix with date (and time if provided)
+        my $name = $self->date->ymd(q{});
+        if ( $self->validated_time ) {
+            $name .= '-' . $self->validated_time;
+        }
+
+        # add original url filename
+        my $url          = $cp->get_filename( $self->url );
+        my $url_filename = $cp->get_filename($url);
+        if ( not $url_filename ) {
+            die "Unable to extract filename from url '$url'\n";
+        }
+        $name .= '_' . $url_filename;
+        return $name;
+    }    #                                                             }}}3
+
+}    #                                                                 }}}1
+
+{
+
+    package Dn::Internal;
+
+    use Moo;    # {{{1
+    use strictures 2;
+    use namespace::clean -except => [ '_options_data', '_options_config' ];
+    use autodie qw(open close);
+    binmode STDOUT, ":encoding(UTF-8)";
+    use Carp qw(cluck confess);
+    use Dn::Common;
+    use English qw(-no_match_vars);
+    use File::Copy qw(move);
+    use File::Fetch;
+    use Function::Parameters;
+    use MooX::HandlesVia;
+    use MooX::Options;
+    use Readonly;
+    use Types::Standard qw(ArrayRef InstanceOf);
+    use YAML;
+
+    my $cp = Dn::Common->new();
+
+    Readonly my $TRUE  => 1;
+    Readonly my $FALSE => 0;
+
+    # debug
+    use Data::Dumper::Simple;    #                                     }}}1
+
+    # options
+
+    # file (-f)                                                        {{{1
+    option 'file' => (
+        is            => 'ro',
+        format        => 's',
+        required      => $TRUE,
+        short         => 'f',
+        documentation => 'YAML import file',
+    );    #                                                            }}}1
+
+    # attributes
+
+    # _episode_list                                                    {{{1
+    has '_episode_list' => (
+        is  => 'rw',
+        isa => Types::Standard::ArrayRef [
+            Types::Standard::InstanceOf ['Dn::Episode']
+        ],
+        lazy        => $TRUE,
+        default     => sub { [] },
+        handles_via => 'Array',
+        handles     => {
+            _episodes     => 'elements',
+            _add_episode  => 'push',
+            _add_episodes => 'push',
+            _has_episode  => 'count',
+        },
+        documentation => 'Array of episodes',
+    );    #                                                            }}}1
+
+    # methods
+
+    # main()                                                           {{{1
+    #
+    # does:   main method
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method main () {
+        $self->_import();    # dies on failure
+        $self->_download_files();
+    }
+
+    # _import                                                          {{{1
+    #
+    # does:   imports YAML data file
+    #
+    # params: nil
+    # prints: feedback on success or failure
+    # return: n/a, dies on import failure
+    method _import () {
+
+        # import file must be valid
+        if ( not $self->file ) { die "No import file specified\n"; }
+        my $file = $self->file;
+        if ( not -e $file ) { die "Cannot find '$file'\n"; }
+
+        # import the file
+        my @imported = YAML::LoadFile($file);
+        my $count    = scalar @imported;
+        if ( not $count ) { die "No episodes were imported from file $file"; }
+
+        # extract episode details
+        my @episodes;
+        for my $details (@imported) {
+            my $episode = Dn::Episode->new(
+                'url'   => $details->{'url'},
+                'title' => $details->{'title'},
+                'date'  => $details->{'date'},
+                'time'  => $details->{'time'},
+            );
+            push @episodes, $episode;
+        }
+        $count = scalar @episodes;
+        if ($count) {
+            say $cp->pluralise(
+                "Obtained download details for $count (file|files)", $count );
+        }
+        else {
+            die "No episode details were extracted from file '$file' data\n";
+        }
+
+        # save episode details
+        $self->_add_episodes(@episodes);
+    }    #                                                             }}}1
+
+    # _download_files()                                                {{{1
+    #
+    # does:   download files
+    # params: nil
+    # prints: nil, except error messages
+    # return: n/a, dies on failure
+    method _download_files () {
+        for my $episode ( $self->_episodes ) {
+
+            # set details
+            my $title = $episode->title;
+
+            # give feedback
+            my $div = q{-} x 20;
+            say "Downloading episode '$title'";
+            say $div;
+
+            # perform download
+            my $ff = File::Fetch->new( uri => $episode->url );
+            my $where = $ff->fetch;
+            if ( not $where ) { die "Download failed\n"; }
+
+            # rename file
+            my $old = $cp->get_filename($where);
+            my $new = $episode->file_name;
+            File::Copy::move( $old, $new )
+                or die "Unable to rename '$old' to '$new'\n";
+        }
+    }    #                                                             }}}1
+
+}
+
+my $p = Dn::Internal->new_with_options->main;
+
+1;
+
+# POD                                                                  {{{1
+__END__
+
+=head1 NAME
+
+dn-dl-podcast-files - downloads podcast files
+
+=head1 USAGE
+
+B<dn-dl-podcast-files> I<-f file>
+
+B<dn-dl-podcast-files> I<-h>
+
+=head1 OPTIONS
+
+=over
+
+=item B<-f>
+
+Name of input file.
+
+Required.
+
+=item B<-h>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+A script developed for downloading podcast files that are too old to appear in a podcast feed but that are still included in the rss feed file online. Details of the files are obtained and a yaml input file created. The input file lists the following for each download file: url, title, date and time. Date and time are the date and time the file was published. Required values are url, title and time. Date is optional.
+
+Here is an example input file. It lists episodes from the "Fear the Boot" podcast.
+
+    ---
+    url: http://media.libsyn.com/media/feartheboot/feartheboot_0001.mp3
+    title: Episode 1 - when player abilities eclipse character abilities
+    date: 2006-05-15
+    time: 2230
+    ---
+    url: http://media.libsyn.com/media/feartheboot/feartheboot_0002.mp3
+    title: Episode 2 - creating a group template
+    date: 2006-05-23
+    time: 0611
+    ---
+    url: http://media.libsyn.com/media/feartheboot/feartheboot_0003.mp3
+    title: Episode 3 - character creation
+    date: 2006-05-30
+    time: 0836
+
+The downloaded file name consists of the url filename with a prefix constructed from the episode's date and, if provided, time. Here are the download files corresponding to the input file shown above:
+
+    20060515-2230_feartheboot_0001.mp3
+    20060523-0611_feartheboot_0002.mp3
+    20060530-0836_feartheboot_0003.mp3
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+Dn::Common, English, File::Copy, File::Fetch, Function::Parameters, Moo, MooX::HandlesVia, MooX::Options, Readonly, Time::Simple, Types::DateTime, Types::Standard, Types::URI, YAML, autodie, namespace::clean, strictures, version.
+
+=head2 Executables
+
+wget.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 AUTHOR
+
+David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2015 David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+# vim:fdm=marker
+

@@ -1,0 +1,5 @@
+?package(dn-7kaa):needs="X11"\
+  section="Games/Strategy"\
+  title="Seven Kingdoms: Ancient Adversaries"\
+  icon="/usr/share/icons/7kaa-dn.xpm"\
+  command="/usr/games/7kaa-dn"

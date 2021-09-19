@@ -1,0 +1,12 @@
+# desktop file for 7kaa[-dn]
+[Desktop Entry]
+Type=Application
+Name=Seven Kingdoms: Ancient Adversaries
+GenericName=Real-Time Strategy Game
+Comment=A fantasy real-time strategy game
+Icon=7kaa-dn
+Exec=@pkggame_dir@/7kaa
+# 7kaa, located in @pkggame_dir@ will only run if that
+# is its working directory
+Path=@pkggame_dir@
+Categories=Game;StrategyGame;

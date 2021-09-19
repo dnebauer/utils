@@ -1,0 +1,218 @@
+.\" Hey, EMACS: -*- nroff -*-
+ 
+.\" Filename: dn-alsa-device-udev-rules.5
+.\" Author:   David Nebauer
+.\" History:  2010-12-30 - created
+ 
+.\" -----------------------------------------------------------------
+.\" NOTES
+.\" -----------------------------------------------------------------
+.ig
+
+For header (.TH), first parameter, NAME, should be all caps
+Second parameter, SECTION, should be 1-8, maybe w/ subsection
+Other parameters are allowed: see man(7), man(1)
+Please adjust the date whenever revising the manpage.
+
+Some roff macros, for reference:
+.nh        disable hyphenation
+.hy        enable hyphenation
+.ad l      left justify
+.ad b      justify to both left and right margins
+.nf        disable filling
+.fi        enable filling
+.br        insert line break
+.sp <n>    insert n+1 empty lines
+for manpage-specific macros, see man(7)
+
+Formatting [see groff_char (7) and man (7) for details]:
+\(aq  : escape sequence for (')
+\[lq] : left/open double quote
+\[rq] : right/close double quote
+`     : left/open single quote
+'     : right/close single quote
+\(em  : escape sequence for em dash
+\(en  : escape sequence for en dash
+\.    : escape sequence for period/dot
+\(rg  : registration symbol
+\(tm  : trademark symbol
+\fX   : escape sequence that changes font, where 'X' can be 'R|I|B|BI'
+        (R = roman/normal | I = italic | B = bold | BI = bold-italic)
+\fP   : switch to previous font
+        in this case '\fR' could also have been used
+.B    : following arguments are boldened
+.I    : following arguments are italicised
+.BI   : following arguments are bold alternating with italics
+.BR   : following arguments are bold alternating with roman
+.IB   : following arguments are italics alternating with bold
+.IR   : following arguments are italics alternating with roman
+.RB   : following arguments are roman alternating with bold
+.RI   : following arguments are roman alternating with italics
+.SM   : following arguments are small (scaled 9/10 of the regular size)
+.SB   : following arguments are small bold (not small alternating with bold) 
+        [note: if argument in alternating pattern contains whitespace,
+               enclose in whitespace]
+.RS x : indent following lines by x characters
+.RE   : end indent
+
+Bulleted list:
+   A bulleted list:
+   .IP \[bu] 2
+   lawyers
+   .IP \[bu]
+   guns
+   .IP \[bu]
+   money
+Numbered list:
+   .nr step 1 1
+   A numbered list:
+   .IP \n[step] 3
+   lawyers
+   .IP \n+[step]
+   guns
+   .IP \n+[step]
+   money
+..
+
+.\" -----------------------------------------------------------------
+.\" SETUP
+.\" -----------------------------------------------------------------
+
+.\" Package: -mwww macro package of web-related functions
+.\"  note: -mwww package is part of GNU 'troff'.
+.\"        The '.g' register is only found in GNU 'troff'
+.\"        and is set to '1' (true).
+.\"        The '\n' escape returns the value of a register.
+.\"        So, this 'if' command ensures GNU 'troff' is
+.\"        running before attempting to load the -mwww
+.\"        macro package
+.if \n[.g] .mso www.tmac
+
+.\" Macro: Format URL
+.\"  usage:  .UR "http:\\www.gnu.org" "GNU Project" " of the"
+.\"  params: arg 1 = url ; arg 2 = link text/name ; arg 3 = postamble (optional)
+.de UR
+\\$2 \(laURL: \\$1 \(ra\\$3
+..
+
+.\" Macro: Ellipsis
+.\"  usage: .ellipsis
+.\"  note: only works at beginning of line
+.de ellipsis
+.cc ^
+...
+^cc
+..
+
+.\" String: Command name
+.ds self dn-alsa-device-udev-rules
+.ds pkg @pkg@
+
+.\" -----------------------------------------------------------------
+.\" MANPAGE CONTENT
+.\" -----------------------------------------------------------------
+
+.TH "dn-alsa-device-udev-rules" "5" "2010-12-30" "" "Dn-alsa-device-udev-rules Manual"
+.SH "NAME"
+\*[self] \- udev rules file for \*[pkg]
+.SH "DESCRIPTION"
+The utility \*[pkg] is designed to be called by udev when a usb sound device is plugged or unplugged.  The rules files included with this package is
+.BR "@libdir@/udev/99-\*[pkg].rules" "."
+This rules file is fully self-documented.
+.PP
+Here are the two sample rules included in that rules file:
+.IP
+SUBSYSTEM=="sound", ENV{ID_VENDOR}=="Logitech", ENV{ID_MODEL}=="Logitech_H555_Headset", ENV{ACTION}=="change", RUN+="/usr/sbin/@pkg@ lt_h555"
+.IP
+SUBSYSTEM=="usb", ENV{ID_VENDOR}=="Logitech", ENV{ID_MODEL}=="Logitech_H555_Headset", ENV{ACTION}=="remove", RUN+="/usr/sbin/@pkg@ lt_h555"
+.PP
+A full explanation of the udev system and, in particular, tutorial on writing udev rules is beyond the scope of this man page.  It should, however, be possible to muddle through using these example rules and the following guidelines.
+.SS "Getting device attributes"
+The vendor and model attributes used in the example above are, respectively, "Logitech" and "Logitech_H555_Headset".  You can get the equivalent values for your device using one or more of these methods:
+.TP 
+.B tail -f /var/log/messages
+This enables you to view messages from udev and the kernel as they are written to the system log.  Execute this command as root before inserting the usb device.  The messages will clearly show the vendor and model.
+.TP 
+.B 
+udevadm monitor --environment > env.log
+This utility is supplied by the package 'udev'.  Execute this command and then insert the usb device.  The output captured in
+.I env.log
+will display the device attributes.  This command must be run as root.
+.TP 
+.B udevadm info -qall -p /sys/class/sound/cardX
+This utility is supplied by the package 'udev' and must be run as root after the usb device has been inserted.
+.I X
+is a number: all cards are numbered sequentially with the first being zero.
+.TP 
+.B hwinfo --usb
+This utility supplied by package 'hwinfo' and must be run as root after the usb device is inserted.
+.TP 
+.B lsusb -v
+This utility is supplied by the package 'usbutils' and is run after the usb device has been inserted.
+.SS "Multiple triggers"
+Multiple
+.I add
+and 
+.I remove
+events are generated by the kernel and udev when usb sound devices are plugged and unplugged, respectively.  Thus the rules you devise can potentially be triggered multiple times.
+.PP
+The udev package provides a rules file (currently '/lib/udev/rules.d/78-sound-card.rules') which generates a single udev
+.I change
+event once all the
+.I add
+events have been generated.  In the example rules above
+.I change
+is the targetted action rather than
+.IR "add" "."
+.PP
+Three udev
+.I remove
+actions are generated.  Two of them use subsystem
+.I sound
+while one uses
+.IR "usb" "."
+The rules below use the
+.I usb
+subsystem for the
+.I remove
+action to ensure it is triggered only once.
+.SS "What device label to pass to \*[pkg]"
+The rules set up \*[pkg] to be called with a device label as parameter.  The obvious approach is for the
+.I add
+rule to call \*[pkg] with the usb device's label as a parameter, and for the
+.I remove
+rule to call \*[pkg] with the system (default) device's label as parameter.  This is simple a robust.  The only disadvantage is that if you change the default device in the \*[pkg] configuration file, you have to change it the udev
+.I remove
+rules.
+.PP
+It is possible to use the label for the usb device as the \*[pkg] parameter in both
+.I change
+and
+.I remove
+rules.  This is the case with the example rules above in which the label
+.I lt_h555
+is passed to \*[pkg] in both rules.  When \*[pkg] is run it checks /proc/asound/cards to see if the corresponding device is present or not.  If the device is not listed, \*[pkg] assumes it has been unplugged and will switch to default device as defined in the \*[pkg] configuration file.  In this way there is no need to change the rules if you change the default device in the \*[pkg] configuration file.  The only disadvantage is that on some "flaky" systems alsa can freeze up.  If this happens while the usb device is plugged in then \*[pkg] can not tell when the usb device has been unplugged and will keep setting it as the default when the
+.I remove
+rule is triggered.
+.PP
+Make sure to pass the user-designated
+.I label
+to \*[pkg] and not the alsa-assigned
+.IR "device name" "."
+.PP
+Note the user-designated 
+.I label 
+is defined in both the udev rules file and the configuration file and the values in each need to be kept synchronised.
+.SH "FILES"
+.I @libdir@/udev/99-\*[pkg].rules
+.IP 
+Udev rules file provided by the package \*[pkg].  It must be customised after installation.
+.SH "SEE ALSO"
+.BR "\*[pkg] " "(1)," 
+.BR "\*[pkg]rc " "(5)," 
+.BR "asound.conf-dn " "(5)." 
+.SH "AUTHOR"
+\*[self] was written by David Nebauer <david@nebauer.org>.
+.PP 
+This manual page was written by David Nebauer <david@nebauer.org>
+for the Debian project (but may be used by others).

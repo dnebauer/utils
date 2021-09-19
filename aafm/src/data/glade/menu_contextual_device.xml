@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkMenu" id="menu">
+    <property name="visible">True</property>
+    <child>
+      <object class="GtkMenuItem" id="menuDeviceCopyToComputer">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Copy to computer</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_menuDeviceCopyToComputer_activate"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkSeparatorMenuItem" id="sepa">
+        <property name="visible">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="menuDeviceCreateDirectory">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Create directory...</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_menuDeviceCreateDirectory_activate"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="menuDeviceRefresh">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Refresh</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_menuDeviceRefresh_activate"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkSeparatorMenuItem" id="sep1">
+        <property name="visible">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="menuDeviceDeleteItem">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Delete</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_menuDeviceDeleteItem_activate"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="menuDeviceRenameItem">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Rename...</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_menuDeviceRenameItem_activate"/>
+      </object>
+    </child>
+  </object>
+</interface>

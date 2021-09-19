@@ -1,0 +1,7 @@
+# sudoers file supplied by package dn-cronsudo
+# do not edit directly but modify the package
+
+# wireless device management
+david ALL= NOPASSWD: /usr/sbin/rfkill
+david ALL= NOPASSWD: /bin/hciconfig
+david ALL= NOPASSWD: /usr/bin/bluetoothctl

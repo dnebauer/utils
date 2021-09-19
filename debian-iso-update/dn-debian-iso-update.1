@@ -1,0 +1,199 @@
+.\" Hey, EMACS: -*- nroff -*-
+
+.\" Filename: dn-debian-iso-update.1
+.\" Author:   David Nebauer
+.\" History:  2021-01-11 - created
+
+.\" -----------------------------------------------------------------
+.\" NOTES
+.\" -----------------------------------------------------------------
+.ig
+
+For header (.TH), first parameter, NAME, should be all caps
+Second parameter, SECTION, should be 1-8, maybe w/ subsection
+Other parameters are allowed: see man(7), man(1)
+Please adjust the date whenever revising the manpage.
+
+Some roff macros, for reference:
+.nh        disable hyphenation
+.hy        enable hyphenation
+.ad l      left justify
+.ad b      justify to both left and right margins
+.nf        disable filling
+.fi        enable filling
+.br        insert line break
+.sp <n>    insert n+1 empty lines
+for manpage-specific macros, see groff_man(7) and man(7)
+
+Formatting [see groff_char (7) and man (7) for details]:
+\(aq  : escape sequence for (')
+\[dq] : plain double quote
+\[lq] : left/open double quote
+\[rq] : right/close double quote
+`     : left/open single quote
+'     : right/close single quote
+\(em  : escape sequence for em dash
+\(en  : escape sequence for en dash
+\.    : escape sequence for period/dot
+\(rg  : registration symbol
+\(tm  : trademark symbol
+\fX   : escape sequence that changes font, where 'X' can be 'R|I|B|BI'
+        (R = roman/normal | I = italic | B = bold | BI = bold-italic)
+\fP   : switch to previous font
+        in this case '\fR' could also have been used
+.B    : following arguments are boldened
+.I    : following arguments are italicised
+.BI   : following arguments are bold alternating with italics
+.BR   : following arguments are bold alternating with roman
+.IB   : following arguments are italics alternating with bold
+.IR   : following arguments are italics alternating with roman
+.RB   : following arguments are roman alternating with bold
+.RI   : following arguments are roman alternating with italics
+.SM   : following arguments are small (scaled 9/10 of the regular size)
+.SB   : following arguments are small bold (not small alternating with bold)
+        [note: if argument in alternating pattern contains whitespace,
+               enclose in whitespace]
+.RS x : indent following lines by x characters
+.RE   : end indent
+
+Bulleted list:
+   A bulleted list:
+   .IP \[bu] 2
+   lawyers
+   .IP \[bu]
+   guns
+   .IP \[bu]
+   money
+Numbered list:
+   .nr step 1 1
+   A numbered list:
+   .IP \n[step] 3
+   lawyers
+   .IP \n+[step]
+   guns
+   .IP \n+[step]
+   money
+..
+
+.\" -----------------------------------------------------------------
+.\" SETUP
+.\" -----------------------------------------------------------------
+
+.\" Macro: Format URL
+.\"  usage:  .URL "http:\\www.gnu.org" "GNU Project" " of the"
+.\"  params: 1 = url
+.\"          2 = link text/name
+.\"          3 = postamble (optional)
+.\"  note:   The www.tmac macro provides a .URL macro package; this
+.\"          is a local fallback in case www.tmac is unavailable
+.\"  credit: man(7)
+.de URL
+\\$2 \(laURL: \\$1 \(ra\\$3
+..
+
+.\" Prefer .URL macro from www.tmac macro package if it is available
+.\"  note: In the conditional below the '\n' escape returns the value of
+.\"        a register, in this the '.g'
+.\"        The '.g' register is only found in GNU 'troff', and it is
+.\"        assumed that GNU troff will always include the www.tmac
+.\"        macro package
+.if \n[.g] .mso www.tmac
+
+.\" Macro: Ellipsis
+.\"  usage: .ellipsis
+.\"  note: only works at beginning of line
+.de ellipsis
+.cc ^
+...
+^cc
+..
+
+.\" String: Command name
+.ds self dn-debian-iso-update
+
+.\" -----------------------------------------------------------------
+.\" MANPAGE CONTENT
+.\" -----------------------------------------------------------------
+
+.TH "DN-DEBIAN-ISO-UPDATE" "1" "2021-01-11" "" "DN-DEBIAN-ISO-UPDATE Manual"
+.SH "NAME"
+\*[self] \- update debian iso images using jigdo
+.SH "SYNOPSIS"
+.BR "\*[self]"
+.SH "DESCRIPTION"
+\*[self] updates a set of debian iso images that have been created using jigdo.
+.SS Iso image setup
+The following assumptions are made about the file and directory configuration:
+.IP \[bu] 2
+All jigdo, template and iso files are located in one directory.
+.IP \[bu]
+All mount point directories are a subdirectory of a single base directory, and
+a subdirectory name is the number of the iso image being mounted (with no
+leading zeroes). For example, if the base mount directory is '/mnt/deb-iso'
+then iso image '3' is mounted to '/mnt/deb-iso/3'.
+.IP \[bu]
+All iso images are currently mounted, and in a manner such that they can be
+mounted and unmounted solely with reference to the mount directory. For
+example, they are defined in '/etc/fstab'.
+.SS Script configuration
+There are four values which must be defined in the \*[self] configuration file:
+.TP
+.I file_base
+.IP
+Common stem of '.jigdo' and '.template' files on server. It is also, because of
+how jigdo works, the common stem of local iso image files. In the file name it
+is usually followed immediately by the iso image number.
+.PP
+.I dir_files
+.IP
+Local directory holding '.jigdo', '.template', and '.iso' files.
+.PP
+.I url_base
+.IP
+Url to the server directory containing '.jigdo' and '.template' files.
+.PP
+.I mnt_base
+.IP
+Base mount point. To derive the full mount point for an iso image add a
+subdirectory whose name is the iso image number.
+.SS Jigdo-lite configuration
+It is also necessary to ensure that the root user has a valid '~/.jigdo-lite'
+configuration file. This is created the first time a user specifies the mirror
+to use for downloading. It should have been created during the initial creation
+of iso images using 'jigdo-lite'.
+.SS Feedback
+\*[self] is designed to run attended, such as a cronjob. For that reason it
+does not send any feedback to terminal or use gui widgets. It instead write
+informational and error messages to the system log file.
+.SH "OPTIONS"
+.TP
+.BI "\-l " "opt"
+By default all iso images are processed, from lowest to highest. This option
+can be used to override the iso image to start processing from. Optional.
+.TP
+.BI "\-u " "opt"
+By default all iso images are processed, from lowest to highest. This option
+can be used to override the iso image to stop processing after. Optional.
+.SH "FILES"
+.I @pkgconf_dir@/@pkg@.rc
+.IP
+Script configuration file.
+.PP
+.I /root/.jigdo-lite
+.IP
+Configuration file for 'jigdo-lite' which must have valid values for
+'debianMirror' and 'nonusMirror' keys.
+.PP
+.I /var/log/syslog
+.IP
+System log.
+.SH "SEE ALSO"
+.BR "jigdo-lite " "(1),"
+.BR "jigdo-file " "(1)."
+.PP
+.URL "https://tldp.org/HOWTO/Debian-Jigdo/downloadingyourfirstimage.html" "Debian Jigdo mini-HOWTO: 4. Downloading Your First Image (In 5 Easy Steps)"
+.SH "AUTHOR"
+\*[self] was written by David Nebauer (david at nebauer dot org).
+.PP
+This manual page was written by David Nebauer (david at nebauer dot org)
+for the Debian project (but may be used by others).

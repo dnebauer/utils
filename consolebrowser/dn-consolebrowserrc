@@ -1,0 +1,62 @@
+# dn-consolebrowser configuration file 
+
+# lines starting with '#' are ignored
+
+# lines are name-value pairs separated by whitespace
+# enclose element in double quotes if it contains a space
+
+# console_cmd_template
+# --------------------
+# template command for console
+# uses @T as token for console window title
+# uses @I as token for console window icon
+# uses @C as token for shell command to run once window is open
+
+console_cmd_template "konsole --title @T --icon @I -e @C"
+
+
+# console_window_title
+# --------------------
+# console window title
+
+console_window_title "Console Browser"
+
+
+# console_window_icon
+# -------------------
+# filepath of console window icon
+# the icons below are supplied by the package
+
+console_window_icon "@pkgdata_dir@/icon-url-text.png"
+#icon "@pkgdata_dir@/icon-url-world.png"
+#icon "@pkgdata_dir@/icon-rss-faded.png"
+#icon "@pkgdata_dir@/icon-rss.png"
+
+
+# browser_accepts_cookies
+# -----------------------
+# whether browser run inside console accepts cookies
+
+browser_accepts_cookies "no"
+#browser_accepts_cookies "yes"
+
+
+# browser_name
+# ------------
+# human-readable name of text-based web browser to run inside console
+
+browser_name "Lynx"
+
+
+# browser_cmd_accept_cookies
+# --------------------------
+# command to run browser in console -- if accepting cookies
+
+browser_cmd_accept_cookies "lynx -accept-all-cookies"
+
+
+# browser_cmd_reject_cookies
+# --------------------------
+# command to run browser in console -- if rejecting cookies
+
+browser_cmd_reject_cookies "lynx"

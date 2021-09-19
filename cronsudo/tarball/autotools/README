@@ -1,0 +1,29 @@
+dn-cronsudo README
+==================
+
+This package supplies cron files for repeated tasks:
+
+Daily
+- download new BBC Radio podcasts for user 'david'
+- update system clock
+- update file database for 'locate' utility
+
+Weekly
+- update vim bundles for user 'david'
+
+The package also provides sudoer files for /etc/sudoers.d/:
+
+dn-pkg-manage
+- enable ordinary user to run package management tools
+
+dn-edit
+- enable ordinary users to edit system files with (g)edit.
+
+dn-filesys
+- filesystem manipulation: (un)mounting and ejecting
+
+dn-network
+- raising network interfaces with ifup
+
+dn-wireless
+- wireless device management with bluetooth tools

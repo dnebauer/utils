@@ -1,0 +1,15 @@
+texdepend build notes
+=====================
+
+1. Shebang
+
+change first line of texdepend executable to '#!/usr/bin/perl'
+
+2. Misspellings
+
+check the README file for basic misspellings
+
+3. Control description
+
+if using README content for deb-resources control-description,
+be aware one line starts with a period (which crashes build)

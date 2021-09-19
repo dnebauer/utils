@@ -1,0 +1,760 @@
+#!/usr/bin/perl 
+
+use Moo;    #                                                          {{{1
+use strictures 2;
+use 5.014_002;
+use version; our $VERSION = qv('0.7');    #                            }}}1
+
+# package Dn::AdbCopy::Path                                            {{{1
+{
+
+    package Dn::AdbCopy::Path;
+
+    # Purpose                                                          {{{2
+
+    # provides details of a file or directory path
+
+    # Attributes
+
+    # - path
+    #   . the file or directory path
+    #   . string
+
+    # - is_android
+    #   . whether this path is on an attached android device
+    #   . boolean
+
+    # - is_file
+    #   . whether this is a file path
+    #   .boolean
+
+    # - is_directory
+    #   . whether this is a directory path
+    #   .boolean
+
+    # Methods
+
+    # - filename
+    #   . name of file in file path
+    #   . string
+
+    # - adjust_trailing_slash
+    #   . ensure trailing slashes on directory paths
+    #   . ensure no trailing slashes on file paths                     }}}2
+
+    use Moo;
+    use strictures 2;
+    use namespace::clean;
+    use Carp qw(confess);
+    use Dn::Common;
+    use Function::Parameters;
+    use Readonly;
+    use Storable qw(dclone);
+    use Types::Standard qw(Bool Str);
+
+    my $cp = Dn::Common->new();
+    Readonly my $TRUE  => 1;
+    Readonly my $FALSE => 0;
+
+    has 'path' => (
+        is            => 'rw',
+        isa           => Types::Standard::Str,
+        required      => $TRUE,
+        documentation => 'File or directory path',
+    );
+
+    has 'is_android' => (
+        is            => 'ro',
+        isa           => Types::Standard::Bool,
+        required      => $TRUE,
+        documentation => 'Whether this path is for an android device',
+    );
+
+    has 'is_file' => (
+        is            => 'rw',
+        isa           => Types::Standard::Bool,
+        required      => $TRUE,
+        documentation => 'Whether this is a file path',
+    );
+
+    has 'is_directory' => (
+        is            => 'rw',
+        isa           => Types::Standard::Bool,
+        required      => $TRUE,
+        documentation => 'Whether this is a directory path',
+    );
+
+    method filename () {
+        if ( not $self->is_file ) {
+            my $path = $self->path;
+            confess "Cannot get file name from non-filepath '$path'";
+        }
+        return $cp->get_filename( $self->path );
+    }
+
+    method adjust_trailing_slash () {
+        my $path = $self->path;
+        if ( $self->is_directory ) {
+            $path = $cp->ensure_trailing_slash($path);
+        }
+        if ( $self->is_file ) {
+            $path = $cp->ensure_no_trailing_slash($path);
+        }
+        $self->path($path);
+    }
+}    #                                                                 }}}1
+
+{
+
+    package Dn::AdbCopy;
+
+    use Moo;    #                                                      {{{1
+    use strictures 2;
+    use MooX::Options;
+    use namespace::clean -except => [ '_options_data', '_options_config' ];
+    use Carp qw(confess);
+    use Dn::Common;
+    use Dn::Common::CommandResult;
+    use English qw(-no_match_vars);
+    use Function::Parameters;
+    use Readonly;
+    use Types::Standard qw(Bool InstanceOf Str);
+    use experimental 'switch';
+
+    my $cp = Dn::Common->new();
+    Readonly my $TRUE  => 1;
+    Readonly my $FALSE => 0;    #                                      }}}1
+
+    # Options
+
+    # source  (-s)                                                     {{{1
+    option 'source' => (
+        is            => 'ro',
+        format        => 's',
+        order         => 1,
+        required      => $TRUE,
+        short         => 's',
+        documentation => 'File or directory to copy',
+    );
+
+    # target  (-t)                                                     {{{1
+    option 'target' => (
+        is            => 'ro',
+        format        => 's',
+        order         => 2,
+        required      => $TRUE,
+        short         => 's',
+        documentation => 'File or directory to copy to',
+    );
+
+    # android (-a)                                                     {{{1
+    option 'android' => (
+        is       => 'ro',
+        format   => 's',
+        order    => 3,
+        required => $TRUE,
+        short    => 'a',
+        documentation =>
+            q{Which path is on android device ('source'|'target')},
+    );    #                                                            }}}1
+
+    # Attributes
+
+    # _source                                                          {{{1
+    has '_source' => (
+        is            => 'rw',
+        isa           => Types::Standard::InstanceOf ['Dn::AdbCopy::Path'],
+        required      => $FALSE,
+        documentation => 'Details of source path',
+    );
+
+    # _target                                                          {{{1
+    has '_target' => (
+        is            => 'rw',
+        isa           => Types::Standard::InstanceOf ['Dn::AdbCopy::Path'],
+        required      => $FALSE,
+        documentation => 'Details of target path',
+    );    #                                                            }}}1
+
+    # Methods
+
+    # main()                                                           {{{1
+    #
+    # does:   main method
+    # params: nil
+    # prints: feedback
+    # return: n/a
+    method main () {
+        $self->_process_attributes;    # exits if invalid attribute
+
+        # after checks know that:
+        # - source and target are each either file or directory
+        # - neither source or directory have trailing slash
+        # - ruled out case of copying directory onto file
+        # - only one of source or target is on android device
+        $self->_copy( $self->_source, $self->_target, $TRUE );
+    }
+
+    # _process_attributes()                                            {{{1
+    #
+    # does:   checks parameters 'source' and 'target'
+    # params: nil
+    # prints: error message if fatal problem
+    # return: n/a (exit if fatal problem)
+    method _process_attributes () {
+
+        # must have set which path is android
+        if ( not $self->android ) { confess 'No path set as android'; }
+        my $android = $self->android;
+        my %valid_android = map { ( $_ => $TRUE ) } qw(source target);
+        if ( not $valid_android{$android} ) {
+            confess "Invalid android setting '$android'";
+        }
+
+        # must have both source and target
+        if ( not $self->source ) { die "No source provided\n"; }
+        if ( not $self->target ) { die "No target provided\n"; }
+
+        # remove trailing slashes and convert to absolute paths
+        my $source = $self->source;
+        if ( $self->android ne 'source' ) {
+            $source = $cp->true_path($source);
+        }
+        $source = $cp->ensure_no_trailing_slash($source);
+        my $target = $self->target;
+        if ( $self->android ne 'target' ) {
+            $target = $cp->true_path($target);
+        }
+        $target = $cp->ensure_no_trailing_slash($target);
+
+        # set source and directory path details
+        my $is_android;
+        $is_android = ( $android eq 'source' );
+        $self->_source(
+            Dn::AdbCopy::Path->new(
+                path         => $source,
+                is_android   => $is_android,
+                is_file      => $self->_is_file( $source, $is_android ),
+                is_directory => $self->_is_directory( $source, $is_android ),
+            )
+        );
+        $is_android = ( $android eq 'target' );
+        $self->_target(
+            Dn::AdbCopy::Path->new(
+                path         => $target,
+                is_android   => $is_android,
+                is_file      => $self->_is_file( $target, $is_android ),
+                is_directory => $self->_is_directory( $target, $is_android ),
+            )
+        );
+
+        # check that source and target paths are valid
+        $self->_check_paths();
+
+        return;
+    }
+
+    # _check_paths()                                                   {{{1
+    #
+    # does:   determine whether source and target are valid
+    # params: nil
+    # prints: error message if invalid
+    # return: n/a (dies if invalid path)
+    method _check_paths () {
+        my $source = $self->_source;
+        my $target = $self->_target;
+
+        # source and target must be files and/or directories
+        my $file_dir_count;
+        foreach my $type ( $source, $target ) {
+            if    ( $type->is_file )      { $file_dir_count++; }
+            elsif ( $type->is_directory ) { $file_dir_count++; }
+            else {
+                my $path = $type->path;
+                my @err  = ("Path '$path'\n");
+                my $msg  = 'is not a valid';
+                if ( $type->is_android ) { $msg .= ' android'; }
+                $msg .= " file or directory\n";
+                push @err, $msg;
+                die @err;
+            }
+        }
+        if ( $file_dir_count > 2 ) {
+            confess 'Whoah, source or target was both file AND directory';
+        }
+
+        # check source and target are compatible
+        # - if source is a directory...
+        if ( $source->is_directory ) {
+
+            # ... then target has to be a directory
+            if ( not $target->is_directory ) {
+                die "Must copy directory to a directory\n";
+            }
+        }
+
+        # - if source is a file...
+        if ( $source->is_file ) {
+
+            # ... then target can be a file path...
+            if ( not $target->is_file ) {
+
+                # ... or can have a valid path with a new file name
+                my $path = $cp->get_path( $target->path );
+                if ( not $self->_is_directory( $path, $target->is_android ) )
+                {
+                    my $source_path = $source->path;
+                    my $target_path = $target->path;
+                    my @msg         = (
+                        "Source '$source_path' is a file.\n",
+                        "A file can be copied only to a valid directory,\n",
+                        "or a file path with valid directory and novel file name.\n",
+                        "Target '$target_path' is neither.\n",
+                    );
+                    die @msg;
+                }
+            }
+        }
+
+        return;
+    }
+
+    # _is_directory($path, $is_android)                                {{{1
+    #
+    # does:   determine whether path is a valid directory
+    # params: $path       - path to analyse [required]
+    #         $is_android - whether this is an android path [required]
+    # prints: nil, except error messages
+    # return: boolean (dies if no path provided)
+    method _is_directory ($path, $is_android) {
+
+        # check args
+        if ( not $path ) { confess 'No path provided'; }
+        if ( not( defined $is_android ) ) { confess 'No android provided'; }
+
+        # check directory
+        if ($is_android) {
+            return $cp->is_android_directory($path);
+        }
+        else {
+            return -d $path;
+        }
+    }
+
+    # _is_file($path, $android)                                        {{{1
+    #
+    # does:   determine whether path is a valid file
+    # params: $path       - path to analyse [required]
+    #         $is_android - whether this is an android path [required]
+    # prints: nil, except error messages
+    # return: boolean (dies if no path provided)
+    method _is_file ($path, $is_android) {
+
+        # check args
+        if ( not $path ) { confess 'No path provided'; }
+        if ( not( defined $is_android ) ) { confess 'No android provided'; }
+
+        # check directory
+        if ($is_android) {
+            return $cp->is_android_file($path);
+        }
+        else {
+            return -f $path;
+        }
+    }
+
+    # _copy($source, $target, $first)                                  {{{1
+    #
+    # does:   recursively copy source to target
+    # params: $source - source file or directory object [required]
+    #         $target - target file or directory object [required]
+    #         $first  - whether this is the initial call
+    #                   to this method [optional, default=false]
+    # prints: user feedback
+    # return: n/a (die if fatal error)
+    method _copy ($source, $target, $first = $FALSE) {
+        if ( not $source ) { confess 'No source provided'; }
+        if ( not $target ) { confess 'No target provided'; }
+
+        # check class of source and target
+        if ( not $source->isa('Dn::AdbCopy::Path') ) {
+            confess 'Source is not a Dn::AdbCopy::Path object';
+        }
+        if ( not $target->isa('Dn::AdbCopy::Path') ) {
+            confess 'Source is not a Dn::AdbCopy::Path object';
+        }
+
+        # assign trailing slashes to directories
+        $source->adjust_trailing_slash();
+        $target->adjust_trailing_slash();
+
+        # source must exist
+        if ( not $self->_exists($source) ) {
+            my $path = $source->path;
+            die "'$path' does not appear to exist\n";
+        }
+
+        # files are copied
+        if ( $source->is_file ) {
+
+            # provide user feedback
+            if ($first) {
+                say '----';
+                say $source->path;
+                say '-> ' . $target->path . q{:};
+            }
+            my $indent = q{ } x 4;
+            say $indent . $source->filename();
+
+            # do simple file copy
+            $cp->android_copy_file( $source->path, $target->path,
+                $self->android );
+        }
+
+        # directories are more complicated
+        # - all files in it must be copied
+        # - all subdirectories must be copied recursively
+        # - the initial directory copy is handled differently
+        elsif ( $source->is_directory ) {
+
+            # can only copy directory to a directory
+            if ( not $target->is_directory ) {
+                confess "'$target' is not a directory";
+            }
+
+            # initial directory copy is handled differently
+            if ($first) {
+                $self->_initial_directory_copy( $source, $target );
+                return;
+            }
+            else {    # don't double up feedback on initial dir copy
+                say '----';
+                say $source->path;
+                say '-> ' . $target->path . q{:};
+            }
+
+            # copy files
+            my @files = $self->_file_list($source);
+            foreach my $file (@files) {
+                my $new_source = $self->_new_path( $source, $file, 'file' );
+                $self->_copy( $new_source, $target );
+            }
+
+            # copy subdirectories recursively
+            my @subdirs = $self->_subdir_list($source);
+            foreach my $subdir (@subdirs) {
+
+                # ensure target directory exists
+                my $new_target = $self->_new_path( $target, $subdir, 'dir' );
+                $self->_ensure_subdirectory_exists($new_target);
+
+                # copy subdirectory
+                my $new_source = $self->_new_path( $source, $subdir, 'dir' );
+                $self->_copy( $new_source, $new_target );
+            }
+        }
+
+        # here if exists but not file or directory (very strange...)
+        else {
+            my $path = $source->path;
+            die "'$path' exists but is not a file or directory\n";
+        }
+    }
+
+    # _exists($path_obj)                                               {{{1
+    #
+    # does:   determines whether path exists
+    # params: $path_obj - Dn::AdbCopy::Path object [required]
+    # prints: nil, except error messages
+    # return: boolean scalar
+    # note:   actually checks that path is file or directory
+    method _exists ($path_obj) {
+        if ( not $path_obj ) { confess 'No path object provided'; }
+        if ( not $path_obj->isa('Dn::AdbCopy::Path') ) {
+            confess 'Not a Dn::AdbCopy::Path object';
+        }
+        my $path         = $path_obj->path;
+        my $android      = $path_obj->is_android;
+        my $is_file      = $self->_is_file( $path, $android );
+        my $is_directory = $self->_is_directory( $path, $android );
+        return ( $is_directory or $is_file );
+    }
+
+    # _new_path($path_obj, $element)                                   {{{1
+    #
+    # does:   creates new Dn::AdbCopy::Path object with path
+    #         that has $element appended
+    # params: $path_obj - path object to clone and alter [required]
+    #         $element  - path element to append to path [required]
+    #         $type     - whether file or directory path
+    #                     [required, must be 'file' or 'dir']
+    # prints: nil, except error messages
+    # return: Dn::AdbCopy::Path object (dies on failure)
+    method _new_path ($path_obj, $element, $type) {
+
+        # check args
+        if ( not $path_obj ) { confess 'No path object provided'; }
+        if ( not $path_obj->isa('Dn::AdbCopy::Path') ) {
+            confess 'Not a Dn::AdbCopy::Path object';
+        }
+        if ( not $element ) { confess 'No path element provided' }
+        if ( not $type )    { confess 'No type provided'; }
+        my %valid_type = map { ( $_ => $TRUE ) } qw(file dir);
+        if ( not $valid_type{$type} ) { confess "Invalid type '$type'"; }
+
+        # clone path object
+        my $new_path_obj = Storable::dclone($path_obj);
+
+        # append path element
+        my $new_path = $path_obj->path . $element;
+        $new_path_obj->path($new_path);
+
+        # ensure correct type
+        if ( $type eq 'file' ) {
+            if ( not $new_path_obj->is_file ) {
+                $new_path_obj->is_file($TRUE);
+            }
+            if ( $new_path_obj->is_directory ) {
+                $new_path_obj->is_directory($FALSE);
+            }
+        }
+        if ( $type eq 'directory' ) {
+            if ( $new_path_obj->is_file ) { $new_path_obj->is_file($FALSE); }
+            if ( not $new_path_obj->is_directory ) {
+                $new_path_obj->is_directory($TRUE);
+            }
+        }
+
+        # adjust terminal slash
+        $new_path_obj->adjust_trailing_slash();
+
+        return $new_path_obj;
+    }
+
+    # _initial_directory_copy($source, $target)                        {{{1
+    #
+    # does:   handle first copy if initial source is a directory
+    # params: $source - source file or directory object [required]
+    #         $target - target file or directory object [required]
+    # prints: user feedback
+    # return: n/a (die if fatal error)
+    method _initial_directory_copy ($source, $target) {
+        if ( not $source ) { confess 'No source provided'; }
+        if ( not $target ) { confess 'No target provided'; }
+
+        # check class of source and target
+        if ( not $source->isa('Dn::AdbCopy::Path') ) {
+            confess 'Source is not a Dn::AdbCopy::Path object';
+        }
+        if ( not $target->isa('Dn::AdbCopy::Path') ) {
+            confess 'Source is not a Dn::AdbCopy::Path object';
+        }
+
+        # source must be an existing directory
+        if ( not $self->_exists($source) ) {
+            my $path = $source->path;
+            die "'$path' does not appear to exist\n";
+        }
+        if ( not $source->is_directory ) {
+            my $path = $source->path;
+            die "Initial directory copy called on non-directory '$path'\n";
+        }
+
+        # add terminal source subdir to target directory
+        my $subdir = $cp->get_last_subdir( $source->path );
+        my $new_target = $self->_new_path( $target, $subdir, 'dir' );
+        $self->_ensure_subdirectory_exists($new_target);
+
+        # leave source path unchanged
+
+        # copy source directory to new target directory
+        $self->_copy( $source, $new_target );
+    }
+
+    # _file_list($dir_obj)                                             {{{1
+    #
+    # does:   get list of files in directory
+    # params: $dir_obj - directory object to analyse [required]
+    # prints: nil
+    # return: list of file names
+    method _file_list ($dir_obj) {
+
+        # check arg
+        if ( not $dir_obj ) { confess 'No directory object provided'; }
+        if ( not $dir_obj->isa('Dn::AdbCopy::Path') ) {
+            confess 'Not a Dn::AdbCopy::Path object';
+        }
+        if ( not $dir_obj->is_directory ) {
+            confess 'Directory object declares itself a non-directory';
+        }
+
+        # handle android directory
+        if ( $dir_obj->is_android ) {
+            my $dir = $dir_obj->path;
+            return $cp->android_file_list($dir);
+        }
+
+        # handle system directory
+        my $dir = $dir_obj->path;
+        if ( not $self->_is_directory( $dir, $FALSE ) ) {
+            confess "Invalid system directory '$dir'";
+        }
+        return $cp->files_list($dir);
+    }
+
+    # _subdir_list($dir_obj)                                           {{{1
+    #
+    # does:   get list of subdirectories in directory
+    # params: $dir_obj - directory object to analyse [required]
+    # prints: nil
+    # return: list of subdirectory names
+    method _subdir_list ($dir_obj) {
+
+        # check arg
+        if ( not $dir_obj ) { confess 'No directory object provided'; }
+        if ( not $dir_obj->isa('Dn::AdbCopy::Path') ) {
+            confess 'Not a Dn::AdbCopy::Path object';
+        }
+        if ( not $dir_obj->is_directory ) {
+            confess 'Directory object declares itself a non-directory';
+        }
+
+        # handle android directory
+        if ( $dir_obj->is_android ) {
+            my $dir = $dir_obj->path;
+            return $cp->android_subdir_list($dir);
+        }
+
+        # handle system directory
+        my $dir = $dir_obj->path;
+        if ( not $self->_is_directory( $dir, $FALSE ) ) {
+            confess "Invalid system directory '$dir'";
+        }
+        return $cp->dirs_list($dir);
+    }
+
+    # _ensure_subdirectory_exists($dir_obj)                            {{{1
+    #
+    # does:   ensure subdirectory exists
+    # params: $dir_obj - directory object to check for [required]
+    # prints: nil, except error messages
+    # return: n/a, dies on failure
+    method _ensure_subdirectory_exists ($dir_obj) {
+        if ( not $dir_obj ) { confess 'No directory object provided'; }
+        if ( not $dir_obj->isa('Dn::AdbCopy::Path') ) {
+            confess 'Not a Dn::AdbCopy::Path object';
+        }
+        if ( not $dir_obj->is_directory ) {
+            confess 'Directory object declares itself a non-directory';
+        }
+        my $dir        = $dir_obj->path;
+        my $is_android = $dir_obj->is_android;
+
+        # handle android directory
+        if ($is_android) { return $cp->android_mkdir($dir); }
+
+        # handle system directory
+        my $cmd = [ 'mkdir', '-p', $dir ];
+        my $result = $cp->capture_command_output($cmd);
+        if ( not $result->success ) {
+            my @msg   = ("Fatal error creating directory '$dir'\n");
+            my $error = $result->error;
+            if ($error) { push @msg, "System reported: $error\n"; }
+            die @msg;
+        }
+        return;
+    }    #                                                             }}}1
+
+}
+
+my $p = Dn::AdbCopy->new_with_options->main;
+
+1;
+
+# POD                                                                  {{{1
+
+__END__
+
+=head1 NAME
+
+dn-adb-copy - copies a file or directory from or to an android device
+
+=head1 USAGE
+
+B<dn-adb-copy> B<-s> I<path> B<-t> I<path> B<-a> I<location>
+
+B<dn-adb-copy> I<-h>
+
+=head1 OPTIONS
+
+=over
+
+=item B<-s>  B<--source> I<path>
+
+File or directory to be copied. Must pre-exist. Required.
+
+=item B<-t>  B<--target> I<path>
+
+Location to copy to. Can be file path or directory path. Must pre-exist.
+Required.
+
+=item B<-a>  B<--android> I<location>
+
+Which path is the android device. Must be 'source' or 'target'. Required.
+
+=item B<-h>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+Copies a file or directory to or from an android device. If a directory is
+copied, any subdirectories are copied recursively.
+
+Both source and target must already exist. Note that a file path can be copied
+to a file path or directory path, but a directory path can be copied only to a
+directory path.
+
+Files and directories already present on the target file system are silently
+overwritten. No files on the target system are deleted (except as part of being
+overwritten).
+
+Either source or directory can be on the android device, but not both.
+
+The script attempts to use C<fb-adb> to perform copy operations, but will fall
+back to C<adb> in it absence. If neither is present, the script exits with an
+error.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+Carp, Dn::Common, Dn::Common::CommandResult, English, Function::Parameters,
+Moo, MooX::Options, namespace::clean, Readonly, Storable, strictures,
+Types::Standard, version.
+
+=head1 CONFIGURATION AND ENVIRONMENT
+
+At least one android device must be connected. If multiple android devices are
+connected the user is prompted to select between them.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 AUTHOR
+
+David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2015, 2017 David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+# vim:fdm=marker:

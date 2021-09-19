@@ -1,0 +1,15 @@
+wkhtmltopdf-static README
+=========================
+
+wkhtmltopdf and wkhtmltoimage are command line tools to
+render HTML into PDF and various image formats using the
+QT Webkit rendering engine. These run entirely "headless"
+and do not require a display or display service.
+
+This package has been built by downloading the wkhtmltopdf
+source from https://github.com/wkhtmltopdf/wkhtmltopdf and
+built using the instructions at https://github.com/\
+wkhtmltopdf/wkhtmltopdf/blob/master/INSTALL.md
+
+The generic build instructions were followed to produce 64-
+bit binaries on an amd64 system.

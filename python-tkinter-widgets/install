@@ -1,0 +1,4 @@
+contrib/completion/zsh/_dn_tk_error /usr/share/zsh/vendor-completions
+contrib/completion/zsh/_dn_tk_info /usr/share/zsh/vendor-completions
+contrib/completion/zsh/_dn_tk_menu /usr/share/zsh/vendor-completions
+contrib/completion/zsh/_dn_tk_warn /usr/share/zsh/vendor-completions

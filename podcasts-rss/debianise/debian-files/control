@@ -1,0 +1,19 @@
+Source: dn-podcasts-rss
+Section: sound
+Priority: extra
+Maintainer: David Nebauer <david@nebauer.org>
+Build-Depends: debhelper (>= 8.0.0), autotools-dev
+Standards-Version: 3.9.2
+
+Package: dn-podcasts-rss
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, libdn-common-perl (>= 1.0.2-1), libdn-podcastsrss-perl (>= 1.00-1), libxml-dumper-perl (>= 0.81-1), libxml-rss-perl (>= 1.49-1), libxml-opml-perl (>= 0.26-2)
+Recommends: vim-addon-manager
+Suggests: vim-rssattrs (>= 0.1-1)
+Description: standardise podcasts and create rss feed
+ This tool does the following:
+     standardise podcast filenames and mp3 tags,
+     save/edit rss channel metadata, and
+     create rss feed xml file and opml exchange file.
+ .
+ It can handle only mp3 files.

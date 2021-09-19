@@ -1,0 +1,449 @@
+.\" Hey, EMACS: -*- nroff -*-
+ 
+.\" Filename: dn-build-deb.1
+.\" Author:   David Nebauer
+.\" History:  2007-09-12 - created
+ 
+.\" -----------------------------------------------------------------
+.\" NOTES
+.\" -----------------------------------------------------------------
+.ig
+
+For header (.TH), first parameter, NAME, should be all caps
+Second parameter, SECTION, should be 1-8, maybe w/ subsection
+Other parameters are allowed: see man(7), man(1)
+Please adjust the date whenever revising the manpage.
+
+Some roff macros, for reference:
+.nh        disable hyphenation
+.hy        enable hyphenation
+.ad l      left justify
+.ad b      justify to both left and right margins
+.nf        disable filling
+.fi        enable filling
+.br        insert line break
+.sp <n>    insert n+1 empty lines
+for manpage-specific macros, see man(7)
+
+Formatting [see groff_char (7) for details]:
+\(aq  : escape sequence for (')
+``    : left/open double quote
+''    : right/close double quote
+`     : left/open single quote
+'     : right/close single quote
+\(em  : escape sequence for em dash
+\(en  : escape sequence for en dash
+\.    : escape sequence for period/dot
+\fX   : escape sequence that changes font, where 'X' can be 'R|I|B|BI'
+        (R = roman/normal | I = italic | B = bold | BI = bold-italic)
+\fP   : switch to previous font
+        in this case '\fR' could also have been used
+.B    : following arguments are boldened
+.I    : following arguments are italicised
+.BI   : following arguments are bold alternating with italics
+.BR   : following arguments are bold alternating with roman
+.IB   : following arguments are italics alternating with bold
+.IR   : following arguments are italics alternating with roman
+.RB   : following arguments are roman alternating with bold
+.RI   : following arguments are roman alternating with italics
+.SM   : following arguments are small (scaled 9/10 of the regular size)
+.SB   : following arguments are small bold (not small alternating with bold) 
+        [note: if argument in alternating pattern contains whitespace,
+               enclose in whitespace]
+.RS x : indent following lines by x characters
+.RE   : end indent
+
+Bulleted list:
+   A bulleted list:
+   .IP \[bu] 2
+   lawyers
+   .IP \[bu]
+   guns
+   .IP \[bu]
+   money
+Numbered list:
+   .nr step 1 1
+   A numbered list:
+   .IP \n[step] 3
+   lawyers
+   .IP \n+[step]
+   guns
+   .IP \n+[step]
+   money
+..
+
+.\" -----------------------------------------------------------------
+.\" SETUP
+.\" -----------------------------------------------------------------
+
+.\" Package: -mwww macro package of web-related functions
+.\"  note: -mwww package is part of GNU 'troff'.
+.\"        The '.g' register is only found in GNU 'troff'
+.\"        and is set to '1' (true).
+.\"        The '\n' escape returns the value of a register.
+.\"        So, this 'if' command ensures GNU 'troff' is
+.\"        running before attempting to load the -mwww
+.\"        macro package
+.if \n[.g] .mso www.tmac
+
+.\" Macro: Format URL
+.\"  usage:  .UR "http:\\www.gnu.org" "GNU Project" " of the"
+.\"  params: arg 1 = url ; arg 2 = link text/name ; arg 3 = postamble (optional)
+.de UR
+\\$2 \(laURL: \\$1 \(ra\\$3
+..
+
+.\" Macro: Ellipsis
+.\"  usage: .ellipsis
+.\"  note: only works at beginning of line
+.de ellipsis
+.cc ^
+...
+^cc
+..
+
+.\" String: Command name
+.ds self dn-build-deb
+
+.\" String: Subsidiary files
+.ds tarprep tar-dir-prepare
+.ds debprep deb-dir-prepare
+
+.\" -----------------------------------------------------------------
+.\" MANPAGE CONTENT
+.\" -----------------------------------------------------------------
+
+.TH "dn-build-deb" "1" "2018-09-08" "" "Dn-build-deb Manual"
+.SH "NAME"
+\*[self] \- generate deb package for project
+.SH "SYNOPSIS"
+.B "\*[self] "
+.BI "\-r " "root"
+.BI "\-n " "name"
+.BI "\-e " "email"
+.BI "\-p " "pkg"
+.BR "" "[" "\-t" "] [" "\-d" "]"
+.SH "DESCRIPTION"
+.B \*[self]
+generates a debian package from a set of source files.
+The source project must conform to a particular pattern in order for this
+utility to work (see SOURCE PROJECT).
+.PP 
+There are two kinds of projects which can be packaged: aututools-compliant and
+a perl module.
+If the \(aqbuild\(aq directory (see SOURCE PROJECT) contains a
+\(aqMakefile.PL\(aq file the source project is assumed to be a perl module.
+If not, it is assumed to be a standard autotools project.
+.PP
+It is possible to include project-specific alteration of the project build and
+debianisation processes.
+See BUILD PROCESS for details.
+.SH "OPTIONS"
+.TP 
+.BI "\-r " "root"
+The root directory of the source project.
+Required.
+.TP 
+.BI "\-n " "name"
+Name of the package maintainer.
+Required.
+.TP 
+.BI "\-e " "email"
+Email address of the package maintainer.
+Required.
+.TP 
+.BI "\-p " "pkg"
+Package name.
+Not used by this script but made available to sourced customisation files (see
+Customising the Build Process).
+Required.
+.TP 
+.B "\-t"
+Create empty project template consisting of the required directories (see
+SOURCE PROJECT).
+Also creates empty customisation files and a wrapper for
+.BR "\*[self]" "."
+Note the root directory must be empty if a project template is to be created in
+it.
+Optional.
+.TP
+.B "\-d"
+Skip building of the targzipped project distribution and copying it to the
+\(aqdebianise/source\(aq (see BUILD PROCESS).
+Instead assume there is a single such file in that directory.
+This option is designed for use when building a previous version of a project
+from an archived distribution targzip file.
+If reverting to an earlier version of the project, make sure debian control
+files such as \(aqdebian-files/changelog\(aq are consistent.
+.SH "SOURCE PROJECT"
+.SS Standard (autotools-compliant) project
+If the source is a standard autotools-compliant project the following directory
+structure is required:
+.RS
+       
+.br
+<root>
+.br
+ |-- debianise
+.br
+ |   |-- debian-files
+.br
+ |   |-- scripts
+.br
+ |   \`-- source
+.br
+ \`-- tarball
+.br
+     |-- autotools
+.br
+     |-- build
+.br
+     |-- archive
+.br
+     \`-- source
+.RE
+.br
+.TP
+debianise
+The debian build files.
+.TP
+debian
+Debian control files to be copied in to the debian project file tree when it is
+created.
+Some common files copied include \(aqchangelog\(aq, \(aqcontrol\(aq,
+\(aqcopyright\(aq and \(aqrules\(aq.
+.TP
+scripts
+Any scripts required by the build process.
+Traditionally contains a script called \(aqbuild-deb\(aq which invokes this
+utility with the appropriate arguments.
+Can also contain either or both of two customisation files that
+.B \*[self]
+will look for during the build process (see Customising the Build Process).
+.TP
+source
+The source project is copied here, suitably altered and then the debian package
+is built.
+The final debian package will be created in this directory.
+.TP
+tarball
+The source project files.
+.TP
+autotools
+Files required by autotools.
+These files are copied/symlinked to the build directory.
+Some common autotools files include \(aqAUTHORS\(aq, \(aqChangeLog\(aq,
+\(aqMakefile.am\(aq, \(aqNEWS\(aq, \(aqREADME\(aq, \(aqacinclude.m4\(aq and
+\(aqconfigure.ac\(aq.
+.TP
+build
+Where the distribution tarball is built. This directory is emptied at the start
+of the debian build process.
+Autotools files and source files are copied/symlinked from their respective
+directories.
+Then the autotools are used to build the tarball.
+.TP
+archive
+Each time a distribution tarball is built a copy is stored in this directory.
+The idea is to keep an archive of all versions of the project.
+.TP
+source
+Here the project source files are kept.
+.SS Perl modules
+If the source is a perl module the following directory structure is required:
+.RS
+       
+.br
+<root>
+.br
+ |-- debianise
+.br
+ |   |-- debian-files
+.br
+ |   |-- scripts
+.br
+ |   \`-- source
+.br
+ \`-- tarball
+.br
+     |-- build
+.br
+     \`-- archive
+.br
+.RE
+     
+.br
+See
+.I Standard (autotools-compliant) project
+for descriptions of the \(aqdebianise\(aq, \(aqdebian-files\(aq,
+\(aqscripts\(aq, \(aqsource\(aq, \(aqtarball\(aq and \(aqarchive\(aq
+directories.
+.TP
+build
+The perl source files.
+If this directory contains a \(aqMakefile.PL\(aq file at build time the project
+is assumed to be a perl module.
+This script assumes the source files are organised using the standard schema
+for perl module sources.
+A skeleton file/directory structure for a perl module can be generated by 
+.BR h2xs ".  "
+For example, a skeleton source file tree for the module
+\(aqMy::Perl::Module\(aq can be generated with the command:
+.br
+h2xs -XAn My::Perl::Module
+.RE
+.SH "BUILD PROCESS"
+.SS Default Process
+This script first builds a targzipped project distribution in the
+\(aqtarball/build\(aq directory.
+For standard projects it executes the following commands:
+.nf
+.RS
+autoreconf
+\&./configure
+make dist
+.RE
+.fi
+.PP
+For perl modules it executes the commands:
+.nf
+.RS
+perl Makefile.PL
+make test
+make dist
+.RE
+.fi
+.PP
+The newly-created tarball is copied to the \(aqdebianise/source\(aq directory
+and extracted.
+The \(aqdh_make\(aq utility does the initial debianisation.
+It is invoked as:
+.nf
+.RS
+dh_make --single --email <email> --file ../<archive>
+.RE
+.fi
+where <email> is the email address provided as an argument to 
+.B \*[self]
+and <archive> is the name of the tarball distribution without version number.
+The default debian control files are deleted (except for \(aqcompat\(aq) and
+any customised debian control files in the \(aqdebianise/debian-files\(aq are
+copied in their place.
+The final package is built with the command:
+.nf
+.RS
+dpkg-buildpackage -rfakeroot
+.RE
+.fi
+.SS Customising the Build Process
+Aside from controlling what control files are present in a project's
+\(aqdebianise/debian-files\(aq directory this process provides no opportunities
+to perform project-specific actions on the initial project source or debian
+package source.
+.B \*[self]
+makes both types of actions possible by looking in the
+\(aqdebianise/scripts\(aq directory for the files
+.BR \*[tarprep] " and " \*[debprep] .
+.PP
+If 
+.B \*[tarprep]
+is found it's commands will be executed (actually "sourced" using the shell
+\(aqsource\(aq command) before the \(aqautoconf\(aq or \(aqperl Makefile.PL\(aq
+commands are invoked.
+In this way the source can be refreshed or source files altered prior to
+processing.
+The
+.I cwd
+at time of sourcing is \(aqtarball/build\(aq and this must be the
+.I cwd
+when control is returned to
+.BR \*[self] .
+.PP
+If 
+.B \*[debprep]
+is found it's commands will be executed (again, "sourced") immediately after
+any customised debian control files are copied into the package source.
+In this way files can be added, linked, altered or deleted before the package
+is built.
+The
+.I cwd
+at time of sourcing is \(aq<source_base>\(aq (see Available Variables below)
+and this must be the
+.I cwd
+when control is returned to
+.BR \*[self] .
+.SS Available Variables
+Because these two files are being sourced they have access to all
+.BR \*[self]
+internal variables and any functions available to
+.BR \*[self]
+(e.g., all libdncommon-bash functions). When 
+.B \*[tarprep]
+is sourced it has access to these variables:
+.TP
+pkg
+package name
+.TP
+root
+directory: root directory of the project.
+.TP
+tar_build
+directory: <root>/tarball/build
+.TP
+deb_source
+directory: <root>/debianise/source
+.TP
+deb_scripts
+directory: <root>/debianise/scripts
+.RE
+ 
+.br
+When 
+.B \*[debprep]
+is sourced it has access to these variables as well as:
+.TP
+source_base
+directory: <root>/debianise/source/<archive>
+.RE
+ 
+.br
+where <archive> is the top-level directory of the extracted tarball source
+distribution.
+It is the distribution name without version number.
+This is also the default debian package name (although this can be overriden in
+the debian control files).
+.PP
+.B \*[debprep]
+also has access to any variables declared in
+.B \*[tarprep].
+.PP
+.B \*[debprep]
+has one other feature.
+It will perform the following replacement on all debian control files:
+.I @pkg_name@
+is replaced by
+.IR "<package_name>" "."
+This is analagous to using
+.B configure.ac
+to perform substitutions on all source files.
+.SH "FILES"
+.I <root>/debianise/scripts/\*[tarprep]
+.IP 
+File containing project-specific commands to alter contents of
+\(aqtarball/build\(aq directory.
+.PP 
+.I <root>/debianise/scripts/\*[tarprep]
+.IP 
+File containing project-specific commands to alter contents of
+\(aqdebianise/source\(aq directory.
+.SH "SEE ALSO"
+.BR "h2xs" "(1)," 
+.BR "autoreconf" "(1)," 
+.BR "make" "(1)," 
+.BR "dh_make" "(1)," 
+.BR "dpkg-buildpackage" "(1)." 
+.SH "AUTHOR"
+\*[self] was written by David Nebauer <david@nebauer.org>.
+.PP 
+This manual page was written by David Nebauer <david@nebauer.org>
+for the Debian project (but may be used by others).

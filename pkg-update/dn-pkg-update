@@ -1,0 +1,226 @@
+#!/usr/bin/perl 
+
+use Moo;    #                                                          {{{1
+use strictures 2;
+use 5.014_002;
+use version; our $VERSION = qv('0.1');
+use namespace::clean;    #                                             }}}1
+
+{
+
+    package Dn::PkgUpdate;
+
+    use Moo;             # {{{1
+    use strictures 2;
+    use namespace::clean -except => [ '_options_data', '_options_config' ];
+    use Env qw(USER);
+    use Function::Parameters;
+    use MooX::HandlesVia;
+    use MooX::Options;
+    use Readonly;
+    use Types::Standard qw(ArrayRef Str);
+    use Dn::Common;
+    my $cp = Dn::Common->new();
+
+    Readonly my $TRUE  => 1;
+    Readonly my $FALSE => 0;
+
+    # debug
+    use Data::Dumper::Simple;    #                                     }}}1
+
+    # Options
+
+    # option ignore_failure (-i)                                       {{{1
+    option 'ignore_failure' => (
+        is            => 'ro',
+        required      => $FALSE,
+        short         => 'i',
+        documentation => 'Continue after failed command',
+    ); #                                                            }}}1
+       # option final_prompt   (-p)                                       {{{1
+    option 'final_prompt' => (
+        is            => 'ro',
+        required      => $FALSE,
+        short         => 'p',
+        documentation => 'Prompt when finished',
+    );    #                                                            }}}1
+
+    # Attributes
+
+    # has _cmd_list                                                    {{{1
+    has '_cmd_list' => (
+        is  => 'ro',
+        isa => Types::Standard::ArrayRef [
+            Types::Standard::ArrayRef [Types::Standard::Str]
+        ],
+        required    => $TRUE,
+        builder     => '_build_cmd_list',
+        handles_via => 'Array',
+        handles     => {
+            _cmds     => 'elements',
+            _add_cmd  => 'push',
+            _has_cmds => 'count',
+        },
+        documentation => q{Aptitude commands},
+    );
+
+    method _build_cmd_list () {
+        my $cmds = [
+            [ 'aptitude', 'update' ],
+            ['aptitude', '--autoclean-on-startup' ],
+            [ 'aptitude', 'install' ],
+        ];
+        if ( $USER ne 'root' ) {
+            foreach my $cmd ( @{$cmds} ) {
+                unshift @{$cmd}, 'sudo';
+            }
+        }
+        return $cmds;
+    }
+
+    #                                                            }}}1
+
+    # Methods
+
+    # main()                                                           {{{1
+    #
+    # does:   main method
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method main () {
+
+        # check for defined apps
+        if ( not $self->_cmds ) { die "No apps defined\n"; }
+        my @cmds = $self->_cmds;
+
+        # check for internet connection
+        if ( not $cp->internet_connection() ) {
+            die "No internet connection detected\n";
+        }
+        foreach my $cmd (@cmds) {
+            say "\nRunning [" . ( join q{ }, @{$cmd} ) . "]...\n";
+            if ( !eval { system @{$cmd}; 1 } ) {
+                if ( not $self->ignore_failure ) {
+                    die "Command failed, aborting...\n";
+                }
+            }
+        }
+        if ( $self->final_prompt ) { $cp->prompt(); }
+    }    #                                                             }}}1
+
+}
+
+my $p = Dn::PkgUpdate->new_with_options->main;
+
+1;
+
+# POD                                                                  {{{1
+
+__END__
+
+=head1 NAME
+
+dn-pkg-update - update existing, and install new, debian packages
+
+=head1 USAGE
+
+B<dn-pkg-update> [ I<-i> ] [ I<-f> ]
+
+B<dn-pkg-update -h>
+
+=head1 OPTIONS
+
+=over
+
+=item B<-f>
+
+Display a prompt when finished. Designed for use when called inside a new
+terminal, to allow for the user to see feedback before the terminal closes.
+Boolean.
+
+Optional. Default: false.
+
+=item B<-i>
+
+Whether to continue with further commands after a command fails. Boolean.
+
+Optional. Default: false.
+
+=item B<-h>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+Gives user an opportunity to update existing packages and potentially install
+additional packages.
+
+This script uses the C<aptitude> package manager. Package management is a
+superuser activity. If the user is not root the package management commands are
+run with C<sudo>.
+
+This script performs an autoclean before updating.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+=over
+
+=item Dn::Common
+
+=item Env
+
+=item Function::Parameters
+
+=item Moo
+
+=item MooX::HandlesVia
+
+=item MooX::Options
+
+=item namespace::clean
+
+=item Readonly
+
+=item strictures
+
+=item Types::Standard
+
+=item version
+
+=back
+
+=head2 Executables
+
+=over
+
+=item aptitude
+
+=perl
+
+=item sudo
+
+=back
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 AUTHOR
+
+David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2015 David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+# vim:fdm=marker
+

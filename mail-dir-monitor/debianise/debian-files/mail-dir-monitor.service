@@ -1,0 +1,14 @@
+[Unit]
+Description=Daemon monitoring mail queue directories for unsent files
+Documentation=man:mail-dir-monitor(1)
+
+[Service]
+Type=forking
+ExecStart=mail-dir-launcher start
+PIDFile=/var/run/mail-dir-monitor.pid
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target

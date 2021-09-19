@@ -1,0 +1,98 @@
+#!/usr/bin/perl 
+
+use Moo;    #                                                          {{{1
+use strictures 2;
+use namespace::clean;
+use 5.014_002;
+use version; our $VERSION = qv('0.1');    #                            }}}1
+
+{
+
+    package Dn::KeepAwake::Manual;
+
+    use Moo;    #                                                      {{{1
+    use strictures 2;
+    use namespace::clean;
+    use Function::Parameters;
+    use Readonly;
+    use Dn::Common;
+    my $cp = Dn::Common->new();
+
+    Readonly my $msg   => 'KDE screensaver will stay suppressed until '
+        . 'this message box is dismissed';
+    Readonly my $title => 'Keep Awake';
+
+    #   main()                                                         {{{1
+    #
+    #   does:   main method
+    #   params: nil
+    #   prints: nil
+    #   return: n/a
+    method main () {
+        $cp->msg_box( $msg, $title );
+    }    #                                                             }}}1
+}
+
+my $p = Dn::KeepAwake::Manual->main;
+
+1;
+
+# POD                                                                  {{{1
+
+__END__
+
+=head1 NAME
+
+dn-keep-awake-manual - display message box
+
+=head1 USAGE
+
+B<dn-keep-awake-manual>
+
+B<dn-keep-awake-manual -h>
+
+=head1 OPTIONS
+
+=over
+
+=item B<-h>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+Used by S<C<dn-keep-awake>>. Displays a message box that remains until dismissed by the user.
+
+=head1 DEPENDENCIES
+
+=head2 Moose
+
+=head2 namespace::autoclean
+
+=head2 MooseX::Getopt::Usage
+
+Use modern perl features.
+
+=head2 Dn::Common
+
+Utility methods.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 AUTHOR
+
+David Nebauer E<lt>david@nebauer.comE<gt>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2015 David Nebauer E<lt>david@nebauer.comE<gt>
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+# vim:fdm=marker

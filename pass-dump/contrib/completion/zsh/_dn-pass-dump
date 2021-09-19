@@ -1,0 +1,25 @@
+#compdef dn-pass-dump
+
+_formats() {
+    local -a _formats
+    _formats=(markdown text)
+    _values 'Output formats' "${_formats[@]}"
+}
+
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+    '(--man)'{--man}'[Show the manual]' \
+    '(--usage)'{--usage}'[Show a short help message]' \
+  - 'script_options' \
+    '(-f --format)'{-f,--formats}'[Output format ("markdown"|"text", default\: "markdown")]:output formats:_formats' \
+    '(-r --root_dir)'{-r,--root_dir}'[Password root directory (default\: "~/.password-store")]:dir:_files -/' \
+    '(-d --dump_file)'{-d,--dump_file}'[Dump file path (default\: "~/.password-store/dump.{md,txt}")]:file:_files' \
+    '(-a --author)'{-a,--author}'[Output file author (default\: "David Nebauer")]:author:' \
+    '(-p --preserve)'{-p,--preserve}'[Preserve an existing dump file (flag)]' \
+  && rc=0
+
+return rc

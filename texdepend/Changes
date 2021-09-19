@@ -1,0 +1,14 @@
+Revision history for Perl script texdepend.
+
+0.91  Fri Jun 25 14:29:00 1999
+	- updated version; created by sdist 0.3
+	- fixed stupid error in $graphics_pat
+
+0.92  13 Jul 1999 14:50:42
+   - Added .cls files to @packages; added -styles option to append
+     extensions of @styles files parsed in the .log.  Fixed small
+     bug re -ignore option. [Thanks to Bernd Schandl
+     <bschand@math.clemson.edu> for suggestions.]
+
+
+

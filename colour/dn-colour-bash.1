@@ -1,0 +1,229 @@
+.\" Hey, EMACS: -*- nroff -*-
+ 
+.\" Filename: dn-colour-bash.1
+.\" Author:   David Nebauer
+.\" History:  2009-04-19 - created
+ 
+.\" -----------------------------------------------------------------
+.\" NOTES
+.\" -----------------------------------------------------------------
+.ig
+
+For header (.TH), first parameter, NAME, should be all caps
+Second parameter, SECTION, should be 1-8, maybe w/ subsection
+Other parameters are allowed: see man(7), man(1)
+Please adjust the date whenever revising the manpage.
+
+Some roff macros, for reference:
+.nh        disable hyphenation
+.hy        enable hyphenation
+.ad l      left justify
+.ad b      justify to both left and right margins
+.nf        disable filling
+.fi        enable filling
+.br        insert line break
+.sp <n>    insert n+1 empty lines
+for manpage-specific macros, see man(7)
+
+Formatting [see groff_char (7) and man (7) for details]:
+\(aq  : escape sequence for (')
+\[lq] : left/open double quote
+\[rq] : right/close double quote
+`     : left/open single quote
+'     : right/close single quote
+\(em  : escape sequence for em dash
+\(en  : escape sequence for en dash
+\.    : escape sequence for period/dot
+\(rg  : registration symbol
+\(tm  : trademark symbol
+\fX   : escape sequence that changes font, where 'X' can be 'R|I|B|BI'
+        (R = roman/normal | I = italic | B = bold | BI = bold-italic)
+\fP   : switch to previous font
+        in this case '\fR' could also have been used
+.B    : following arguments are boldened
+.I    : following arguments are italicised
+.BI   : following arguments are bold alternating with italics
+.BR   : following arguments are bold alternating with roman
+.IB   : following arguments are italics alternating with bold
+.IR   : following arguments are italics alternating with roman
+.RB   : following arguments are roman alternating with bold
+.RI   : following arguments are roman alternating with italics
+.SM   : following arguments are small (scaled 9/10 of the regular size)
+.SB   : following arguments are small bold (not small alternating with bold) 
+        [note: if argument in alternating pattern contains whitespace,
+               enclose in whitespace]
+.RS x : indent following lines by x characters
+.RE   : end indent
+
+Bulleted list:
+   A bulleted list:
+   .IP \[bu] 2
+   lawyers
+   .IP \[bu]
+   guns
+   .IP \[bu]
+   money
+Numbered list:
+   .nr step 1 1
+   A numbered list:
+   .IP \n[step] 3
+   lawyers
+   .IP \n+[step]
+   guns
+   .IP \n+[step]
+   money
+..
+
+.\" -----------------------------------------------------------------
+.\" SETUP
+.\" -----------------------------------------------------------------
+
+.\" Package: -mwww macro package of web-related functions
+.\"  note: -mwww package is part of GNU 'troff'.
+.\"        The '.g' register is only found in GNU 'troff'
+.\"        and is set to '1' (true).
+.\"        The '\n' escape returns the value of a register.
+.\"        So, this 'if' command ensures GNU 'troff' is
+.\"        running before attempting to load the -mwww
+.\"        macro package
+.if \n[.g] .mso www.tmac
+
+.\" Macro: Format URL
+.\"  usage:  .UR "http:\\www.gnu.org" "GNU Project" " of the"
+.\"  params: arg 1 = url ; arg 2 = link text/name ; arg 3 = postamble (optional)
+.de UR
+\\$2 \(laURL: \\$1 \(ra\\$3
+..
+
+.\" Macro: Ellipsis
+.\"  usage: .ellipsis
+.\"  note: only works at beginning of line
+.de ellipsis
+.cc ^
+...
+^cc
+..
+
+.\" String: Command name
+.ds self dn-colour-bash
+
+.\" -----------------------------------------------------------------
+.\" MANPAGE CONTENT
+.\" -----------------------------------------------------------------
+
+.TH "dn-colour-bash" "1" "2009-04-19" "" "Dn-colour-bash Manual"
+.SH "NAME"
+\*[self] \- display foreground and background bash colour codes
+.SH "SYNOPSIS"
+.BR "\*[self]"
+.SH "DESCRIPTION"
+.B \*[self]
+displays foreground and background bash colour codes in a matrix that also shows the appearance of all colour combinations.  There are 24 foreground colour codes and 11 background colour codes.
+.SH Foreground Colour Codes
+Foreground colour codes are of the form
+.BR "[0|1];X[X]" "."
+Examples include \(aq0;5\(aq and \(aq1;34\(aq.  The \(aq0;\(aq colours are
+.I dull
+colours and \(aq1;\(aq colours are
+.IR "bright" "."
+Note that \(aq0;\(aq can be dropped so that \(aq0;5\(aq can be written \(aq5\(aq.
+.PP
+Some foreground colour codes are not colour codes
+.IR "per se" ","
+but are formatting instructions such as underline, blink, reverse and conceal.
+.PP
+Note that some terminals render colour codes differently.  A colour code may even be ignored in some terminals.  To determine how a code is displayed, run
+.B \*[self]
+in the terminal.
+.PP
+Here are the foreground colour codes and their meaning.  Where multiple colours are listed they are found in different terminals.  An empty (zero-length) code is indicated by \(aq\(aq.
+.TS
+tab (:);
+lb lb
+c   l.
+Foreground Colour Code:Colour
+\(aq\(aq:default
+1:bold
+4:underline
+5:blink
+7:reverse
+8:conceal
+30:black
+1;30:dark gray
+31:red
+1;31:orange/red, bright
+32:green
+1;32:green, bright
+33:brown/yellow/orange
+1;33:yellow
+34:blue
+1;34:blue, bright
+35:magenta
+1;35:pink/magenta, bright
+36:cyan
+1;36:cyan, bright
+37:light gray/black
+1;37:white
+39:default
+00:null
+.TE
+.SH Setting Foreground Colour Only
+To change foreground colour only, use a command of the form:
+.PP
+.RS 3
+echo -e "\\033[<FG>mSome text\\033[m"
+.RE
+.PP
+where \(aq<FG>\(aq is the foreground colour code and is enclosed by \(aq\\033[\(aq and \(aqm\(aq tokens.  The \(aq\\033[m\(aq construct is used to reset to colour defaults.
+.SH Background Colour Codes
+Background colour codes are of the form
+.BR "XX" "."
+Examples include \(aq41\(aq and \(aq47\(aq.
+.PP
+Note that some terminals render colour codes differently.  To determine how a code is displayed, run
+.B \*[self]
+in the terminal.
+.PP
+Here are the background colour codes and their meaning.  Where multiple colours are listed they are found in different terminals.
+.TS
+tab (:);
+lb lb
+c   l.
+Background Colour Code:Colour
+40:black
+41:red
+42:green
+43:yellow/brown
+44:blue
+45:violet/magenta
+46:cyan
+47:white/gray
+49:default
+00:null
+.TE
+.SH Setting Background Colour Only
+To change background colour only, use a command of the form:
+.PP
+.RS 3
+echo -e "\\033[<BG>mSome text\\033[m"
+.RE
+.PP
+where \(aq<BG>\(aq is the background colour code and is enclosed by \(aq\\033[\(aq and \(aqm\(aq tokens.  The \(aq\\033[m\(aq construct is used to reset to colour defaults.
+.SH Setting Both Foreground and Background Colours
+To change both fore- and background colours the two colour codes are listed between the \(aq\\033[\(aq and \(aqm\(aq tokens.  The fore- and background colour codes can be listed in any order and are separated by a semicolon.  The command is in either of these forms:
+.PP
+.RS 3
+echo -e "\\033[<FG>;<BG>mSome text\\033[m"
+.br
+echo -e "\\033[<BG>;<FG>mSome text\\033[m"
+.RE
+.PP
+where \(aq<FG>\(aq and \(aq<BG>\(aq are, respectively, foreground and background colour codes.  The \(aq\\033[m\(aq construct is used to reset to colour defaults.
+.PP
+Examples include:
+.PP
+.RS 3
+echo -e "\\033[1;33;43mSome text\\033[m"  # yellow on blue
+.br
+echo -e "\\033[46;1;33mSome text\\033[m"  # yellow on cyan
+.RE

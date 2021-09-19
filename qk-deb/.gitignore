@@ -1,0 +1,10 @@
+*.deb
+*.diff.gz
+*.dsc
+*.orig
+*.tar
+*.gz
+# *.1
+dn-qk-deb_multiarch
+dn-qk-deb_2020-04-05
+tags

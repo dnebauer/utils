@@ -1,0 +1,399 @@
+#!/usr/bin/perl 
+
+use Moo;    #                                                          {{{1
+use strictures 2;
+use 5.018_001;
+use version; our $VERSION = qv('0.1');    #                            }}}1
+
+{
+
+    package Dn::Internal;
+
+    use Moo;    #                                                      {{{1
+    use strictures 2;
+    use namespace::clean -except => [ '_options_data', '_options_config' ];
+    use autodie qw(open close);
+    use Cwd qw(abs_path);
+    use Getopt::Long::Descriptive;
+    use Function::Parameters;
+    use List::Util qw(uniq);
+    use MooX::HandlesVia;
+    use Readonly;
+    use Types::Standard qw(ArrayRef Str);
+
+    Readonly my $TRUE  => 1;
+    Readonly my $FALSE => 0;    #                                      }}}1
+
+    # Attributes
+
+    # _moby                                                            {{{1
+    has '_moby' => (
+        is  => 'lazy',
+        isa => Types::Standard::Str,
+        doc => 'File path to extracted debian Moby thesaurus',
+    );
+
+    method _build__moby () {
+
+        # get unique file names
+        my @matches;
+        for my $arg (@ARGV) { push @matches, glob "$arg"; }
+        my @unique_matches = List::Util::uniq @matches;
+        my @files = grep {-r} @unique_matches;    # ignore non-files
+
+        # want one filepath only
+        my $count = scalar @files;
+        die "No filepath provided\n" if $count == 0;
+        die "Provide only one filepath\n" if $count > 1;
+
+        return $files[0];
+    }
+
+    # _terms                                                           {{{1
+    has '_terms' => (
+        is          => 'rw',
+        isa         => Types::Standard::ArrayRef [Types::Standard::Str],
+        default     => sub { [] },
+        handles_via => 'Array',
+        handles     => {
+            '_add_pair'     => 'push',
+            '_all_terms'    => 'elements',
+            '_unique_terms' => 'uniq',
+            '_clear_terms'  => 'clear',
+            '_term_count'   => 'count',
+        },
+        documentation => 'Root-synonym pairs',
+    );    #                                                            }}}1
+
+    # Methods
+
+    # main()                                                           {{{1
+    #
+    # does:   main method
+    # params: nil
+    # prints: feedback
+    # return: result
+    method main () {
+        $self->_usage;    # print usage message if help requested
+        $self->_extract_moby_terms;
+        $self->_uniquefy_terms;
+        $self->_write_vim_thesaurus;
+    }
+
+    # _usage()                                                         {{{1
+    #
+    # does:   print usage message if requested
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method _usage () {
+
+        # handle args
+        my ( $opt, $usage ) = Getopt::Long::Descriptive::describe_options(
+            '%c %o <file>',
+            [],
+            [   'help|h',
+                'print usage message and exit',
+                { shortcircuit => 1 }
+            ],
+        );
+        if ( $opt->help ) {
+            print $usage->text;
+            exit;
+        }
+
+        return;
+    }
+
+    # _extract_moby_terms()                                            {{{1
+    #
+    # does:   convert thesaurus file
+    # params: nil
+    # prints: feedback
+    # return: nil
+    # note:   there are two methods available for adding terms:
+    #         1 - pair root with each synonym and add each pair
+    #             (uses method '_add_root_synonym_pairs')
+    #         2 - walk along root-synonym list and add consecutive
+    #             pairs (uses method '_add_synonym_pairs')
+    #         currently using '_add_root_synonym_pairs'
+    method _extract_moby_terms () {
+        open my $fh, '<', $self->_moby;
+        my @lines = <$fh>;
+        close $fh;
+        say 'Extracting terms from Moby thesaurus:';
+        my $progress = q{};
+        my $root;
+        my @synonyms;
+
+        for my $line (@lines) {     # cycle through moby thesaurus
+            chomp $line;
+            if ( not $root ) {      # waiting for next root
+                if ( $line
+                    =~ /^\d+\sMoby\sThesaurus\swords\sfor\s"[^"]+":$/xsm )
+                {
+                    $root = $line
+                        =~ s/^\d+\sMoby\sThesaurus\swords\sfor\s"([^"]+)":$/$1/xsmr;
+                    if ( $self->_term_is_good($root) ) {    # good term
+                        my $root_first_letter = uc substr $root, 0, 1;
+                        if ( $root_first_letter ne $progress ) {
+                            $progress = $root_first_letter;    # on new letter
+                            my $msg = '  processing terms beginning with '
+                                . "$progress...";
+                            say $msg;
+                        }
+                    }
+                    else {
+                        $root = q{};    # ignore if bad term
+                    }
+                }
+            }
+            else {                      # still building synonym terms
+                if ( $line =~ /^\s*$/xsm ) {    # empty line = end of synonyms
+                    @synonyms = grep { $self->_term_is_good($_) } @synonyms;
+                    $self->_add_root_synonym_pairs( $root, @synonyms );
+                    @synonyms = ();             # now reset to await next root
+                    $root     = q{};
+                }
+                else {                          # have more synonyms
+                    my $trimmed = $self->_trim_whitespace($line);
+                    my @new_synonyms = split /,/, $trimmed;
+                    push @synonyms, @new_synonyms;
+                }
+            }
+        }
+        say '  Done.';    # finished with progress report
+    }
+
+    # _term_is_good($term)                                             {{{1
+    #
+    # does:   determine whether term is suitable for adding to thesaurus
+    # params: 1 - thesaurus term
+    # prints: nil
+    # return: boolean
+    # note:   term is suitable if it does not contain space, tab, dash,
+    #         quote, slash or dollar sign
+    method _term_is_good ($term) {
+        return $FALSE if $term =~ /\s/xsm;
+        return $FALSE if $term =~ /-/xsm;
+        return $FALSE if $term =~ /"/xsm;
+        return $FALSE if $term =~ /\//xsm;
+        return $FALSE if $term =~ /\$/xsm;
+        return $TRUE;
+    }
+
+    # _add_root_synonym_pairs($root, @synonyms)                        {{{1
+    #
+    # does:   add synonym pairs
+    # params: root and list of synonyms
+    # prints: nil
+    # return: nil
+    # note:   pairs root with each synonym in turn
+    method _add_root_synonym_pairs ($root, @synonyms) {
+        for my $synonym (@synonyms) {
+            $self->_add_pair("$root,$synonym\n");
+            $self->_add_pair("$synonym,$root\n");
+        }
+    }
+
+    # _add_synonym_pairs(@synonyms)                                    {{{1
+    #
+    # does:   add synonym pairs
+    # params: list of synonyms
+    # prints: nil
+    # return: nil
+    # note:   assumes root is first element in synonym list, e.g.,
+    #             $self->_add_synonym_pairs($root, @synonyms);
+    # note:   "walks" along list adding consecutive pairs of terms
+    method _add_synonym_pairs (@synonyms) {
+        my ( $left, $right );
+        for my $synonym (@synonyms) {
+            $left  = $right;
+            $right = $synonym;
+            if ( $left and $right ) {
+                $self->_add_pair("$left,$right\n");
+                $self->_add_pair("$right,$left\n");
+            }
+        }
+    }
+
+    # _trim_whitespace($line)                                          {{{1
+    #
+    # does:   removes whitespace leading, trailing and following commas
+    # params: 1 - line to be trimmed of whitespace
+    # prints: nil
+    # return: scalar (string)
+    method _trim_whitespace ($line) {
+        $line =~ s/^\s+//gxsm;
+        $line =~ s/\s+$//gxsm;
+        $line =~ s/,\s+/,/gxsm;
+        $line;
+    }
+
+    # _uniquefy_terms()                                                {{{1
+    #
+    # does:   ensures terms are unique
+    # params: nil
+    # prints: feedback
+    # return: nil
+    method _uniquefy_terms () {
+        say 'Removing duplicates:';
+        say '  Extracting unique terms...';
+        my @unique = sort $self->_unique_terms;
+        say '  Clear existing data...';
+        $self->_clear_terms;
+        say '  Reloading unique terms...';
+        for my $pair (@unique) {
+            $self->_add_pair($pair);
+        }
+        say '  Done.';
+    }
+
+    # _write_vim_thesaurus()                                           {{{1
+    #
+    # does:   writes vim thesaurus file 'MOBY.new'
+    # params: nil
+    # prints: nil
+    # return: nil
+    method _write_vim_thesaurus () {
+        my $outfile = $self->_moby . '.new';
+        say "Writing vim thesaurus '$outfile':";
+        open my $fh, '>', $outfile;
+        print {$fh} $self->_all_terms;
+        close $fh;
+        say '  Done.';
+        printf "Wrote %s entries to vim thesaurus '%s'\n",
+            $self->_term_count, $outfile;
+    }    #                                                             }}}1
+
+    1;
+}
+
+my $p = Dn::Internal->new->main;
+
+# POD                                                                  {{{1
+
+__END__
+
+=head1 NAME
+
+convert-moby - create vim thesarus from Moby thesaurus
+
+=head1 USAGE
+
+    dn-convert-moby moby_file
+    dn-convert-moby -h
+
+=head1 REQUIRED ARGUMENTS
+
+=over
+
+=item moby_file
+
+Filepath (relative or absolute) to Moby thesaurus file. Required.
+
+File must be in format used by Debian package F<dict-moby-thesaurus> (which is
+claimed to be that used by the dictionary server in the F<dictd> package).
+
+The file must be in plain text, i.e., not compressed. Note the thesaurus file
+included in the debian package
+(S<< F</usr/share/dictd/moby-thesaurus.dict.dz> >>) is compressed. It can be
+extracted using C<dictunzip> (provided by the F<dictzip> package).
+
+=back
+
+=head1 OPTIONS
+
+=over
+
+=item B<-h>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+Takes a file in modified Moby format and creates a thesaurus file formatted for
+vim.
+
+=head2 File formats
+
+The input file is the format used in Debian package 'dict-moby-thesaurus'. Here
+is part of an entry from that file:
+
+    346 Moby Thesaurus words for "abandon":
+       abandonment, abjection, abjure, abort, abscond, acknowledge defeat,
+       ardency, ardor, back out, beat a retreat, beg a truce, beg off,
+       belay, boundlessness, bow out, break the habit, brush aside,
+       brush off, cancel, capitulate, careless abandon, carelessness,
+       ...
+
+The format is that required by vim is of the form:
+
+    abandon,abandonment
+    abandonment,abandon
+    abandon,abjection
+    abjection,abandon
+    ...
+
+=head2 Fidelity
+
+A root-synonym pair is discarded is either term contains any of the following:
+
+=over
+
+=over 4
+
+=item whitespace (space, tab)
+
+=item dash (-)
+
+=item double quote mark (")
+
+=item forward slash (/)
+
+=item dollar sign ($).
+
+=back
+
+=back
+
+=head2 File pathnames
+
+Given an input file path of F<INPUTFILEPATH> the output file name is
+S<< F<INPUTFILEPATH.new> >>.
+
+=head2 Unique
+
+All duplicate entries are removed before writing the vim thesaurus file.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+autodie, Cwd, Function::Parameters, Getopt::Long::Descriptive, List::Util, Moo,
+MooX::HandlesVia, Readonly, strictures, Types::Standard, version.
+
+=head2 Other
+
+Moby thesaurus
+
+=head1 BUGS AND LIMITATIONS
+
+Please report bugs to the author (address provided below).
+
+=head1 AUTHOR
+
+David Nebauer (david at nebauer dot org)
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2015 David Nebauer (david at nebauer dot org)
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+# vim:fdm=marker:

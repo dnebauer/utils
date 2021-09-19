@@ -1,0 +1,17 @@
+#compdef dn-tk-menu
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+  - 'script_options' \
+    '(-t --title)'{-t,--title}'[Menu title (optional, default="Menu")]:title:' \
+    '(-p --prompt)'{-p,--prompt}'[Menu prompt (optional, default="Select an option:")]:prompt:' \
+    '(-s --split_items)'{-s,--split_items}'[Split each item (flag)]' \
+    '(-i --item_delimiter)'{-i,--item_delimiter}'[Delimiter on which to split items (optional, default=whitespace)]:idelim:' \
+    '(-m --multiselect)'{-m,--multiselect}'[Select multiple menu items (flag)]' \
+    '(-j --selections_delimiter)'{-j,--selections_delimiter}'[Delimiter joining selected items (optional, default=" ")]:sdelim:' \
+  && rc=0
+
+return rc

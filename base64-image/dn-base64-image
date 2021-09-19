@@ -1,0 +1,190 @@
+#!/usr/bin/perl 
+
+use Moo;    #                                                          {{{1
+use strictures 2;
+use 5.014_002;
+use namespace::clean;
+use version; our $VERSION = qv('0.1');    #                            }}}1
+
+{
+
+    package Dn::Internal;
+
+    use Moo;    #                                                      {{{1
+    use namespace::clean -except => [ '_options_data', '_options_config' ];
+    use autodie qw(open close);
+    use Cwd qw(abs_path);
+    use File::MimeInfo;
+    use Function::Parameters;
+    use MIME::Base64 qw(encode_base64);
+    use MooX::Options;
+    use Readonly;
+
+    Readonly my $TRUE  => 1;
+    Readonly my $FALSE => 0;    #                                      }}}1
+
+    # Options
+
+    # image    (-i)                                                    {{{1
+    option 'image' => (
+        is            => 'rw',
+        format        => 's',
+        short         => 'i',
+        required      => $TRUE,
+        documentation => 'Image to convert',
+    );
+
+    # mimetype (-m)                                                    {{{1
+    option 'mime_type' => (
+        is            => 'rw',
+        format        => 's',
+        short         => 'm',
+        documentation => 'Override autodetected mimetype',
+    );    #                                                            }}}1
+
+    # Methods
+
+    # main()                                                           {{{1
+    #
+    # does:   writes html element to standard output
+    # params: nil
+    # prints: html img element
+    # return: n/a (die if error)
+    method main () {
+
+        # file must exist
+        if ( not -f $self->image ) { die 'Invalid image file'; }
+
+        # get file mimetype
+        my $mimetype = $self->_file_mime_type();
+        if ( not $mimetype ) {
+            die "Unable to determine image file mime type\n";
+        }
+
+        # get file content as base64
+        my $data = $self->_encode_image();
+        if ( not $data ) {
+            die "Unable to encode image file\n";
+        }
+
+        # write img element
+        print qq{<img src="data:$mimetype;base64,$data"/>};
+    }
+
+    # _file_mimetype()                                                 {{{1
+    #
+    # does:   get file mimetype
+    # params: nil
+    # prints: nil
+    # return: scalar string
+    method _file_mime_type () {
+        if ( $self->mime_type ) { return $self->mime_type; }
+        return File::MimeInfo->new()->mimetype( $self->image );
+    }
+
+    # _encode_image()                                                  {{{1
+    #
+    # does:   encode image as base64
+    # params: nil
+    # prints: nil
+    # return: scalar string (base64 data)
+    # note:   previously used MIME::Base64::URLSafe>url_b64encode to encode
+    #         data, but resulting output could not be handled by Firefox
+    method _encode_image () {
+        open my $fh, '<', $self->image;
+        my @content = <$fh>;
+        close $fh;
+        my $raw = join q{}, @content;
+        my $encoded = MIME::Base64::encode_base64($raw);
+        $encoded =~ s/\s+//xsmg;
+        return $encoded;
+    }    #                                                              }}}1
+
+    1;
+}
+
+my $p = Dn::Internal->new_with_options->main;
+
+# POD                                                                   {{{1
+
+__END__
+
+=head1 NAME
+
+dn-base64-image - provide data uri for an image
+
+=head1 USAGE
+
+dn-base64-image [ -m mime_type ] image_file
+
+=head1 OPTIONS
+
+=over
+
+=item B<-i> | B<--image> image_file
+
+Image to convert. Filepath.
+
+Required.
+
+=item B<-m> | B<--mime_type> mime_type
+
+Override autodetected image mime type.
+
+Optional. Default: false.
+
+=item B<-h>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+Create html element 'img' for an image using data uri with base64 encoding.
+
+=head1 DEPENDENCIES
+
+=over
+
+=item autodie
+
+=item Cwd
+
+=item File::MimeInfo
+
+=item Function::Parameters
+
+=item MIME::Base64
+
+=item Moo
+
+=item MooX::Options
+
+=item namespace::clean
+
+=item Readonly
+
+=item strictures
+
+=item version
+
+=back
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 AUTHOR
+
+David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2015 David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+# vim: fdm=marker :

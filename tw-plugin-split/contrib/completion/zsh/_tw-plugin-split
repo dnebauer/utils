@@ -1,0 +1,24 @@
+#compdef tw-plugin-split
+
+_formats() {
+  local -a _formats
+  _formats=(json tid)
+  _values 'formats' "${_formats[@]}"
+}
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '-h[Show a compact help message]' \
+    '--help[Show a long help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-f --format)'{-f,--format}'[Plugin file format (default\: "tid")]:formats:_formats' \
+    '(-s --simplify)'{-s,--simplify}'[Simplify extracted file names]' \
+  - 'arguments' \
+    '*:Plugin file:_files' \
+  && rc=0
+
+return rc

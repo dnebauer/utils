@@ -1,0 +1,43 @@
+dn-mc-conf (0.7-1) UNRELEASED; urgency=low
+
+  * New upstream release
+
+ -- David Nebauer <david@nebauer.org>  Thu, 02 Jan 2020 10:33:36 +0930
+
+dn-mc-conf (0.6-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- David Nebauer <david@nebauer.org>  Sun, 12 May 2019 16:44:19 +0930
+
+dn-mc-conf (0.5-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- David Nebauer <david@nebauer.org>  Mon, 12 Oct 2015 23:11:56 +0930
+
+dn-mc-conf (0.4-1) unstable; urgency=low
+
+  * New upstream release
+  * Remove dependency on dn-build-repository
+
+ -- David Nebauer <david@nebauer.org>  Tue, 29 Sep 2015 18:43:01 +0930
+
+dn-mc-conf (0.3-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- David Nebauer <david@nebauer.org>  Thu, 02 Jan 2014 14:42:50 +0930
+
+dn-mc-conf (0.2-1) unstable; urgency=low
+
+  * New upstream release
+  * Added dependencies on p7zip-full and p7zip-rar
+
+ -- David Nebauer <david@nebauer.org>  Sun, 25 Aug 2013 11:10:27 +0930
+
+dn-mc-conf (0.1-1) unstable; urgency=low
+
+  * Initial release (Closes: #101)
+
+ -- David Nebauer <david@nebauer.org>  Sun, 07 Apr 2013 04:05:59 +0930

@@ -1,0 +1,16 @@
+#compdef dn-dbtables
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+  - 'script_options' \
+    '(-r --rows)'{-r,--rows}'[Number of rows (integer, required)]:rows:' \
+    '(-c --cols)'{-c,--cols}'[Number of columns (integer, required)]:cols:' \
+    '(-v --verbose)'{-v,--verbose}'[Print table to stdout (flag)]' \
+    '(-o --output)'{-o,--output}'[Write table to a file (flag)]' \
+    '(-f --filename)'{-f,--filename}'[Output file name (default\: "Table.xml")]:files:_files' \
+  && rc=0
+
+return rc

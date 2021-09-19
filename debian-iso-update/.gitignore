@@ -1,0 +1,9 @@
+*.deb
+*.diff.gz
+*.dsc
+*.md
+*.orig
+*.tar
+*.gz
+# *.1
+tags

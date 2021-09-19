@@ -1,0 +1,23 @@
+Template: dn-alsa-device/delete-alsa-conf-files
+Type: select
+Choices: Leave, Delete
+Default: Leave
+Description: Delete user-created config files during package removal?
+ Users of package @pkg@ create alsa device configuration
+ files in /etc and /etc/@pkg@.  These are not automatically
+ deleted when this package is removed.  [If you are not removing
+ @pkg@ then stop reading now and just answer 'Leave'.
+ .
+ If you select the 'Delete' option the following files will
+ be deleted:
+ 	/etc/@pkg@/asound.conf-dn.*
+	/etc/asound.conf (ONLY if it is a symlink to a
+	                  file named 'asound.conf-dn.*')
+ .
+ Selecting 'Delete' will not cause unintended damage to the
+ system.  You may, however, lose the work put into creating
+ alsa configuration files for each alsa audio device.
+ .
+ Leaving these files may prevent the package management
+ system from deleting this package's configuration directory
+ ('/etc/@pkg@') during package removal.

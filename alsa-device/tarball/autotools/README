@@ -1,0 +1,10 @@
+dn-alsa-device README
+=====================
+
+dn-alsa-device changes the alsa default sound device.
+
+The user must configure a configuration file for this
+package as well as some alsa configuration files.  See
+man pages for further information.
+
+Installed help is available at program startup.

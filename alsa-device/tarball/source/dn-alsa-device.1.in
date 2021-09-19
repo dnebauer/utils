@@ -1,0 +1,177 @@
+.\" Hey, EMACS: -*- nroff -*-
+ 
+.\" Filename: dn-alsa-device.1
+.\" Author:   David Nebauer
+.\" History:  2010-12-28 - created
+ 
+.\" -----------------------------------------------------------------
+.\" NOTES
+.\" -----------------------------------------------------------------
+.ig
+
+For header (.TH), first parameter, NAME, should be all caps
+Second parameter, SECTION, should be 1-8, maybe w/ subsection
+Other parameters are allowed: see man(7), man(1)
+Please adjust the date whenever revising the manpage.
+
+Some roff macros, for reference:
+.nh        disable hyphenation
+.hy        enable hyphenation
+.ad l      left justify
+.ad b      justify to both left and right margins
+.nf        disable filling
+.fi        enable filling
+.br        insert line break
+.sp <n>    insert n+1 empty lines
+for manpage-specific macros, see man(7)
+
+Formatting [see groff_char (7) and man (7) for details]:
+\(aq  : escape sequence for (')
+\[lq] : left/open double quote
+\[rq] : right/close double quote
+`     : left/open single quote
+'     : right/close single quote
+\(em  : escape sequence for em dash
+\(en  : escape sequence for en dash
+\.    : escape sequence for period/dot
+\(rg  : registration symbol
+\(tm  : trademark symbol
+\fX   : escape sequence that changes font, where 'X' can be 'R|I|B|BI'
+        (R = roman/normal | I = italic | B = bold | BI = bold-italic)
+\fP   : switch to previous font
+        in this case '\fR' could also have been used
+.B    : following arguments are boldened
+.I    : following arguments are italicised
+.BI   : following arguments are bold alternating with italics
+.BR   : following arguments are bold alternating with roman
+.IB   : following arguments are italics alternating with bold
+.IR   : following arguments are italics alternating with roman
+.RB   : following arguments are roman alternating with bold
+.RI   : following arguments are roman alternating with italics
+.SM   : following arguments are small (scaled 9/10 of the regular size)
+.SB   : following arguments are small bold (not small alternating with bold) 
+        [note: if argument in alternating pattern contains whitespace,
+               enclose in whitespace]
+.RS x : indent following lines by x characters
+.RE   : end indent
+
+Bulleted list:
+   A bulleted list:
+   .IP \[bu] 2
+   lawyers
+   .IP \[bu]
+   guns
+   .IP \[bu]
+   money
+Numbered list:
+   .nr step 1 1
+   A numbered list:
+   .IP \n[step] 3
+   lawyers
+   .IP \n+[step]
+   guns
+   .IP \n+[step]
+   money
+..
+
+.\" -----------------------------------------------------------------
+.\" SETUP
+.\" -----------------------------------------------------------------
+
+.\" Package: -mwww macro package of web-related functions
+.\"  note: -mwww package is part of GNU 'troff'.
+.\"        The '.g' register is only found in GNU 'troff'
+.\"        and is set to '1' (true).
+.\"        The '\n' escape returns the value of a register.
+.\"        So, this 'if' command ensures GNU 'troff' is
+.\"        running before attempting to load the -mwww
+.\"        macro package
+.if \n[.g] .mso www.tmac
+
+.\" Macro: Format URL
+.\"  usage:  .UR "http:\\www.gnu.org" "GNU Project" " of the"
+.\"  params: arg 1 = url ; arg 2 = link text/name ; arg 3 = postamble (optional)
+.de UR
+\\$2 \(laURL: \\$1 \(ra\\$3
+..
+
+.\" Macro: Ellipsis
+.\"  usage: .ellipsis
+.\"  note: only works at beginning of line
+.de ellipsis
+.cc ^
+...
+^cc
+..
+
+.\" String: Command name
+.ds self dn-alsa-device
+
+.\" -----------------------------------------------------------------
+.\" MANPAGE CONTENT
+.\" -----------------------------------------------------------------
+
+.TH "dn-alsa-device" "1" "2010-12-28" "" "Dn-alsa-device Manual"
+.SH "NAME"
+\*[self] \- change default alsa sound device
+.SH "SYNOPSIS"
+.BI "\*[self] " "<label>"
+.SH "DESCRIPTION"
+\*[self] and it's associated configuration files make it possible to automatically switch to a usb sound device when it is inserted.  They also make it possible to switch back to a default system sound device when a usb sound device is unplugged.
+.PP
+The mechanism is simple enough.  The alsa sound system is used.  Alsa has a main configuration file defining the sound device in use:
+.BR "@sysconfdir@/asound.conf" "."
+The user creates one configuration file for each usb sound device and one for the system sound device.  The main alsa configuration file, rather than being a regular file, is a symlink to one of the user-created configuration files.  When usb sound devices are inserted or unplugged \*[self] ensures the main alsa configuration file is symlinked to the correct user alsa configuration file.  See
+.B man 5 asound.conf-dn
+for more details on creating these configuration files.
+.PP
+\*[self] is not designed to be run directly by the user but to be invoked by udev.  For that to happen the user must customise the udev rules file
+.B @libdir@/udev/99-\*[self].rules
+provided by this package.  See
+.B man 5 \*[self]-udev-rules
+for more details on customising this file.
+.PP
+Finally, the utility
+.B \*[self]
+must know enough about the devices and configuration files to be able to manipulate them.  This information is supplied via the utility's configuration file
+.BR "@pkgconf_dir@/\*[self]rc" "."
+See
+.B man 5 \*[self]rc
+for more details on customising this file.
+.PP
+The most important thing to remember is that all three types of configuration files rely primarily on the user-designated label:
+.IP \[bu] 2
+\*[self]'s own configuration file where each device entry has the device label,
+.IP \[bu]
+the user-created alsa configuration file for each device in which the suffix of each file is the device label, and
+.IP \[bu]
+the udev rules file where each rule specifies which label to be passed to \*[self].
+.PP
+Make sure to keep the device labels correct and in sync between configuration files.
+.PP
+As noted above, \*[self] is designed to be invoked by udev.  For that reason it does not send feedback to the terminal.  Some feedback is sent to the system log (
+.IR "/var/log/messages" ")."
+This can be viewed with
+.BR "tail -f /var/log/messages" "."
+If the utility detects a user with an active X session it will attempt to send feedback via a system notification.  On most systems this will appear as a popup dialog.
+.SH "FILES"
+.I @pkgconf_dir@/\*[self]rc
+.IP 
+Global configuration file for this utility.
+.PP 
+.I @pkgconf_dir@/asound.conf-dn.<label>
+.IP 
+User-created alsa configuration files.  One per sound device.  Note that the file suffix is the user-designated device label.
+.PP 
+.I @libdir@/udev/99-\*[self].rules
+.IP 
+Udev rules file provided by the package \*[self].  It must be customised after installation.
+.SH "SEE ALSO"
+.BR "\*[self]rc " "(5)," 
+.BR "\*[self]-udev-rules " "(5),"
+.BR "asound.conf-dn " "(5)." 
+.SH "AUTHOR"
+\*[self] was written by David Nebauer <david@nebauer.org>.
+.PP 
+This manual page was written by David Nebauer <david@nebauer.org>
+for the Debian project (but may be used by others).

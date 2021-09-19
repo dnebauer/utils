@@ -1,0 +1,294 @@
+#!/usr/bin/python3
+
+# module docstring    {{{1
+""" modernised use of gui dialog to answer yes/no question
+
+Uses tkinter to enable user to answer yes/no question
+"""
+
+# import statements    {{{1
+import argparse
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
+
+
+class ConfirmDialog(object):    # {{{1
+
+    # class docstring    {{{2
+    """ answer yes/no question using gui dialog
+
+    uses tkinter for a modern appearance
+    """
+
+    def __init__(self):    # {{{2
+
+        """ initialise variables """
+
+        ''' these menu parameters can be changed by command line arguments '''
+
+        # title
+        self.__title = 'Question'
+
+        # caption/heading (bolded)
+        self.__caption = None
+
+        # detail (normal font, follows caption/heading)
+        self.__detail = None
+
+        # format of response value
+        # - 'yesno', 'TrueFalse', '01', '10'
+        self.__format = 'yesno'
+
+        ''' values determining help output '''
+
+        # argument parser formatter class (includes arg help text in output)
+        self.__formatter = argparse.ArgumentDefaultsHelpFormatter
+
+        # help description
+        self.__description = 'Answer yes/no question from gui dialog'
+
+        ''' output value '''
+
+        self.__response = None
+
+    def process_args(self):    # {{{2
+
+        """ process command line arguments """
+
+        # define arguments    {{{3
+        parser = argparse.ArgumentParser(description=self.__description,
+                                         formatter_class=self.__formatter)
+        parser.add_argument('-t', '--title',
+                            default=self.__title,
+                            help='dialog box title')
+        parser.add_argument('-c', '--caption',
+                            default=self.__caption,
+                            help='question caption/heading')
+        parser.add_argument('-d', '--detail',
+                            default=self.__detail,
+                            help='question detail')
+        parser.add_argument('-f', '--format',
+                            choices=['yesno', 'TrueFalse', '01', '10'],
+                            default=self.__format,
+                            help='format of response')
+
+        # parse arguments    {{{3
+        args = parser.parse_args()
+
+        # save provided values    {{{3
+        ''' replace() is used to undo shell handling of '\n' in parameters
+            - a *pure* solution to this would be to handle the problem
+              in the shell, such as: dn-tk-error -c $'multi\nline'
+            - this is a hack to allow users to get the behaviour they
+              naively expect: for '\n' in parameter to result in newlines
+              in the dialog
+        '''
+        if self.__title != args.title:
+            self.__title = args.title
+        if self.__caption != args.caption:
+            self.__caption = args.caption.replace('\\n', '\n')
+        if self.__detail != args.detail:
+            self.__detail = args.detail.replace('\\n', '\n')
+        if self.__format != args.format:
+            self.__format = args.format
+
+        # check that content has been provided    {{{3
+        if self.__caption is None and self.__detail is None:
+            parser.error("Need at least one of '-c' and '-d'")
+
+    def display_dialog(self):    # {{{2
+
+        """ display gui dialog and select question answer """
+
+        # create main window    {{{3
+        root = tk.Tk()
+        root.withdraw()
+
+        # set style theme    {{{3
+        # - should be available on all systems: {clam,alt,default,classic}
+        style = ttk.Style(root)
+        try:
+            style.theme_use('clam')
+        except tk.TclError:
+            pass
+
+        # assemble options    {{{3
+        opts = {
+            'title': self.__title,
+            'message': self.__caption,
+            'detail': self.__detail,
+            'icon': 'question'
+        }
+
+        # display modal information dialog    {{{3
+        response = messagebox.askyesno(**opts, parent=root)
+        root.destroy()
+
+        # record user selection    {{{3
+        self.__response = response    # }}}3
+
+    def result(self):    # {{{2
+
+        """ return dialog selection """
+
+        if self.__response is None:
+            raise ValueError('No answer selected')
+
+        response = None
+
+        if self.__format == 'yesno':
+            response = 'yes' if self.__response else 'no'
+        elif self.__format == 'TrueFalse':
+            response = self.__response
+        elif self.__format == '10':
+            response = 1 if self.__response else 0
+        elif self.__format == '01':
+            response = 0 if self.__response else 1
+        else:
+            raise ValueError('Invalid response format: ' + self.__format)
+
+        print(response)
+        return response
+
+
+def main():    # {{{1
+
+    """ script execution starts here """
+
+    menu = ConfirmDialog()
+    menu.process_args()
+    menu.display_dialog()
+    menu.result()
+
+
+if __name__ == '__main__':
+    main()
+
+
+# manpage    {{{1
+"""
+
+create manpage with command:
+
+    pod2man dn-tk-confirm > dn-tk-confirm.1
+
+__END__
+
+=head1 NAME
+
+dn-tk-confirm - gui menu using python tkinter
+
+=head1 USAGE
+
+B<dn-tk-confirm> [B<-t> I<title>] [B<-c> I<caption>] [B<-d> I<detail>]
+[B<-f> I<format>]
+
+B<dn-tk-confirm -h>
+
+=head1 REQUIRED ARGUMENTS
+
+=over
+
+=item B<-c>  B<--caption>
+
+The bolded "header" component of dialog box content. Newlines ('\n') will be
+honoured in the dialog.
+
+Scalar string. At least one of the C<-c> and C<-d> options must be provided.
+
+=item B<-d>  B<--detail>
+
+The normal-font component of dialog box content displayed under the caption
+text. Newlines ('\n') will be honoured in the dialog.
+
+Scalar string. At least one of the C<-c> and C<-d> options must be provided.
+
+=back
+
+=head1 OPTIONS
+
+=over
+
+=item B<-f>  B<--format>
+
+Format of return value. Available format values are I<yesno> (default),
+I<TrueFalse>, I<10>, and I<01>. The return values for each format are:
+
+=begin roff
+
+.TS
+tab(:);
+rb cb s
+rb cb cb
+rb c  c .
+Format:Return value
+:User selects \fIYes\fR:User selects \fINo\fR
+yesno:yes:no
+TrueFalse:True:False
+10:1:0
+01:0:1
+.TE
+
+=end roff
+
+=item B<-h>  B<--help>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+Displays a question in a GUI menu using python tkinter and the user can select
+'Yes' or 'No'. The return value for each selection depends on the C<-f> option.
+
+If the user aborts the operation, by pressing the Escape key or clicking the
+'close window' I<x> in the top right of the widget, the return value will be
+'no' (or the equivalent value as determined by the C<-f> option). There does
+not appear to be any way to distinguish between the user selecting 'No' and
+aborting the operation.
+
+=head1 DEPENDENCIES
+
+Python3.
+
+Python modules: argparse, tkinter.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 SEE ALSO
+
+L<dn-tk-info(1)>,
+L<dn-tk-warn(1)>,
+L<dn-tk-error(1)>,
+L<dn-tk-menu(1)>.
+
+=head1 AUTHOR
+
+David Nebauer (david at nebauer dot org)
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2021 David Nebauer (david at nebauer dot org)
+
+dn-tk-confirm is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+dn-tk-confirm is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with dn-tk-confirm.  If not, see <https://www.gnu.org/licenses/>
+
+=cut
+
+"""
+
+# vim:fdm=marker:

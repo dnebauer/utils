@@ -1,0 +1,357 @@
+#!/bin/sh
+
+# File: dn-consolebrowser
+# Author: David Nebauer
+# Purpose: Display url in a console browser
+# Created: 2010-05-15 Renamed from project dn-konsolebrowser when executable
+#                     changed to accept any console browser rather than only
+#                     konsole
+# The footprint of this script is minimised by not calling libncommon-bash
+
+
+# VARIABLES
+
+args="${@}"
+dn_self="$( basename ${0} )"
+global_conf="@pkgconf_dir@/${dn_self}rc"
+local_conf="${HOME}/.${dn_self}rc"
+usage="Usage:"
+parameters="[ -t title ] [ -i icon ] [ -c ] [ url [ url2 ... ] ]"
+args=""
+browser_cmd=  # command to run text browser within console
+console_cmd=  # command to run console window
+cmd=          # final execution command to run text browser within console
+# following values supplied by configuration file
+console_cmd_template=
+console_window_title=
+console_window_icon=
+browser_name=                          
+browser_cmd_accept_cookies=
+browser_cmd_reject_cookies=
+
+
+# PROCEDURES
+
+# Show usage
+#   params: nil
+#   prints: nil
+#   return: nil
+displayUsage () {
+cat << _USAGE
+${dn_self}: display urls in console browser.
+
+${dn_self} invokes a console window.  A console browser
+(${browser_name}) is then opened inside the console.  If any
+urls are supplied they will be opened in the browser.
+
+Configuration file options determine the console window
+title and icon, and whether the browser accepts cookies.  
+A number of icons are provided with this script and are 
+located in <@pkgdata_dir@>.
+
+These configuration options can be overriden by command 
+line options.
+
+${usage} ${dn_self} ${parameters}
+       ${dn_self} -h
+
+Options: -t title  = console window title (optional)
+                     [default: '${console_window_title}']
+		 -i icon   = console window icon (optional)
+                     [default: '${console_window_icon}']
+         -c        = accept all cookies (optional)
+                     [default: reject all cookies]
+         url...    = url(s) to open in console browser (optional)
+_USAGE
+}
+# Process configuration files
+#   params: 1 - global config filepath (optional)
+#           2 - local config filepath (optional)
+#   prints: nil
+#   return: nil
+#   notes:  set variables [  ]
+processConfigFiles () {
+	# set variables
+	local conf= name= val=
+	local global_conf="$( dnNormalisePath "${1}" )"
+	local local_conf="$( dnNormalisePath "${2}" )"
+	# process config files
+	for conf in "${global_conf}" "${local_conf}" ; do
+		if [ -r "${conf}" ] ; then
+			while read name val ; do
+				if [ -n "${val}" ] ; then
+					# remove enclosing quotes if present
+					val="$( dnStripEnclosingQuotes "${val}" )"
+					# load vars depending on name
+					case ${name} in
+					'console_cmd_template'       )
+						console_cmd_template="${val}";;
+					'console_window_title'       ) 
+						console_window_title="${val}";;
+					'console_window_icon'        )
+						console_window_icon="${val}";;
+					'browser_accepts_cookies'    ) 
+						acceptCookies "${val}";;
+					'browser_name'               ) 
+						browser_name="${val}";;
+					'browser_cmd_accept_cookies' )
+						browser_cmd_accept_cookies="${val}";;
+					'browser_cmd_reject_cookies' )
+						browser_cmd_reject_cookies="${val}";;
+					esac
+				fi
+			done < "${conf}"
+		fi
+	done
+}
+# Process command line
+#   params: all command line parameters
+#   prints: feedback
+#   return: nil
+processCommandLine () {
+	# Read the command line options
+	#   - if optstring starts with ':' then error reporting is suppressed
+	#     leave ':' at start as '\?' and '\:' error capturing require it
+	#   - if option is followed by ':' then it is expected to have an argument
+	while getopts ":ht:i:c" opt ; do
+		case ${opt} in
+			'h' ) displayUsage && exit 0;;
+			't' ) console_window_title="${OPTARG}";;
+			'i' ) console_window_icon="${OPTARG}";;
+			'c' ) acceptCookies 'true';;
+			\?  ) echo -e "Error: Invalid flag '${OPTARG}' detected"
+				  echo -e "Usage: ${dn_self} ${parameters}"
+				  echo -e "Try '${dn_self} -h' for help"
+				  echo -ne "\a"
+				  exit 1;;
+			\:  ) echo -e "Error: No argument supplied for flag '${OPTARG}'"
+				  echo -e "Usage: ${dn_self} ${parameters}"
+				  echo -e "Try '${dn_self} -h' for help"
+				  echo -ne "\a"
+				  exit 1;;
+		esac
+	done
+	shift $(( ${OPTIND} - 1 ))
+	args="${@}"  # reset arguments
+	unset usage parameters
+}
+# Whether to accept cookies automatically (getter and setter)
+#   params: nil (getter); boolean (setter)
+#   prints: nil
+#   return: boolean (getter); nil (setter)
+acceptCookies () {
+	if [ ${#} -eq 0 ] ; then  # getter
+		return $( dnFlagTrue "${accept_cookies}" )
+	else  # setter
+		accept_cookies="$( dnStandardiseBoolean "${1}" )"
+	fi
+}
+# Remove terminal slash ('/') from string
+#   params: 1 - string
+#   prints: edited string
+#   return: nil
+dnRemoveEndSlash () {
+	echo "$( echo "${1}" | sed -e 's/\(.*\)\/$/\1/' )"
+}
+# Normalise path (make absolute)
+#   params: 1 - path
+#   prints: normalised path
+#   return: nil
+dnNormalisePath () {
+	local path="${1}" previous_length=0 length=1 sed=
+	# deal with shorthand for home directory
+	path="$( echo ${path} | sed -e "s?^~?${HOME}?" )"
+	# deal with relative path
+	[ $( echo ${path} | grep -c -- "^/" ) -eq 0 ] && path="$( pwd )/${path}"
+	# expand to full path if starts with a relative directory
+	[ $( echo ${path} | grep -c -- "^\.\(\.\)\?\/" ) -eq 1 ] \
+		&& path="$( pwd )/${path}"
+	# remove the self directory: './'
+	# must loop because may miss ('./') when two joined together ('././')
+	while [ ${length} -ne ${previous_length} ] ; do
+		path="$( echo "${path}" | sed -e 's=\/\.\/=\/=g' )"
+		previous_length="${length}"
+		length="$( echo "${path}" | wc --bytes )"
+	done
+	previous_length=0 length=1
+	# remove relative parent directory ('../') and actual parent directory
+	# use ACK (octal 006) instead of '../' to avoid problems with '.'
+	path="$( echo "${path}" | tr -d '\006' | sed -e 's=\.\.\/=\o006=g' )"
+	while [ ${length} -ne ${previous_length} ] ; do
+		sed="\(\/[[:alnum:]._/-]\+\/\)"  # before parent directory
+		sed="${sed}[[:alnum:]._-]\+\/\o006"  # parent dir and relative dir
+		sed="${sed}\([[:alnum:][:cntrl:]._/-]\+\)$"  # after parent directory
+		path="$( echo "${path}" | sed -e "s,${sed},\1\2," )"
+		previous_length="${length}"
+		length="$( echo "${path}" | wc --bytes )"
+	done
+	# remove terminal slash from directory
+	path="$( dnRemoveEndSlash "${path}" )"
+	# return result
+	echo "${path}"
+}
+# Strip quotes from front and end of string
+#   params: 1 - string
+#   prints: string with enclosed quotes removed
+#   return: nil
+dnStripEnclosingQuotes () {
+	# set variable
+	local string="${1}"
+	eval echo "${string}" &>/dev/null  # multiple quotes can confuse eval
+	local use_eval=${?}
+	# strip quotes
+	if [ $( echo "${string}" | grep -c -- '^"' ) -eq 1 ] ; then
+		# do not use eval if use causes error
+		if [ ${use_eval} -eq 0 ] ; then
+			string="$( eval echo "${string}" | \
+			                sed -e 's/^"//'  | \
+							sed -e 's/"$//'    \
+			         )"
+		else
+			string="$( echo "${string}"      | \
+			                sed -e 's/^"//'  | \
+			                sed -e 's/"$//'    \
+			         )"
+		fi
+	elif [ $( echo "${string}" | grep -c -- "^'" ) -eq 1 ] ; then
+		if [ ${use_eval} -eq 0 ] ; then
+			string="$( eval echo "${string}" | \
+			                sed -e "s/^'//"  | \
+			                sed -e "s/'$//"    \
+			         )"
+		else
+			string="$( echo "${string}"      | \
+			                sed -e "s/^'//"  | \
+			                sed -e "s/'$//"    \
+			         )"
+		fi
+	fi
+	echo "${string}"
+}
+# Check if flag variable equal to zero
+#   params: 1 - flag variable
+#   prints: nil
+#   return: boolean (0=flag true|1=flag false)
+dnFlagTrue () {
+	[ -n "${1}" ] || return 1  # empty flag variable is false
+	return ${1}
+}
+# Change uppercase to lowercase
+#   params: 1 - string
+#   prints: string
+#   return: nil
+dnLowercase () {
+	echo "$( echo "${1}" | tr '[[:upper:]]' '[[:lower:]]' )"
+}
+# Standardise flag value to 0|1
+#   params: 1 - flag value [required]
+#   prints: boolean (0=true|1=false) if match standard value
+#           input value unchanged if no match to standard value
+#   return: nil
+dnStandardiseBoolean () {
+	# set variables
+	local flag="$( dnLowercase "${1}" )"
+	# standardise
+	case ${flag} in
+		'y'|'yes'|'t'|'true'|'on'|'0'  ) flag=0;;
+		'n'|'no'|'f'|'false'|'off'|'1' ) flag=1;;
+		* ) flag="${flag}";;  # unchanged
+	esac
+	# return result and indicate outcome
+	echo "${flag}"
+}
+# Print message
+#   params: 1  - message type (e.g. 'Info'|'Warning'|'Error' etc.)
+#           2  - suppress newline (0|1 = suppress|don't suppress)
+#           3+ - message part(s)
+#   prints: formatted message
+#   return: nil
+dnMessage () {
+	# set message type
+	local type="${1}" echo_cmd=
+	shift
+	# set echo command
+	case ${1} in
+		0 ) echo_cmd="echo -e -n";;
+		* ) echo_cmd="echo -e";;
+	esac
+	shift
+	# display messages
+	while [ -n "${1}" ] ; do
+		${echo_cmd} "${type}: ${1}"
+		shift
+	done
+}
+# Print fatal error message to stdout or stderr
+#   params: 1+ - message part(s)
+#   prints: formatted message
+#   return: nil
+dnFatal () { dnMessage "Fatal error" 1 "${@}"; }
+# Print informational message
+# - with or without trailing newline
+# - to stdout or stderr
+#   params: 1+ - message part(s)
+#   prints: formatted message to stdout or stderr
+#   return: nil
+dnInfo () { dnMessage "Info" 1 "${@}"; }
+# Script fails before user interaction begins
+#   params: 1+ - message
+#   prints: feedback
+#   return: nil
+dnFailScript () {
+	local msg="${@:-"Aborting script"}"
+	dnFatal "${msg}."
+	dnInfo "Try '${dn_self} -h'."
+	exit 1
+}
+
+
+# MAIN
+
+# Process configuration files
+processConfigFiles "${global_conf}" "${local_conf}"
+unset global_conf local_conf msg
+
+# Process command line
+processCommandLine "${@}"
+while [ "${*}" != "${args}" ] ; do shift ; done
+unset args
+
+# Process arguments
+# browser command
+if acceptCookies ; then browser_cmd="${browser_cmd_accept_cookies}"
+else browser_cmd="${browser_cmd_accept_cookies}"
+fi
+unset browser_cmd_accept_cookies browser_cmd_reject_cookies
+# console window title - protect spaces
+console_window_title="$( echo ${console_window_title} | tr ' ' '_' )"
+# console window icon - ensure valid filepath
+[ -r "${console_window_icon}" ] \
+	|| dnFailScript "Invalid icon '${console_window_icon}'"
+# assemble console window command
+console_cmd="${console_cmd_template}"
+unset console_cmd_template
+# - first insert console window title
+console_cmd="$( echo "${console_cmd}" | \
+	            sed -e "s/@T/${console_window_title}/" )"
+unset console_window_title
+# - next insert console window icon
+console_cmd="$( echo "${console_cmd}" | \
+	            sed -e "s?@I?${console_window_icon}?" )"
+unset console_window_icon
+# - finally insert console command
+console_cmd="$( echo "${console_cmd}" | \
+	            sed -e "s/@C/${browser_cmd}/" )"
+unset browser_cmd
+
+# Final assembly of executable command
+if [ ${#} -gt 0 ] ; then  # command line option(s) supplied (presumed urls)
+	cmd="${console_cmd} ${@}"
+else cmd="${console_cmd}"
+fi
+
+# Run command
+echo "Executing: '${cmd}'"
+# note: adding redirection causes konsole to *not* display
+#       title and icon -- see KDE BTS 229769
+${cmd} &>/dev/null &

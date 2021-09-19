@@ -1,0 +1,225 @@
+.\" Hey, EMACS: -*- nroff -*-
+ 
+.\" Filename: dn-alsa-devicerc.5
+.\" Author:   David Nebauer
+.\" History:  2010-12-28 - created
+ 
+.\" -----------------------------------------------------------------
+.\" NOTES
+.\" -----------------------------------------------------------------
+.ig
+
+For header (.TH), first parameter, NAME, should be all caps
+Second parameter, SECTION, should be 1-8, maybe w/ subsection
+Other parameters are allowed: see man(7), man(1)
+Please adjust the date whenever revising the manpage.
+
+Some roff macros, for reference:
+.nh        disable hyphenation
+.hy        enable hyphenation
+.ad l      left justify
+.ad b      justify to both left and right margins
+.nf        disable filling
+.fi        enable filling
+.br        insert line break
+.sp <n>    insert n+1 empty lines
+for manpage-specific macros, see man(7)
+
+Formatting [see groff_char (7) and man (7) for details]:
+\(aq  : escape sequence for (')
+\[lq] : left/open double quote
+\[rq] : right/close double quote
+`     : left/open single quote
+'     : right/close single quote
+\(em  : escape sequence for em dash
+\(en  : escape sequence for en dash
+\.    : escape sequence for period/dot
+\(rg  : registration symbol
+\(tm  : trademark symbol
+\fX   : escape sequence that changes font, where 'X' can be 'R|I|B|BI'
+        (R = roman/normal | I = italic | B = bold | BI = bold-italic)
+\fP   : switch to previous font
+        in this case '\fR' could also have been used
+.B    : following arguments are boldened
+.I    : following arguments are italicised
+.BI   : following arguments are bold alternating with italics
+.BR   : following arguments are bold alternating with roman
+.IB   : following arguments are italics alternating with bold
+.IR   : following arguments are italics alternating with roman
+.RB   : following arguments are roman alternating with bold
+.RI   : following arguments are roman alternating with italics
+.SM   : following arguments are small (scaled 9/10 of the regular size)
+.SB   : following arguments are small bold (not small alternating with bold) 
+        [note: if argument in alternating pattern contains whitespace,
+               enclose in whitespace]
+.RS x : indent following lines by x characters
+.RE   : end indent
+
+Bulleted list:
+   A bulleted list:
+   .IP \[bu] 2
+   lawyers
+   .IP \[bu]
+   guns
+   .IP \[bu]
+   money
+Numbered list:
+   .nr step 1 1
+   A numbered list:
+   .IP \n[step] 3
+   lawyers
+   .IP \n+[step]
+   guns
+   .IP \n+[step]
+   money
+..
+
+.\" -----------------------------------------------------------------
+.\" SETUP
+.\" -----------------------------------------------------------------
+
+.\" Package: -mwww macro package of web-related functions
+.\"  note: -mwww package is part of GNU 'troff'.
+.\"        The '.g' register is only found in GNU 'troff'
+.\"        and is set to '1' (true).
+.\"        The '\n' escape returns the value of a register.
+.\"        So, this 'if' command ensures GNU 'troff' is
+.\"        running before attempting to load the -mwww
+.\"        macro package
+.if \n[.g] .mso www.tmac
+
+.\" Macro: Format URL
+.\"  usage:  .UR "http:\\www.gnu.org" "GNU Project" " of the"
+.\"  params: arg 1 = url ; arg 2 = link text/name ; arg 3 = postamble (optional)
+.de UR
+\\$2 \(laURL: \\$1 \(ra\\$3
+..
+
+.\" Macro: Ellipsis
+.\"  usage: .ellipsis
+.\"  note: only works at beginning of line
+.de ellipsis
+.cc ^
+...
+^cc
+..
+
+.\" String: Command name
+.ds self dn-alsa-devicerc
+.ds pkg @pkg@
+
+.\" -----------------------------------------------------------------
+.\" MANPAGE CONTENT
+.\" -----------------------------------------------------------------
+
+.TH "dn-alsa-devicerc" "5" "2010-12-28" "" "Dn-alsa-devicerc Manual"
+.SH "NAME"
+\*[self] \- dn-alsa-device configuration file
+.SH "DESCRIPTION"
+\*[pkg] switches automatically between alsa sound devices when a usb sound device is plugged or unplugged.  For this to work the configuration file
+.B @pkgconf_dir@/\*[self]
+must be properly customised.  This configuration file is fully self-documenting and comes with two sample device configuration entries.  There is one line in the configuration file per sound device.  One device must be a non-usb, i.e., system, sound device that is available when all usb sound devices are unplugged.  This is the default system device.  Each line contains:
+.IP \[bu] 2
+the device's user-designated label,
+.IP \[bu]
+the device's alsa-assigned device name,
+.IP \[bu]
+the device's alsa-assigned device number,
+.IP \[bu]
+a device description,
+.IP \[bu]
+whether the device is the system default,
+.IP \[bu]
+whether to set sound volume on a newly selected sound device,
+.IP \[bu]
+the mixer control to adjust volume on, and
+.IP \[bu]
+the volume level to set the mixer control to.
+the device's user-designated label, alsa-assigned device name, description, whether it is 
+.SS "The mixer tool \(aqamixer\(aq"
+Before discussing the configuration values in detail it is necessary to make note of
+.IR "amixer" "."
+This utility is used to adjust device volume.
+The command used to set sound level is:
+.IP
+amixer -c
+.I <number>
+set
+.I <control>
+.I <level>
+unmute >/dev/null 2>&1
+.PP
+The alsa device (card) number is needed to cater for cases where asound configurations specify device by card number rather than alsa name.  In those cases the amixer command fails unless the card number is         explicitly provided.                                                   
+.PP
+The value for
+.I <control>
+depends on your system.  You can see the controls available with the command
+.BR "amixer scontrols" "."
+Note, however, that you can often use
+.I Master
+or
+.I Speaker
+as the
+.I <control>
+parameter.
+.PP
+The
+.I <level>
+setting depends on your system settings and user preference.  See the amixer man page for full details on suitable values to use.  The commonest ones are a percentage, e.g., '100%', or decibel level, e.g., '-12.5dB'.
+.SS "Configuration values
+Spaces must not be used in any of the values.  Underscores in the description value will be converted to spaces by the program.  This will not occur with any of the other values.
+.PP
+.I label
+.IP
+User designation for the device.  It is given as a parameter to \*[pkg] to identify new alsa default device.  This value must not contain any spaces.  This value is used in this package's udev rules so the config and udev rules files must keep this value synchronised.  (Note: On debian build systems the udev rules file is kept in the debian build directory.)
+.PP
+.I alsa name
+.IP
+The name given by alsa to audio devices.  To see alsa device names use the command
+.BR "cat /proc/asound/cards" "."
+In the output device names are on the left in square brackets.
+.PP
+.I number
+.IP
+The number given by alsa to audio devices.  To see alsa device (card) numbers use the command
+.BR "aplay -l" "."
+In the output device (card) numbers are on the left.
+.PP
+.I description
+.IP
+User description for the device.  This is used in feedback to users to describe the device.  It should be in the form of a noun, such as 'system soundcard' or 'Logitech headset'.  You may choose to use the descriptions
+.B cat /proc/asound/cards
+that accompany the device names.  This is the only value in which underscores can be used with the intention that they be converted to spaces before display.  There is currently no way to escape underscores to prevent conversion.
+.PP
+.I system default
+.IP
+This indicates the device to be used as system default when a usb sound device is unplugged.  This value is either
+.I yes
+or
+.IR "no" "."
+Only one device should be set to 'yes'.  If more than one device is set to system default it is unpredictable as to which is actually used as system default.
+.PP
+.I set sound
+.IP
+Whether to set sound level for the device when it is made the alsa default device.  This can be necessary because some devices are set to a low audio level when set as alsa default.
+.PP
+.I control
+.IP
+Mixer control to use when setting sound level for device.  See the notes on 'amixer' above for more information.
+.PP
+.I level
+.IP
+Sound level for device when it is made the alsa default.  This value is passed to 'amixer' \(em see notes above for more details.
+.SH "FILES"
+.I @pkgconf_dir@/\*[self]
+.IP 
+Package configuration file.  Unlike other packages local, per-user, configuration files are not honoured.
+.SH "SEE ALSO"
+.BR "\*[pkg] " "(1)," 
+.BR "\*[pkg]-udev-rules " "(5),"
+.BR "asound.conf-dn " "(5)." 
+.SH "AUTHOR"
+\*[self] was written by David Nebauer <david@nebauer.org>.
+.PP 
+This manual page was written by David Nebauer <david@nebauer.org>
+for the Debian project (but may be used by others).

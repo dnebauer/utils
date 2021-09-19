@@ -1,0 +1,16 @@
+#compdef dn-extract-pdf-pages
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+  - 'script_options' \
+    '(-b --output-basename)'{-b,--output-basename}'[Output file basename (optional, default\: source file base)]:base:_files' \
+    '-v[Enable verbose mode, print script as it is executed (flag, optional), default\: off]' \
+    '(-d --debug)'{-d,--debug}'[Enables debug mode (flag, optional, default\: off)]' \
+    '(-n --no-color)'{-n,--no-color}'[Disable colour output (flag, optional, default\: off)]' \
+    '*:Pdf file to process (required):_files -g "*.pdf"' \
+  && rc=0
+
+return rc

@@ -1,0 +1,7 @@
+mail-dir-monitor (0.1-1) unstable; urgency=medium
+
+  * Local package
+  * Initial release
+  * Closes: 500099
+
+ -- David Nebauer <david@nebauer.org>  Sun, 23 Sep 2018 18:13:55 +0930

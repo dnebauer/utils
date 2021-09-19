@@ -1,0 +1,313 @@
+#!/bin/sh
+
+# File: dn-backup-hidden.sh
+# Author: David Nebauer
+# Purpose: Backup hidden files and directories to archive
+# Created: 2010-05-30 Adapted from original shell script
+
+
+# VARIABLES
+
+args="${@}"
+msg="Loading libraries" ; echo -ne "\\033[1;37;41m${msg}\\033[0m"
+source "@lib_dir@/libdncommon-bash/liball"  # supplies functions
+dnEraseText "${msg}"
+# provided by libdncommon-bash: dn_self,dn_divider[_top|_bottom]
+global_conf="@pkgconf_dir@/${dn_self}rc"
+local_conf="${HOME}/.${dn_self}rc"
+usage="Usage:"
+parameters="[ -p ]"
+args=""
+declare -a c_files            # array of hidden files from conf file
+declare -a c_dirs             # array of hidden directories from conf file
+declare -a files              # array of valid hidden files
+declare -a dirs               # array of valid hidden directories
+declare -a i_files            # array of invalid files from conf file
+declare -a i_dirs             # array of invalid directories from conf file
+backup_dir=                      # directory in which archive is created
+archive_stem="hidden"            # stem of archive base name
+archive_mask="${archive_stem}-D-X.zip"
+                                 # mask (template) for archive base name
+                                 # (D=date, X=subnumber)
+archive=                         # file name of archive
+config_stem="pkg-config"         # stem of package configuration file base name
+config_mask="${config_stem}-D-X" # mask (template) for configuration file
+                                 # base name (D=date, X=subnumber)
+config=                          # file name of configaration backup
+preserve_backups=${dn_false}     # whether to preserve old backup files
+                                 # (default = delete them)
+file_dir_list=                   # temporary file listing valid files/dirs
+unset msg
+
+
+# PROCEDURES
+
+# Show usage
+#   params: nil
+#   prints: nil
+#   return: nil
+displayUsage () {
+cat << _USAGE
+${dn_self}: backs up hidden files and system configuration
+
+Backs up pre-defined hidden files and directories to an 
+archive.  This is useful as some backup programs ignore
+hidden files and directories.
+
+Archive location and name are defined in a configuration
+file, as are the hidden files and directories to back up.
+
+The debian package configaration is stored to the same 
+directory as the archive.
+
+${usage} ${dn_self} ${parameters}
+       ${dn_self} -h
+
+Options: -p = preserve existing backup file
+              [default = delete previous files]
+
+Current settings:
+
+Backup archive name = ${archive_mask}.tar.gz [D=date, X=subnumber]
+
+Backup configuration file = ${config_mask}.tar.gz [D=date, X=subnumber]
+
+Backup directory = ${backup_dir}
+
+Hidden files to back up = ${c_files[@]}
+
+Hidden directories to back up = ${c_dirs[@]}
+_USAGE
+}
+# Process configuration files
+#   params: 1 - global config filepath (optional)
+#           2 - local config filepath (optional)
+#   prints: nil
+#   return: nil
+#   notes:  set variables [  ]
+processConfigFiles () {
+	# set variables
+	local conf= name= val=
+	local global_conf="$( dnNormalisePath "${1}" )"
+	local local_conf="$( dnNormalisePath "${2}" )"
+	# process config files
+	for conf in "${global_conf}" "${local_conf}" ; do
+		if [ -r "${conf}" ] ; then
+			while read name val ; do
+				if [ -n "${val}" ] ; then
+					# remove enclosing quotes if present
+					val="$( dnStripEnclosingQuotes "${val}" )"
+					# load vars depending on name
+					case ${name} in
+					'backup_dir'   ) backup_dir="${val}";;
+					'file'         ) c_files[${#c_files[*]}]="${val}";;
+					'directory'    ) c_dirs[${#c_dirs[*]}]="${val}";;
+					esac
+				fi
+			done < "${conf}"
+		fi
+	done
+}
+# Process command line
+#   params: all command line parameters
+#   prints: feedback
+#   return: nil
+processCommandLine () {
+	# Read the command line options
+	#   - if optstring starts with ':' then error reporting is suppressed
+	#     leave ':' at start as '\?' and '\:' error capturing require it
+	#   - if option is followed by ':' then it is expected to have an argument
+	while getopts ":hp" opt ; do
+		case ${opt} in
+			'h' ) displayUsage && exit 0;;
+			'p' ) preserveBackups 'true';;
+			\?  ) echo -e "Error: Invalid flag '${OPTARG}' detected"
+				  echo -e "Usage: ${dn_self} ${parameters}"
+				  echo -e "Try '${dn_self} -h' for help"
+				  echo -ne "\a"
+				  exit 1;;
+			\:  ) echo -e "Error: No argument supplied for flag '${OPTARG}'"
+				  echo -e "Usage: ${dn_self} ${parameters}"
+				  echo -e "Try '${dn_self} -h' for help"
+				  echo -ne "\a"
+				  exit 1;;
+		esac
+	done
+	shift $(( ${OPTIND} - 1 ))
+	args="${@}"  # reset arguments
+	unset usage parameters
+}
+# Preserve existing backups getter/setter
+#   params: 1 - boolean (setter)
+#   prints: nil
+#   return: boolean (getter)
+preserveBackups () {
+	if [ ${#} -eq 0 ] ; then  # getter
+		return $( dnFlagTrue "${preserve_backups}" )
+	else  # setter
+		preserve_backups="$( dnStandardiseBoolean "${1}" )"
+	fi
+}
+
+
+# MAIN
+
+# Process configuration files
+msg="Reading configuration files" ; echo -ne "$( dnRedReverseText "${msg}" )"
+processConfigFiles "${global_conf}" "${local_conf}"
+dnEraseText "${msg}"
+unset global_conf local_conf msg
+
+# Process command line
+processCommandLine "${@}"
+while [ "${*}" != "${args}" ] ; do shift ; done
+unset args
+
+# Check arguments
+# Valid backup directory
+[ -d "${backup_dir}" ] \
+	|| dnFailScript "Invalid backup directory '${backup_dir}'"
+# Something to back up
+[ ${#c_files[*]} -eq 0 -a ${#c_dirs[*]} -eq 0 ] \
+	&& dnFailScript "No hidden files or directories specified"
+
+# Informational message
+dnInfo "${dn_self} is running..."
+dnInfo "backup directory = ${backup_dir}"
+
+# Delete existing backup files
+if [ $( dir ${backup_dir}/${archive_stem}* 2>/dev/null | wc -l ) -gt 0 ] ; then
+	dnInfo "previous backup archives found"
+	if preserveBackups ; then  # do not delete them
+		dnInfo "  leaving backup archives in place"
+	else  # delete them
+		for file in ${backup_dir}/${archive_stem}* ; do
+			dnInfon "  deleting ${file}... "
+			rm ${file} &>/dev/null
+			dnCritRep "${?}" "unable to delete archive"
+		done
+	fi
+else dnInfo "no previous archives detected"
+fi
+unset archive_stem
+if [ $( dir ${backup_dir}/${config_stem}* 2>/dev/null | wc -l ) -gt 0 ] ; then
+	dnInfo "previous backup package configurations found"
+	if preserveBackups ; then  # do not delete them
+		dnInfo "  leaving backup package configurations in place"
+	else  # delete them
+		for file in ${backup_dir}/${config_stem}* ; do
+			dnInfon "  deleting ${file}... "
+			rm ${file} &>/dev/null
+			dnCritRep "${?}" "unable to delete backup package configuration"
+		done
+	fi
+else dnInfo "no previous package configuration backups detected"
+fi
+unset config_stem
+
+# Processing file and directory lists
+# - populate arrays with valid and invalid files and directories
+dnInfon "checking files and directories... "
+for (( i=0 ; i<${#c_files[*]} ; i++ )) ; do
+	if dnFileValid "${c_files[${i}]}" ; then
+		files[${#files[*]}]="${c_files[${i}]}"
+	else i_files[${#i_files[*]}]="${c_files[${i}]}"
+	fi
+done
+for (( i=0 ; i<${#c_dirs[*]} ; i++ )) ; do
+	if dnDirValid "${c_dirs[${i}]}" ; then
+		dirs[${#dirs[*]}]="${c_dirs[${i}]}"
+	else i_dirs[${#i_dirs[*]}]="${c_dirs[${i}]}"
+	fi
+done
+echo "done"
+unset c_files c_dirs
+# - display invalid files and directories
+if [ ${#i_files[*]} -gt 0 ] ; then
+	msg='file is'
+	[ ${#i_files[*]} -gt 1 ] && msg='files are'
+	dnWarn "the following specified ${msg} invalid:"
+	for (( i=0 ; i<${#i_files[*]} ; i++ )) ; do
+		dnWarn "  ${i_files[${i}]}"
+	done
+fi
+if [ ${#i_dirs[*]} -gt 0 ] ; then
+	msg='directory is'
+	[ ${#i_dirs[*]} -gt 1 ] && msg='directories are'
+	dnWarn "the following specified ${msg} invalid:"
+	for (( i=0 ; i<${#i_dirs[*]} ; i++ )) ; do
+		dnWarn "  ${i_dirs[${i}]}"
+	done
+fi
+unset i_files i_dirs
+
+# Get backup file names
+date="$( date +%Y%m%d )"
+archive_mask="$( echo "${archive_mask}" | sed -e "s/D/${date}/" )"
+archive="$( dnUniqueFileName "${backup_dir}" "${archive_mask}" "X" )" || \
+	dnEndScript "1" "unable to determine backup archive name"
+archive="${backup_dir}/${archive}"
+config_mask="$( echo "${config_mask}" | sed -e "s/D/${date}/" )"
+config="$( dnUniqueFileName "${backup_dir}" "${config_mask}" "X" )" || \
+	dnEndScript "1" "unable to determine backup configuration file name"
+config="${backup_dir}/${config}"
+unset date config_mask archive_mask backup_dir
+
+# Create system configuration backup
+dnInfon "recording debian package configuration... "
+dpkg --get-selections "*" > ${config}
+dnCritRep "${?}" "backup of package configuration failed"
+#gzip ${config} || dnEndScript 1 "unable to compress configuration backup"
+#config="${config}.gz"
+dnInfo "package configuration backed up in" "  '${config}'"
+
+# Create file with list of files and directories to back up
+file_dir_list="$( dnTempFile)" || dnEndScript 1 "unable to make temp file"
+dnTempTrap "${file_dir_list}"
+echo "${config}" > ${file_dir_list}  # system configuration backup
+if [ ${#files[*]} -gt 0 ] ; then  # valid files
+	for (( i=0 ; i<${#files[*]} ; i++ )) ; do
+		echo "${files[${i}]}" >> ${file_dir_list}
+	done
+fi
+if [ ${#dirs[*]} -gt 0 ] ; then  # valid directories
+	for (( i=0 ; i<${#dirs[*]} ; i++ )) ; do
+		echo "${dirs[${i}]}" >> ${file_dir_list}
+	done
+fi
+unset files dirs
+
+# Create hidden file/directory backup
+dnInfo "archiving (could take a while)... " "${dn_divider}"
+  # notes on following command:
+  # cat: list of files and directories to archive is passed on stdin
+  # xargs: to avoid line length error if many files/dirs to archive
+  # --recurse-paths: archive subdirectories
+  # --symlinks: store symlinks as links, not copy of link target
+  # --names-stdin: takes names to archive from stdin
+cat ${file_dir_list} | \
+	xargs \
+	zip \
+		--recurse-paths \
+		--symlinks \
+		--names-stdin \
+	"${archive}"
+exit_status=${?}
+dnInfo "${dn_divider}"
+dnTempKill "${file_dir_list}"
+unset file_dir_list
+if dnFlagTrue "${exit_status}" ; then
+	dnInfo "backup completed without error" "archive is" "  '${archive}'"
+else
+	dnWarn "error(s) occurred during backup"
+	if dnFileValid "${archive}" ; then
+		dnWarn "check archive" "  '${archive}'"
+	else
+		dnWarn "did not write archive" "  '${archive}'"
+	fi
+fi
+dnInfo "package configuration backed up in" "  '${config}'"
+unset exit_status config archive
+
+# Exit
+dnEndScript "0"

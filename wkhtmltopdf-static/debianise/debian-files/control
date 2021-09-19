@@ -1,0 +1,19 @@
+Source: wkhtmltopdf-static
+Section: utils
+Priority: extra
+Maintainer: David Nebauer <david@nebauer.org>
+Build-Depends: debhelper (>=9),autotools-dev
+Standards-Version: 3.9.8
+Homepage: http://wkhtmltopdf.org/
+Vcs-Git: https://github.com/wkhtmltopdf/wkhtmltopdf.git
+
+Package: wkhtmltopdf-static
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Conflicts: wkhtmltopdf
+Description: Command line utilities to convert html to pdf or image using WebKit
+ wkhtmltopdf is a command line program which permits one to create a
+ pdf or an image from an url, a local html file or stdin. It produces a pdf or
+ an image like rendred with the WebKit engine.
+ .
+ This program requires an X11 server to run.

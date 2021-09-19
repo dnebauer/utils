@@ -1,0 +1,47 @@
+# dn-debian-iso-update configuration file 
+
+# lines starting with '#' are ignored
+
+# lines are name-value pairs separated by whitespace
+# enclose element in double quotes if it contains a space
+
+
+# --------
+# url_base
+# --------
+
+# * url to server directory containing '.jigdo' and '.template' files
+
+url_base "https://cdimage.debian.org/cdimage/weekly-builds/amd64/jigdo-dvd"
+
+
+# ---------
+# file_base
+# ---------
+
+# * common stem of '.jigdo' and '.template' files on server
+# * is also, because of how jigdo works, the common stem of
+#   local iso image files
+# * usually followed immediately by the iso image number
+
+file_base "debian-testing-amd64-DVD-"
+
+
+# ---------
+# dir_files
+# ---------
+
+# * local directory holding '.jigdo', '.template', and '.iso' files
+
+dir_files "/mnt/debian-iso-storage"
+
+
+# --------
+# mnt_base
+# --------
+
+# * base mount point
+# * add subdirectory with name of iso image number to get mount point
+#   for individual iso image
+
+mnt_base "/mnt/debian-iso-mounts"

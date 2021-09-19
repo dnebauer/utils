@@ -1,0 +1,41 @@
+# example alsa configuration file
+
+# Either alsa device names or card/device numbers can be used to
+# specify audio device.  Some applications, such as mplayer,
+# cannot handle device names and require card/device numbers.
+#
+# Alsa device names can be obtained by examining the output
+# of the command:
+# 		cat /proc/asound/cards
+# Device names are in the square brackets on the left of the output.
+#
+# Alsa device card/device numbers can be obtained by examining the
+# output of the command:
+# 		aplay -l
+#
+# In the settings below, replace '<name>' with the device name,
+# or replace both <card_number> and <device_number>.
+
+# Using alsa name
+pcm.!default {
+    type hw
+    card <name>
+}
+ctl.!default {
+    type hw
+    card <name>
+}
+
+# OR
+
+# Using card and device numbers
+pcm.!default {
+    type hw
+    card <card_number>
+    device <device_number>
+}
+ctl.!default {
+    type hw
+    card <card_number>
+    device <device_number>
+}

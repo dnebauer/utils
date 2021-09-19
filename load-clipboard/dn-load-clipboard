@@ -1,0 +1,201 @@
+#!/usr/bin/env bash
+
+# File: dn-load-clipboard
+# Author: David Nebauer (david at nebauer dot org)
+# Purpose: Load selected value into clipboard
+# Created: 2021-01-09, Last edited: 2021-03-14
+
+# ERROR HANDLING    {{{1
+
+# Exit on error. Append "|| true" if you expect an error.
+set -o errexit
+# Exit on error inside any functions or subshells.
+set -o errtrace
+# Do not allow use of undefined vars. Use ${VAR:-} to use an undefined VAR
+set -o nounset
+# Catch error in case mysqldump fails (but gzip succeeds) in `mysqldump |gzip`
+set -o pipefail
+# Turn on traces, useful while debugging but commented out by default
+# set -o xtrace    # }}}1
+
+# VARIABLES
+
+# Basic variables    {{{1
+self="$(basename $0)"
+prompt='Select value to copy to clipboard'
+separator=': '
+# each menu option must be of form "<PREFIX><SEPARATOR><VALUE>"
+
+# Main menu options    {{{1
+submenu="-->"
+# - heredoc indents MUST be tabs, not spaces, for <<- to ignore them
+main_values=$(cat <<-END
+	ii${separator}david@nebauer.id.au
+	nn${separator}David Nebauer
+	uu${separator}david_nebauer
+	dd${separator}Date ${submenu}
+	ee${separator}Email ${submenu}
+	aa${separator}Address ${submenu}
+	END
+)
+
+# Address menu options    {{{1
+# - heredoc indents MUST be tabs, not spaces, for <<- to ignore them
+parcel_locker='Shop 1, 4 Rowling Street'
+parcel_locker+=', Parcel Locker 10108 96917, Casuarina NT 0810'
+central_registry='Central Registry, Royal Darwin Hospital'
+central_registry+=', 105 Rocklands Drive, Tiwi NT 0810'
+cas_plaza='Level 1B, Casuarina Plaza, 258 Trower Road, Casuarina NT 0810'
+address_values=$(cat <<-END
+	pp${separator}${parcel_locker}
+	hh${separator}3 McColl St, Unit 4, Fannie Bay NT 0820
+	cc${separator}${cas_plaza}
+	rr${separator}${central_registry}
+	mm${separator}PO Box 41326, Casuarina NT 0811
+	END
+)
+
+# Date menu options    {{{1
+months=(Offset January February March April May June)
+months+=(July August September October November December)
+month_num=$(date +'%-m')
+month="${months[${month_num}]}"
+full_template="$(date +'%-d %% %Y')"
+full="${full_template/\%/${month}}"
+iso_8601="$(date --iso-8601)"
+rfc_email="$(date --rfc-email)"
+# - heredoc indents MUST be tabs, not spaces, for <<- to ignore them
+date_values=$(cat <<-END
+	ff${separator}${full}
+	ii${separator}${iso_8601}
+	rr${separator}${rfc_email}
+	END
+)
+
+# Email menu options    {{{1
+# - heredoc indents MUST be tabs, not spaces, for <<- to ignore them
+email_values=$(cat <<-END
+	ii${separator}david@nebauer.id.au
+	ww${separator}david.nebauer@nt.gov.au
+	gg${separator}davidnebauer@gmail.com
+	bb${separator}davidnebauer3@bigpond.com
+	hh${separator}davidnebauer@hotkey.net.au
+	END
+)
+
+unset months month_num month full_template full iso_8601 rfc_email    # }}}1
+
+# PROCEDURES
+
+# Show usage    {{{1
+#   params: nil
+#   prints: nil
+#   return: nil
+displayUsage () {
+cat << _USAGE
+${self}: load selected value into system clipboard
+
+User selects from a menu of pre-defined options and the
+selected option is loaded into the system clipboard.
+
+A submenu is indicated by an option with an appended
+'${submenu}'. Selecting such an option opens a submenu.
+
+Usage: ${self}
+       ${self} -h
+_USAGE
+}
+
+# Process command line    {{{1
+#   params: all command line parameters
+#   prints: feedback
+#   return: nil
+#   note:   after execution variable ARGS contains
+#           remaining command line args (after options removed)
+processOptions () {
+	# read the command line options
+    local OPTIONS="$(                     \
+        getopt                            \
+            --options hvd                 \
+            --long    help,verbose,debug  \
+            --name    "${BASH_SOURCE[0]}" \
+            -- "${@}"                     \
+    )"
+    [[ ${?} -eq 0 ]] || {
+        echo 'Invalid command line options' 1>&2
+        exit 1
+    }
+    eval set -- "${OPTIONS}"
+	while true ; do
+		case "${1}" in
+        -h | --help    ) displayUsage   ; exit 0  ;;
+        -v | --verbose ) set -o verbose ; shift 1 ;;
+        -d | --debug   ) set -o xtrace  ; shift 1 ;;
+        --             ) shift ; break ;;
+        *              ) break ;;
+		esac
+	done
+	ARGS="${@}"  # remaining arguments
+}
+
+# Helper function for returning arrays    {{{1
+#   params: array_name - name of array variable [string, required]
+#   prints: nil
+#   return: array
+function returnArray {
+    local r=$( declare -p $1 )
+    r=${r#declare\ -a\ *=}
+    echo ${r//\[[0-9]\]=}
+}
+
+# Select option from menu    {{{1
+#   params: options = array of menu options
+#   prints: nil
+#   return: selected option
+selectOption () {
+    local -a options=( "${@}" )
+    local selection="$(echo "${options}" | rofi -dmenu -p "${prompt}")"
+    [ $? -eq 0 ] || exit
+    [ -n "${selection}" ] || exit
+    local option="$(echo "${selection}" | sed -e "s/^.*${separator}//")"
+    local word='A-Za-z0-9 _-'
+    local char='A-Za-z0-9_-'
+    local submenu_re="^([${word}]{0,}[${char}])[ ]*${submenu}$"
+    local -a return_values
+    # must not quote bash regex variable
+    if [[ "${option}" =~ $submenu_re ]] ; then
+        return_values+=(submenu "${BASH_REMATCH[1]}")
+    else
+        return_values+=(option "${option}")
+    fi
+    returnArray return_values
+}    # }}}1
+
+# MAIN
+
+# Process command line options    {{{1
+# - results in $ARGS holding remaining non-option command line arguments
+processOptions "${@}"
+
+# Select option    {{{1
+# - opt_type can be 'option' or 'submenu'
+# - start with main menu (selection='Main')
+opt_type='submenu' ; selection='Main'
+while [ "${opt_type}" = 'submenu' ] ; do
+    menu_values=()
+    case "${selection}" in
+        'Address' ) menu_values+=("${address_values}") ;;
+        'Date'    ) menu_values+=("${date_values}")    ;;
+        'Email'   ) menu_values+=("${email_values}")   ;;
+        'Main'    ) menu_values+=("${main_values}")    ;;
+        *         ) echo "Invalid submenu: '${selection}'" ; exit 1 ;;
+    esac
+    eval declare -a return_vals="$(selectOption "${menu_values[@]}")"
+    opt_type="${return_vals[0]}" ; selection="${return_vals[1]}"
+done
+
+# Send option to clipboard    {{{1
+echo -n "${selection}" | xclip -selection clipboard
+# }}}1
+
+# vim:foldmethod=marker:

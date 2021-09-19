@@ -1,0 +1,258 @@
+#!/usr/bin/python3
+
+# module docstring    {{{1
+""" modernised use of gui menu to display a message
+
+Uses tkinter to enable user to display a warning message
+"""
+
+# import statements    {{{1
+import argparse
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
+
+
+class WarningMessage(object):    # {{{1
+
+    # class docstring    {{{2
+    """ display warning message in gui message dialog
+
+    uses tkinter for a modern appearance
+    """
+
+    def __init__(self):    # {{{2
+
+        """ initialise variables """
+
+        ''' these menu parameters can be changed by command line arguments '''
+
+        # title
+        self.__title = 'Warning'
+
+        # caption/heading (bolded)
+        self.__caption = None
+
+        # detail (normal font, follows caption/heading)
+        self.__detail = None
+
+        ''' values determining help output '''
+
+        # argument parser formatter class (includes arg help text in output)
+        self.__formatter = argparse.ArgumentDefaultsHelpFormatter
+
+        # help description
+        self.__description = 'Display warning message in gui dialog box'
+
+    def process_args(self):    # {{{2
+
+        """ process command line arguments """
+
+        # define arguments    {{{3
+        parser = argparse.ArgumentParser(description=self.__description,
+                                         formatter_class=self.__formatter)
+        parser.add_argument('-t', '--title',
+                            default=self.__title,
+                            help='dialog box title')
+        parser.add_argument('-c', '--caption',
+                            default=self.__caption,
+                            help='message caption/heading')
+        parser.add_argument('-d', '--detail',
+                            default=self.__detail,
+                            help='message detail')
+
+        # parse arguments    {{{3
+        args = parser.parse_args()
+
+        # save provided values    {{{3
+        ''' replace() is used to undo shell handling of '\n' in parameters
+            - a *pure* solution to this would be to handle the problem
+              in the shell, such as: dn-tk-warn -c $'multi\nline'
+            - this is a hack to allow users to get the behaviour they
+              naively expect: for '\n' in parameter to result in newlines
+              in the dialog
+        '''
+        if self.__title != args.title:
+            self.__title = args.title
+        if self.__caption != args.caption:
+            self.__caption = args.caption.replace('\\n', '\n')
+        if self.__detail != args.detail:
+            self.__detail = args.detail.replace('\\n', '\n')
+
+        # check that content has been provided    {{{3
+        if self.__caption is None and self.__detail is None:
+            parser.error("Need at least one of '-c' and '-d'")
+
+    def display_dialog(self):    # {{{2
+
+        """ display message dialog """
+
+        # create main window    {{{3
+        root = tk.Tk()
+        root.withdraw()
+
+        # set style theme    {{{3
+        # - should be available on all systems: {clam,alt,default,classic}
+        style = ttk.Style(root)
+        try:
+            style.theme_use('clam')
+        except tk.TclError:
+            pass
+
+        # assemble options    {{{3
+        opts = {
+            'title': self.__title,
+            'message': self.__caption,
+            'detail': self.__detail,
+            'icon': 'warning'
+        }
+
+        # display modal information dialog    {{{3
+        messagebox.showinfo(**opts, parent=root)
+        root.destroy()    # }}}3
+
+
+def main():    # {{{1
+
+    """ script execution starts here """
+
+    menu = WarningMessage()
+    menu.process_args()
+    menu.display_dialog()
+
+
+if __name__ == '__main__':
+    main()
+
+
+# manpage    {{{1
+"""
+
+create manpage with command:
+
+    pod2man dn-tk-warn > dn-tk-warn.1
+
+__END__
+
+=head1 NAME
+
+dn-tk-warn - display warning in gui dialog using python tkinter
+
+=head1 USAGE
+
+B<dn-tk-warn> [B<-t> I<title>] [B<-c> I<caption>] [B<-d> I<detail>]
+
+B<dn-tk-warn -h>
+
+=head1 REQUIRED OPTIONS
+
+=over
+
+=item B<-c>  B<--caption>
+
+The bolded "header" component of dialog box content. Newlines ('\n') will be
+honoured in the dialog.
+
+Scalar string. At least one of the C<-c> and C<-d> options must be provided.
+
+=item B<-d>  B<--detail>
+
+The normal-font component of dialog box content displayed under the caption
+text. Newlines ('\n') will be honoured in the dialog.
+
+Scalar string. At least one of the C<-c> and C<-d> options must be provided.
+
+=back
+
+=head1 OPTIONS
+
+=over
+
+=item B<-t>  B<--title>
+
+Dialog box title.
+
+Scalar string. Optional (default: 'Warning').
+
+=item B<-h>  B<--help>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+Displays a warning-style GUI message box using python tkinter.
+
+=head2 Dialog box content
+
+There are two parts to the message displayed in the message box:
+
+=over
+
+=item *
+
+a bolded message caption or "header", followed by
+
+=item *
+
+message detail in normal font.
+
+=back
+
+Newlines ('\n') can be inserted into both caption and detail option values and
+will be included in the message box content.
+
+Many users are used to dialog boxes that include only content in normal font.
+To create that appearance use the C<-d> option only (and not the C<-c> option).
+
+=head2 Sizing of dialog box
+
+The dialog box expands to fit the caption and detail line width. The length of
+the dialog box title is I<not> a factor in determining the dialog box size. As
+a result, the full title may not be visible if the caption and detail line
+widths are small enough.
+
+=head1 DEPENDENCIES
+
+Python3.
+
+Python modules: argparse, tkinter.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 SEE ALSO
+
+L<dn-tk-info(1)>,
+L<dn-tk-error(1)>,
+L<dn-tk-confirm(1)>,
+L<dn-tk-menu(1)>.
+
+=head1 AUTHOR
+
+David Nebauer (david at nebauer dot org)
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2021 David Nebauer (david at nebauer dot org)
+
+dn-tk-warn is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+dn-tk-warn is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with dn-tk-warn.  If not, see <https://www.gnu.org/licenses/>
+
+=cut
+
+"""
+
+# vim:fdm=marker:

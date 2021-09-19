@@ -1,0 +1,23 @@
+#compdef dn-keep-awake
+
+_keywords() {
+  local -a _keywords
+  _keywords=(bleach iview manual netflix stan)
+  _values 'keywords' "${_keywords[@]}"
+}
+
+local rc=1
+
+_arguments -S \
+  - '(help_options)' \
+    '-h[Show a compact help message]' \
+    '--help[Show a long help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-l --list)'{-l,--list}'[List command details]' \
+  - 'arguments' \
+    '*:command keyword:_keywords' \
+  && rc=0
+
+return rc

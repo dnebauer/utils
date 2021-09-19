@@ -1,0 +1,372 @@
+#!/usr/bin/python3
+
+# module docstring    {{{1
+""" modernised use of gui menu to select an option
+
+Uses tkinter to enable user to select from a set of options
+"""
+
+# import statements    {{{1
+import argparse
+import tkinter as tk
+from tkinter import ttk
+
+
+class MenuSelect(object):    # {{{1
+
+    # class docstring    {{{2
+    """ select option(s) from gui menu
+
+    uses tkinter for a modern appearance
+    """
+
+    def __init__(self):    # {{{2
+
+        """ initialise variables """
+
+        ''' these menu parameters can be changed by command line arguments '''
+
+        # menu title
+        self.__title = 'Menu'
+
+        # menu prompt
+        self.__prompt = 'Select an option:'
+
+        # split items
+        self.__split_items = False
+
+        # item delimiter
+        self.__item_delimiter = None    # all whitespace
+
+        # menu items
+        self.__items = []
+
+        # multi-select
+        self.__multiselect = False
+
+        # selections delimiter
+        self.__selections_delimiter = ' '
+
+        ''' values determining help output '''
+
+        # argument parser formatter class (includes arg help text in output)
+        self.__formatter = argparse.ArgumentDefaultsHelpFormatter
+
+        # help description
+        self.__description = 'Select item(s) from a GUI menu'
+
+        # help epilog
+        self.__epilog = 'Note: default -j value is a space'
+
+        ''' output value '''
+
+        self.__selections = []
+
+    def process_args(self):    # {{{2
+
+        """ process command line arguments """
+
+        # define arguments    {{{3
+        parser = argparse.ArgumentParser(description=self.__description,
+                                         epilog=self.__epilog,
+                                         formatter_class=self.__formatter)
+        parser.add_argument('-t', '--title',
+                            default=self.__title,
+                            help='menu title')
+        parser.add_argument('-p', '--prompt',
+                            default=self.__prompt,
+                            help='menu prompt')
+        parser.add_argument('-s', '--split_items',
+                            action='store_true',
+                            help='split each item')
+        parser.add_argument('-i', '--item_delimiter',
+                            default=self.__item_delimiter,
+                            help='delimiter on which to split items'
+                            + ' (None means all whitespace)')
+        parser.add_argument('items',
+                            nargs='+',
+                            metavar='item',
+                            help='menu item')
+        parser.add_argument('-m', '--multiselect',
+                            action='store_true',
+                            help='select multiple menu items')
+        parser.add_argument('-j', '--selections_delimiter',
+                            default=self.__selections_delimiter,
+                            help='delimiter joining selected items')
+
+        # parse arguments    {{{3
+        args = parser.parse_args()
+
+        # save provided values    {{{3
+        if self.__title != args.title:
+            self.__title = args.title
+        if self.__prompt != args.prompt:
+            self.__prompt = args.prompt
+        if args.split_items:
+            self.__split_items = True
+        if self.__item_delimiter != args.item_delimiter:
+            self.__item_delimiter = args.item_delimiter
+        for item in args.items:
+            # split on delimiter if requested
+            if self.__split_items:
+                self.__items.extend(item.split(self.__item_delimiter))
+            else:
+                self.__items.append(item)
+        if args.multiselect:
+            self.__multiselect = True
+        if self.__selections_delimiter != args.selections_delimiter:
+            self.__selections_delimiter = args.selections_delimiter
+
+    def display_menu(self):    # {{{2
+
+        """ display gui menu and select option """
+
+        # event handlers    {{{3
+
+        def _on_item_selection(event):  # pylint: disable=unused-argument
+            _register_item_selections()
+
+        def _on_tree_double_click(event):  # pylint: disable=unused-argument
+            _accept_selections()
+
+        def _on_return_keypress(event):  # pylint: disable=unused-argument
+            # if Cancel button has focus then cancel, otherwise accept picks
+            if 'focus' in (cancel_button.state()):
+                _abort_selection()
+            else:
+                _accept_selections()
+
+        def _on_escape_keypress(event):  # pylint: disable=unused-argument
+            _abort_selection()
+
+        def _register_item_selections():
+            self.__selections = []
+            for selected_id in tree.selection():
+                self.__selections.append(menu_items[selected_id])
+
+        def _abort_selection():
+            self.__selections = []
+            root.destroy()
+
+        def _accept_selections():
+            _register_item_selections()
+            root.destroy()
+
+        # create main window    {{{3
+        root = tk.Tk()
+        root.title(self.__title)
+
+        # set style theme    {{{3
+        # - should be available on all systems: {clam,alt,default,classic}
+        style = ttk.Style(root)
+        try:
+            style.theme_use('clam')
+        except tk.TclError:
+            pass
+
+        # create frame within main window    {{{3
+        # - main window is 'old' tk; frame is 'modern' ttk
+        mainframe = ttk.Frame(root, padding="3 3 12 12")
+        mainframe.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
+        # - next two lines ensure frame resizes with main window (to fill it)
+        root.columnconfigure(0, weight=1)
+        root.rowconfigure(0, weight=1)
+
+        # add prompt    {{{3
+        prompt_label = ttk.Label(mainframe, text=self.__prompt)
+        prompt_label.grid(column=1, row=1, sticky=(tk.W))
+
+        # add menu    {{{3
+        select_mode = 'extended' if self.__multiselect else 'browse'
+        tree = ttk.Treeview(mainframe, selectmode=select_mode, show=['tree'])
+        tree.grid(column=1, row=2, sticky=(tk.W))
+        menu_items = {}
+        first_id = None
+        for item in self.__items:
+            item_id = tree.insert('', 'end', text=item)
+            menu_items[item_id] = item
+            if not first_id:
+                first_id = item_id
+
+        # add OK and Cancel buttons    {{{3
+        okay_button = ttk.Button(mainframe, text='OK')
+        okay_button.grid(column=1, row=3, sticky=(tk.E))
+        cancel_button = ttk.Button(mainframe, text='Cancel')
+        cancel_button.grid(column=1, row=4, sticky=(tk.E))
+
+        # add padding to all widgets    {{{3
+        for child in mainframe.winfo_children():
+            child.grid_configure(padx=5, pady=5)
+
+        # determine initial focus in window    {{{3
+        tree.focus_set()
+        tree.focus(first_id)
+        tree.selection_set(first_id)
+
+        # event handling    {{{3
+        okay_button.config(command=_accept_selections)
+        cancel_button.config(command=_abort_selection)
+        tree.bind('<<TreeviewSelect>>', _on_item_selection)
+        tree.bind('<Double-Button-1>', _on_tree_double_click)
+        root.bind('<Return>', _on_return_keypress)
+        root.bind('<Escape>', _on_escape_keypress)
+
+        # display mainwindow    {{{3
+        root.mainloop()
+
+    def result(self):    # {{{2
+
+        """ return menu selection(s) """
+
+        if self.__selections:
+            return_value = self.__selections_delimiter.join(self.__selections)
+            print(return_value)
+            return return_value
+
+
+def main():    # {{{1
+
+    """ script execution starts here """
+
+    menu = MenuSelect()
+    menu.process_args()
+    menu.display_menu()
+    menu.result()
+
+
+if __name__ == '__main__':
+    main()
+
+
+# manpage    {{{1
+"""
+
+create manpage with command:
+
+    pod2man dn-tk-menu > dn-tk-menu.1
+
+__END__
+
+=head1 NAME
+
+dn-tk-menu - gui menu using python tkinter
+
+=head1 USAGE
+
+B<dn-tk-menu> [B<-t> I<title>] [B<-p> I<prompt>] [B<-s>] [B<-i> I<delimiter>]
+[B<-m>] [B<-j> I<delimiter>] I<item> [I<item>...]
+
+B<dn-tk-menu -h>
+
+=head1 REQUIRED ARGUMENTS
+
+=over
+
+=item I<item>
+
+Each item is:
+
+=over
+
+=item *
+
+a single menu item, or
+
+=item *
+
+a delimited list of menu items.
+
+=back
+
+If the item is a delimited list of menu items the C<-s> flag must be used. The
+default delimiter is whitespace. Use the C<-i> option to change the delimiter.
+
+Scalar string. Required.
+
+=back
+
+=head1 OPTIONS
+
+=over
+
+=item B<-t>  B<--title>
+
+Menu title. Scalar string. Optional (default: 'Menu').
+
+=item B<-p>  B<--prompt>
+
+Menu prompt. Scalar string. Optional (default: 'Select an option:').
+
+=item B<-s>  B<--split_items>
+
+Flag. Indicates whether to split each item. Optional (default: false).
+
+=item B<-i>  B<--item_delimiter>
+
+Delimiter on which to split whitespace. Scalar string. Optional (default:
+whitespace).
+
+=item B<-m>  B<--multiselect>
+
+Flag. Indicates whether to enable selection of multiple items. Optional
+(default: false).
+
+=item B<-j>  B<--selections_delimiter>
+
+Delimiter joining selected items when they are output. Scalar string. Optional
+(default: ' ').
+
+=item B<-h>  B<--help>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+Displays a GUI menu using python tkinter from which the user can select one or
+more items.
+
+=head1 DEPENDENCIES
+
+Python3.
+
+Python modules: argparse, tkinter.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 SEE ALSO
+
+L<dn-tk-info(1)>,
+L<dn-tk-warn(1)>,
+L<dn-tk-error(1)>,
+L<dn-tk-confirm(1)>.
+
+=head1 AUTHOR
+
+David Nebauer (david at nebauer dot org)
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2021 David Nebauer (david at nebauer dot org)
+
+dn-tk-menu is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+dn-tk-menu is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with dn-tk-menu.  If not, see <https://www.gnu.org/licenses/>
+
+=cut
+
+"""
+
+# vim:fdm=marker:

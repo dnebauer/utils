@@ -1,0 +1,12 @@
+#compdef dn-mp3file-rename
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+  - 'script_options' \
+    '(-f --format)'{-f,--format}'[File name format template (required)]:mp3:' \
+  && rc=0
+
+return rc

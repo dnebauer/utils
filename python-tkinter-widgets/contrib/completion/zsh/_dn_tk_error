@@ -1,0 +1,14 @@
+#compdef dn-tk-error
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+  - 'script_options' \
+    '(-t --title)'{-t,--title}'[Dialog title (optional, default="Message")]:title:' \
+    '(-c --caption)'{-c,--caption}'[Message caption (optional)]:caption:' \
+    '(-d --detail)'{-d,--detail}'[Message detail (optional)]:detail:' \
+  && rc=0
+
+return rc

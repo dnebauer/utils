@@ -1,0 +1,187 @@
+.\" Hey, EMACS: -*- nroff -*-
+
+.\" Filename: dn-menu-select.1
+.\" Author:   David Nebauer
+.\" History:  2021-05-31 - created
+
+.\" -----------------------------------------------------------------
+.\" NOTES
+.\" -----------------------------------------------------------------
+.ig
+
+For header (.TH), first parameter, NAME, should be all caps
+Second parameter, SECTION, should be 1-8, maybe w/ subsection
+Other parameters are allowed: see man(7), man(1)
+Please adjust the date whenever revising the manpage.
+
+Some roff macros, for reference:
+.nh        disable hyphenation
+.hy        enable hyphenation
+.ad l      left justify
+.ad b      justify to both left and right margins
+.nf        disable filling
+.fi        enable filling
+.br        insert line break
+.sp <n>    insert n+1 empty lines
+for manpage-specific macros, see groff_man(7) and man(7)
+
+Formatting [see groff_char (7) and man (7) for details]:
+\(aq  : escape sequence for (')
+\[dq] : plain double quote
+\[lq] : left/open double quote
+\[rq] : right/close double quote
+`     : left/open single quote
+'     : right/close single quote
+\(em  : escape sequence for em dash
+\(en  : escape sequence for en dash
+\.    : escape sequence for period/dot
+\(rg  : registration symbol
+\(tm  : trademark symbol
+\fX   : escape sequence that changes font, where 'X' can be 'R|I|B|BI'
+        (R = roman/normal | I = italic | B = bold | BI = bold-italic)
+\fP   : switch to previous font
+        in this case '\fR' could also have been used
+.B    : following arguments are boldened
+.I    : following arguments are italicised
+.BI   : following arguments are bold alternating with italics
+.BR   : following arguments are bold alternating with roman
+.IB   : following arguments are italics alternating with bold
+.IR   : following arguments are italics alternating with roman
+.RB   : following arguments are roman alternating with bold
+.RI   : following arguments are roman alternating with italics
+.SM   : following arguments are small (scaled 9/10 of the regular size)
+.SB   : following arguments are small bold (not small alternating with bold)
+        [note: if argument in alternating pattern contains whitespace,
+               enclose in whitespace]
+.RS x : indent following lines by x characters
+.RE   : end indent
+
+Bulleted list:
+   A bulleted list:
+   .IP \[bu] 2
+   lawyers
+   .IP \[bu]
+   guns
+   .IP \[bu]
+   money
+Numbered list:
+   .nr step 1 1
+   A numbered list:
+   .IP \n[step] 3
+   lawyers
+   .IP \n+[step]
+   guns
+   .IP \n+[step]
+   money
+..
+
+.\" -----------------------------------------------------------------
+.\" SETUP
+.\" -----------------------------------------------------------------
+
+.\" Macro: Format URL
+.\"  usage:  .URL "http:\\www.gnu.org" "GNU Project" " of the"
+.\"  params: 1 = url
+.\"          2 = link text/name
+.\"          3 = postamble (optional)
+.\"  note:   The www.tmac macro provides a .URL macro package; this
+.\"          is a local fallback in case www.tmac is unavailable
+.\"  credit: man(7)
+.de URL
+\\$2 \(laURL: \\$1 \(ra\\$3
+..
+
+.\" Prefer .URL macro from www.tmac macro package if it is available
+.\"  note: In the conditional below the '\n' escape returns the value of
+.\"        a register, in this the '.g'
+.\"        The '.g' register is only found in GNU 'troff', and it is
+.\"        assumed that GNU troff will always include the www.tmac
+.\"        macro package
+.if \n[.g] .mso www.tmac
+
+.\" Macro: Ellipsis
+.\"  usage: .ellipsis
+.\"  note: only works at beginning of line
+.de ellipsis
+.cc ^
+...
+^cc
+..
+
+.\" String: Command name
+.ds self dn-menu-select
+
+.\" -----------------------------------------------------------------
+.\" MANPAGE CONTENT
+.\" -----------------------------------------------------------------
+
+.TH "DN-MENU-SELECT" "1" "2021-05-31" "" "DN-MENU-SELECT Manual"
+.SH "NAME"
+\*[self] \- select option(s) from a GUI menu
+.SH "SYNOPSIS"
+.BR "\*[self] " "["
+.BR "\-h " "] ["
+.BI "\-t " "title"
+] [
+.BI "\-p " "prompt"
+] [
+.BR "\-s " "] ["
+.BI "\-i " "item_delimiter"
+] [
+.BR "\-m " "] ["
+.BI "\-j " "selections_delimiter"
+]
+item [item ...]
+.SH "DESCRIPTION"
+\*[self] enables the user to select an options or options from a graphical
+menu. This python script uses recent features of Tk (> 8.5) to provide a
+modern-looking, cross-platform menu selection interface.
+.PP
+Menu items (and optionally the menu title and prompt) are provided as command
+line arguments. The selected menu item(s) are written to standard output
+(stdout/terminal/console).
+.SH "OPTIONS"
+.TP
+.BI "\-x " "opt"
+description
+.TP
+.B "\-h  \-\-help"
+Show a help message and exit. Optional.
+.TP
+.BI "\-t  \-\-title " "title"
+Title of menu. Optional. Default: \(aqMenu\(aq.
+.TP
+.BI "\-p  \-\-prompt " "prompt"
+Menu user prompt. Optional. Default: \(aqSelect an option:\(aq.
+.TP
+.B "\-s  \-\-split_items"
+Each item is split on a delimiter set by the
+.B "\-i"
+option. This is intended for scripts that provide all menu items in a single
+.B "item"
+argument rather than in multiple such arguments. Optional. Default: False.
+.TP
+.BI "\-i  \-\-item_delimiter " "item_delimiter"
+Delimiter on which to split item arguments. Has no effect unless the
+.B "\-i"
+argument is used. Note that the default argument, the special python value of
+.B "None"
+means items will be split on all whitespace. Optional. Default: None.
+.TP
+.B "\-m  \-\-multiselect"
+The user is able to select multiple items, rather than restricted to selecting
+a single item (the default). Optional. Default: False.
+.TP
+.BI "\-j  \-\-selections_delimiter " "selections_delimiter"
+If the user selects multiple menu items they are written to stdout as a single
+string delimited by this value. Optional. Default: ' ' (a single space).
+.TP
+.I "item"
+A menu item. If the
+.B "-s"
+flag is provided, each supplied menu item can be split into multiple items
+using the delimiter set by the
+.B "\-i"
+argument. At least one menu item is required.
+.SH "SEE ALSO"
+.BR "python " "(1)."

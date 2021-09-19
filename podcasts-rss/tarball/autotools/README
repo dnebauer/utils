@@ -1,0 +1,10 @@
+dn-podcasts-rss README
+======================
+
+This package provides a tool (dn-podcasts-rss) which
+performs a number of tasks:
+- standardise podcasts filenames and tags,
+- save/edit rss feed metadata, and
+- create rss xml feed files and opml exchange files.
+
+Installed help is available.

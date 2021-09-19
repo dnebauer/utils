@@ -1,0 +1,31 @@
+### Additional menu items
+
+# Added by package @pkg@
+# See 'man @pkg@' for details
+
+# MENU ITEM: Email file(s) as attachments
+
+# Works on tagged files, or file under cursor if no files tagged
+
+# Explanation of first line of entry:
+#   =: condition for menu entry being made available
+#   t: condition is that file(s) must be of certain type(s)
+#   r: can be regular file
+#   x: can be regular file
+#   t: can be tagged file
+
+# Explanation of second line of entry:
+#   e: hotkey
+#   seven spaces: match convention in global file
+#   'Email as attachment': menu item text
+
+# Explanation of third line of entry:
+#   execute script 'dn-attach' with parameters
+#   %d: current directory
+#   %s: file(s), tagged or under cursor
+
+= t rxt
+e       Email as attachment
+  @bin_dir@/dn-attach %d %s
+
+### End of entries inserted by @pkg@ ###

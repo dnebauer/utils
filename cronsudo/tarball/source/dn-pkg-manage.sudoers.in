@@ -1,0 +1,18 @@
+# sudoers file provided by package dn-cronsudo
+# do not edit directly but modify the package
+
+# package management tools
+david ALL= NOPASSWD: /usr/bin/apt
+david ALL= NOPASSWD: /usr/bin/apt-file
+david ALL= NOPASSWD: /usr/bin/apt-get
+david ALL= NOPASSWD: /usr/bin/aptitude
+david ALL= NOPASSWD: /usr/bin/checkinstall
+david ALL= NOPASSWD: /usr/bin/debsums
+david ALL= NOPASSWD: /usr/bin/dpkg
+david ALL= NOPASSWD: /usr/bin/dselect
+david ALL= NOPASSWD: /usr/bin/gdebi
+david ALL= NOPASSWD: /usr/bin/gem
+david ALL= NOPASSWD: /usr/bin/npm
+david ALL= NOPASSWD: /usr/bin/pip
+david ALL= NOPASSWD: /usr/bin/pip2
+david ALL= NOPASSWD: /usr/bin/pip3

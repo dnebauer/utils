@@ -1,0 +1,21 @@
+#compdef dn-mp3-tags
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+  - 'script_options' \
+    '(-n --number)'{-n,--number}'[Set track numbers (flag)]' \
+    '(-t --title)'{-t,--title}'[Set track titles (flag)]' \
+    '(-p --performer)'{-p,--performer}'[Set track artists/performers (flag)]' \
+    '(-a --artist)'{-a,--artist}'[Set track artists/performers (flag)]' \
+    '(-e --eyed3)'{-e,--eyed3}'[Edit file tags with eyeD3 (flag)]' \
+    '(-i --id3v2)'{-i,--id3v2}'[Edit file tags with id3v2 (flag)]' \
+    '(-b --blank)'{-b,--blank}'[Do not display default suggestions (flag)]' \
+    '(-f --file)'{-f,--file}'[Input file path (no default)]:file:_files' \
+    '(-v --verbose)'{-v,--verbose}'[Print script lines as they are processed]' \
+    '(-d --debug)'{-d,--debug}'[Display script lines after expansion]' \
+  && rc=0
+
+return rc
