@@ -1,0 +1,421 @@
+#!/usr/bin/perl
+
+use Moo;    # {{{1
+use strictures 2;
+use 5.006;
+use 5.022_001;
+use version; our $VERSION = qv('0.1');
+use namespace::clean;    # }}}1
+
+{
+
+    package Dn::UpdateLocalAptRepository;
+
+    use Moo;             # {{{1
+    use strictures 2;
+    use namespace::clean -except => [ '_options_data', '_options_config' ];
+    use Carp qw(croak);
+    use Const::Fast;
+    use English qw(-no_match_vars);
+    use File::Find::Rule;
+    use File::Touch 0.12;
+    use Function::Parameters;
+    use MooX::HandlesVia;
+    use MooX::Options protect_argv => 0;
+    use Path::Tiny;
+    use Syntax::Keyword::Try;
+    use Types::Standard;
+
+    const my $TRUE  => 1;
+    const my $FALSE => 0;    # }}}1
+
+    # attributes
+
+    # _cwd    {{{1
+    has '_cwd' => (
+        is      => 'ro',
+        isa     => Types::Standard::InstanceOf ['Path::Tiny'],
+        default => sub { Path::Tiny->cwd },
+        doc     => 'Directory in which script executed',
+    );
+
+    # _local_repo_path    {{{1
+    has '_local_repo_path' => (
+        is      => 'ro',
+        isa     => Types::Standard::InstanceOf ['Path::Tiny'],
+        default => sub { Path::Tiny::path('/srv/local-apt-repository') },
+        doc     => 'Repo path: /srv/local-apt-repository',
+    );
+
+    # _targets, _add_targets, _has_target, _has_targets    {{{1
+    has '_local_repo_symlink_target_list' => (
+        is  => 'rw',
+        isa => Types::Standard::ArrayRef [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        lazy        => $TRUE,
+        default     => sub { [] },
+        handles_via => 'Array',
+        handles     => {
+            _targets     => 'elements',
+            _add_targets => 'push',
+            _has_targets => 'count',
+            _first       => 'first',
+        },
+        doc => 'Array of local-apt-repository symlink targets',
+    );
+
+    method _has_target ($target) {
+        if ( $self->_first( sub {/\A$target\Z/xsm} ) ) {
+            return $TRUE;
+        }
+        else { return; }
+    }
+
+    # _files    {{{1
+    has '_file_list' => (
+
+        is          => 'lazy',
+        isa         => Types::Standard::ArrayRef [Types::Standard::Str],
+        handles_via => 'Array',
+        handles     => { _files => 'elements' },
+        doc         => 'File arguments',
+    );    # }}}1
+
+    # methods
+
+    # main()    {{{1
+    #
+    # does:   main method
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method main () {
+
+        # check repo dir is present and accessible
+        $self->_check_environment;
+
+        # delete broken symlinks in repo
+        $self->_remove_broken_repo_symlinks;
+
+        # get symlinks
+        $self->_get_repo_symlink_targets;
+
+        # add new packages as symlinks
+        $self->_add_new_package_symlinks;
+
+        return;
+    }
+
+    # _check_environment()    {{{1
+    #
+    # does:   make sure directory /srv/local-apt-repository exists and user
+    #         has access to manipulate files in that directory
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method _check_environment () {
+
+        my $repo = $self->_local_repo_path;
+
+        # make sure local repo directory exists    {{{2
+        if ( $self->_local_repo_path->is_dir ) {
+            say 'Found local-apt-repository: ' . $self->_local_repo_path
+                or croak 'Unable to write to terminal';
+        }
+        else {
+            my $perm = '0755';
+            mkdir $repo, oct $perm
+                or die "Unable to create directory: $repo\n";
+            say 'Initialised local-apt-repository: '
+                . $self->_local_repo_path
+                or croak 'Unable to write to terminal';
+        }
+
+        # check for access to local repo directory    {{{2
+        my $test = Path::Tiny::path( $repo, 'test' );
+
+        # - create test file if not present
+        if ( not $test->exists ) {
+            my @files   = ( $test->canonpath );
+            my $success = touch(@files);
+            die "Unable to create file: $test\n" if not $success;
+        }
+
+        # - remove test file if present
+        try { $test->remove; }
+        catch ($err) { die "Unable to delete $test: $err\n"; }    # }}}2
+
+        return;
+
+    }
+
+    # _remove_broken_repo_symlinks()    {{{1
+    #
+    # does:   remove broken symlinks in repo directory
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method _remove_broken_repo_symlinks () {
+
+        my $repo = $self->_local_repo_path;
+
+        my @not_symlink;
+        my @broken;
+
+        # find broken symlinks and non-symlinks
+        my $iter = $repo->iterator;
+        while ( my $path = $iter->() ) {
+            if ( -l $path ) {
+                if ( !stat $path ) { push @broken, $path; }
+            }
+            else {
+                push @not_symlink, $path->basename;
+            }
+        }
+
+        # report non-symlinks
+        if (@not_symlink) {
+            say 'Found non-symlink(s) in local-apt-repository:'
+                or croak 'Unable to write to terminal';
+            for my $file (@not_symlink) {
+                say "- $file"
+                    or croak 'Unable to write to terminal';
+            }
+        }
+
+        # delete broken symlinks
+        if (@broken) {
+            say 'Deleting broken local-apt-repository symlinks:'
+                or croak 'Unable to write to terminal';
+            for my $symlink (@broken) {
+                print '- ' . $symlink->basename . ': '
+                    or croak 'Unable to write to terminal';
+                try {
+                    $symlink->remove;
+                }
+                catch ($err) {
+                    say 'deletion failed'
+                        or croak 'Unable to write to terminal';
+                    die "Unable to delete $symlink: $err\n";
+                }
+                say 'deleted ok'
+                    or croak 'Unable to write to terminal';
+            }
+        }
+
+        return;
+    }
+
+    # _get_repo_symlink_targets()    {{{1
+    #
+    # does:   load script attribute with repo symlink targets
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method _get_repo_symlink_targets () {
+
+        my @targets;
+        my $repo = $self->_local_repo_path;
+        my $iter = $repo->iterator;
+        while ( my $path = $iter->() ) {
+            if ( -l $path ) { push @targets, readlink $path; }
+        }
+        if (@targets) {
+            $self->_add_targets(@targets);
+        }
+
+        return;
+    }
+
+    # _add_new_package_symlinks()    {{{1
+    #
+    # does:   add to repo symlinks to new packages
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method _add_new_package_symlinks () {
+
+        # get paths to all debs
+        my $cwd  = $self->_cwd->canonpath;
+        my @debs = File::Find::Rule->file()->name('*.deb')->in($cwd);
+
+        # find which ones are not currently in repo
+        my @new;
+        for my $deb (@debs) {
+            if ( not $self->_has_target($deb) ) {
+                push @new, $deb;
+            }
+        }
+        if (not @new) {
+            say 'No new packages to add to local-apt-repository'
+                or croak 'Unable to write to terminal';
+            return;
+        }
+
+        # add new packages to repo
+        my $repo = $self->_local_repo_path->canonpath;
+        my $count = scalar @new;
+        my $loop  = 1;
+        say 'Adding new package symlinks to local-apt-repository'
+            or croak 'Unable to write to terminal';
+        for my $target (@new) {
+            my $symlink = Path::Tiny::path( $repo,
+                Path::Tiny::path($target)->basename )->canonpath;
+            say "symlink $loop of $count:"
+                or croak 'Unable to write to terminal';
+            say "- from $symlink"
+                or croak 'Unable to write to terminal';
+            say "    to $target"
+                or croak 'Unable to write to terminal';
+            if ( symlink $target, $symlink ) {
+                say '- created ok'
+                    or croak 'Unable to write to terminal';
+            }
+            else {
+                say '- creation failed'
+                    or croak 'Unable to write to terminal';
+                die "Aborting local-apt-repository update\n";
+            }
+            $loop += 1;
+        }
+        say 'Update of local-apt-repository is done'
+            or croak 'Unable to write to terminal';
+
+        return;
+    }    # }}}1
+
+}
+
+my $p = Dn::UpdateLocalAptRepository->new_with_options->main;
+
+1;
+
+# POD    {{{1
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+update-local-apt-repository - add symlinks to new packages
+
+=head1 USAGE
+
+B<update-local-apt-repository>
+
+B<update-local-apt-repository -h>
+
+=head1 REQUIRED ARGUMENTS
+
+Nil.
+
+=head1 REQUIRED OPTIONS
+
+Nil.
+
+=head1 OPTIONS
+
+=over
+
+=item B<-h>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+Locates all debian packages (F<*.deb>) under the current working directory
+recursively and checks for existing symlinks to them in the
+local-apt-repository directory (F</srv/local-apt-repository>). If there is not
+an existing symlink for a package, one is created.
+
+The local-apt-repository directory is created if it does not already exist.
+
+The user must have access permissions to the local-apt-repository directory.
+This usually means superuser access.
+
+=head1 DIAGNOSTICS
+
+=head2 Errors
+
+These cause the script to terminate execution.
+
+=head3 Unable to write to terminal
+
+Occurs when the script is unable to C<print> or C<say> to the terminal.
+
+=head3 Unable to delete TEST_FILE: ERROR
+
+=head3 Unable to create file: TEST_FILE
+
+To ensure the user has sufficient access to the local-apt-repository directory
+the script attempts to create and then delete a test file from it. These errors
+occur if these file operations fail.
+
+=head3 Unable to delete SYMLINK: ERROR
+
+This error occurs if the script is unable to delete a broken symlink from the
+local-apt-repository directory.
+                    
+=head3 symlink X of Y: from LINK to PKG - creation failed
+
+This multiline messges ends in "creation failed" when an attempt to create a
+symlink from the local-apt-repository directory to a debian package file fails.
+
+=head2 Warnings
+
+These do not cause the script to terminate execution.
+
+=head3 Found non-symlink(s) in local-apt-repository
+
+The warning occurs when one or more non-symlink items are found in the
+local-apt-repository directory. The message is followed by a list of item
+names.
+            
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+Carp, Const::Fast, English, File::Find::Rule, File::Touch,
+Function::Parameters, Moo, MooX::HandlesVia, MooX::Options, namespace::clean,
+Path::Tiny, strictures, Syntax::Keyword::Try, Types::Standard, version.
+
+=head2 Services
+
+local-apt-repository.
+
+=head1 CONFIGURATION
+
+=head2 local-apt-repository
+
+The configuration and environment setup for local-apt-repository is all
+performed by the debian package "local-apt-repository" at installation. It then
+runs as a systemd service at each system start.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 EXIT STATUS
+
+The script exits with a shell error code if it encounters a fatal error.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 AUTHOR
+
+David Nebauer (david at nebauer dot org)
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2021 David Nebauer (david at nebauer dot org)
+
+This script is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
+# vim:foldmethod=marker:
