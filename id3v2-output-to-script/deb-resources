@@ -21,7 +21,7 @@ package-name dn-id3v2-output-to-script
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.1
+version 0.2
  
 # Script and binary files
 # Executable files to be packaged.
@@ -227,8 +227,8 @@ depends-on libversion-perl (>= 1:0.9912-1)
  
 ### Executables
  
-#   eyeD3
-depends-on eyeD3 (>= 0.8.10-1.1)
+#   eyed3
+depends-on eyed3 (>= 0.8.10-1.1)
  
 #   id3v2
 depends-on id3v2 (>= 0.1.12+dfsg-4)
