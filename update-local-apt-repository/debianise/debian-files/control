@@ -1,0 +1,39 @@
+Source: dn-update-local-apt-repository
+Section: admin
+Priority: optional
+Maintainer: David Nebauer <david@nebauer.org>
+Build-Depends: debhelper-compat (= 13), autotools-dev
+Standards-Version: 4.6.0
+#Homepage: <insert the upstream URL, if relevant>
+#Vcs-Browser: https://salsa.debian.org/debian/dn-update-local-apt-repository
+#Vcs-Git: https://salsa.debian.org/debian/dn-update-local-apt-repository.git
+Rules-Requires-Root: no
+
+Package: dn-update-local-apt-repository
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+ libconst-fast-perl (>= 0.014-1.1),
+ libfile-find-rule-perl (>= 0.34-1),
+ libfile-touch-perl (>= 0.12-1),
+ libfunction-parameters-perl (>= 2.001003-2+b3),
+ libmoo-perl (>= 2.005004-2),
+ libmoox-handlesvia-perl (>= 0.001009-1),
+ libmoox-options-perl (>= 4.103-3),
+ libnamespace-clean-perl (>= 0.27-1),
+ libpath-tiny-perl (>= 0.118-1),
+ libstrictures-perl (>= 2.000006-1),
+ libsyntax-keyword-try-perl (>= 0.24-1+b1),
+ libtype-tiny-perl (>= 1.012004-1),
+ libversion-perl (>= 1:0.9929-1),
+ local-apt-repository (>= 0.6+nmu1)
+Description: make local debs available to apt via local-apt-repository
+ Provides a script to find all debian packages in and under the current
+ directory, and make them available to apt-based package managers via
+ local-apt-repository by ensuring the /srv/local-apt-repository directory
+ contains symlinks to them.
+ .
+ Provides a second script which contains a hard-coded list of directories on
+ which it sequentially runs the first script.
+ .
+ Provides an apt configuration file which runs the second script after every
+ invocation of an apt-based package manager.

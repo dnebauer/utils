@@ -1,0 +1,163 @@
+#!/usr/bin/env bash
+
+# File: dn-local-apt-repository-update-all-dirs
+# Author: David Nebauer
+# Purpose: update local-apt-repository links to personal package directories
+# Created: 2021-09-21
+
+# error handling    {{{1
+
+# Exit on error. Append "|| true" if you expect an error.
+set -o errexit
+# Exit on error inside any functions or subshells.
+set -o errtrace
+# Do not allow use of undefined vars. Use ${VAR:-} to use an undefined VAR
+set -o nounset
+# Catch error in case mysqldump fails (but gzip succeeds) in `mysqldump |gzip`
+set -o pipefail
+# Turn on traces, useful while debugging but commented out by default
+# set -o xtrace
+# }}}1
+
+# variables    {{{1
+
+self="$(basename $0)"
+updater='dn-local-apt-repository-update-dir'
+updater_cmd="$updater -q"
+repo_dir='/srv/local-apt-repository'
+pkg_roots=(
+    /home/david/data/computing/projects/libs
+    /home/david/data/computing/projects/utils
+)
+required_tools=("$updater")    # }}}1
+
+# procedures
+
+# show usage    {{{1
+#   params: nil
+#   prints: nil
+#   return: nil
+displayUsage () {
+cat << _USAGE
+$self: update local repository with personal packages
+
+Updates local-apt-repository directory
+($repo_dir)
+with symlinks to personal debian packages. 
+
+Symlinks are updated with
+'$updater'.
+
+Use the '-l' option to list the directories which will be
+searched for packages.
+
+Usage $self [-l]
+      $self -h
+
+Options: -l,--list = list package directories
+_USAGE
+}
+
+# process command line options    {{{1
+#   params: all command line parameters
+#   prints: feedback
+#   return: nil
+#   note:   after execution variable ARGS contains
+#           remaining command line args (after options removed)
+processOptions () {
+	# read the command line options
+    local OPTIONS="$(                          \
+        getopt                                 \
+            --options lhvd                     \
+            --long    list,help,verbose,debug  \
+            --name    "${BASH_SOURCE[0]}"      \
+            -- "$@"                            \
+    )"
+    [[ $? -eq 0 ]] || {
+        echo 'Invalid command line options' 1>&2
+        exit 1
+    }
+    eval set -- "$OPTIONS"
+	while true ; do
+		case "$1" in
+        -l | --list    ) listPkgRoots   ; exit 0  ;;
+        -h | --help    ) displayUsage   ; exit 0  ;;
+        -v | --verbose ) set -o verbose ; shift 1 ;;
+        -d | --debug   ) set -o xtrace  ; shift 1 ;;
+        --             ) shift ; break ;;
+        *              ) break ;;
+		esac
+	done
+	ARGS="${@}"  # remaining arguments
+}
+
+# join items    {{{1
+#   params: 1  - delimiter
+#           2+ - items to be joined
+#   prints: string containing joined items
+#   return: nil
+function joinBy () {
+    local d=$1
+    shift
+    local f=$1
+    shift
+    printf %s "$f" "${@/#/$d}"
+}
+
+# list package directories    {{{1
+#   params: nil
+#   prints: package directories
+#   return: nil
+listPkgRoots () {
+    for root in "${pkg_roots[@]}" ; do
+        echo $root
+    done
+}    # }}}1
+
+
+# main
+
+# check for required tools    {{{1
+missing=()
+for tool in "${required_tools[@]}" ; do
+    command -v "$tool" &>/dev/null || missing+=("$tool")
+done
+if [[ ${#missing[@]} -ne 0 ]] ; then
+    echo "$self: can't run without: $(joinBy ', ' "${missing[@]}")" \
+        > /dev/stderr
+    exit 1
+fi
+unset missing tools required_tools
+
+# process command line options    {{{1
+# - results in $ARGS holding remaining non-option command line arguments
+processOptions "${@}"
+
+# check for local repository directory    {{{1
+if ! test -d "$repo_dir" ; then
+    echo "$self: can't locate repository directory: $repo_dir" > /dev/stderr
+    exit 1
+fi
+
+# check for package directories    {{{1
+roots=()
+for dir in "${pkg_roots[@]}" ; do
+	if test -d "$dir" ; then
+        roots+=("$dir")
+    else
+        echo "$self: can't locate package root directory: $dir" > /dev/stderr
+    fi
+done
+if [[ ${#roots[@]} -eq 0 ]] ; then
+    echo "$self: no valid package root directories to search" > /dev/stderr
+    exit 1
+fi
+
+# process package root directories    {{{1
+for dir in "${roots[@]}" ; do
+    echo "$self: processing $dir"
+    cd "$dir"
+    $updater_cmd
+done    # }}}1
+
+# vim:foldmethod=marker:

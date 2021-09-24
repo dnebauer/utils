@@ -1,0 +1,7 @@
+dn-update-local-apt-repository (0.1-1) UNRELEASED; urgency=medium
+
+  * Local package
+  * Initial release
+  * Closes: 500099
+
+ -- David Nebauer <david@nebauer.org>  Fri, 24 Sep 2021 20:49:36 +0930

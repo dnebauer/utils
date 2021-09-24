@@ -9,7 +9,7 @@ use namespace::clean;    # }}}1
 
 {
 
-    package Dn::UpdateLocalAptRepository;
+    package Dn::LocalAptRepositoryUpdateDir;
 
     use Moo;             # {{{1
     use strictures 2;
@@ -28,6 +28,15 @@ use namespace::clean;    # }}}1
 
     const my $TRUE  => 1;
     const my $FALSE => 0;    # }}}1
+
+    # options
+
+    # quiet (-q)    {{{1
+    option 'quiet' => (
+        is    => 'ro',
+        short => 'q',
+        doc   => 'Suppress all feedback other than errors',
+    );    #}}}1
 
     # attributes
 
@@ -107,6 +116,18 @@ use namespace::clean;    # }}}1
         return;
     }
 
+    # _info(msg)    {{{1
+    #
+    # does:   print message to console, respecting the 'quiet' option
+    # params: $msg - message to print to console
+    # prints: $msg
+    # return: n/a, dies on failure
+    method _info ($msg) {
+        return if $self->quiet;
+        say "$msg" or croak 'Unable to write to terminal';
+        return;
+    }
+
     # _check_environment()    {{{1
     #
     # does:   make sure directory /srv/local-apt-repository exists and user
@@ -120,16 +141,15 @@ use namespace::clean;    # }}}1
 
         # make sure local repo directory exists    {{{2
         if ( $self->_local_repo_path->is_dir ) {
-            say 'Found local-apt-repository: ' . $self->_local_repo_path
-                or croak 'Unable to write to terminal';
+            $self->_info(
+                'Found local-apt-repository: ' . $self->_local_repo_path );
         }
         else {
             my $perm = '0755';
             mkdir $repo, oct $perm
                 or die "Unable to create directory: $repo\n";
-            say 'Initialised local-apt-repository: '
-                . $self->_local_repo_path
-                or croak 'Unable to write to terminal';
+            $self->_info( 'Initialised local-apt-repository: '
+                    . $self->_local_repo_path );
         }
 
         # check for access to local repo directory    {{{2
@@ -176,31 +196,26 @@ use namespace::clean;    # }}}1
 
         # report non-symlinks
         if (@not_symlink) {
-            say 'Found non-symlink(s) in local-apt-repository:'
-                or croak 'Unable to write to terminal';
-            for my $file (@not_symlink) {
-                say "- $file"
-                    or croak 'Unable to write to terminal';
-            }
+            $self->_info('Found non-symlink(s) in local-apt-repository:');
+            for my $file (@not_symlink) { $self->_info("- $file"); }
         }
 
         # delete broken symlinks
         if (@broken) {
-            say 'Deleting broken local-apt-repository symlinks:'
-                or croak 'Unable to write to terminal';
+            $self->_info('Deleting broken local-apt-repository symlinks:');
             for my $symlink (@broken) {
-                print '- ' . $symlink->basename . ': '
-                    or croak 'Unable to write to terminal';
+                if ( not $self->quiet ) {
+                    print '- ' . $symlink->basename . ': '
+                        or croak 'Unable to write to terminal';
+                }
                 try {
                     $symlink->remove;
                 }
                 catch ($err) {
-                    say 'deletion failed'
-                        or croak 'Unable to write to terminal';
+                    $self->_info('deletion failed');
                     die "Unable to delete $symlink: $err\n";
                 }
-                say 'deleted ok'
-                    or croak 'Unable to write to terminal';
+                $self->_info('deleted ok');
             }
         }
 
@@ -247,47 +262,39 @@ use namespace::clean;    # }}}1
                 push @new, $deb;
             }
         }
-        if (not @new) {
-            say 'No new packages to add to local-apt-repository'
-                or croak 'Unable to write to terminal';
+        if ( not @new ) {
+            $self->_info('No new packages to add to local-apt-repository');
             return;
         }
 
         # add new packages to repo
-        my $repo = $self->_local_repo_path->canonpath;
+        my $repo  = $self->_local_repo_path->canonpath;
         my $count = scalar @new;
         my $loop  = 1;
-        say 'Adding new package symlinks to local-apt-repository'
-            or croak 'Unable to write to terminal';
+        $self->_info('Adding new package symlinks to local-apt-repository');
         for my $target (@new) {
             my $symlink = Path::Tiny::path( $repo,
                 Path::Tiny::path($target)->basename )->canonpath;
-            say "symlink $loop of $count:"
-                or croak 'Unable to write to terminal';
-            say "- from $symlink"
-                or croak 'Unable to write to terminal';
-            say "    to $target"
-                or croak 'Unable to write to terminal';
+            $self->_info("symlink $loop of $count:");
+            $self->_info("- from $symlink");
+            $self->_info("    to $target");
             if ( symlink $target, $symlink ) {
-                say '- created ok'
-                    or croak 'Unable to write to terminal';
+                $self->_info('- created ok');
             }
             else {
-                say '- creation failed'
-                    or croak 'Unable to write to terminal';
+                $self->_info('- creation failed');
                 die "Aborting local-apt-repository update\n";
             }
             $loop += 1;
         }
-        say 'Update of local-apt-repository is done'
-            or croak 'Unable to write to terminal';
+        $self->_info('Update of local-apt-repository is done');
 
         return;
     }    # }}}1
 
 }
 
-my $p = Dn::UpdateLocalAptRepository->new_with_options->main;
+my $p = Dn::LocalAptRepositoryUpdateDir->new_with_options->main;
 
 1;
 
@@ -298,13 +305,13 @@ __END__
 
 =head1 NAME
 
-update-local-apt-repository - add symlinks to new packages
+dn-local-apt-repository-update-dir - add symlinks to new packages
 
 =head1 USAGE
 
-B<update-local-apt-repository>
+B<dn-local-apt-repository-update-dir>
 
-B<update-local-apt-repository -h>
+B<dn-local-apt-repository-update-dir -h>
 
 =head1 REQUIRED ARGUMENTS
 
@@ -318,7 +325,11 @@ Nil.
 
 =over
 
-=item B<-h>
+=item B<-q>  B<--quiet>
+
+Suppress all messages except error messages.
+
+=item B<-h>  B<--help>
 
 Display help and exit.
 
@@ -394,13 +405,13 @@ The configuration and environment setup for local-apt-repository is all
 performed by the debian package "local-apt-repository" at installation. It then
 runs as a systemd service at each system start.
 
-=head1 INCOMPATIBILITIES
-
-There are no known incompatibilities.
-
 =head1 EXIT STATUS
 
 The script exits with a shell error code if it encounters a fatal error.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
 
 =head1 BUGS AND LIMITATIONS
 

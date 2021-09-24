@@ -1,8 +1,3 @@
-*.deb
-*.diff.gz
-*.dsc
-*.orig
-*.tar
-*.gz
-# *.1
-tags
+debianise/source/**
+tarball/archive/**
+tarball/build/**

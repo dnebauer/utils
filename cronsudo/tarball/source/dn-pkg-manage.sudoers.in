@@ -16,3 +16,5 @@ david ALL= NOPASSWD: /usr/bin/npm
 david ALL= NOPASSWD: /usr/bin/pip
 david ALL= NOPASSWD: /usr/bin/pip2
 david ALL= NOPASSWD: /usr/bin/pip3
+david ALL= NOPASSWD: /usr/sbin/dn-local-apt-repository-update-dir
+david ALL= NOPASSWD: /usr/sbin/dn-local-apt-repository-update-all-dirs

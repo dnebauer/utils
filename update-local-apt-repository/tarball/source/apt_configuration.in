@@ -1,0 +1,2 @@
+# update local-apt-repository with local package directories
+Dpkg::Pre-Invoke {"@sbin_dir@/dn-local-apt-repository-update-all-dirs";};

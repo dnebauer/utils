@@ -1,3 +1,13 @@
+2021-09-24  David Nebauer  <david@nebauer.org>
+
+    * dn-pkg-manage.sudoers: remove update-local-apt-repository
+    * dn-pkg-manage.sudoers: add update-local-apt-repository-dir
+    * dn-pkg-manage.sudoers: add update-local-apt-repository-all-dirs
+
+2021-09-20  David Nebauer  <david@nebauer.org>
+
+    * dn-pkg-manage.sudoers: add update-local-apt-repository
+
 2021-09-18  David Nebauer  <david@nebauer.org>
 
     * dn-pkg-manage.sudoers: add debsums
