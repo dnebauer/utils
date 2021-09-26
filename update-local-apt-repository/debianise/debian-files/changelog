@@ -1,3 +1,21 @@
+dn-update-local-apt-repository (1.1-1) UNRELEASED; urgency=medium
+
+  * Ensure feedback starts on new line
+
+ -- David Nebauer <david@nebauer.org>  Sun, 26 Sep 2021 09:38:22 +0930
+
+dn-update-local-apt-repository (1.0-1) UNRELEASED; urgency=medium
+
+  * Fix postinst comment
+
+ -- David Nebauer <david@nebauer.org>  Sat, 25 Sep 2021 21:58:46 +0930
+
+dn-update-local-apt-repository (0.2-1) UNRELEASED; urgency=medium
+
+  * Ensure feedback starts on new line
+
+ -- David Nebauer <david@nebauer.org>  Sat, 25 Sep 2021 21:58:46 +0930
+
 dn-update-local-apt-repository (0.1-1) UNRELEASED; urgency=medium
 
   * Local package

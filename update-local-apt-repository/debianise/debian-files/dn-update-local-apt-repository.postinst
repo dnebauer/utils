@@ -28,7 +28,7 @@ case "$1" in
             ucf --debconf-ok "${src}" "${dst}"
             # update conf file registry to associate conf file with package
             ucfr "${pkg}" "${dst}"
-            # all sudoer conf files *must* be 440
+            # all apt conf files are 644
             chmod 0644 "${dst}"
         else
             echo "running an older version of apt"

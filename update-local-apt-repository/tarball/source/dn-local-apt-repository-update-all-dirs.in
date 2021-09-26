@@ -154,6 +154,7 @@ if [[ ${#roots[@]} -eq 0 ]] ; then
 fi
 
 # process package root directories    {{{1
+echo ' '    # feedback starts on new line
 for dir in "${roots[@]}" ; do
     echo "$self: processing $dir"
     cd "$dir"
