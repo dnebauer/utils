@@ -57,9 +57,11 @@ if $( grep -F "\$(MAKE) distclean" /home/david/data/computing/projects/utils/als
 	fi
 fi
 
-# variable replacement: @pkg@ = dn-alsa-device
+# Variable replacement: @pkg_name@ = dn-local-apt-repository
 dnInfon "Inserting pkg name in control scripts... " 
 for xfile in debian/* ; do
-	sed -i -e "s/@pkg@/${xpkg}/g" ${xfile}
+	if test -f "${xfile}" ; then
+		sed -i -e "s/@pkg_name@/${xpkg}/g" "${xfile}"
+	fi
 done
 echo "Done"

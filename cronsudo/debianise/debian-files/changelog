@@ -1,3 +1,11 @@
+dn-cronsudo (2.1-2) UNRELEASED; urgency=low
+
+  * remove AUTHORS, ChangeLog, NEWS and README build files
+  * sudo: add update-local-apt-repository-dir to package managers
+  * sudo: add update-local-apt-repository-all-dirs to package managers
+
+ -- David Nebauer <david@nebauer.org>  Sun, 26 Sep 2021 12:23:54 +0930
+
 dn-cronsudo (2.1-1) UNRELEASED; urgency=low
 
   * sudo: remove update-local-apt-repository from package managers

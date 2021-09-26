@@ -1,3 +1,10 @@
+dn-alsa-device (0.2-2) UNRELEASED; urgency=low
+
+  * change distro to UNRELEASED to prevent package signing
+  * remove NEWS, README, AUTHORS, ChangeLog build files
+
+ -- David Nebauer <david@nebauer.org>  Sun, 26 Sep 2021 11:28:35 +0930
+
 dn-alsa-device (0.2-1) unstable; urgency=low
 
   * udev rules file supplied by dh_installudev rather than autotools

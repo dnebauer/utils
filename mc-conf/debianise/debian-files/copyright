@@ -2,7 +2,7 @@ Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: dn-mc-conf
 
 Files: *
-Copyright: 2013 David Nebauer <david@nebauer.org>
+Copyright: 2013-2021 David Nebauer <david@nebauer.org>
 License: GPL-2+
  This package is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

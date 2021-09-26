@@ -15,28 +15,3 @@
 # debian directory variables
 override_dh_auto_configure:
 	dh_auto_configure -- --sharedstatedir=/var/lib --libdir=/lib
-
-# prevent digital signing of package
-override_dh_md5sums:
-
-# build system mistakenly sets data files to executable
-# fix file permissions
-binary: binary-arch binary-indep
-binary-arch: install
-	chmod -R a-x debian/dn-7kaa/usr/games/dn-7kaa/encyc/firm/*
-	chmod -R a-x debian/dn-7kaa/usr/games/dn-7kaa/encyc/god/*
-	chmod -R a-x debian/dn-7kaa/usr/games/dn-7kaa/encyc/monster/*
-	chmod -R a-x debian/dn-7kaa/usr/games/dn-7kaa/encyc/seat/*
-	chmod -R a-x debian/dn-7kaa/usr/games/dn-7kaa/encyc/unit/*
-	chmod -R a-x debian/dn-7kaa/usr/games/dn-7kaa/encyc2/god/*
-	chmod -R a-x debian/dn-7kaa/usr/games/dn-7kaa/encyc2/seat/*
-	chmod -R a-x debian/dn-7kaa/usr/games/dn-7kaa/encyc2/unit/*
-	chmod -R a-x debian/dn-7kaa/usr/games/dn-7kaa/image/*
-	chmod -R a-x debian/dn-7kaa/usr/games/dn-7kaa/music/*
-	chmod -R a-x debian/dn-7kaa/usr/games/dn-7kaa/resource/*
-	chmod -R a-x debian/dn-7kaa/usr/games/dn-7kaa/scenario/*
-	chmod -R a-x debian/dn-7kaa/usr/games/dn-7kaa/scenari2/*
-	chmod -R a-x debian/dn-7kaa/usr/games/dn-7kaa/sound/*
-	chmod -R a-x debian/dn-7kaa/usr/games/dn-7kaa/sprite/*
-	chmod -R a-x debian/dn-7kaa/usr/games/dn-7kaa/tutorial/*
-	dh binary-arch

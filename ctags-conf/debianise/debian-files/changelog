@@ -1,3 +1,9 @@
+dn-ctags-conf (1.1-2) UNRELEASED; urgency=low
+
+  * Remove AUTHORS, ChangeLog, NEWS and README build files
+
+ -- David Nebauer <david@nebauer.org>  Sun, 26 Sep 2021 12:30:43 +0930
+
 dn-ctags-conf (1.1-1) unstable; urgency=low
 
   * New upstream release

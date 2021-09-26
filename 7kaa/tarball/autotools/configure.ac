@@ -1,9 +1,13 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.67])
-AC_INIT([Seven Kingdoms: Ancient Adversaries], [1.0], [david@nebauer.org], [dn-7kaa])
-AM_INIT_AUTOMAKE
+AC_PREREQ([2.71])
+AC_INIT([Seven Kingdoms: Ancient Adversaries],
+        [1.0],
+        [david@nebauer.org],
+        [dn-7kaa],
+)
+AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 # Checks for programs.
 

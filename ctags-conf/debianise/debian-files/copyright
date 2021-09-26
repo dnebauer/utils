@@ -2,7 +2,7 @@ Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: dn-ctags-conf
 
 Files: *
-Copyright: 2013 David Nebauer <david@nebauer.org>
+Copyright: 2013-2021 David Nebauer <david@nebauer.org>
 License: GPL-2+
 
 License: GPL-2+

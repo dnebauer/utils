@@ -20,10 +20,6 @@ override_dh_auto_configure:
 override_dh_strip:
 	dh_strip --no-automatic-dbgsym
 
-# prevent digital signing of package
-override_dh_md5sums:
-	echo 'Skipping dh_ms5sums'
-
 # use custom name for cron files
 override_dh_installcron:
 	dh_installcron --name=dn-tasks

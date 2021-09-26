@@ -1,3 +1,9 @@
+dn-mc-conf (0.7-2) UNRELEASED; urgency=low
+
+  * Remove AUTHORS, ChangeLog, NEWS and README build files
+
+ -- David Nebauer <david@nebauer.org>  Sun, 26 Sep 2021 12:37:04 +0930
+
 dn-mc-conf (0.7-1) UNRELEASED; urgency=low
 
   * New upstream release

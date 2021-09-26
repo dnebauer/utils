@@ -1,9 +1,13 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.67])
-AC_INIT([Change alsa default device], [0.2], [david@nebauer.org], [dn-alsa-device])
-AM_INIT_AUTOMAKE
+AC_PREREQ([2.71])
+AC_INIT([Change alsa default device],
+        [0.2],
+        [david@nebauer.org],
+        [dn-alsa-device],
+)
+AM_INIT_AUTOMAKE([foreign])
 
 # Checks for programs.
 AC_PATH_PROG(myamixer, amixer)
@@ -115,13 +119,18 @@ AC_SUBST(man_dir)
 
 
 # Create files
-AC_CONFIG_FILES([Makefile
-                 dn-alsa-device             dn-alsa-device.1
-                 dn-alsa-devicerc           dn-alsa-devicerc.5
-                 asound.conf-dn.example     asound.conf-dn.5
-                 dn-alsa-device-udev-rules.5
-                 error.xpm                  info.xpm
-                 question.xpm               warn.xpm
-                 sound.xpm
-				])
+AC_CONFIG_FILES([
+    Makefile
+    asound.conf-dn.example
+    dn-alsa-device
+    dn-alsa-device-udev-rules.5
+    dn-alsa-device.1
+    dn-alsa-devicerc
+    dn-alsa-devicerc.5
+    error.xpm
+    info.xpm
+    question.xpm
+    sound.xpm
+    warn.xpm
+])
 AC_OUTPUT

@@ -2,7 +2,7 @@ Source: dn-7kaa
 Section: games
 Priority: extra
 Maintainer: David Nebauer <david@nebauer.org>
-Build-Depends: debhelper (>= 7.0.50~), autotools-dev
+Build-Depends: debhelper-compat (= 13), autotools-dev
 Standards-Version: 3.9.1
 Homepage: http://7kfans.com/
 
@@ -11,6 +11,6 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Seven Kingdom: Ancient Adversaries game
  A real-time strategy game developed by Trevor Chan of
- Enlight Software.  It was open-sourced in 2009 and
+ Enlight Software. It was open-sourced in 2009 and
  subsequently ported to the Simple DirectMedia Layer.
  This enabled 7kaa to run on Linux.

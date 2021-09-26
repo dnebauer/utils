@@ -1,8 +1,8 @@
-dn-update-local-apt-repository (1.1-1) UNRELEASED; urgency=medium
+dn-update-local-apt-repository (1.1-2) UNRELEASED; urgency=medium
 
-  * Ensure feedback starts on new line
+  * Remove cruft from debian rules build file
 
- -- David Nebauer <david@nebauer.org>  Sun, 26 Sep 2021 09:38:22 +0930
+ -- David Nebauer <david@nebauer.org>  Sun, 26 Sep 2021 12:57:54 +0930
 
 dn-update-local-apt-repository (1.0-1) UNRELEASED; urgency=medium
 

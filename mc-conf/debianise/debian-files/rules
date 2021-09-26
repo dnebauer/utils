@@ -15,11 +15,3 @@
 # debian directory variables
 override_dh_auto_configure:
 	dh_auto_configure -- --sharedstatedir=/var/lib --libdir=/lib
-
-# prevent automatic creation of dbgsym package
-override_dh_strip:
-	dh_strip --no-automatic-dbgsym
-
-# prevent digital signing of package
-override_dh_md5sums:
-	echo 'Skipping dh_md5sums'

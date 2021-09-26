@@ -2,8 +2,8 @@ Source: dn-mc-conf
 Section: utils
 Priority: extra
 Maintainer: David Nebauer <david@nebauer.org>
-Build-Depends: debhelper-compat (= 12), autotools-dev
-Standards-Version: 3.9.3
+Build-Depends: debhelper-compat (= 13), autotools-dev
+Standards-Version: 4.6.0
 
 Package: dn-mc-conf
 Architecture: all

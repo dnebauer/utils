@@ -2,8 +2,8 @@ Source: dn-cronsudo
 Section: admin
 Priority: extra
 Maintainer: David Nebauer <david@nebauer.org>
-Build-Depends: debhelper-compat (= 12)
-Standards-Version: 3.9.2
+Build-Depends: debhelper-compat (= 13), autotools-dev
+Standards-Version: 4.6.0
 
 Package: dn-cronsudo
 Architecture: all
