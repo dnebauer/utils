@@ -21,7 +21,7 @@ package-name perl-module-debian-package
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.5
+version 0.6
  
 # Script and binary files
 # Executable files to be packaged.

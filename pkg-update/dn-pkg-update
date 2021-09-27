@@ -1,10 +1,10 @@
 #!/usr/bin/perl 
 
-use Moo;    #                                                          {{{1
+use Moo;    # {{{1
 use strictures 2;
 use 5.014_002;
 use version; our $VERSION = qv('0.1');
-use namespace::clean;    #                                             }}}1
+use namespace::clean;    # }}}1
 
 {
 
@@ -23,51 +23,45 @@ use namespace::clean;    #                                             }}}1
     my $cp = Dn::Common->new();
 
     Readonly my $TRUE  => 1;
-    Readonly my $FALSE => 0;
+    Readonly my $FALSE => 0;    # }}}1
 
-    # debug
-    use Data::Dumper::Simple;    #                                     }}}1
+    # options
 
-    # Options
-
-    # option ignore_failure (-i)                                       {{{1
+    # option ignore_failure (-i)    {{{1
     option 'ignore_failure' => (
         is            => 'ro',
         required      => $FALSE,
         short         => 'i',
         documentation => 'Continue after failed command',
-    ); #                                                            }}}1
-       # option final_prompt   (-p)                                       {{{1
+    );    # }}}1
+          # option final_prompt   (-p)    {{{1
     option 'final_prompt' => (
         is            => 'ro',
         required      => $FALSE,
         short         => 'p',
         documentation => 'Prompt when finished',
-    );    #                                                            }}}1
+    );    # }}}1
 
-    # Attributes
+    # attributes
 
-    # has _cmd_list                                                    {{{1
+    # _cmds    {{{1
     has '_cmd_list' => (
         is  => 'ro',
         isa => Types::Standard::ArrayRef [
             Types::Standard::ArrayRef [Types::Standard::Str]
         ],
-        required    => $TRUE,
-        builder     => '_build_cmd_list',
-        handles_via => 'Array',
-        handles     => {
-            _cmds     => 'elements',
-            _add_cmd  => 'push',
-            _has_cmds => 'count',
-        },
+        required      => $TRUE,
+        builder       => '_build_cmd_list',
+        handles_via   => 'Array',
+        handles       => { _cmds => 'elements', },
         documentation => q{Aptitude commands},
     );
 
     method _build_cmd_list () {
         my $cmds = [
+            ['dn-local-apt-repository-update-all-dirs'],
             [ 'aptitude', 'update' ],
-            ['aptitude', '--autoclean-on-startup' ],
+            [ 'aptitude', '--autoclean-on-startup' ],
             [ 'aptitude', 'install' ],
         ];
         if ( $USER ne 'root' ) {
@@ -76,13 +70,11 @@ use namespace::clean;    #                                             }}}1
             }
         }
         return $cmds;
-    }
+    }    # }}}1
 
-    #                                                            }}}1
+    # methods
 
-    # Methods
-
-    # main()                                                           {{{1
+    # main()    {{{1
     #
     # does:   main method
     # params: nil
@@ -98,16 +90,17 @@ use namespace::clean;    #                                             }}}1
         if ( not $cp->internet_connection() ) {
             die "No internet connection detected\n";
         }
-        foreach my $cmd (@cmds) {
-            say "\nRunning [" . ( join q{ }, @{$cmd} ) . "]...\n";
-            if ( !eval { system @{$cmd}; 1 } ) {
+        foreach my $cmd_parts (@cmds) {
+            my @cmd = @{$cmd_parts};
+            say "\nRunning [" . ( join q{ }, @cmd ) . "]...\n";
+            if ( !eval { system @cmd; 1 } ) {
                 if ( not $self->ignore_failure ) {
                     die "Command failed, aborting...\n";
                 }
             }
         }
         if ( $self->final_prompt ) { $cp->prompt(); }
-    }    #                                                             }}}1
+    }    # }}}1
 
 }
 
@@ -115,7 +108,7 @@ my $p = Dn::PkgUpdate->new_with_options->main;
 
 1;
 
-# POD                                                                  {{{1
+# POD    {{{1
 
 __END__
 
@@ -158,53 +151,33 @@ Display help and exit.
 Gives user an opportunity to update existing packages and potentially install
 additional packages.
 
-This script uses the C<aptitude> package manager. Package management is a
-superuser activity. If the user is not root the package management commands are
-run with C<sudo>.
+This script runs the following commands in sequence:
 
-This script performs an autoclean before updating.
+=over
+
+=item C<dn-local-apt-repository-update-all-dirs>
+
+=item C<aptitude update>
+
+=item C<aptitude --autoclean-on-startup>
+
+=item C<aptitude install>
+
+=back
+
+Package management is a superuser activity. If the user is not root the package
+management commands are run with C<sudo>.
 
 =head1 DEPENDENCIES
 
 =head2 Perl modules
 
-=over
-
-=item Dn::Common
-
-=item Env
-
-=item Function::Parameters
-
-=item Moo
-
-=item MooX::HandlesVia
-
-=item MooX::Options
-
-=item namespace::clean
-
-=item Readonly
-
-=item strictures
-
-=item Types::Standard
-
-=item version
-
-=back
+Dn::Common, Env, Function::Parameters, Moo, MooX::HandlesVia, MooX::Options,
+namespace::clean, Readonly, strictures, Types::Standard, version.
 
 =head2 Executables
 
-=over
-
-=item aptitude
-
-=perl
-
-=item sudo
-
-=back
+aptitude, dn-local-apt-repository-update-all-dirs, perl, sudo.
 
 =head1 BUGS AND LIMITATIONS
 
@@ -223,4 +196,3 @@ it under the same terms as Perl itself.
 
 =cut
 # vim:fdm=marker
-

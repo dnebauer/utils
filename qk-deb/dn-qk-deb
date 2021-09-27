@@ -1624,10 +1624,10 @@ use version; our $VERSION = qv('0.1');    #                            }}}1
     method _write_build_files () {
         $self->_write_configure_file();
         $self->_write_makefile_file();
-        $self->_write_news_file();
-        $self->_write_readme_file();
-        $self->_write_authors_file();
-        $self->_write_changelog_file();
+        #$self->_write_news_file();
+        #$self->_write_readme_file();
+        #$self->_write_authors_file();
+        #$self->_write_changelog_file();
     }
 
     # _write_configure_file()                                          {{{1
@@ -1660,14 +1660,14 @@ use version; our $VERSION = qv('0.1');    #                            }}}1
             qq{# configure.ac for $name project},
             q{ },
             q{# Initialise project},
+            qq{AC_PREREQ([$prereq])},
             q{AC_INIT(},
             qq{[$summary],},
             qq{[$version],},
             qq{[$email],},
             qq{[$name],},
             q{)},
-            q{AM_INIT_AUTOMAKE},
-            qq{AC_PREREQ([$prereq])},
+            q{AM_INIT_AUTOMAKE([foreign])},
             q{},
             q{# Checks for programs/files},
             q{mypath="/usr:/usr/bin:/usr/local/bin"},
@@ -2220,8 +2220,8 @@ use version; our $VERSION = qv('0.1');    #                            }}}1
         }
         $self->_debianise_dir_path($debianise_dir);
 
-        # delete all but 'compat', 'dirs' and 'rules'
-        my %is_keep_file        = map { ( $_ => 1 ) } qw(compat dirs rules);
+        # delete all but 'dirs' and 'rules'
+        my %is_keep_file        = map { ( $_ => 1 ) } qw(dirs rules);
         my @debianise_dir_files = $cp->files_list($debianise_dir);
         my @debianise_dir_dirs  = $cp->dirs_list($debianise_dir);
         local $File::chdir::CWD = $File::chdir::CWD;
@@ -2357,7 +2357,7 @@ use version; our $VERSION = qv('0.1');    #                            }}}1
         $self->_write_bash_completion_file();
         $self->_write_install_file();
         $self->_write_copyright_file();
-        $self->_write_docs_file();
+        #$self->_write_docs_file();
     }
 
     # _write_control_file()                                            {{{1
@@ -2369,10 +2369,11 @@ use version; our $VERSION = qv('0.1');    #                            }}}1
     method _write_control_file () {
 
         # set vars
-        my $compat  = 12;
+        my $compat  = $cp->debhelper_compat;
         my $name    = $self->_name;
         my $author  = $self->_primary_author;
         my $email   = $self->_email;
+        my $standards = $cp->debian_standards_version;
         my $summary = $self->_summary;
         my @depends;
         for my $type ( 'shlibs', 'misc', 'perl' ) {
@@ -2401,6 +2402,8 @@ use version; our $VERSION = qv('0.1');    #                            }}}1
             q[Build-Depends: ],
             qq[ debhelper-compat (= $compat), ],
             q[ autotools-dev],
+            qq[Standards-Version: $standards,],
+
             q[],
             qq[Package: $name],
             q[Architecture: all],
@@ -2636,6 +2639,7 @@ use version; our $VERSION = qv('0.1');    #                            }}}1
     method _write_copyright_file () {
 
         # set vars
+        my $name          = $self->_name;
         my $author        = $self->_primary_author;
         my $email         = $self->_email;
         my $year          = $self->_copyright;
@@ -2650,6 +2654,7 @@ use version; our $VERSION = qv('0.1');    #                            }}}1
             (
             q{Format: http://www.debian.org/doc/}
                 . q{packaging-manuals/copyright-format/1.0/},
+            qq{Upstream-Name: $name},
             q{},
             q{Files: *},
             qq{Copyright: $year, $author <$email>},

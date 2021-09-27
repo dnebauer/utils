@@ -21,7 +21,7 @@ package-name dn-colour-bash
 # Package version
 # Version number for package.
 # Required.  One only.
-version 1.0
+version 1.1
 
 # Script and binary files
 # Executable files to be packaged.

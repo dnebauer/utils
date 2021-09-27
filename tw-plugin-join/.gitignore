@@ -1,0 +1,10 @@
+*.bak
+# *.deb
+*.diff.gz
+*.dsc
+*.orig
+*.tar
+*.gz
+# *.1
+# doc/**
+tags

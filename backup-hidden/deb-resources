@@ -21,13 +21,13 @@ package-name dn-backup-hidden
 # Package version
 # Version number for package.
 # Required.  One only.
-version 1.1
+version 1.2
 
 # Script and binary files
 # Executable files to be packaged.
 # Can be standard ('bin-files') or superuser-only ('sbin-files').
 # Required.  Multiple allowed
-bin-file  dn-backup-hidden
+bin-file dn-backup-hidden
 #sbin-file 
 
 # Manpages
@@ -80,7 +80,7 @@ control-summary backs up pre-defined hidden files and directories to archive
 control-description Backs up pre-defined hidden files and directories to an 
 control-description archive. This is useful as some backup programs ignore
 control-description hidden files and directories.
-.
+control-description .
 control-description Archive location and name are defined in a configuration
 control-description file, as are the hidden files and directories to back up.
 

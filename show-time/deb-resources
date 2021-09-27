@@ -21,7 +21,7 @@ package-name dn-show-time
 # Package version
 # Version number for package.
 # Required.  One only.
-version 0.3
+version 0.4
 
 # Script and binary files
 # Executable files to be packaged.

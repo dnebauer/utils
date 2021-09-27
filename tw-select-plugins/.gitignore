@@ -1,5 +1,5 @@
 *.bak
-*.deb
+# *.deb
 *.diff.gz
 *.dsc
 *.orig

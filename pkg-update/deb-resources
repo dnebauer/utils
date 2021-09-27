@@ -21,7 +21,7 @@ package-name dn-pkg-update
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.1
+version 0.3
  
 # Script and binary files
 # Executable files to be packaged.
@@ -144,7 +144,8 @@ control-description As package management is a superuser activity,
 control-description if user is not root the package management
 control-description commands are run with sudo.
 control-description .
-control-description This script performs an autoclean before updating.
+control-description See the manpage for a list of commands executed by this
+control-description script.
 
  
 # Dependency
@@ -191,6 +192,9 @@ depends-on libversion-perl (>= 1:0.9912-1)
  
 #   aptitude
 depends-on aptitude (>= 0.6.11-1+b1)
+
+#   dn-local-apt-repository-update-all-dirs
+depends-on dn-update-local-apt-repository (>= 1.1-2)
  
 #   sudo
 depends-on sudo (>= 1.8.12-1)

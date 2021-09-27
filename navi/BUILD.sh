@@ -177,6 +177,6 @@ dnInfo "Building debian package..."
 dnInfo "Version of navi: ${version}"
 
 # Hand over control to dn-qk-deb
-exec dn-qk-deb
+exec dn-qk-deb -n
 
 # vim:foldmethod=marker:

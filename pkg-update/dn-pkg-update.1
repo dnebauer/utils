@@ -133,7 +133,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DN-PKG-UPDATE 1"
-.TH DN-PKG-UPDATE 1 "2021-03-26" "perl v5.32.1" "User Contributed Perl Documentation"
+.TH DN-PKG-UPDATE 1 "2021-09-27" "perl v5.32.1" "User Contributed Perl Documentation"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -167,47 +167,33 @@ Display help and exit.
 Gives user an opportunity to update existing packages and potentially install
 additional packages.
 .PP
-This script uses the \f(CW\*(C`aptitude\*(C'\fR package manager. Package management is a
-superuser activity. If the user is not root the package management commands are
-run with \f(CW\*(C`sudo\*(C'\fR.
+This script runs the following commands in sequence:
+.ie n .IP """dn\-local\-apt\-repository\-update\-all\-dirs""" 4
+.el .IP "\f(CWdn\-local\-apt\-repository\-update\-all\-dirs\fR" 4
+.IX Item "dn-local-apt-repository-update-all-dirs"
+.PD 0
+.ie n .IP """aptitude update""" 4
+.el .IP "\f(CWaptitude update\fR" 4
+.IX Item "aptitude update"
+.ie n .IP """aptitude \-\-autoclean\-on\-startup""" 4
+.el .IP "\f(CWaptitude \-\-autoclean\-on\-startup\fR" 4
+.IX Item "aptitude --autoclean-on-startup"
+.ie n .IP """aptitude install""" 4
+.el .IP "\f(CWaptitude install\fR" 4
+.IX Item "aptitude install"
+.PD
 .PP
-This script performs an autoclean before updating.
+Package management is a superuser activity. If the user is not root the package
+management commands are run with \f(CW\*(C`sudo\*(C'\fR.
 .SH "DEPENDENCIES"
 .IX Header "DEPENDENCIES"
 .SS "Perl modules"
 .IX Subsection "Perl modules"
-.IP "Dn::Common" 4
-.IX Item "Dn::Common"
-.PD 0
-.IP "Env" 4
-.IX Item "Env"
-.IP "Function::Parameters" 4
-.IX Item "Function::Parameters"
-.IP "Moo" 4
-.IX Item "Moo"
-.IP "MooX::HandlesVia" 4
-.IX Item "MooX::HandlesVia"
-.IP "MooX::Options" 4
-.IX Item "MooX::Options"
-.IP "namespace::clean" 4
-.IX Item "namespace::clean"
-.IP "Readonly" 4
-.IX Item "Readonly"
-.IP "strictures" 4
-.IX Item "strictures"
-.IP "Types::Standard" 4
-.IX Item "Types::Standard"
-.IP "version" 4
-.IX Item "version"
-.PD
+Dn::Common, Env, Function::Parameters, Moo, MooX::HandlesVia, MooX::Options,
+namespace::clean, Readonly, strictures, Types::Standard, version.
 .SS "Executables"
 .IX Subsection "Executables"
-.IP "aptitude" 4
-.IX Item "aptitude"
-.PD 0
-.IP "sudo" 4
-.IX Item "sudo"
-.PD
+aptitude, dn-local-apt-repository-update-all-dirs, perl, sudo.
 .SH "BUGS AND LIMITATIONS"
 .IX Header "BUGS AND LIMITATIONS"
 Please report any bugs to the author.
@@ -220,9 +206,3 @@ Copyright (c) 2015 David Nebauer <davidnebauer@hotkey.net.au>
 .PP
 This script is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
-.SH "POD ERRORS"
-.IX Header "POD ERRORS"
-Hey! \fBThe above document had some coding errors, which are explained below:\fR
-.IP "Around line 203:" 4
-.IX Item "Around line 203:"
-Unknown directive: =perl
