@@ -1,14 +1,11 @@
-#!/bin/bash
-# shellcheck disable=1117
-# $Id: dn-build-deb,v 1.10 2011/02/27 16:30:14 David_Nebauer Exp $
+#!/usr/bin/env bash
 
 # File: build-deb
 # Author: David Nebauer
 # Purpose: Generic build deb script for packages
 # Created: 2007-09-12
 
-
-# VARIABLES
+# variables    {{{1
 
 # provided by libdncommon-bash, but avoid shellcheck error SC2154
 declare dn_self dn_divider
@@ -41,11 +38,13 @@ mand_dirs=()  # mandatory project directories (filled once root known)
 stnd_dirs=()  # standard-projects-only directories (filled once root known)
 args=
 unset param_pad msg
+# }}}1
 
+# procedures
 
-# PROCEDURES
+# displayUsage()    {{{1
 
-# Show usage
+#  purpose: show usage information
 #   params: nil
 #   prints: nil
 #   return: nil
@@ -79,7 +78,10 @@ Options: -r VAL  root directory of build tree [required]
          -d      build from dist tarzip in debian source dir [optional]
 _USAGE
 }
-# Process configuration files
+
+# processConfigFiles($global, $local)    {{{1
+
+#  purpose: process configuration files
 #   params: 1 - global config filepath (optional)
 #           2 - local config filepath (optional)
 #   prints: nil
@@ -109,7 +111,10 @@ processConfigFiles () {
 		fi
 	done
 }
-# Process command line
+
+# processCommandLine(param1, param2, ...)    {{{1
+
+#  purpose: process command line
 #   params: all command line parameters
 #   prints: feedback
 #   return: nil
@@ -143,7 +148,10 @@ processCommandLine () {
 	args="${*}"  # reset arguments
 	unset usage parameters
 }
-# Whether source is a perl module
+
+# projectIsPerlModule()    {{{1
+
+#  purpose: whether source is a perl module
 #   params: nil
 #   prints: nil
 #   return: boolean (0=true|1=false)
@@ -152,7 +160,10 @@ projectIsPerlModule () {
     # shellcheck disable=SC2065
     return "$( test -f "${tar_build}/Makefile.PL" ; echo $? )"
 }
-# Building from distribution targzip (getter/setter)
+
+# buildFromDist([$val])    {{{1
+
+#  purpose: building from distribution targzip (getter/setter)
 #   params: nil (getter)
 #           1 - value (setter)
 #   prints: nil
@@ -165,7 +176,10 @@ buildFromDist () {
 		build_from_dist="$( dnStandardiseBoolean "${1}" )"
 	fi
 }
-# Creating template (getter/setter)
+
+# willCreateTemplate([$val])    {{{1
+
+#  purpose: creating template (getter/setter)
 #   params: nil (getter)
 #           1 - value (setter)
 #   prints: nil
@@ -178,7 +192,10 @@ willCreateTemplate () {
 		create_template="$( dnStandardiseBoolean "${1}" )"
 	fi
 }
-# Create template only
+
+# createTemplate()    {{{1
+
+#  purpose: create template only
 #   params: nil
 #   prints: nil
 #   return: boolean (0=succeeded|1=failed)
@@ -231,23 +248,23 @@ createTemplate () {
 
 		################################################################
 
-# VARIABLES
-
-x_dir= x_dirs='source autotools'
-
-# MAIN
-
-# delete current contents of build directory
-rm -fr * &>/dev/null \
-	|| dnEndScript 1 "Can't delete contents of:" "  '\$( pwd )'"
-
-# copy files fron 'autotools' and 'source' directories
-dnInfo "Adding build files"
-for x_dir in \${x_dirs} ; do
-	cp -r -L ../\${x_dir}/* ./ 2>/dev/null \
-		|| dnEndScript 1 "Error copying \${x_dir} files"
-done
-unset x_dir x_dirs
+        # VARIABLES
+        
+        x_dir= x_dirs='source autotools'
+        
+        # MAIN
+        
+        # delete current contents of build directory
+        rm -fr * &>/dev/null \
+        	|| dnEndScript 1 "Can't delete contents of:" "  '\$( pwd )'"
+        
+        # copy files fron 'autotools' and 'source' directories
+        dnInfo "Adding build files"
+        for x_dir in \${x_dirs} ; do
+        	cp -r -L ../\${x_dir}/* ./ 2>/dev/null \
+        		|| dnEndScript 1 "Error copying \${x_dir} files"
+        done
+        unset x_dir x_dirs
 	EOF
 	if ! dnFlagTrue ${?} ; then
 		dnError "Unable to write content to file:" "  '${tarprep}'"
@@ -379,7 +396,10 @@ EOF
 		return 1
 	fi
 }
-# Set directory variables
+
+# setDirectoryVariables($dir)    {{{1
+
+#  purpose: set directory variables
 #   params: 1 - root directory
 #   prints: nil
 #   return: nil
@@ -400,7 +420,10 @@ setDirectoryVariables () {
 	stnd_dirs[${#stnd_dirs[*]}]="${root}/tarball/autotools"
 	stnd_dirs[${#stnd_dirs[*]}]="${root}/tarball/source"
 }
-# Check that mandatory project directories are present
+
+# mandatoryProjectDirsPresent()    {{{1
+
+#  purpose: check that mandatory project directories are present
 #   params: nil
 #   prints: nil
 #   return: boolean (0=true|1=false)
@@ -413,7 +436,11 @@ mandatoryProjectDirsPresent () {
 	done
 	return ${retval}
 }
-# Check that those directories required only by standard projects are present
+
+# standardProjectDirsPresent()    {{{1
+
+#  purpose: check that those directories required only by standard projects are
+#           present
 #   params: nil
 #   prints: nil
 #   return: boolean (0=true|1=false)
@@ -426,10 +453,14 @@ standardProjectDirsPresent () {
 	done
 	return ${retval}
 }
-# Add new version entry to package changelog
+
+# addPkgChangelogEntry($ver)    {{{1
+
+#  purpose: add new version entry to package changelog
 #   params: 1 - version
 #   prints: feedback
 #   return: nil
+#     TODO: delete since ChangeLog file not in final deb
 addPkgChangelogEntry () {
 	# set variables
 	local tmp_dir="" tar_cl="" tmp_cl="" msg=""
@@ -456,7 +487,10 @@ EOF
 	dnTempKill "${tmp_dir}"
 	dnInfo "Added new version entry to package changelog file"
 }
-# Add new version entry to debian changelog
+
+# addDebChangelogEntry($ver)    {{{1
+
+#  purpose: add new version entry to debian changelog
 #   params: 1 - version
 #   prints: feedback
 #   return: nil
@@ -482,7 +516,10 @@ EOF
 	dnTempKill "${tmp_dir}"
 	dnInfo "Added new version entry to debian changelog file"
 }
-# Update package version
+
+# updatePackageVersion()    {{{1
+
+#  purpose: update package version
 #   params: nil
 #   prints: feedback
 #   return: nil
@@ -533,7 +570,10 @@ updatePackageVersion () {
 		dnInfo "Package version remains at: ${old_ver}"
 	fi
 }
-# Escape filename characters in './configure' files
+
+# escapeConfigureFilenameChars()    {{{1
+
+#  purpose: escape filename characters in './configure' files
 #   params: nil
 #   prints: feedback
 #   return: nil
@@ -554,7 +594,10 @@ escapeConfigureFilenameChars () {
 		done
     done <   <(find . -print0)
 }
-# Install deb package
+
+# installPackage()    {{{1
+
+#  purpose: install deb package
 #   params: nil
 #   prints: feedback
 #   return: nil
@@ -580,7 +623,10 @@ installPackage () {
 	else dnWarn "Multiple deb packages in final directory"
 	fi
 }
-# Display command feedback before exiting
+
+# cmdFailed($msg)    {{{1
+
+#  purpose: display command feedback before exiting
 #   params: 1 - exit message
 #   prints: feedback
 #   return: nil
@@ -589,23 +635,22 @@ cmdFailed () {
 	cat "${capture}"
 	echo "${dn_divider}"
 	dnEndScript 1 "${1}"
-}
+} # }}}1
 
+# main
 
-# MAIN
-
-# Process configuration files
+# process configuration files    {{{1
 msg="Reading configuration files" ; echo -ne "$( dnRedReverseText "${msg}" )"
 processConfigFiles "${global_conf}" "${local_conf}"
 dnEraseText "${msg}"
 unset global_conf local_conf msg
 
-# Process command line
+# process command line    {{{1
 processCommandLine "${@}"
 while [ "${*}" != "${args}" ] ; do shift ; done
 unset args
 
-# Check arguments
+# check arguments    {{{1
 # root directory [-r] (check dir structure after '-t' check)
 [ -z "${root}" ] && dnFailScript "No root directory supplied"
 root="$( dnNormalisePath "${root}" )"
@@ -616,48 +661,51 @@ dnDirValid "${root}" || dnFailScript "Invalid root directory"
 [ -z "${email}" ] && dnFailScript "No maintainer email address supplied"
 # package name [-p]
 [ -z "${pkg}" ] && dnFailScript "No package name supplied"
-# create template [-t]
+
+# create template if requested with -t    {{{1
 setDirectoryVariables  # needed for template creation and structure checking
 # if user specified, then create project template and exit
 if willCreateTemplate ; then
     createTemplate
     dnEndScript ${?}
 fi
-# check for directories required in both project types
+
+# check for directories required in both project types    {{{1
 mandatoryProjectDirsPresent \
 	|| dnFailScript "Invalid project directory structure" \
                     "Maybe you forgot to include '-t'"
 
-# Create all purpose capture file for command feedback
-# It can be displayed when there is an error
+# create all purpose capture file for command feedback    {{{1
+# - it can be displayed when there is an error
 capture="$( dnTempFile )" || dnEndScript 1 "Can't make temp file"
 dnTempTrap "${capture}"
 
-# Informational message
+# informational message    {{{1
 dnInfo "${dn_self} is running ..." \
        "Building package '${pkg}'" \
        "Source directory:" "  '${deb_source}'"
 
+# build distribution tarball    {{{1
 if buildFromDist ; then
     dnInfo 'Received -d flag: skipping build step, expecting single tarball'
 else
-    # Delete all files/directories in debian source directory
+    # delete all files/directories in debian source directory
     rm -rf "${deb_source:?}"/* &> /dev/null
 
-    # Prepare to build tarball
+    # prepare to build tarball
     dnInfo "Changing to tarball build directory"
     cd "${tar_build}" &>"${capture}" \
         || cmdFailed "Unable to cd to '${tar_build}"
 
-    # Change package version if desired
+    # change package version if desired
     updatePackageVersion
 
-    # Project-specific changes to project source
+    # project-specific changes to project source
     # shellcheck source=/dev/null
     dnFileValid "${tar_prep}" && source "${tar_prep}"
     unset tar_prep
 
-    # (Re)build tarball
+    # (re)build tarball
     rm -f ./*.tar.gz &> /dev/null
     if projectIsPerlModule ; then
         dnInfo "Project is a Perl module"
@@ -691,6 +739,8 @@ else
         dnInfo "..running 'make dist'"
         make dist || dnEndScript 1 "'make dist' failed"
     fi
+
+    # copy tarball to debian source directory
     cp ./*.tar.gz "${tar_archive}" &>"${capture}" \
         || cmdFailed "Unable to archive tarball"
     dnInfo "Copying tarball to debian build directory"
@@ -698,15 +748,14 @@ else
         || dnEndScript 1 "Unable to copy tarball to deb source directory"
 fi
 
-# Change to source directory
+# extract tarball    {{{1
+# - change to source directory
 dnInfo "Changing to debian build directory"
 cd "${deb_source}" || dnEndScript 1 "Unable to change to source directory"
-
-# Should have one archive in source directory
+# - should have one archive in source directory
 [ "$( dnCountTarzip "${deb_source}" )" -eq 1 ] \
 	|| dnEndScript 1 "Need exactly one *.tar.gz file in source directory"
-
-# Extract source
+# - extract source
 dnInfo "Extracting source from distribution archive"
 archive=$( dir -1 )
 tar zxf ./*.tar.gz || dnEndScript 1 "Unable to extract archive"
@@ -715,14 +764,14 @@ source_base="$( tar -ztf "${archive}" 2>/dev/null | head -n 1 - | cut -d '/' -f 
 source_base="${deb_source}/${source_base}"
 cd "${source_base}" || dnEndScript 1 "Unable to cd to '${source_base}'"
 
-# Debianise source
+# debianise source    {{{1
 dnInfo "Initial debianisation using 'dh_make':"
 dnInfo "${dn_divider}"
 dh_make --single --email "${email}" --file ../"${archive}"
 dnInfo "${dn_divider}"
 unset archive email
 
-# Remove unneeded files in debian
+# remove unneeded files in debian    {{{1
 dnInfo "Removing unnecessary files in the debian/ subdirectory"
 for file in $( dir debian/ ) ; do
 	dnElementInArray "${file}" "${keep_debian_files[@]}" \
@@ -730,20 +779,20 @@ for file in $( dir debian/ ) ; do
 done
 unset keep_debian_files file
 
-# Copy needed files to debian/
+# copy needed files to debian/    {{{1
 if ! dnDirEmpty "${deb_debian}" ; then
 	dnInfo "Copy customised files to debian subdirectory"
 	cp -r "${deb_debian}"/* debian/ \
 		|| dnEndScript 1 "Unable to copy files"
 fi
 
-# Project-specific changes to debian source
+# make project-specific changes to debian source    {{{1
 # shellcheck source=/dev/null
 dnFileValid "${deb_prep}" && source "${deb_prep}"
 unset deb_prep deb_scripts deb_debian
 unset tar_build tar_archive source_base
 
-# Build package
+# build package    {{{1
 dnInfo "Build package ['dpkg-buildpackage -rfakeroot -us -uc']:"
 dnInfo "${dn_divider}"
   # 2010-08-22: bug workaround
@@ -761,9 +810,11 @@ dpkg-buildpackage -rfakeroot -us -uc \
 	|| dnEndScript 1 "Package build failed"
 dnInfo "${dn_divider}"
 
-# Install package
+# install package    {{{1
 installPackage
 unset deb_source
 
-# Finished
-dnEndScript 0 "Build of '${pkg}' complete"
+# finish    {{{1
+dnEndScript 0 "Build of '${pkg}' complete"    # }}}1
+
+# vim:fdm=marker
