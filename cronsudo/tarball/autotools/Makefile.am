@@ -80,7 +80,11 @@ pkgvardir = @localstatedir@/lib/$(PACKAGE)
 
 # You put read-only architecture-independent data files
 # for the package in /usr/share/$(PACKAGE)
-pkgdata_DATA = dn-edit.sudoers dn-wireless.sudoers dn-pkg-manage.sudoers dn-filesys.sudoers dn-network.sudoers
+pkgdata_DATA = dn-edit.sudoers       \
+			   dn-filesys.sudoers    \
+			   dn-network.sudoers    \
+			   dn-pkg-manage.sudoers \
+			   dn-wireless.sudoers
 
 
 # Configuration

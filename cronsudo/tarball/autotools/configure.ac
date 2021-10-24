@@ -130,10 +130,10 @@ AC_SUBST(man_dir)
 AC_CONFIG_FILES([
     Makefile
     dn-cronsudo.1
-    dn-pkg-manage.sudoers
     dn-edit.sudoers
-    dn-wireless.sudoers
     dn-filesys.sudoers
     dn-network.sudoers
+    dn-pkg-manage.sudoers
+    dn-wireless.sudoers
 ])
 AC_OUTPUT
