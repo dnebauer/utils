@@ -1,7 +1,0 @@
-# dn-dvd-backup configuration file
-
-# Each row is a name-value[-value] set separated by whitespace.
-
-# Standard debian control files to be kept
-# -- if not specified here they are deleted
-keep_debian_file compat

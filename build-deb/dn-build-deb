@@ -1,820 +1,1814 @@
-#!/usr/bin/env bash
+#!/usr/bin/env perl
 
-# File: build-deb
-# Author: David Nebauer
-# Purpose: Generic build deb script for packages
-# Created: 2007-09-12
+use Moo;    # {{{1
+use strictures 2;
+use 5.006;
+use 5.022_001;
+use version; our $VERSION = qv('0.1');
+use namespace::clean;    # }}}1
 
-# variables    {{{1
+{
 
-# provided by libdncommon-bash, but avoid shellcheck error SC2154
-declare dn_self dn_divider
-args="${*}"
-msg="Loading libraries" ; echo -ne "\\033[1;37;41m${msg}\\033[0m"
-# hard code path rather than use @lib_dir@ because path is actually pkglibexec
-source "/usr/libexec/libdncommon-bash/liball"  # supplies functions
-dnEraseText "${msg}"
-# provided by libdncommon-bash: dn_self,dn_divider[_top|_bottom]
-global_conf="@pkgconf_dir@/${dn_self}rc"
-local_conf="${HOME}/.${dn_self}rc"
-usage="Usage:"
-parameters="-r <root_dir> -n <name> -e <email> -p <pkg> [-t] [-d]"
-keep_debian_files=()  # default debian control files to keep
-name=  # package maintainer name
-email=  # package maintainer email
-root=  # root file of project to be debianised
-pkg=  # package name
-tar_prep="tar-dir-prepare"  # file sourced to prepare tarbuild dir files
-deb_prep="deb-dir-prepare"  # file sourced to prepare debsource dir files
-build_from_dist=$(false; echo $?)  # whether starting with dist targzip
-create_template=$(false; echo $?)  # whether creating project template only
-tar_auto=  # directory: tarball/autotools
-tar_build=  # directory: tarball/build
-tar_archive=  # directory: tarball/archive
-deb_debian=  # directory: debianise/debian-files
-deb_source=  # directory: debianise/source
-deb_scripts=  # directory: debianise/scripts
-mand_dirs=()  # mandatory project directories (filled once root known)
-stnd_dirs=()  # standard-projects-only directories (filled once root known)
-args=
-unset param_pad msg
-# }}}1
+    package Dn::BuildDeb;
 
-# procedures
+    use Moo;             # {{{1
+    use strictures 2;
+    use namespace::clean -except => [ '_options_data', '_options_config' ];
+    use autodie qw(open close);
+    use Archive::Tar;
+    use Carp qw(confess croak);
+    use Const::Fast;
+    use Dpkg::Version;
+    use Email::Date::Format;
+    use Email::Valid;
+    use English qw(-no_match_vars);
+    use Feature::Compat::Try;
+    use File::Basename;
+    use File::chdir;
+    use File::Copy::Recursive qw(dircopy);
+    use File::Find::Rule;
+    use File::Spec;
+    use File::Path qw(make_path);
+    use FindBin qw($Script);
+    use Function::Parameters;
+    use MooX::HandlesVia;
+    use MooX::Options protect_argv => 0;
+    use Path::Tiny;
+    use Scalar::Util qw(blessed reftype);
+    use Term::Clui;
+    local $ENV{CLUI_DIR} = 'OFF';
+    use Term::ReadKey;
+    use Types::Standard;
 
-# displayUsage()    {{{1
+    with qw(
+        Dn::Role::HasPath
+        Dn::Role::HasUserInteraction
+    );
 
-#  purpose: show usage information
-#   params: nil
-#   prints: nil
-#   return: nil
-displayUsage () {
-cat << _USAGE
-${dn_self}: build debian package
+    const my $TRUE           => 1;
+    const my $FALSE          => 0;
+    const my $LESS_THAN      => -1;
+    const my $EQUAL_TO       => 0;
+    const my $TERM_MIN_WIDTH => 10;
+    const my $TERM_GUTTER    => 5;
+    Sys::Syslog::openlog( 'ident', 'user' );    # }}}1
 
-Automated system for building deb packages.
+    # debug
+    use Data::Dumper::Simple;                   # }}}1
 
-Requires the source project be organised in a specific
-manner. See manpage for details.
+    # options
 
-Can create an empty project template consisting only of
-required directory structure, empty customisation files,
-a wrapper for this script and subsidiary build scripts.
-If this option is used the script exits after template
-creation.
+    # root_dir    (-r)    {{{1
+    option 'root_dir' => (
+        is       => 'ro',
+        format   => 's@',
+        required => $TRUE,
+        short    => 'r',
+        doc      => 'Root directory of project tree [required]',
+    );
 
-Note: The subsidiary build scripts will convert any
-occurrence of '@pkg_name@' in debian control files to
-the package name.
+    # maint_name  (-n)    {{{1
+    option 'maint_name' => (
+        is       => 'ro',
+        format   => 's@',
+        required => $TRUE,
+        short    => 'n',
+        doc      => 'Name of package maintainer [required]',
+    );
 
-${usage} ${dn_self} ${parameters}
-       ${dn_self} [-h]
+    # maint_email (-e)    {{{1
+    option 'maint_email' => (
+        is       => 'ro',
+        format   => 's@',
+        required => $TRUE,
+        short    => 'e',
+        doc      => 'Email of package maintainer [required]',
+    );
 
-Options: -r VAL  root directory of build tree [required]
-         -n VAL  package maintainer name [required]
-         -e VAL  package maintainer email address [required]
-         -p VAL  package name [required]
-         -t      create empty project template [optional]
-         -d      build from dist tarzip in debian source dir [optional]
-_USAGE
+    # pkg_name    (-p)    {{{1
+    option 'pkg_name' => (
+        is       => 'ro',
+        format   => 's@',
+        required => $TRUE,
+        short    => 'p',
+        doc      => 'Name of package [required]',
+    );
+
+    # template    (-t)    {{{1
+    option 'template' => (
+        is    => 'ro',
+        short => 't',
+        doc   => 'Create empty project template [optional]',
+    );
+
+    # dist_build  (-d)    {{{1
+    option 'dist_build' => (
+        is    => 'ro',
+        short => 'd',
+        doc   => 'Build from dist tarzip in debian source dir [optional]',
+    );    # }}}1
+
+    # attributes
+
+    # _root_dir    {{{1
+    has '_root_dir' => (
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => undef,
+        doc     => 'Project root directory',
+    );
+
+    # _maint_name    {{{1
+    has '_maint_name' => (
+        is      => 'rw',
+        isa     => Types::Standard::Maybe [Types::Standard::Str],
+        default => undef,
+        doc     => 'Name of package maintainer',
+    );
+
+    # _maint_email    {{{1
+    has '_maint_email' => (
+        is      => 'rw',
+        isa     => Types::Standard::Maybe [Types::Standard::Str],
+        default => undef,
+        doc     => 'Email address of package maintainer',
+    );
+
+    # _pkg_name    {{{1
+    has '_pkg_name' => (
+        is      => 'rw',
+        isa     => Types::Standard::Maybe [Types::Standard::Str],
+        default => undef,
+        doc     => 'Name of package',
+    );
+
+    # _init_dir    {{{1
+    has '_init_dir' => (
+        is  => 'lazy',
+        isa => Types::Standard::InstanceOf ['Path::Tiny'],
+        doc => 'Directory in which script was executed',
+    );
+
+    method _build__init_dir () {
+
+        # get string value of current directory
+        my $dir_str = $self->dir_current;
+
+        # create Path::Tiny object
+        my $dir = Path::Tiny::path($dir_str)->absolute;
+
+        return $dir;
+    }
+
+    # _tar_archive    {{{1
+    has '_tar_archive' => (
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => undef,
+        doc     => 'Archive directory in autotools build tree',
+    );
+
+    # _tar_auto    {{{1
+    has '_tar_auto' => (
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => undef,
+        doc     => 'Autotools directory in autotools build tree',
+    );
+
+    # _tar_build    {{{1
+    has '_tar_build' => (
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => undef,
+        doc     => 'Build directory in autotools build tree',
+    );
+
+    # _tar_source    {{{1
+    has '_tar_source' => (
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => undef,
+        doc     => 'Source directory in autotools build tree',
+    );
+
+    # _deb_debian    {{{1
+    has '_deb_debian' => (
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => undef,
+        doc     => 'Debian files directory in debian build tree',
+    );
+
+    # _deb_scripts    {{{1
+    has '_deb_scripts' => (
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => undef,
+        doc     => 'Scripts directory in debian build tree',
+    );
+
+    # _deb_source    {{{1
+    has '_deb_source' => (
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => undef,
+        doc     => 'Source directory in debian build tree',
+    );
+
+    # _tar_prep    {{{1
+    has '_tar_prep' => (
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => undef,
+        doc     => 'Bash file run to prepare tarbuild directory files',
+    );
+
+    # _deb_prep    {{{1
+    has '_deb_prep' => (
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => undef,
+        doc     => 'Bash file run to prepare debian directory files',
+    );
+
+    # _wrapper    {{{1
+    has '_wrapper' => (
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => undef,
+        doc     => 'Wrapper for this script',
+    );
+
+    # _tar_auto_conf_ac    {{{1
+    has '_tar_auto_conf_ac' => (
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => undef,
+        doc     => 'configure.ac file in tarball/autotools directory',
+    );
+
+    # _tar_auto_conf_ac_regex    {{{1
+    has '_tar_auto_conf_ac_regex' => (
+        is      => 'rw',
+        isa     => Types::Standard::Maybe [Types::Standard::RegexpRef],
+        default => undef,
+        doc     => 'Regex finding version in configure.ac file',
+    );
+
+    # [_set]_conf_ac_part    {{{1
+    has '_tar_auto_conf_ac_parts' => (
+        is          => 'rw',
+        isa         => Types::Standard::HashRef [Types::Standard::Str],
+        lazy        => $TRUE,
+        default     => sub { {} },
+        handles_via => 'Hash',
+        handles     => {
+            _set_conf_ac_part    => 'set',       # ($x => 'part')
+            _conf_ac_part_exists => 'exists',    # ($x) -> bool
+            _conf_ac_part        => 'get',       # ($x) -> 'part'
+        },
+        doc => 'Parts of configure.ac file',
+    );
+
+    # _deb_debian_changelog    {{{1
+    has '_deb_debian_changelog' => (
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => undef,
+        doc     => 'changelog file in debianise/debian directory',
+    );
+
+    # _deb_debian_changelog_regex    {{{1
+    has '_deb_debian_changelog_regex' => (
+        is      => 'rw',
+        isa     => Types::Standard::Maybe [Types::Standard::RegexpRef],
+        default => undef,
+        doc     => 'Regex finding version in changelog file',
+    );
+
+    # [_set]_changelog_part    {{{1
+    has '_deb_debian_changelog_parts' => (
+        is          => 'rw',
+        isa         => Types::Standard::HashRef [Types::Standard::Str],
+        lazy        => $TRUE,
+        default     => sub { {} },
+        handles_via => 'Hash',
+        handles     => {
+            _set_changelog_part    => 'set',       # ($x => 'part')
+            _changelog_part_exists => 'exists',    # ($x) -> bool
+            _changelog_part        => 'get',       # ($x) -> 'part'
+        },
+        doc => 'Parts of changelog file',
+    );
+
+    # _tar_conf    {{{1
+    has '_tar_conf' => (
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => undef,
+        doc     => 'configure file in tarball/build directory',
+    );
+
+    # _deb_pkg    {{{1
+    has '_deb_pkg' => (
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => undef,
+        doc     => 'Package (*.deb) file in debianise/source directory',
+    );
+
+    # _project_dirs, _add_project_dirs    {{{1
+    has '_project_dirs_list' => (
+        is  => 'rw',
+        isa => Types::Standard::ArrayRef [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default     => sub { [] },
+        handles_via => 'Array',
+        handles     => {
+            _project_dirs     => 'elements',
+            _add_project_dirs => 'push',
+            _has_project_dirs => 'count',
+        },
+        doc => 'Directories required for standard autotools projects',
+    );
+
+    # _divider    {{{1
+    has '_divider' => (
+        is      => 'rw',
+        isa     => Types::Standard::Maybe [Types::Standard::Str],
+        default => undef,
+        doc     => 'Divider consisting of dashes',
+    );    # }}}1
+
+    # methods
+
+    # main()    {{{1
+    #
+    # does:   main method
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method main () {
+
+        # set attributes
+        $self->_set_attributes;
+
+        # create template if requested
+        if ( $self->template ) {
+            $self->_create_template;
+            return;
+        }
+
+        # build distribution tarball
+        if ( $self->dist_build ) {
+            say 'Got -d flag: skipping build step, expect single tarball'
+                or croak;
+        }
+        else {
+            $self->_build_tarball;
+        }
+
+        # debianise source
+        $self->_debianise;
+
+        # install file (currently disabled by design)
+        #$self->_install_package;
+
+        return;
+    }
+
+    # _attr_root()    {{{1
+    #
+    # does:   create Path::Tiny object for project root directory
+    # params: nil
+    # prints: feedback on error
+    # return: n/a, dies on failure
+    method _attr_root () {
+        my $root_dir;
+        my @root_dirs = @{ $self->root_dir };
+        if   (@root_dirs) { $root_dir = $root_dirs[0]; }
+        else              { die "No project root directory provided\n"; }
+        my $dir = Path::Tiny::path($root_dir)->realpath;
+        die "Project root '$root_dir' is not a directory\n"
+            if not $dir->is_dir;
+
+        return $dir;
+    }
+
+    # _attr_string($opt)    {{{1
+    #
+    # does:  extract string value for attribute from option
+    # params: $opt - array reference, should hold one value [required]
+    # prints: nil
+    # return: boolean, whether non-empty string extracted
+    method _attr_string ($opt) {
+        my $attr;
+        my @attrs = @{$opt};
+        if (@attrs) { $attr = $attrs[0]; }
+
+        return $attr;
+    }
+
+    # _attr_dir(@parts)    {{{1
+    #
+    # does:   create Path::Tiny object for directory relative to project root
+    # params: @parts - list of directory parts [required]
+    # prints: feedback on error
+    # return: n/a, dies on failure
+    method _attr_dir (@parts) {
+        my $root    = $self->_root_dir->canonpath;
+        my $dir_str = $self->dir_join( $root, @parts );
+        my $dir     = Path::Tiny::path($dir_str)->absolute;
+
+        return $dir;
+    }
+
+    # _attr_fp(@parts)    {{{1
+    #
+    # does:   create Path::Tiny object for filepath relative to project root
+    # params: @parts - list of filepath parts [required]
+    # prints: feedback on error
+    # return: n/a, dies on failure
+    method _attr_fp (@parts) {
+        my $root   = $self->_root_dir->canonpath;
+        my $fp_str = $self->path_join( $root, @parts );
+        my $fp     = Path::Tiny::path($fp_str)->absolute;
+
+        return $fp;
+    }
+
+    # _build_tarball()    {{{1
+    #
+    # does:   build distribution tarball in tarball/build
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method _build_tarball () {
+
+        # change package version if desired    {{{2
+        $self->_bump_package_version;
+
+        # delete contents of build directory    {{{2
+        my $tar_build = $self->_tar_build;
+        $self->_dir_clean( $tar_build->canonpath );
+
+        # copy contents of autotools and source to build    {{{2
+        my @dirs = ( $self->_tar_auto, $self->_tar_source );
+        for my $dir (@dirs) {
+            File::Copy::Recursive::dircopy( $dir->canonpath,
+                $tar_build->canonpath )
+                or die "Unable to copy into build directory: $ERRNO\n";
+        }
+
+        # from now on, all commands are run in 'tarball/build'    {{{2
+        # - Perl::Critic does not realise that $CWD is a package variable
+        ## no critic (Variables::ProhibitLocalVars)
+        local $CWD = $self->_tar_build->canonpath;
+        ## use critic
+
+        # run project-specific changes to project source    {{{2
+        my $tar_prep = $self->_tar_prep;
+        if ( $tar_prep->is_file ) {
+            say q{Located a 'tar_dir_prepare' script} or croak;
+            say 'Running it now...'                   or croak;
+            {
+                my @cmd = ( $tar_prep->canonpath );
+                my $err = 'Script failed';
+                $self->_run_cmd( $err, @cmd );
+            }
+        }
+
+        # run 'autoreconf'    {{{2
+        say 'Building distribution tarball' or croak;
+        say q{..running 'autoreconf':}      or croak;
+        {
+            my @cmd = qw(autoreconf --install);
+            my $err = 'autoreconf failed';
+            $self->_run_cmd( $err, @cmd );
+        }
+
+        # escape special filename chars in configure    {{{2
+        say q{..escape special filename characters in './configure'} or croak;
+
+        my $conf = $self->_tar_conf;
+        die "Cannot locate 'build/configure' file\n" if not $conf->is_file;
+        $self->_escape_fname_chars_in_conf;
+
+        # run './configure'    {{{2
+        say q{..running './configure':} or croak;
+        $conf->chmod('0744');
+        {
+            my @cmd = qw(./configure);
+            my $err = './configure failed';
+            $self->_run_cmd( $err, @cmd );
+        }
+
+        # run 'make dist'    {{{2
+        say q{..running 'make dist':} or croak;
+        {
+            my @cmd = qw(make dist);
+            my $err = 'make dist failed';
+            $self->_run_cmd( $err, @cmd );
+        }
+
+        # copy tarball to tar/archive directory    {{{2
+        say 'Archiving tarball' or croak;
+        my $dist;
+        {
+            my @children  = $tar_build->children(qr/[.]tar[.]gz\z/xsm);
+            my $kid_count = scalar @children;
+            die "Expected 1 '.tar.gz' file, got $kid_count\n"
+                if $kid_count != 1;
+            $dist = $children[0];
+            my $tar_archive = $self->_tar_archive;
+            File::Copy::Recursive::fcopy( $dist->canonpath,
+                $tar_archive->canonpath )
+                or croak "Unable to archive tarball: $ERRNO";
+        }
+
+        # copy tarball to deb/source directory    {{{2
+        say 'Copying tarball to debianise/source directory' or croak;
+        {
+            my $deb_source = $self->_deb_source;
+            $self->_dir_clean( $deb_source->canonpath );
+            File::Copy::Recursive::fcopy( $dist->canonpath,
+                $deb_source->canonpath )
+                or croak "Unable to copy tarball to deb source dir: $ERRNO";
+        }
+
+        return;    # }}}2
+
+    }
+
+    # _bump_package_version()    {{{1
+    #
+    # does:   update package version in tar_auto/configure.ac and
+    #         deb_debian/changelog
+    #
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method _bump_package_version () {
+
+        # check existing version details    {{{2
+        # - changelog version includes debian revision, but
+        #   configure.ac version does not include debian revision
+        my $conf_version   = $self->_conf_ac_part('version');
+        my $change_version = $self->_changelog_part('version');
+        if ( $conf_version and $change_version ) {
+            if ( $conf_version ne ( split /-/xsm, $change_version )[0] ) {
+                die "Version mismatch between configure.ac and changelog\n";
+            }
+        }
+        else {
+            if ( not $conf_version and not $change_version ) {
+                die 'Unable to extract version from '
+                    . "configure.ac and changelog\n";
+            }
+            elsif ( not $conf_version ) {
+                die "Extracted version '$change_version' from changelog, "
+                    . "but unable to extract version from configure.ac\n";
+            }
+            else {
+                die "Extracted version '$conf_version' from configure.ac, "
+                    . "but unable to extract version from changelog\n";
+            }
+        }
+        my $version_current = Dpkg::Version->new($change_version);
+        if ( not $version_current->is_valid ) {
+            die "Help !Current version $conf_version is invalid!\n";
+        }
+
+        # get new version from user    {{{2
+        say "Current package version: $version_current" or croak;
+        my $prompt = 'Enter package version:';
+        my $input  = Term::Clui::ask($prompt);
+        if ( not $input ) {
+            say 'Remaining at current version' or croak;
+            return;
+        }
+        if ( not $input =~ /-/xsm ) { $input .= '-1'; }
+        my $version_new = Dpkg::Version->new($input);
+        if ( not $version_new->is_valid ) {
+            die "Invalid version: $input\n";
+        }
+        my $compare = Dpkg::Version::version_compare( $version_new,
+            $version_current );
+        if ( $compare == $LESS_THAN ) {
+            die "New version cannot be lower than current version\n";
+        }
+        if ( $compare == $EQUAL_TO ) {
+            say 'Remaining at current version' or croak;
+            return;
+        }
+
+        # bump version in configure.ac    {{{2
+        my $conf_data
+            = $self->_conf_ac_part('pre')
+            . ( split /-/xsm, $version_new->as_string )[0]
+            . $self->_conf_ac_part('post');
+        my $conf_fp = $self->_tar_auto_conf_ac;
+        $conf_fp->spew_utf8($conf_data);
+
+        # bump version in changelog    {{{2
+        my $date         = Email::Date::Format::email_date;
+        my $changelog_fp = $self->_deb_debian_changelog;
+        my $changelog_data
+            = $self->_changelog_part('pkg') . ' ('
+            . $version_new->as_string . ') '
+            . $self->_changelog_part('release') . '; '
+            . $self->_changelog_part('urgency')
+            . "\n\n  * \n\n"
+            . $self->_changelog_part('maint') . q{  }
+            . $date . "\n\n"
+            . $changelog_fp->slurp_utf8;
+        $changelog_fp->spew_utf8($changelog_data);
+        say 'Press any key to enter release notes...' or croak;
+        Term::ReadKey::ReadMode 'cbreak';
+        Term::ReadKey::ReadKey(0);
+        Term::ReadKey::ReadMode 'normal';
+        Term::Clui::edit( $changelog_fp->canonpath );    # }}}2
+
+        return;
+    }
+
+    # _changelog_version_regex()    {{{1
+    #
+    # does:   provide regex for finding version in the
+    #         debianise/debian-files/changelog file
+    #
+    # params: nil
+    # prints: nil
+    # return: scalar regex
+    method _changelog_version_regex () {
+
+        # assume first line of changelog file is well-formed, i.e., like:
+        #   dn-cronsudo (2.1-2) UNRELEASED; urgency=low
+        # so just assume first pair of parentheses encloses:
+        #   package_version-debian_revision
+
+        # building blocks
+        my $any = qr/.*?/xsm;
+
+        # in $any can't enclose '.' in a character class ('[.]')
+        # because then it wouldn't match newlines
+        # (see 'Metacharacters' section in 'perlre' manpage)
+        # so need to disable related Perl::Critic warnings
+
+        # first capture: package name
+
+        my $pkg = qr{
+            (?<pkg>    # first capture is package name
+            \A\S+      # package name
+            )          # close capture
+            \s+        # followed by space
+        }xsm;
+
+        # second capture: version+revision
+
+        ## no critic (ProhibitEscapedMetacharacters)
+        my $version = qr{
+            \(             # enclosed in parentheses
+            (?<version>    # commence capture of version+revision
+            [^\)]+         # version+revision
+            )              # close second capture
+            \)             # enclosed in parentheses
+            \s+            # followed by space
+        }xsm;
+        ## use critic
+
+        # third capture: release
+
+        my $release = qr{
+            (?<release>    # commence capture of release
+            [^;]+          # release
+            )              # close third capture
+            ;\s+           # followed by semicolon and space
+        }xsm;
+
+        # fourth capture: urgency
+
+        my $urgency = qr{
+            (?<urgency>    # commence capture of urgency
+            .*?$           # remainder of line
+            )              # close fourth capture
+            $any           # followed by any content
+        }xsm;
+
+        # fifth capture: maintainer
+
+        my $maint = qr{
+            (?<maint>    # commence capture of maintainer
+            ^[ ]+--\s+   # leading double hyphen
+            [^\>]+>      # maintainer name and then <email_address>
+            )            # close fifth capture
+        }xsm;
+
+        return qr{ $pkg $version $release $urgency $maint }xsm;
+    }
+
+    # _configure_ac_version_regex()    {{{1
+    #
+    # does:   provide regex for finding version in the
+    #         tarball/autotools/configure.ac file
+    #
+    # params: nil
+    # prints: nil
+    # return: scalar regex
+    method _configure_ac_version_regex () {
+
+        # building blocks
+        my $any = qr/.*?/xsm;
+        my $arg = qr{
+            \[.*?\]    # argument, enclosed in square brackets
+            $any  # interargument characters, may include newline
+        }xsm;
+
+        # in $any can't enclose '.' in a character class ('[.]')
+        # because then it wouldn't match newlines
+        # (see 'Metacharacters' section in 'perlre' manpage)
+        # so need to disable related Perl::Critic warnings
+
+        # first capture: all of file before version
+
+        ## no critic (ProhibitEscapedMetacharacters)
+        my $pre_version = qr{
+            (?<pre>    # first capture is all of file before version
+            \A$any     # capture from beginning of file
+            AC_INIT    # version is an argument to the AC_INIT macro
+            $any       # chars between macro name and opening '('
+            \(         # open arguments for AC_INIT macro
+            $arg       # first AC_INIT argument: description
+            \[         # opening brace of second argument
+            )          # close first capture
+        }xsm;
+        ## use critic
+
+        # second capture: version
+
+        my $version = qr{
+            (?<version>    # second capture is version
+            $any           # second AC_INIT argument: version
+            )              # close second capture
+        }xsm;
+
+        # third capture: all of file after version
+
+        ## no critic (ProhibitEscapedMetacharacters)
+        my $post_version = qr{
+            (?<post>     # third capture is all of file after version no.
+            \]           # closing brace of second argument
+            $any         # interargument chars, may include newline
+            $arg         # third AC_INIT argument: maintainer email
+            $arg         # fourth AC_INIT argument: distribution name
+            \)           # close AC_INIT macro
+            $any\z       # include remainder of file
+            )
+        }xsm;
+        ## use critic
+
+        return qr{ $pre_version $version $post_version }xsm;
+    }
+
+    # _create_template()    {{{1
+    #
+    # does:   create empty project template
+    #
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method _create_template () {
+
+        # project root directory must be empty
+        my $root     = $self->_root_dir->canonpath;
+        my @contents = $self->_root_dir->children;
+        die "Project root directory is not empty: $root\n" if @contents;
+
+        # create project directories
+        my @dirs = $self->_project_dirs;
+        if ( not $self->dir_make(@dirs) ) { die "Aborting...\n"; }
+
+        # create scripts
+        $self->_write_tar_prep;
+        $self->_write_deb_prep;
+        $self->_write_wrapper;
+
+        say "Created template in: $root" or croak;
+        return;
+    }
+
+    # _debianise()    {{{1
+    #
+    # does:   debianise distribution source
+    #
+    # params: nil
+    # prints: feedback on error
+    # return: n/a, dies on failure
+    method _debianise () {
+
+        # note that Perl::Critic does not see that $CWD is a package variable
+
+        # extract tarball    {{{2
+        my $deb_source = $self->_deb_source;
+        ## no critic (Variables::ProhibitLocalVars)
+        local $CWD = $deb_source->canonpath;
+        ## use critic
+        my $tarball;
+        {
+            my @children   = $deb_source->children;
+            my $kids_count = scalar @children;
+            croak "Expected 1 file in debianise/source, got $kids_count"
+                if $kids_count != 1;
+            $tarball = $children[0];
+            say 'Extracting source from distribution archive' or croak;
+            my $extract   = Archive::Tar->new( $tarball->canonpath );
+            my $extracted = $extract->extract;
+            croak "Unable to extract source: $ERRNO" if not $extracted;
+        }
+        my $source_base;
+        {
+            my @dir_children = $self->dir_list( $deb_source->canonpath );
+            my $kids_count   = scalar @dir_children;
+            croak "Expected 1 directory, got $kids_count" if $kids_count != 1;
+            $source_base = Path::Tiny::path( $dir_children[0] )->absolute;
+        }
+
+        # initial debianisation with dh_make    {{{2
+        say q{Initial debianisation using 'dh_make':} or croak;
+        ## no critic (Variables::ProhibitLocalVars)
+        local $CWD = $source_base->canonpath;
+        ## use critic
+        {
+            my @cmd = (
+                'dh_make', '--single',
+                '--email', $self->_maint_email,
+                '--file',  $tarball->canonpath,
+            );
+            my $err = 'dh_make failed';
+            $self->_run_cmd( $err, @cmd );
+        }
+
+        # copy customised files to debian subdirectory    {{{2
+        say 'Copying customised files to debian subdirectory' or croak;
+        {
+            # Path::Tiny::children() requires qr// even for fixed string match
+            ## no critic (RegularExpressions::ProhibitFixedStringMatches)
+            my @children = $source_base->children(qr/\Adebian\z/xsm);
+            ## use critic
+            my $kids_count = scalar @children;
+            croak "Expected 1 'debian' child, got $kids_count"
+                if $kids_count != 1;
+            my $debian = $children[0];
+            croak q{'debian' is not a directory} if not $debian->is_dir;
+            $self->_dir_clean($debian);
+            my $custom = $self->_deb_debian;
+            File::Copy::Recursive::dircopy( $custom->canonpath,
+                $debian->canonpath )
+                or die "Unable to custom debian files: $ERRNO\n";
+        }
+
+        # run project-specific changes to project source    {{{2
+        my $deb_prep = $self->_deb_prep;
+        if ( $deb_prep->is_file ) {
+            say q{Located a 'deb_dir_prepare' script} or croak;
+            say 'Running it now...'                   or croak;
+            {
+                my @cmd = ( $deb_prep->canonpath );
+                my $err = 'Script failed';
+                $self->_run_cmd( $err, @cmd );
+            }
+        }
+
+        # build package    {{{2
+        say q{Build package ['dpkg-buildpackage -rfakeroot -us -uc']:}
+            or croak;
+        {
+            my @cmd = qw(dpkg-buildpackage -rfakeroot -us -uc);
+            my $err = 'Package build failed';
+            $self->_run_cmd( $err, @cmd );
+        }
+
+        # check for package file    {{{2
+        {
+            my @children   = $deb_source->children(qr/[.]deb\z/xsm);
+            my $kids_count = scalar @children;
+            croak "Expected 1 package file, got $kids_count"
+                if $kids_count != 1;
+            my $pkg = $children[0];
+            croak "$pkg is not a file" if not $pkg->is_file;
+            $self->_deb_pkg($pkg);
+            say 'Debian package build is complete' or croak;
+        }    # }}}2
+
+        return;
+    }
+
+    # _dir_clean($dir)    {{{1
+    #
+    # does:   remove all contents of directory
+    #
+    # params: $dir - dirpath to check [Path::Tiny object or string, required]
+    # prints: feedback on error
+    # return: n/a, dies on failure
+    method _dir_clean ($dir_param) {
+
+        # check directory param    {{{2
+        my $dir;
+        my $dir_reftype  = Scalar::Util::reftype $dir_param;
+        my $dir_obj_type = Scalar::Util::blessed $dir_param;
+        if ( defined $dir_reftype ) {
+
+            # is a reference
+            if ( defined $dir_obj_type ) {
+
+                # is an object
+                if ( $dir_obj_type eq 'Path::Tiny' ) { $dir = $dir_param; }
+                else { confess "Invalid directory: is $dir_obj_type object"; }
+            }
+            else { confess "Invalid directory: is $dir_reftype"; }
+        }
+        else {
+            # scalar, presumed to be string file path
+            $dir = Path::Tiny::path($dir_param)->absolute;
+        }
+        if ( not $dir ) { confess 'Unable to determine directory path'; }
+
+        # delete directory contents    {{{2
+        my @children  = map { $_->canonpath } $dir->children;
+        my $to_delete = scalar @children;
+        my $deleted   = File::Path::remove_tree(@children);
+        if ( $deleted < $to_delete ) {
+            croak "Tried to delete $to_delete items, deleted $deleted";
+        }    # }}}2
+
+        return;
+    }
+
+    # _escape_fname_chars_in_conf()    {{{1
+    #
+    # does:   backslash-escape filenames in 'tarball/build/configure' file
+    #
+    # params: nil
+    # prints: feedback on error
+    # return: n/a, dies on failure
+    # note:   only character currently escaped in ampersand ('&')
+    method _escape_fname_chars_in_conf () {
+
+        # characters to escape    {{{2
+        my @chars = qw(&);
+
+        # filenames to escape    {{{2
+        my $tar_build = $self->_tar_build;
+        my @fps       = File::Find::Rule->file()->in( $tar_build->canonpath );
+        my @fnames;
+        {
+            # - strip directory path
+            my $sep          = File::Spec->catfile( q{}, q{} );
+            my $base_dirpath = $tar_build->canonpath . $sep;
+            my @fnames_in    = map {s/\A$base_dirpath//xsmr} @fps;
+
+            # - strip '.in' suffix
+            push @fnames, map {s/[.]in\z//xsmr} @fnames_in;
+        }
+
+        # get content of configure file    {{{2
+        my $conf    = $self->_tar_conf;
+        my $content = $conf->slurp_utf8;
+
+        # escape filenames in configure file content    {{{2
+        for my $char (@chars) {
+            my $escaped_char = q{\\} . $char;
+            for my $fname (@fnames) {
+                my $escaped_fname = $fname =~ s/$char/$escaped_char/xsmgr;
+                $content =~ s/$fname/$escaped_fname/xsmg;
+            }
+        }
+
+        # write edited content back to configure file    {{{2
+        my @new_content = split /\n/xsm, $content;
+        $self->_write_file( [@new_content], $conf );    # }}}2
+
+        return;
+    }
+
+    # _install_package()    {{{1
+    #
+    # does:   install debian package
+    #
+    # params: nil
+    # prints: feedback
+    # return: n/a, dies on failure
+    method _install_package () {
+
+        my $pkg_fp  = $self->_deb_pkg->canonpath;
+        my $divider = $self->_divider;
+
+        # first, try 'sudo dpkg'
+        say q{Installing package using 'sudo dpkg':} or croak;
+        my @cmd     = ( 'sudo', 'dpkg', '-i', $pkg_fp );
+        my $success = $TRUE;
+        say $divider or croak;
+        if ( system @cmd ) { $success = $FALSE; }
+        say $divider or croak;
+        if ($success) {
+            say 'Install complete' or croak;
+            return;
+        }
+
+        # second, try 'su -c dpkg'
+        say q{Okay, that failed - let's try as superuser} or croak;
+        say 'Enter root password'                         or croak;
+        @cmd     = ( 'su', '-c', "dpkg -i $pkg_fp" );
+        $success = $TRUE;
+        say $divider or croak;
+        if ( system @cmd ) { $success = $FALSE; }
+        say $divider or croak;
+        if   ($success) { say 'Install complete' or croak; }
+        else            { warn "Install failed\n"; }
+
+        return;
+    }
+
+    # _run_cmd($err, @cmd)    {{{1
+    #
+    # does:   run system command and die on failure
+    #
+    # params: $err - error message [scalar string, required, can be undef]
+    #         @cmd - command and arguments [list, required]
+    # prints: feedback
+    # return: n/a, dies on failure
+    method _run_cmd ( $err, @cmd ) {
+
+        if ( not @cmd ) { croak 'No command provided'; }
+        my $divider = $self->_divider;
+        say $divider or croak;
+        if ( system @cmd ) {
+
+            say $divider or croak;
+            my $cmd_str = join q{ }, @cmd;
+            if ($err) { warn "$err\n"; }
+            warn "Failed command: $cmd_str\n";
+
+            # perlcritic mistakenly complains about ${^CHILD_ERROR_NATIVE}
+            # being a "magic punctuation variable" but it is actually the
+            # long name from the English module, so perlcritic is wrong
+            ## no critic (ProhibitPunctuationVars)
+            my $err = ${^CHILD_ERROR_NATIVE};
+            ## use critic
+
+            # decode the exit status with POSIX module functions
+            if ( POSIX::WIFEXITED($err) ) {
+                warn '- exited with status ', POSIX::WEXITSTATUS($err), "\n";
+            }
+            my $exit_status = 1;
+            if ( POSIX::WIFSIGNALED($err) ) {
+                warn '- killed by signal ', POSIX::WTERMSIG($err), "\n";
+                $exit_status = POSIX::WTERMSIG($err);
+            }
+
+            warn "Aborting...\n";
+            exit $exit_status;
+        }
+        say $divider or croak;
+
+        return;
+    }
+
+    # _set_attributes()    {{{1
+    #
+    # does:   set attributes
+    # params: nil
+    # prints: feedback on error
+    # return: n/a, dies on failure
+    method _set_attributes () {
+
+        # set project root directory    {{{2
+        my $root_dir = $self->_attr_root;
+        $self->_root_dir($root_dir);
+
+        # set maintainer name    {{{2
+        my $maint_name = $self->_attr_string( $self->maint_name );
+        die "No maintainer name provided\n" if not $maint_name;
+        $self->_maint_name($maint_name);
+
+        # set maintainer email    {{{2
+        my $maint_email = $self->_attr_string( $self->maint_email );
+        die "No maintainer email provided\n" if not $maint_email;
+        die "Invalid maintainer email address: $maint_email\n"
+            if not Email::Valid->address($maint_email);
+        $self->_maint_email($maint_email);
+
+        # set package name    {{{2
+        my $pkg_name = $self->_attr_string( $self->pkg_name );
+        die "No package name provided\n" if not $pkg_name;
+        $self->_pkg_name($pkg_name);
+
+        # set tarball archive directory path    {{{2
+        my $tar_archive = $self->_attr_dir( 'tarball', 'archive' );
+        if ( not $self->template ) {
+            die "Missing $tar_archive, perhaps '-t' is missing?\n"
+                if not $tar_archive->is_dir;
+        }
+        $self->_tar_archive($tar_archive);
+
+        # set tarball autotools directory path    {{{2
+        my $tar_auto = $self->_attr_dir( 'tarball', 'autotools' );
+        if ( not $self->template ) {
+            die "Missing $tar_auto, perhaps '-t' is missing?\n"
+                if not $tar_auto->is_dir;
+        }
+        $self->_tar_auto($tar_auto);
+
+        # set tarball build directory path    {{{2
+        my $tar_build = $self->_attr_dir( 'tarball', 'build' );
+        if ( not $self->template ) {
+            die "Missing $tar_build, perhaps '-t' is missing?\n"
+                if not $tar_build->is_dir;
+        }
+        $self->_tar_build($tar_build);
+
+        # set tarball source directory path    {{{2
+        my $tar_source = $self->_attr_dir( 'tarball', 'source' );
+        if ( not $self->template ) {
+            die "Missing $tar_source, perhaps '-t' is missing?\n"
+                if not $tar_source->is_dir;
+        }
+        $self->_tar_source($tar_source);
+
+        # set debianise debian files directory path    {{{2
+        my $deb_debian = $self->_attr_dir( 'debianise', 'debian-files' );
+        if ( not $self->template ) {
+            die "Missing $deb_debian, perhaps '-t' is missing?\n"
+                if not $deb_debian->is_dir;
+        }
+        $self->_deb_debian($deb_debian);
+
+        # set debianise scripts directory path    {{{2
+        my $deb_scripts = $self->_attr_dir( 'debianise', 'scripts' );
+        if ( not $self->template ) {
+            die "Missing $deb_scripts, perhaps '-t' is missing?\n"
+                if not $deb_scripts->is_dir;
+        }
+        $self->_deb_scripts($deb_scripts);
+
+        # set debianise source directory path    {{{2
+        my $deb_source = $self->_attr_dir( 'debianise', 'source' );
+        if ( not $self->template ) {
+            die "Missing $deb_source, perhaps '-t' is missing?\n"
+                if not $deb_source->is_dir;
+        }
+        $self->_deb_source($deb_source);
+
+        # set list of project directories    {{{2
+        my @project_dirs = (
+            $deb_debian,  $deb_scripts, $deb_source, $tar_build,
+            $tar_archive, $tar_auto,    $tar_source,
+        );
+        $self->_add_project_dirs(@project_dirs);
+
+        # set file path to tarball directory preparation script    {{{2
+        my $tar_prep
+            = $self->_attr_fp( 'debianise', 'scripts', 'tar-dir-prepare' );
+        if ( not $self->template ) {
+            if ( not $tar_prep->is_file ) {
+                say "Note: there is no $tar_prep file" or croak;
+            }
+        }
+        $self->_tar_prep($tar_prep);
+
+        # set file path to debianise directory preparation script    {{{2
+        my $deb_prep
+            = $self->_attr_fp( 'debianise', 'scripts', 'deb-dir-prepare' );
+        if ( not $self->template ) {
+            if ( not $deb_prep->is_file ) {
+                say "Note: there is no $deb_prep file" or croak;
+            }
+        }
+        $self->_deb_prep($deb_prep);
+
+        # set file path to wrapper for this script    {{{2
+        my $wrapper = $self->_attr_fp( 'debianise', 'scripts', 'build-deb' );
+        if ( not $self->template ) {
+            die "Missing $wrapper, perhaps '-t' is missing?\n"
+                if not $wrapper->is_file;
+        }
+        $self->_wrapper($wrapper);
+
+        # set file path to configure.ac file    {{{2
+        my $tar_auto_conf_ac
+            = $self->_attr_fp( 'tarball', 'autotools', 'configure.ac' );
+        if ( not $self->template ) {
+            die "Missing $tar_auto_conf_ac, perhaps '-t' is missing?\n"
+                if not $tar_auto_conf_ac->is_file;
+        }
+        $self->_tar_auto_conf_ac($tar_auto_conf_ac);
+
+        # set file path to changelog file    {{{2
+        my $deb_debian_changelog
+            = $self->_attr_fp( 'debianise', 'debian-files', 'changelog' );
+        if ( not $self->template ) {
+            die "Missing $deb_debian_changelog, perhaps '-t' is missing?\n"
+                if not $deb_debian_changelog->is_file;
+        }
+        $self->_deb_debian_changelog($deb_debian_changelog);
+
+        # set file path to configure file    {{{2
+        my $tar_conf = $self->_attr_fp( 'tarball', 'build', 'configure' );
+        $self->_tar_conf($tar_conf);
+
+        # set regex and file parts for configure.ac file    {{{2
+        {
+            my $re = $self->_configure_ac_version_regex;
+            $self->_tar_auto_conf_ac_regex($re);
+            my $data = $tar_auto_conf_ac->slurp_utf8;
+            if ( $data =~ $re ) {
+                $self->_set_conf_ac_part( pre => "$LAST_PAREN_MATCH{'pre'}" );
+                $self->_set_conf_ac_part(
+                    version => "$LAST_PAREN_MATCH{'version'}" );
+                $self->_set_conf_ac_part(
+                    post => "$LAST_PAREN_MATCH{'post'}" );
+            }
+            else {
+                die "Error: Unable to extract version from configure.ac\n";
+            }
+        }
+
+        # set regex and file parts for changelog file    {{{2
+        {
+            my $re = $self->_changelog_version_regex;
+            $self->_deb_debian_changelog_regex($re);
+            my $data = $deb_debian_changelog->slurp_utf8;
+            if ( $data =~ $re ) {
+                $self->_set_changelog_part(
+                    pkg => "$LAST_PAREN_MATCH{'pkg'}" );
+                $self->_set_changelog_part(
+                    version => "$LAST_PAREN_MATCH{'version'}" );
+                $self->_set_changelog_part(
+                    release => "$LAST_PAREN_MATCH{'release'}" );
+                $self->_set_changelog_part(
+                    urgency => "$LAST_PAREN_MATCH{'urgency'}" );
+                $self->_set_changelog_part(
+                    maint => "$LAST_PAREN_MATCH{'maint'}" );
+            }
+            else {
+                die "Error: Unable to extract version from changelog\n";
+            }
+        }
+
+        # set divider    {{{2
+        {
+            my $width = $self->term_width;
+            if ( $width < $TERM_MIN_WIDTH ) {
+                croak "Terminal < $TERM_MIN_WIDTH chars($width)";
+            }
+            my $length  = $width - $TERM_GUTTER;
+            my $divider = q{-} x $length;
+            $self->_divider($divider);
+        }    # }}}2
+
+        return;
+    }
+
+    # _write_tar_prep()    {{{1
+    #
+    # does:   write tarball directory preparation script
+    #
+    # params: nil
+    # prints: nil
+    # return: n/a, dies on failure
+    method _write_tar_prep () {
+
+        # set vars
+        my $file = File::Basename::fileparse( $self->_tar_prep->canonpath );
+        my $pkg  = $self->_pkg_name;
+        my $tar_build = $self->_tar_build->canonpath;
+        my @c;
+
+        # create content
+        # - causes multiple Perl::Critic warnings that strings *may* require
+        #   interpolation because includes uninterpolated variables and shell
+        #   commands
+        push @c,
+            (
+            q[#!/bin/sh],
+            q[],
+            qq[# File: $file],
+            q[],
+            qq[# Package: $pkg],
+            q[],
+            qq[# This script will be run by $Script just prior to],
+            q[# building the source distribution in 'tarball/build'.],
+            q[],
+            q[# This script is run from the directory],
+            qq[# '$tar_build'.],
+            q[],
+            q[#############################################################],
+            q[],
+            );
+
+        # write file
+        $self->_write_file( [@c], $self->_tar_prep, '0744' );
+
+        return;
+    }
+
+    # _write_deb_prep()    {{{1
+    #
+    # does:   write debianise directory preparation script
+    #
+    # params: nil
+    # prints: nil
+    # return: n/a, dies on failure
+    method _write_deb_prep () {
+
+        # set vars
+        my $file = File::Basename::fileparse( $self->_deb_prep->canonpath );
+        my $pkg  = $self->_pkg_name;
+        my $deb_source = $self->_deb_source->canonpath;
+        my @c;
+
+        # create content
+        # - causes multiple Perl::Critic warnings that strings *may* require
+        #   interpolation because includes uninterpolated variables and shell
+        #   commands
+        push @c,
+            (
+            q[#!/bin/sh],
+            q[],
+            qq[# File: $file],
+            q[],
+            qq[# Package: $pkg],
+            q[],
+            qq[# This script is run by $Script after copying],
+            q[# customised debian control files to the debian package],
+            q[# source and just prior to building the package.],
+            q[],
+            q[# This script is run from the directory],
+            qq[# '$deb_source/<archive>'.],
+            q[# where <archive> is the top-level directory in the source],
+            q[# project tarzipped distribution built in 'tarball/build'.],
+            q[],
+            q[#############################################################],
+            q[],
+            );
+
+        # write file
+        $self->_write_file( [@c], $self->_deb_prep, '0744' );
+
+        return;
+    }
+
+    # _write_wrapper()    {{{1
+    #
+    # does:   write wrapper script for this script
+    #
+    # params: nil
+    # prints: nil
+    # return: n/a, dies on failure
+    method _write_wrapper () {
+
+        # set vars
+        my $file  = File::Basename::fileparse( $self->_wrapper->canonpath );
+        my $root  = $self->_root_dir;
+        my $pkg   = $self->_pkg_name;
+        my $name  = $self->_maint_name;
+        my $email = $self->_maint_email;
+        my @c;
+
+        # create content
+        push @c,
+            (
+            q[#!/bin/sh],
+            q[],
+            qq[# File: $file  [wrapper for '$Script']],
+            q[],
+            q[],
+            q[# PARAMETERS],
+            q[],
+            q[# root directory of project],
+            qq[root="$root"],
+            q[],
+            q[# package name],
+            qq[pkg="$pkg"],
+            q[],
+            q[# package maintainer's name],
+            qq[name="$name"],
+            q[],
+            q[# package maintainer's email address],
+            qq[email="$email"],
+            q[],
+            q[],
+            q[# RUN SCRIPT],
+            q[],
+            qq[$Script -r "\$root" -p "\$pkg" -n "\$name" -e "\$email"],
+            );
+
+        # write file
+        $self->_write_file( [@c], $self->_wrapper, '0744' );
+
+        return;
+    }
+
+    # _write_file($content, $file, [$perm])    {{{1
+    #
+    # does:   write file
+    #
+    # params: $content - file content [array reference, required]
+    #         $file    - file path to write to
+    #                    [string or Path::Tiny object, required]
+    #         $perm    - permissions for file [quoted octal string, optional,
+    #                                          default=current umask]
+    # prints: nil, except on failure
+    # return: n/a, dies on file operation failure
+    method _write_file ( $content, $file, $perm = undef ) {
+
+        # set vars
+        if ( not $content ) {
+            confess 'No content provided';
+        }
+        if ( ref $content ne 'ARRAY' ) {
+            confess 'Content not an array';
+        }
+        if ( not $file ) {
+            confess 'No file provided';
+        }
+        my $dest;
+        my $file_reftype  = Scalar::Util::reftype $file;
+        my $file_obj_type = Scalar::Util::blessed $file;
+        if ( defined $file_reftype ) {
+
+            # is a reference
+            if ( defined $file_obj_type ) {
+
+                # is an object
+                if ( $file_obj_type eq 'Path::Tiny' ) { $dest = $file; }
+                else { confess "Invalid file: is $file_obj_type object"; }
+            }
+            else { confess "Invalid file: is $file_reftype"; }
+        }
+        else {
+            # scalar, presumed to be string file path
+            $dest = Path::Tiny::path($file)->absolute;
+        }
+        if ( not $dest ) {
+            confess 'Unable to determine destination file path';
+        }
+
+        # write file
+        my @lines = map {"$_\n"} @{$content};
+        try { $dest->spew_utf8(@lines); }
+        catch ($err) { confess "Unable to write to '$dest': $err"; }
+
+        # set file permissions
+        # - use of Feature::Compat::Try's try construct causes Perl::Critic to
+        #   issue warning regarding use of postfix control "if"
+        if ($perm) {    ## no critic (ProhibitPostfixControls)
+            try {
+                $dest->chmod($perm);
+            }
+            catch ($err) {
+                confess "Unable to modify permissions of '$dest': $err";
+            }
+        }
+
+        return;
+    }
+
+    # }}}1
 }
 
-# processConfigFiles($global, $local)    {{{1
-
-#  purpose: process configuration files
-#   params: 1 - global config filepath (optional)
-#           2 - local config filepath (optional)
-#   prints: nil
-#   return: nil
-#   notes:  set variables [  ]
-processConfigFiles () {
-	# set variables
-	local conf='' name='' val=''
-	local global_conf
-	global_conf="$( dnNormalisePath "${1}" )"
-	local local_conf
-	local_conf="$( dnNormalisePath "${2}" )"
-	# process config files
-	for conf in "${global_conf}" "${local_conf}" ; do
-		if [ -r "${conf}" ] ; then
-			while read -r name val ; do
-				if [ -n "${val}" ] ; then
-					# remove enclosing quotes if present
-					val="$( dnStripEnclosingQuotes "${val}" )"
-					# load vars depending on name
-					case ${name} in
-					'keep_debian_file' )
-						keep_debian_files[${#keep_debian_files}]="${val}";;
-					esac
-				fi
-			done < "${conf}"
-		fi
-	done
-}
-
-# processCommandLine(param1, param2, ...)    {{{1
-
-#  purpose: process command line
-#   params: all command line parameters
-#   prints: feedback
-#   return: nil
-processCommandLine () {
-	# Read the command line options
-	#   - if optstring starts with ':' then error reporting is suppressed
-	#   - leave ':' at start as '\?' and ':' error capturing require it
-	#   - if option is followed by ':' then it is expected to have an argument
-	while getopts ":hr:n:e:p:td" opt ; do
-		case ${opt} in
-			h  ) displayUsage && exit 0;;
-			r  ) root="${OPTARG}";;
-			n  ) name="${OPTARG}";;
-			e  ) email="${OPTARG}";;
-			p  ) pkg="${OPTARG}";;
-			t  ) willCreateTemplate 'true';;
-            d  ) buildFromDist 'true';;
-			\? ) echo -e "Error: Invalid flag '${OPTARG}' detected"
-				 echo -e "Usage: ${dn_self} ${parameters}"
-				 echo -e "Try '${dn_self} -h' for help"
-                 echo -ne "$(printf '\a')"
-				 exit 1;;
-			: ) echo -e "Error: No argument supplied for flag '${OPTARG}'"
-				 echo -e "Usage: ${dn_self} ${parameters}"
-				 echo -e "Try '${dn_self} -h' for help"
-                 echo -ne "$(printf '\a')"
-				 exit 1;;
-		esac
-	done
-	shift $(( OPTIND - 1 ))
-	args="${*}"  # reset arguments
-	unset usage parameters
-}
-
-# projectIsPerlModule()    {{{1
-
-#  purpose: whether source is a perl module
-#   params: nil
-#   prints: nil
-#   return: boolean (0=true|1=false)
-projectIsPerlModule () {
-    # yes, it is a shell redirection
-    # shellcheck disable=SC2065
-    return "$( test -f "${tar_build}/Makefile.PL" ; echo $? )"
-}
-
-# buildFromDist([$val])    {{{1
-
-#  purpose: building from distribution targzip (getter/setter)
-#   params: nil (getter)
-#           1 - value (setter)
-#   prints: nil
-#   return: boolean - value (getter)
-#           nil (setter)
-buildFromDist () {
-	if [ ${#} -eq 0 ] ; then  # getter
-		return "${build_from_dist}"
-	else  # setter
-		build_from_dist="$( dnStandardiseBoolean "${1}" )"
-	fi
-}
-
-# willCreateTemplate([$val])    {{{1
-
-#  purpose: creating template (getter/setter)
-#   params: nil (getter)
-#           1 - value (setter)
-#   prints: nil
-#   return: boolean - value (getter)
-#           nil (setter)
-willCreateTemplate () {
-	if [ ${#} -eq 0 ] ; then  # getter
-		return "${create_template}"
-	else  # setter
-		create_template="$( dnStandardiseBoolean "${1}" )"
-	fi
-}
-
-# createTemplate()    {{{1
-
-#  purpose: create template only
-#   params: nil
-#   prints: nil
-#   return: boolean (0=succeeded|1=failed)
-createTemplate () {
-	# create file and directory variables
-	local retval=0
-	local debscripts="${root}/debianise/scripts"
-	local tarprep="${debscripts}/tar-dir-prepare"
-	local debprep="${debscripts}/deb-dir-prepare"
-	local wrapper="${debscripts}/build-deb"
-    local mand_dir='' stnd_dir=''
-	# must have empty directory
-	dnDirEmpty "${root}" || dnFailScript "Root directory not empty"
-	# create directories
-	for mand_dir in "${mand_dirs[@]}" ; do
-		mkdir -p "${mand_dir}" 2>/dev/null
-		if ! dnFlagTrue ${?} ; then retval=1 ; break ; fi
-	done
-	for stnd_dir in "${stnd_dirs[@]}" ; do
-		mkdir -p "${stnd_dir}" 2>/dev/null
-		if ! dnFlagTrue ${?} ; then retval=1 ; break ; fi
-	done
-	dnFlagTrue ${retval} \
-		|| dnFailScript "Unable to create directories in:" "  '${root}'"
-	# create file: customisation file 1
-	touch "${tarprep}" 2>/dev/null \
-		|| dnFailScript "Unable to create file:" "  '${tarprep}'"
-    # falsely triggered by filename in heredoc, but is safe
-    # shellcheck disable=2094
-	cat > "${tarprep}" <<- EOF
-		#!/bin/sh
-
-		# File: $( dnExtractFilename "${tarprep}" )
-
-		# Package: ${pkg}
-
-		# This file will be sourced by ${dn_self} just prior to building
-		# the source distribution in 'tarball/build'.  That directory is
-		# the cwd when this file is sourced.  Must be in same dir before
-		# finish.
-
-		# Some useful variables available to this file are:
-		#   pkg         - package name
-		#   root        - directory: project root
-		#   tar_build   - directory: <root>/tarball/build
-		#   tar_archive - directory: <root>/tarball/archive
-		#   deb_scripts - directory: <root>/debianise/scripts
-		#   deb_source  - directory: <root>/debianise/source
-		#   deb_debian  - directory: <root>/debianise/debian-files
-
-		################################################################
-
-        # VARIABLES
-        
-        x_dir= x_dirs='source autotools'
-        
-        # MAIN
-        
-        # delete current contents of build directory
-        rm -fr * &>/dev/null \
-        	|| dnEndScript 1 "Can't delete contents of:" "  '\$( pwd )'"
-        
-        # copy files fron 'autotools' and 'source' directories
-        dnInfo "Adding build files"
-        for x_dir in \${x_dirs} ; do
-        	cp -r -L ../\${x_dir}/* ./ 2>/dev/null \
-        		|| dnEndScript 1 "Error copying \${x_dir} files"
-        done
-        unset x_dir x_dirs
-	EOF
-	if ! dnFlagTrue ${?} ; then
-		dnError "Unable to write content to file:" "  '${tarprep}'"
-		retval=1
-	fi
-	# create file: customisation file 2
-	touch "${debprep}" 2>/dev/null \
-		|| dnFailScript "Unable to create file:" "  '${debprep}'"
-    # falsely triggered by filename in heredoc, but is safe
-    # shellcheck disable=2094
-	cat > "${debprep}" << EOF
-#!/bin/sh
-
-# File: $( dnExtractFilename "${debprep}" )
-
-# Package: ${pkg}
-
-# This file will be sourced by ${dn_self} after copying customised
-# debian control files to the debian package source and just prior
-# to building the package.  The cwd directory during the sourcing is
-# '${deb_source}/<archive>'
-# where <archive> is the top-level directory in the source project
-# tarzipped distribution built in 'tarball/build'.  Must be in same
-# dir when finished.
-
-# Some useful variables available to this file are:
-#   pkg         - package name
-#   root        - directory: project root
-#   tar_build   - directory: <root>/tarball/build
-#   tar_archive - directory: <root>/tarball/archive
-#   deb_scripts - directory: <root>/debianise/scripts
-#   deb_source  - directory: <root>/debianise/source
-#   deb_debian  - directory: <root>/debianise/debian-files
-#   source_base - directory: <root>/debianise/source/archive
-
-####################################################################
-
-#VARIABLES
-
-declare xfile=""
-declare xpkg="${pkg}"
-
-
-# MAIN
-
-# Bug workaround: Missing 'distclean' target
-#
-# dh_make bug creates 'rules' file with rule calling target 'distclean'
-# but that target is missing; so
-# if a rule uses target 'distclean' but that target is missing,
-# then delete the rule
-if \$( grep -F "\\\$(MAKE) distclean" ${deb_debian}/rules &>/dev/null ) ; then
-	if \$( grep "	distclean: " ${deb_debian}/rules &>/dev/null ) ; then : ; else
-		dnWarn  "## BUG WORKAROUND: START ##" \\
-				"dh_make creates rules depending on target 'distclean'" \\
-				"but that target is missing." \\
-				"Workaround is to remove rules using target 'distclean'" \\
-				"with the command:" \\
-				"  sed -i -e '/\$(MAKE) distclean/d' rules"
-		cp ${deb_debian}/rules ${deb_debian}/rules.old
-		dnInfon "Removing problem rules... "
-		sed -i -e '/\$(MAKE) distclean/d' ${deb_debian}/rules &>/dev/null
-		diff ${deb_debian}/rules ${deb_debian}/rules.old &>/dev/null
-		dnOpFail ${?}
-		dnReport ${?}
-		rm -f ${deb_debian}/rules.old &>/dev/null
-		dnWarn "## BUG WORKAROUND: END ##"
-	fi
-fi
-
-# Variable replacement: @pkg_name@ = ${pkg}
-dnInfon "Inserting pkg name in control scripts... " 
-for xfile in debian/* ; do
-	if test -f "\${xfile}" ; then
-		sed -i -e "s/@pkg_name@/\${xpkg}/g" "\${xfile}"
-	fi
-done
-echo "Done"
-EOF
-	if ! dnFlagTrue ${?} ; then
-		dnError "Unable to write content to file:" "  '${debprep}'"
-		retval=1
-	fi
-	# create file: script wrapper
-	touch "${wrapper}" 2>/dev/null \
-		|| dnFailScript "Unable to create file:" "  '${wrapper}'"
-    # falsely triggered by filename in heredoc, but is safe
-    # shellcheck disable=2094
-	cat > "${wrapper}" <<- EOF
-		#!/bin/sh
-
-		# File: $( dnExtractFilename "${wrapper}" )  [wrapper for '${dn_self}']
-		
-
-		# PARAMETERS
-		
-		# root directory of project
-		root="${root}"
-		
-		# package name
-		pkg="${pkg}"
-		
-		# package maintainer's name
-		name="${name}"
-
-		# package maintainer's email address
-		email="${email}"
-
-		
-		# RUN SCRIPT
-		
-		${dn_self} -r "\${root}" -p "\${pkg}" -n "\${name}" -e "\${email}"
-	EOF
-	if ! dnFlagTrue ${?} ; then
-		dnError "Unable to write content to file:" "  '${wrapper}'"
-		retval=1
-	fi
-	chmod 0744 "${wrapper}" 2>/dev/null
-	if ! dnFlagTrue ${?} ; then
-		dnError "Unable to make executable the script:" "  '${wrapper}'"
-		retval=1
-	fi
-	# final feedback
-	if dnFlagTrue "${retval}" ; then
-		dnInfo "Created project template in:" "  '${root}'"
-		return 0
-	else
-		dnWarn "Errors occurred during project template creation"
-		return 1
-	fi
-}
-
-# setDirectoryVariables($dir)    {{{1
-
-#  purpose: set directory variables
-#   params: 1 - root directory
-#   prints: nil
-#   return: nil
-setDirectoryVariables () {
-	tar_auto="${root}/tarball/autotools"
-	tar_build="${root}/tarball/build"
-	tar_archive="${root}/tarball/archive"
-	deb_debian="${root}/debianise/debian-files"
-	deb_source="${root}/debianise/source"
-	deb_scripts="${root}/debianise/scripts"
-	tar_prep="${deb_scripts}/${tar_prep}"
-	deb_prep="${deb_scripts}/${deb_prep}"
-	mand_dirs[${#mand_dirs[*]}]="${root}/debianise/debian-files"
-	mand_dirs[${#mand_dirs[*]}]="${root}/debianise/scripts"
-	mand_dirs[${#mand_dirs[*]}]="${root}/debianise/source"
-	mand_dirs[${#mand_dirs[*]}]="${root}/tarball/build"
-	mand_dirs[${#mand_dirs[*]}]="${root}/tarball/archive"
-	stnd_dirs[${#stnd_dirs[*]}]="${root}/tarball/autotools"
-	stnd_dirs[${#stnd_dirs[*]}]="${root}/tarball/source"
-}
-
-# mandatoryProjectDirsPresent()    {{{1
-
-#  purpose: check that mandatory project directories are present
-#   params: nil
-#   prints: nil
-#   return: boolean (0=true|1=false)
-#   needs:  variable [ mand_dirs() ]
-mandatoryProjectDirsPresent () {
-	# check for directories required in both project types
-	local retval=0 mand_dir=''
-	for mand_dir in "${mand_dirs[@]}" ; do
-		dnDirValid "${mand_dir}" || retval=1
-	done
-	return ${retval}
-}
-
-# standardProjectDirsPresent()    {{{1
-
-#  purpose: check that those directories required only by standard projects are
-#           present
-#   params: nil
-#   prints: nil
-#   return: boolean (0=true|1=false)
-#   needs:  variable [ stnd_dirs() ]
-standardProjectDirsPresent () {
-	# check for directories required in both project types
-	local retval=0 stnd_dir=''
-	for stnd_dir in "${stnd_dirs[@]}" ; do
-		dnDirValid "${stnd_dir}" || retval=1
-	done
-	return ${retval}
-}
-
-# addPkgChangelogEntry($ver)    {{{1
-
-#  purpose: add new version entry to package changelog
-#   params: 1 - version
-#   prints: feedback
-#   return: nil
-#     TODO: delete since ChangeLog file not in final deb
-addPkgChangelogEntry () {
-	# set variables
-	local tmp_dir="" tar_cl="" tmp_cl="" msg=""
-	tmp_dir="$( dnTempDir )" || dnEndScript 1 "Can't make temp file"
-	dnTempTrap "${tmp_dir}"
-	tar_cl="${tar_auto}/ChangeLog"
-	tmp_cl="${tmp_dir}/ChangeLog"
-	# get changelog message
-	while [ -z "${msg}" ] ; do
-		msg="$( dnGetInput "Enter change log message: " )"
-		[ -n "${msg}" ] || dnWarn "Input required" 
-	done
-	cat > "${tmp_cl}" << EOF
-$( date +"%F" )  ${name}  <${email}>
-
-	* ${msg}
-
-EOF
-	cat "${tar_cl}" >> "${tmp_cl}" \
-		|| dnEndScript 1 "Unable to alter package changelog file"
-	cp "${tmp_cl}" "${tar_cl}" \
-		|| dnEndScript 1 "Unable to alter package changelog file"
-	rm -fr "${tmp_dir}" &>/dev/null
-	dnTempKill "${tmp_dir}"
-	dnInfo "Added new version entry to package changelog file"
-}
-
-# addDebChangelogEntry($ver)    {{{1
-
-#  purpose: add new version entry to debian changelog
-#   params: 1 - version
-#   prints: feedback
-#   return: nil
-addDebChangelogEntry () {
-	local tmp_dir="" deb_cl="" tmp_cl=""
-	tmp_dir="$( dnTempDir )" || dnEndScript 1 "Can't make temp file"
-	dnTempTrap "${tmp_dir}"
-	deb_cl="${deb_debian}/changelog"
-	tmp_cl="${tmp_dir}/changelog"
-	cat > "${tmp_cl}" << EOF
-${pkg} (${1}-1) unstable; urgency=low
-
-  * New upstream release
-
- -- ${name} <${email}>  $( date -R )
-
-EOF
-	cat "${deb_cl}" >> "${tmp_cl}" \
-		|| dnEndScript 1 "Unable to alter debian changelog file"
-	cp "${tmp_cl}" "${deb_cl}" \
-		|| dnEndScript 1 "Unable to alter debian changelog file"
-	rm -fr "${tmp_dir}" &>/dev/null
-	dnTempKill "${tmp_dir}"
-	dnInfo "Added new version entry to debian changelog file"
-}
-
-# updatePackageVersion()    {{{1
-
-#  purpose: update package version
-#   params: nil
-#   prints: feedback
-#   return: nil
-updatePackageVersion () {
-	local old_ver="" new_ver="" init_line="" chk_ver=""
-	local conf="${tar_auto}/configure.ac" init_grep="" sed_grep=""
-	init_grep="^[[:space:]]*AC_INIT[[:space:]]*([[:space:]]"
-	init_grep="${init_grep}\(\[[[:print:]]\+\][[:space:]]*,[[:space:]]*\)\{4\}"
-	init_grep="${init_grep})[[:space:]]*$"
-	sed_grep="^[[:space:]]*AC_INIT[[:space:]]*([[:space:]]"
-	sed_grep="${sed_grep}\[[[:print:]]\+\][[:space:]]*,[[:space:]]*"
-	sed_grep="${sed_grep}\[\([[:print:]]\+\)\][[:space:]]*,[[:space:]]*"
-	sed_grep="${sed_grep}\(\[[[:print:]]\+\][[:space:]]*,[[:space:]]*\)\{2\}"
-	sed_grep="${sed_grep})[[:space:]]*$"
-	sed_chng="^\([[:space:]]*AC_INIT[[:space:]]*([[:space:]]"
-	sed_chng="${sed_chng}\[[[:print:]]\+\][[:space:]]*,[[:space:]]*"
-	sed_chng="${sed_chng}\[\)[[:print:]]\+\(\][[:space:]]*,[[:space:]]*"
-	sed_chng="${sed_chng}\[[[:print:]]\+\][[:space:]]*,[[:space:]]*"
-	sed_chng="${sed_chng}\[[[:print:]]\+\][[:space:]]*,[[:space:]]*"
-	sed_chng="${sed_chng})[[:space:]]*\)$"
-	# exit if no 'configure.ac' file
-	[ -e "${conf}" ] || return
-	# exit if cannot find AC_INIT macro in expected format
-	init_line="$( grep -- "${init_grep}" "${conf}" )"
-	[ -n "${init_line}" ] || return
-	# extract existing version
-    # - too complex to mess about with variable replacement vis SC2001
-    # shellcheck disable=2001
-	old_ver="$( echo "${init_line}" | sed -e "s?${sed_grep}?\1?" )"
-	local new_ver=''
-	read -rp "${dn_query_prefix:?}Package version [${old_ver}]: " new_ver
-	dnContainsSpace "${new_ver}" \
-		&& dnEndScript 1 "Version cannot contains spaces"
-	if [ -n "${new_ver}" ] ; then  # changing version
-		# change version in resources file
-		local err="Unable to change package version in 'configure.ac' file"
-		sed -i -e "s=${sed_chng}=\1${new_ver}\2=" "${conf}"
-		dnFlagTrue ${?} || dnEndScript 1 "${msg}"
-		init_line="$( grep -- "${init_grep}" "${conf}" )"
-        # - too complex to mess about with variable replacement vis SC2001
-        # shellcheck disable=2001
-		chk_ver="$( echo "${init_line}" | sed -e "s?${sed_grep}?\1?" )"
-		[ "${chk_ver}" = "${new_ver}" ] || dnEndScript 1 "${err}"
-		dnInfo "Package version changed to: ${new_ver}"
-		addPkgChangelogEntry "${new_ver}"
-		addDebChangelogEntry "${new_ver}"
-	else  # keep existing version
-		dnInfo "Package version remains at: ${old_ver}"
-	fi
-}
-
-# escapeConfigureFilenameChars()    {{{1
-
-#  purpose: escape filename characters in './configure' files
-#   params: nil
-#   prints: feedback
-#   return: nil
-escapeConfigureFilenameChars () {
-	local -a chars=( '&' )
-	local find_file='' file='' char='' escaped=''
-	while IFS= read -r -d '' find_file ; do
-		file="${find_file#./}"
-		file="${file%.in}"
-		for char in "${chars[@]}" ; do
-			if [[ "${file}" = *"${char}"* ]] ; then
-                # way too complex to figure out escaping now!
-                # shellcheck disable=2001
-				escaped="$( echo "${file}" | \
-					        sed -e "s=${char}=\\\\\\\\\\\\${char}=g" )"
-				sed -i -e "s=${file}=${escaped}=g" configure
-			fi
-		done
-    done <   <(find . -print0)
-}
-
-# installPackage()    {{{1
-
-#  purpose: install deb package
-#   params: nil
-#   prints: feedback
-#   return: nil
-installPackage () {
-	local deb_count="" pkg=""
-	cd "${deb_source}" || dnEndScript 1 "Unable to change to source directory"
-	deb_count=$( dir -1 "${deb_source}"/* | grep -c -- "\.deb$" )
-	if [ "${deb_count}" -eq 0 ] ; then
-		dnWarn "No deb packages in final directory"
-	elif [ "${deb_count}" -eq 1 ] ; then
-		pkg="$( dnExtractFilename "$( dir -1 "${deb_source}"/*.deb )" )"
-		if dnConfirm "Install package '${pkg}'?" ; then
-			# first try sudo dpkg
-			sudo dpkg -i "${deb_source}"/"${pkg}"
-			# if sudo failed, use su
-			if ! dnFlagTrue ${?} ; then
-				dnInfo "Enter root password"
-                # gdebi fails due to python problem
-				#su -c "gdebi ${deb_source}/${pkg}"
-				su -c "dpkg -i ${deb_source}/${pkg}"
-			fi
-		fi
-	else dnWarn "Multiple deb packages in final directory"
-	fi
-}
-
-# cmdFailed($msg)    {{{1
-
-#  purpose: display command feedback before exiting
-#   params: 1 - exit message
-#   prints: feedback
-#   return: nil
-cmdFailed () {
-	echo "${dn_divider}"
-	cat "${capture}"
-	echo "${dn_divider}"
-	dnEndScript 1 "${1}"
-} # }}}1
-
-# main
-
-# process configuration files    {{{1
-msg="Reading configuration files" ; echo -ne "$( dnRedReverseText "${msg}" )"
-processConfigFiles "${global_conf}" "${local_conf}"
-dnEraseText "${msg}"
-unset global_conf local_conf msg
-
-# process command line    {{{1
-processCommandLine "${@}"
-while [ "${*}" != "${args}" ] ; do shift ; done
-unset args
-
-# check arguments    {{{1
-# root directory [-r] (check dir structure after '-t' check)
-[ -z "${root}" ] && dnFailScript "No root directory supplied"
-root="$( dnNormalisePath "${root}" )"
-dnDirValid "${root}" || dnFailScript "Invalid root directory"
-# maintainer name [-n]
-[ -z "${name}" ] && dnFailScript "No maintainer name supplied"
-# maintainer email [-e]
-[ -z "${email}" ] && dnFailScript "No maintainer email address supplied"
-# package name [-p]
-[ -z "${pkg}" ] && dnFailScript "No package name supplied"
-
-# create template if requested with -t    {{{1
-setDirectoryVariables  # needed for template creation and structure checking
-# if user specified, then create project template and exit
-if willCreateTemplate ; then
-    createTemplate
-    dnEndScript ${?}
-fi
-
-# check for directories required in both project types    {{{1
-mandatoryProjectDirsPresent \
-	|| dnFailScript "Invalid project directory structure" \
-                    "Maybe you forgot to include '-t'"
-
-# create all purpose capture file for command feedback    {{{1
-# - it can be displayed when there is an error
-capture="$( dnTempFile )" || dnEndScript 1 "Can't make temp file"
-dnTempTrap "${capture}"
-
-# informational message    {{{1
-dnInfo "${dn_self} is running ..." \
-       "Building package '${pkg}'" \
-       "Source directory:" "  '${deb_source}'"
-
-# build distribution tarball    {{{1
-if buildFromDist ; then
-    dnInfo 'Received -d flag: skipping build step, expecting single tarball'
-else
-    # delete all files/directories in debian source directory
-    rm -rf "${deb_source:?}"/* &> /dev/null
-
-    # prepare to build tarball
-    dnInfo "Changing to tarball build directory"
-    cd "${tar_build}" &>"${capture}" \
-        || cmdFailed "Unable to cd to '${tar_build}"
-
-    # change package version if desired
-    updatePackageVersion
-
-    # project-specific changes to project source
-    # shellcheck source=/dev/null
-    dnFileValid "${tar_prep}" && source "${tar_prep}"
-    unset tar_prep
-
-    # (re)build tarball
-    rm -f ./*.tar.gz &> /dev/null
-    if projectIsPerlModule ; then
-        dnInfo "Project is a Perl module"
-        dnInfo "Building tarball"
-        rm -f Makefile &> /dev/null
-        dnInfo "Build Makefile:"
-        perl Makefile.PL \
-            || dnEndScript 1 "Unable to build Makefile"
-        dnInfo "Run any Makefile tests:"
-        dnInfo "${dn_divider}"
-        make test \
-            || dnEndScript 1 "Makefile test(s) failed"
-        dnInfo "${dn_divider}"
-        dnInfo "Build distribution tarball:"
-        dnInfo "${dn_divider}"
-        make dist \
-            || dnEndScript 1 "Unable to build distribution tarball"
-        dnInfo "${dn_divider}"
-    else  # source is standard autotools project
-        # check for directories required in both project types
-        standardProjectDirsPresent \
-            || dnFailScript 'Invalid project directory structure'
-        dnInfo "Assuming project is a standard autotools project"
-        dnInfo "Building distribution tarball"
-        dnInfo "..running 'autoreconf'"
-        autoreconf --install &>"${capture}" || cmdFailed "'autoreconf' failed"
-        dnInfo "..escape special filename characters in './configure'"
-        escapeConfigureFilenameChars
-        dnInfo "..running './configure'"
-        ./configure &>"${capture}" || cmdFailed "'./configure' failed"
-        dnInfo "..running 'make dist'"
-        make dist || dnEndScript 1 "'make dist' failed"
-    fi
-
-    # copy tarball to debian source directory
-    cp ./*.tar.gz "${tar_archive}" &>"${capture}" \
-        || cmdFailed "Unable to archive tarball"
-    dnInfo "Copying tarball to debian build directory"
-    cp "${tar_build}"/*.tar.gz "${deb_source}" \
-        || dnEndScript 1 "Unable to copy tarball to deb source directory"
-fi
-
-# extract tarball    {{{1
-# - change to source directory
-dnInfo "Changing to debian build directory"
-cd "${deb_source}" || dnEndScript 1 "Unable to change to source directory"
-# - should have one archive in source directory
-[ "$( dnCountTarzip "${deb_source}" )" -eq 1 ] \
-	|| dnEndScript 1 "Need exactly one *.tar.gz file in source directory"
-# - extract source
-dnInfo "Extracting source from distribution archive"
-archive=$( dir -1 )
-tar zxf ./*.tar.gz || dnEndScript 1 "Unable to extract archive"
-  # trap meaningless error 'tar: write error' in following tar command
-source_base="$( tar -ztf "${archive}" 2>/dev/null | head -n 1 - | cut -d '/' -f 1 )"
-source_base="${deb_source}/${source_base}"
-cd "${source_base}" || dnEndScript 1 "Unable to cd to '${source_base}'"
-
-# debianise source    {{{1
-dnInfo "Initial debianisation using 'dh_make':"
-dnInfo "${dn_divider}"
-dh_make --single --email "${email}" --file ../"${archive}"
-dnInfo "${dn_divider}"
-unset archive email
-
-# remove unneeded files in debian    {{{1
-dnInfo "Removing unnecessary files in the debian/ subdirectory"
-for file in $( dir debian/ ) ; do
-	dnElementInArray "${file}" "${keep_debian_files[@]}" \
-        || rm debian/"${file}"
-done
-unset keep_debian_files file
-
-# copy needed files to debian/    {{{1
-if ! dnDirEmpty "${deb_debian}" ; then
-	dnInfo "Copy customised files to debian subdirectory"
-	cp -r "${deb_debian}"/* debian/ \
-		|| dnEndScript 1 "Unable to copy files"
-fi
-
-# make project-specific changes to debian source    {{{1
-# shellcheck source=/dev/null
-dnFileValid "${deb_prep}" && source "${deb_prep}"
-unset deb_prep deb_scripts deb_debian
-unset tar_build tar_archive source_base
-
-# build package    {{{1
-dnInfo "Build package ['dpkg-buildpackage -rfakeroot -us -uc']:"
-dnInfo "${dn_divider}"
-  # 2010-08-22: bug workaround
-  # dpkg-buildpackage calls dpkg-source
-  # the default dpkg-source build format is '3.0 (quilt)'
-  # this causes dpkg-source to fail with a spurious error that it cannot find
-  #   an 'orig.tar.gz' file
-  # pass dpkg-source an option to make format '3.0 (native)' to avoid bug
-  # 2013-12-24: bug resolution
-  # builds began failing with error like:
-  #   dpkg-source: error: can't build with source format '3.0 (native)': \
-  #   native package version may not have a revision
-  # removal of the --source-format option allowed packages to build without error
-dpkg-buildpackage -rfakeroot -us -uc \
-	|| dnEndScript 1 "Package build failed"
-dnInfo "${dn_divider}"
-
-# install package    {{{1
-installPackage
-unset deb_source
-
-# finish    {{{1
-dnEndScript 0 "Build of '${pkg}' complete"    # }}}1
-
-# vim:fdm=marker
+my $p = Dn::BuildDeb->new_with_options->main;
+
+1;
+
+# POD    {{{1
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+dn-build-deb - generate deb package for project
+
+=head1 USAGE
+
+B<dn-build-deb> B<-r> I<root> B<-n> I<name> B<-e> I<email> B<-p> I<pkg>
+[B<-t>] [B<-d>]
+
+B<dn-build-deb -h>
+
+=head1 REQUIRED ARGUMENTS
+
+Nil.
+
+=head1 REQUIRED OPTIONS
+
+=over
+
+=item B<-r>|B<--root_dir> I<val>
+
+The root directory of the source project.
+
+Scalar string. Required. No default.
+
+=item B<-n>|B<--maint_name> I<val>
+
+Name of the package maintainer.
+
+Scalar string. Required. No default.
+
+=item B<-e>|B<--maint_email> I<val>
+
+Email address of the package maintainer.
+
+Scalar string. Required. No default.
+
+=item B<-p>|B<--pkg_name> I<val>
+
+Package name.
+
+Not used by this script but made available to sourced customisation files (see
+L</Customising the build process>).
+
+Scalar string. Required. No default.
+
+=back
+
+=head1 OPTIONS
+
+=over
+
+=item B<-t>|B<--template>
+
+Create empty project template consisting of the required directories (see
+L</Source Project>).
+
+Also creates empty customisation files and a wrapper for this script.
+
+Note the root directory must be empty if a project template is to be created in
+it.
+
+Boolean. Optional. Default: false.
+
+=item B<-d>|B<--dist_build>
+
+Skip building of the targzipped project distribution and copying it to the
+F<debianise/source> directory (see L</Build Process>). Instead assume there is
+a single such file in that directory.
+
+This option is designed for use when building a previous version of a project
+from an archived distribution targzip file. If reverting to an earlier version
+of the project, make sure debian control files such as
+F<debian-files/changelog> are consistent.
+
+Boolean. Optional. Default: false.
+
+=item B<-h>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+=head2 Source Project
+
+This script is intended to work with standard autotools-compliant projects. The following directory structure is required:
+       
+    <root>
+     | 
+     |-- debianise
+     |   |
+     |   |-- debian-files
+     |   |
+     |   |-- scripts
+     |   |
+     |   `-- source
+     | 
+     `-- tarball
+         |
+         |-- autotools
+         |
+         |-- build
+         |
+         |-- archive
+         |
+         `-- source
+
+=over
+
+=item debianise
+
+The debian build files.
+
+=item debian
+
+Debian control files to be copied in to the debian project file tree when it is
+created. Some common files copied include F<changelog>, F<control>,
+F<copyright> and F<rules>.
+
+=item scripts
+
+Any scripts required by the build process.
+
+Traditionally contains a script called F<build-deb> which invokes this
+utility with the appropriate arguments.
+
+Can also contain either or both of two customisation files that this script
+will look for during the build process (see L</Customising the build process>).
+
+=item source
+
+The source project is copied here, suitably altered and then the debian package
+is built. The final debian package will be created in this directory.
+
+=item tarball
+
+The source project files.
+
+=item autotools
+
+Files required by autotools.
+
+These files are copied or symlinked to the F<build> directory.
+
+Some common autotools files include F<ChangeLog>, F<Makefile.am> and
+F<configure.ac>.
+
+=item build
+
+Where the distribution tarball is built.
+
+This directory is emptied at the start of the debian build process. Autotools
+files and source files are copied or symlinked from their respective
+directories. Then the autotools are used to build the tarball.
+
+=item archive
+
+Each time a distribution tarball is built a copy is stored in this directory.
+The idea is to keep an archive of all versions of the project.
+
+=item source
+
+Here the project source files are kept.
+
+=back
+
+=head2 Build Process
+
+=head3 Default build process
+
+In the default build process the following steps are followed:
+
+=over
+
+=item *
+
+Build a targzipped project distribution in the F<tarball/build> directory with
+the commands C<autoreconf>, C<./configure>, and C<make dist>.
+
+=item *
+
+Copy the newly-created tarball to the F<debianise/source> directory and extract
+it in place.
+
+=item *
+
+Perform initial initial debianisation with the command C<< dh_make --single
+--email <email> --file ../<targzip> >>.
+
+where C<< <email> >> is the email address provided as an argument to this
+script and C<< <targzip> >> is the project distribution file.
+
+=item *
+
+The default debian control files in the F<debian> subdirectory are deleted and
+any customised debian control files in the F<debianise/debian-files> are copied
+into the F<debian> subdirectory.
+
+=item *
+
+The final package is built with the command F<dpkg-buildpackage -rfakeroot -us
+-uc>.
+
+=back
+
+=head3 Customising the build process
+
+The default build process provides no opportunities for performing
+project-specific actions on the initial project source or debian package source
+aside from controlling what control files are present in a project's
+F<debianise/debian-files> directory.
+
+To enable this sort of customisation this script looks in the
+F<debianise/scripts> directory for the files F<tar-dir-prepare> and
+F<deb-dir-prepare>:
+
+=over
+
+=item *
+
+F<tar-dir-prepare>: if this script is found and executable it will be executed
+just before the C<autoreconf> command is executed. The script is executed in
+the F<tarball/build> directory.
+
+=item *
+
+F<deb-dir-prepare>: if this script is found and executable it will be executed
+immediately after any customised debian control files are copied into the
+package source. The script is executed in the F<< debianise/source/<archive> >>
+directory, where F<< <archive> >> is the top level directory of the extracted
+tarball source distribution. The default version of this script performs the
+following replacement on all debian control files: I<@pkg_name@> is replaced by
+the package name (this is analagous to using F<configure.ac> to perform
+substitutions on all source files).
+
+=back
+
+=head1 CONFIGURATION
+
+There is no configuration of this script.
+
+There are ways to customise the build process for a given project. See L</Customising the build process> for further details.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 DIAGNOSTICS
+
+Report bugs to the project maintainer.
+
+=head1 EXIT STATUS
+
+If the script exits because a shell command failed, the exit status is that reported by POSIX::WTERMSIG or, if that is not available, 1.
+
+If the script exits because of a C<croak>, C<confess> or C<die> command, the
+exist status is that provided by the default command.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+autodie, Archive::Tar, Carp, Const::Fast, Dn::Role::HasPath,
+Dn::Role::HasUserInteraction, Dpkg::Version, Email::Date::Format, Email::Valid,
+English, Feature::Compat::Try, File::Basename, File::Copy::Recursive,
+File::Find::Rule, File::Path, File::Spec, File::chdir, FindBin,
+Function::Parameters, Moo, MooX::HandlesVia, MooX::Options, namespace::clean,
+Path::Tiny, Scalar::Util, strictures, Term::Clui, Term::ReadKey,
+Types::Standard, version.
+
+=head2 Executables
+
+autoreconf, dh_make, dpkg, dpkg-buildpackage, make, su, sudo.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 AUTHOR
+
+David Nebauer (david at nebauer dot org)
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2021 David Nebauer (david at nebauer dot org)
+
+This script is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
+
+# vim:foldmethod=marker:
