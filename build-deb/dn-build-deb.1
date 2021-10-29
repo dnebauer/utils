@@ -133,7 +133,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DN-BUILD-DEB 1"
-.TH DN-BUILD-DEB 1 "2021-10-24" "perl v5.32.1" "User Contributed Perl Documentation"
+.TH DN-BUILD-DEB 1 "2021-10-26" "perl v5.32.1" "User Contributed Perl Documentation"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -151,42 +151,9 @@ dn\-build\-deb \- generate deb package for project
 Nil.
 .SH "REQUIRED OPTIONS"
 .IX Header "REQUIRED OPTIONS"
-.IP "\fB\-r\fR|\fB\-\-root_dir\fR \fIval\fR" 4
-.IX Item "-r|--root_dir val"
-The root directory of the source project.
-.Sp
-Scalar string. Required. No default.
-.IP "\fB\-n\fR|\fB\-\-maint_name\fR \fIval\fR" 4
-.IX Item "-n|--maint_name val"
-Name of the package maintainer.
-.Sp
-Scalar string. Required. No default.
-.IP "\fB\-e\fR|\fB\-\-maint_email\fR \fIval\fR" 4
-.IX Item "-e|--maint_email val"
-Email address of the package maintainer.
-.Sp
-Scalar string. Required. No default.
-.IP "\fB\-p\fR|\fB\-\-pkg_name\fR \fIval\fR" 4
-.IX Item "-p|--pkg_name val"
-Package name.
-.Sp
-Not used by this script but made available to sourced customisation files (see
-\&\*(L"Customising the build process\*(R").
-.Sp
-Scalar string. Required. No default.
+Nil.
 .SH "OPTIONS"
 .IX Header "OPTIONS"
-.IP "\fB\-t\fR|\fB\-\-template\fR" 4
-.IX Item "-t|--template"
-Create empty project template consisting of the required directories (see
-\&\*(L"Source Project\*(R").
-.Sp
-Also creates empty customisation files and a wrapper for this script.
-.Sp
-Note the root directory must be empty if a project template is to be created in
-it.
-.Sp
-Boolean. Optional. Default: false.
 .IP "\fB\-d\fR|\fB\-\-dist_build\fR" 4
 .IX Item "-d|--dist_build"
 Skip building of the targzipped project distribution and copying it to the
@@ -198,12 +165,84 @@ from an archived distribution targzip file. If reverting to an earlier version
 of the project, make sure debian control files such as
 \&\fIdebian\-files/changelog\fR are consistent.
 .Sp
+This option is ignored if the \f(CW\*(C`\-t\*(C'\fR or \f(CW\*(C`\-u\*(C'\fR options are used.
+.Sp
+Boolean. Optional. Default: false.
+.IP "\fB\-e\fR|\fB\-\-maint_email\fR \fIval\fR" 4
+.IX Item "-e|--maint_email val"
+Email address of the package maintainer.
+.Sp
+Scalar string. Ignored if called with '\-u' option, otherwise required. No
+default.
+.IP "\fB\-p\fR|\fB\-\-pkg_name\fR \fIval\fR" 4
+.IX Item "-p|--pkg_name val"
+Package name.
+.Sp
+Scalar string. Ignored if called with '\-u' option, otherwise required. No
+default.
+.IP "\fB\-r\fR|\fB\-\-root_dir\fR \fIval\fR" 4
+.IX Item "-r|--root_dir val"
+The root directory of the source project.
+.Sp
+Scalar string. Optional. Default: current working directory.
+.IP "\fB\-t\fR|\fB\-\-template\fR" 4
+.IX Item "-t|--template"
+Create empty project template consisting of the required directories (see
+\&\*(L"Source Project\*(R").
+.Sp
+Also creates empty customisation files and a wrapper for this script.
+.Sp
+Note the root directory must be empty if a project template is to be created in
+it.
+.Sp
+This option cannot be used with the \f(CW\*(C`\-u\*(C'\fR option.
+.Sp
+Boolean. Optional. Default: false.
+.IP "\fB\-u\fR|\fB\-\-update\fR" 4
+.IX Item "-u|--update"
+Update package versions in the \fIdebian\-files/control\fR file.
+.Sp
+This option cannot be used with the \f(CW\*(C`\-t\*(C'\fR option.
+.Sp
 Boolean. Optional. Default: false.
 .IP "\fB\-h\fR" 4
 .IX Item "-h"
 Display help and exit.
 .SH "DESCRIPTION"
 .IX Header "DESCRIPTION"
+This script builds a standard autotools project and then debianises it to
+produce a \fI.deb\fR package file. It relies on the autotools project files and
+debianisation files structured in a particular way (see \*(L"Source Project\*(R" for
+details).
+.SS "Calling modes"
+.IX Subsection "Calling modes"
+This script can be called in three 'modes':
+.IP "build" 4
+.IX Item "build"
+The default mode builds the project and debianises it. The \f(CW\*(C`\-e\*(C'\fR and \f(CW\*(C`\-p\*(C'\fR
+options are required for this mode. The \f(CW\*(C`\-r\*(C'\fR option is required unless the
+script is run from the project's root directory, in which case it can be
+omitted.
+.IP "template" 4
+.IX Item "template"
+The template mode is activated by the \f(CW\*(C`\-t\*(C'\fR option. In this mode a project
+skeleton is created in the specified root directory. The \f(CW\*(C`\-e\*(C'\fR and \f(CW\*(C`\-p\*(C'\fR
+options are required for this mode. The \f(CW\*(C`\-r\*(C'\fR option is required unless the
+script is run from the project's root directory, in which case it can be
+omitted. The root directory must be empty.
+.IP "update" 4
+.IX Item "update"
+The update mode is activated by the \f(CW\*(C`\-u\*(C'\fR option. In this mode the following versions in the \fIdebian\-files/control\fR file are updated to the current versions:
+.RS 4
+.IP "\(bu" 4
+debian compatibility level (debhelper-compat), which is derived from the current version of the \fIdebhelper\fR package
+.IP "\(bu" 4
+debian standards version, which is derived from the current version of the \fIdebian-policy\fR package
+.IP "\(bu" 4
+any package versions in the \fIBuild-Depends\fR and \fIDepends\fR fields.
+.RE
+.RS 4
+.RE
 .SS "Source Project"
 .IX Subsection "Source Project"
 This script is intended to work with standard autotools-compliant projects. The following directory structure is required:
@@ -321,10 +360,7 @@ the \fItarball/build\fR directory.
 immediately after any customised debian control files are copied into the
 package source. The script is executed in the \fIdebianise/source/<archive>\fR
 directory, where \fI<archive>\fR is the top level directory of the extracted
-tarball source distribution. The default version of this script performs the
-following replacement on all debian control files: \fI\f(CI@pkg_name\fI@\fR is replaced by
-the package name (this is analagous to using \fIconfigure.ac\fR to perform
-substitutions on all source files).
+tarball source distribution.
 .SH "CONFIGURATION"
 .IX Header "CONFIGURATION"
 There is no configuration of this script.
@@ -335,7 +371,217 @@ There are ways to customise the build process for a given project. See \*(L"Cust
 There are no known incompatibilities.
 .SH "DIAGNOSTICS"
 .IX Header "DIAGNOSTICS"
-Report bugs to the project maintainer.
+.SS "Unable to archive tarball: \s-1ERROR\s0"
+.IX Subsection "Unable to archive tarball: ERROR"
+Occurs when an attempt to copy the distribution targzip archive to the
+\&\fItarball/archive\fR directory fails.
+.SS "Unable to copy tarball to deb source dir: \s-1ERROR\s0"
+.IX Subsection "Unable to copy tarball to deb source dir: ERROR"
+Occurs when an attempt to copy the distribution targzip archive to the
+\&\fIdebianise/source\fR directory fails.
+.SS "Expected 1 file in debianise/source, got X"
+.IX Subsection "Expected 1 file in debianise/source, got X"
+Occurs when the script attempts to locate the distribution targzip archive in
+the \fIdebianise/source\fR directory. Because the directory was cleared before the
+archive file was copied to it, it should contain only one file.
+.SS "Unable to extract source: \s-1ERROR\s0"
+.IX Subsection "Unable to extract source: ERROR"
+Occurs when an attempt to unarchive the targzip distribution archive fails.
+.SS "Expected 1 directory, got X"
+.IX Subsection "Expected 1 directory, got X"
+After extracting the targzip distribution archive there should be a single
+project directory in \fIdebianise/source\fR containing the extracted project
+files. This error occurs if \fIdebianise/source\fR contains more than one
+subdirectory or contains no subdirectories.
+.SS "Expected 1 'debian' child, got X"
+.IX Subsection "Expected 1 'debian' child, got X"
+.SS "'debian' is not a directory"
+.IX Subsection "'debian' is not a directory"
+.SS "Unable to copy custom debian files: \s-1ERROR\s0"
+.IX Subsection "Unable to copy custom debian files: ERROR"
+These errors occur during the script's attempt to copy custom control files
+from the \fIdebianise/debian\fR directory to the \fIdebian\fR subdirectory of the
+project files extracted into the \fIdebianise/source\fR directory. An error can
+occur if no \fIdebian\fR subdirectory is located (or is a file instead of a
+directory). An error can also occur if the copying operation fails.
+.SS "Expected 1 package file, got X"
+.IX Subsection "Expected 1 package file, got X"
+.SS "\s-1PKG_NAME\s0 is not a file"
+.IX Subsection "PKG_NAME is not a file"
+After building the debian package there should be a single \fI.deb\fR file in the
+\&\fIdebianise/source\fR directory. An error occurs if there is no such file or
+there are multiple such files. An error also occurs if the file is present but
+it is not a regular/plain file.
+.SS "Invalid directory: is \s-1OBJECT_TYPE\s0"
+.IX Subsection "Invalid directory: is OBJECT_TYPE"
+.SS "Invalid directory: is \s-1REF_TYPE\s0"
+.IX Subsection "Invalid directory: is REF_TYPE"
+.SS "Unable to determine directory path"
+.IX Subsection "Unable to determine directory path"
+During the build process the script deletes the contents of both the
+\&\fItarball/build\fR and \fIdebianise/source\fR directories. These errors occur if the
+parameter passed to the method performing the deletion cannot be interpreted as
+a valid directory. These errors occur because of programming mistakes rather
+than system errors.
+.SS "Tried to delete X items, deleted Y"
+.IX Subsection "Tried to delete X items, deleted Y"
+During the build process the script deletes the contents of both the
+\&\fItarball/build\fR and \fIdebianise/source\fR directories. This error occurs if, in
+either case, the number of files and subdirectories deleted is less than the
+total number of files and subdirectories initially detected.
+.SS "No command provided"
+.IX Subsection "No command provided"
+Occurs if the method that runs shell commands, \f(CW\*(C`_run_cmd\*(C'\fR, is called without a
+command parameter. This reflects a programming mistake rather than a system
+error.
+.SS "Terminal < \s-1TERM_MIN_WIDTH\s0 chars(X)"
+.IX Subsection "Terminal < TERM_MIN_WIDTH chars(X)"
+Occurs if the terminal width is less than ten columns.
+.SS "No content provided"
+.IX Subsection "No content provided"
+.SS "Content not an array"
+.IX Subsection "Content not an array"
+.SS "No file provided"
+.IX Subsection "No file provided"
+.SS "Invalid file: is \s-1OBJECT_TYPE\s0"
+.IX Subsection "Invalid file: is OBJECT_TYPE"
+.SS "Invalid file: is \s-1REF_TYPE\s0"
+.IX Subsection "Invalid file: is REF_TYPE"
+.SS "Unable to determine destination file path"
+.IX Subsection "Unable to determine destination file path"
+There are numerous occasions when this script writes a file to permanent
+storage. All such tasks are delegated to a single method. These errors occur
+when the parameters passed to the method are invalid. They are most likely cause
+by programming mistakes rather than system errors or data malformation.
+.SS "Unable to write to '\s-1FILEPATH\s0': \s-1ERROR\s0"
+.IX Subsection "Unable to write to 'FILEPATH': ERROR"
+.SS "Unable to modify permissions of '\s-1FILEPATH\s0': \s-1ERROR\s0"
+.IX Subsection "Unable to modify permissions of 'FILEPATH': ERROR"
+There are numerous occasions when this script writes a file to permanent
+storage. These errors occur when the file write or permission change operations
+fail.
+.SS "Unable to copy into build directory: \s-1ERROR\s0"
+.IX Subsection "Unable to copy into build directory: ERROR"
+Occurs when an attempt to copy the contents of the \fItarball/source\fR and
+\&\fItarball/autotools\fR directories into the \fItarball/build\fR directory fails.
+.SS "Cannot locate 'build/configure' file"
+.IX Subsection "Cannot locate 'build/configure' file"
+During the project build a \fIconfigure\fR file should be created in the
+\&\fItarball/build\fR directory. This error occurs if that file cannot be located.
+.SS "Expected 1 '.tar.gz' file, got X"
+.IX Subsection "Expected 1 '.tar.gz' file, got X"
+The autotools project build process should create a single \fI.tar.gz\fR
+distribution archive in the \fItarball/build\fR directory. This error occurs if
+more than one such file is found, or if no such file is found.
+.SS "Version mismatch between configure.ac and changelog"
+.IX Subsection "Version mismatch between configure.ac and changelog"
+.SS "Unable to extract version from configure.ac and changelog"
+.IX Subsection "Unable to extract version from configure.ac and changelog"
+.SS "Extracted version '\s-1VERSION\s0' from changelog, but unable..."
+.IX Subsection "Extracted version 'VERSION' from changelog, but unable..."
+.SS "Extracted version '\s-1VERSION\s0' from configure.ac, but unable..."
+.IX Subsection "Extracted version 'VERSION' from configure.ac, but unable..."
+.SS "Help! Current version \s-1VERSION\s0 is invalid!"
+.IX Subsection "Help! Current version VERSION is invalid!"
+.SS "Unable to extract version from configure.ac"
+.IX Subsection "Unable to extract version from configure.ac"
+.SS "Unable to extract version from changelog"
+.IX Subsection "Unable to extract version from changelog"
+When the script 'bumps' the package version number it must be changed in the
+\&\fItarball/autotools/configure.ac\fR and \fIdebianise/debian\-files\-changelog\fR
+files. This involves extracting the existing versions from both files before
+changing them in place. These errors occur when extracting and comparing the
+existing package versions in these files.
+.SS "Invalid version: \s-1VERSION\s0"
+.IX Subsection "Invalid version: VERSION"
+.SS "New version cannot be lower than current version"
+.IX Subsection "New version cannot be lower than current version"
+When the script 'bumps' the package version number the user enters the new
+version number. These errors occur if the new version is invalid, or less than
+or equal to the current version.
+.SS "Project root directory is not empty: \s-1DIR\s0"
+.IX Subsection "Project root directory is not empty: DIR"
+Occurs if the script is called in template mode but the specified project root
+directory is not empty.
+.SS "Project root '\s-1DIR\s0' is not a directory"
+.IX Subsection "Project root 'DIR' is not a directory"
+Occurs if an invalid project root directory is specified.
+.SS "Invalid maintainer email address: \s-1EMAIL\s0"
+.IX Subsection "Invalid maintainer email address: EMAIL"
+Occurs if no maintainer email value is provided or if an invalid email address
+is provided.
+.SS "Cannot use both \-t and \-u"
+.IX Subsection "Cannot use both -t and -u"
+Occurs if both \f(CW\*(C`\-t\*(C'\fR and \f(CW\*(C`\-u\*(C'\fR options are used. Only one of these options can
+be used when calling this script.
+.SS "\-t option requires \s-1OPTS\s0"
+.IX Subsection "-t option requires OPTS"
+If the \f(CW\*(C`\-t\*(C'\fR option is used then both the \f(CW\*(C`\-e\*(C'\fR and \f(CW\*(C`\-p\*(C'\fR options must be used
+as well. This error occurs if either or both options are omitted.
+.SS "Building debian package requires \s-1OPTS\s0"
+.IX Subsection "Building debian package requires OPTS"
+If the script is called in 'build' mode it requires both the \f(CW\*(C`\-e\*(C'\fR and \f(CW\*(C`\-p\*(C'\fR
+options be used. This error occurs if either or both options are omitted.
+.SS "Missing tarball/archive directory, perhaps '\-t' is missing?"
+.IX Subsection "Missing tarball/archive directory, perhaps '-t' is missing?"
+.SS "Missing tarball/autotools directory, perhaps '\-t' is missing?"
+.IX Subsection "Missing tarball/autotools directory, perhaps '-t' is missing?"
+.SS "Missing tarball/build directory, perhaps '\-t' is missing?"
+.IX Subsection "Missing tarball/build directory, perhaps '-t' is missing?"
+.SS "Missing tarball/source directory, perhaps '\-t' is missing?"
+.IX Subsection "Missing tarball/source directory, perhaps '-t' is missing?"
+.SS "Missing debianise/debian\-files directory, perhaps '\-t' is missing?"
+.IX Subsection "Missing debianise/debian-files directory, perhaps '-t' is missing?"
+.SS "Missing debianise/scripts directory, perhaps '\-t' is missing?"
+.IX Subsection "Missing debianise/scripts directory, perhaps '-t' is missing?"
+.SS "Missing debianise/source directory, perhaps '\-t' is missing?"
+.IX Subsection "Missing debianise/source directory, perhaps '-t' is missing?"
+Occurs if this directory cannot be located and the script was called in 'build'
+or 'update' mode.
+.SS "Missing \s-1BUILD\-DEB_PATH,\s0 perhaps '\-t' is missing?"
+.IX Subsection "Missing BUILD-DEB_PATH, perhaps '-t' is missing?"
+.SS "Missing \s-1CHANGELOG_PATH,\s0 perhaps '\-t' is missing?"
+.IX Subsection "Missing CHANGELOG_PATH, perhaps '-t' is missing?"
+.SS "Missing \s-1CONFIGURE.AC_PATH,\s0 perhaps '\-t' is missing?"
+.IX Subsection "Missing CONFIGURE.AC_PATH, perhaps '-t' is missing?"
+Occurs if this file cannot be located and the script was called in 'build' or
+\&'update' mode.
+.SS "Unable to get version of package: \s-1PKG\s0"
+.IX Subsection "Unable to get version of package: PKG"
+.SS "Unable to get version of package \s-1PKG: ERROR\s0"
+.IX Subsection "Unable to get version of package PKG: ERROR"
+.SS "Unable to extract version information for package \s-1PKG\s0"
+.IX Subsection "Unable to extract version information for package PKG"
+.SS "Unable to extract \s-1PKG\s0 version from \s-1OUTPUT\s0"
+.IX Subsection "Unable to extract PKG version from OUTPUT"
+.SS "Package \s-1PKG\s0 has invalid version: \s-1VERSION\s0"
+.IX Subsection "Package PKG has invalid version: VERSION"
+These errors can occur when attempting to extract package version number from
+\&\f(CW\*(C`dpkg\*(C'\fR output.
+.SS "Unable to extract debhelper major version number from version: \s-1VERSION\s0"
+.IX Subsection "Unable to extract debhelper major version number from version: VERSION"
+Occurs if the major version number of the \fIdebhelper\fR debian package cannot be
+extracted from its full version number.
+.SS "Unable to extract 3\-part version from \s-1VERSION\s0"
+.IX Subsection "Unable to extract 3-part version from VERSION"
+Occurs if a 3\-part version (X.Y.Z) cannot be extracted from the full version of
+the \fIdebian-policy\fR debian package.
+.SS "Unable to extract 'Build\-Depends' field value"
+.IX Subsection "Unable to extract 'Build-Depends' field value"
+.SS "Unable to extract 'Depends' field value"
+.IX Subsection "Unable to extract 'Depends' field value"
+Occurs when the script is unable to extract data fields from the debian
+\&\fIcontrol\fR file using regular expression matching.
+.SS "Unable to extract package name and version from control file data..."
+.IX Subsection "Unable to extract package name and version from control file data..."
+Occurs when the script is unable to parse extracted data fields from the debian
+\&\fIcontrol\fR file in order to extract package names and versions.
+.SS "Invalid existing standards version: \s-1VERSION\s0"
+.IX Subsection "Invalid existing standards version: VERSION"
+.SS "Invalid current standards version: \s-1VERSION\s0"
+.IX Subsection "Invalid current standards version: VERSION"
+These errors occur when the debian standards version extracted from the debian
+\&\fIcontrol\fR file or the \fIdebian-policy\fR package are found to be invalid.
 .SH "EXIT STATUS"
 .IX Header "EXIT STATUS"
 If the script exits because a shell command failed, the exit status is that reported by \s-1POSIX::WTERMSIG\s0 or, if that is not available, 1.
@@ -346,12 +592,12 @@ exist status is that provided by the default command.
 .IX Header "DEPENDENCIES"
 .SS "Perl modules"
 .IX Subsection "Perl modules"
-Moo, strictures, namespace::clean, autodie, Archive::Tar, Carp, Const::Fast,
-Dn::Role::HasPath, Dn::Role::HasUserInteraction, Dpkg::Version,
-Email::Date::Format, Email::Valid, English, Feature::Compat::Try,
-File::Basename, File::chdir, File::Copy::Recursive, File::Find::Rule,
-File::Spec, File::Path, FindBin, Function::Parameters, MooX::HandlesVia,
-MooX::Options, Path::Tiny, Scalar::Util, Term::Clui, Term::ReadKey,
+autodie, Archive::Tar, Carp, Const::Fast, Dn::Role::HasPath,
+Dn::Role::HasUserInteraction, Dpkg::Version, Email::Date::Format, Email::Valid,
+English, Feature::Compat::Try, File::Basename, File::Copy::Recursive,
+File::Find::Rule, File::Path, File::Spec, File::chdir, FindBin,
+Function::Parameters, Moo, MooX::HandlesVia, MooX::Options, namespace::clean,
+Path::Tiny, Scalar::Util, strictures, Term::Clui, Term::ReadKey,
 Types::Standard, version.
 .SS "Executables"
 .IX Subsection "Executables"
