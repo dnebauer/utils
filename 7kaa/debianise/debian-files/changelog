@@ -1,3 +1,9 @@
+dn-7kaa (1.0-3) unstable; urgency=low
+
+  * Update build files for dn-build-deb v3.0
+
+ -- David Nebauer <david@nebauer.org>  Fri, 29 Oct 2021 17:18:58 +0930
+
 dn-7kaa (1.0-2) unstable; urgency=low
 
   * Remove extraneous build files NEWS, AUTHORS, and README

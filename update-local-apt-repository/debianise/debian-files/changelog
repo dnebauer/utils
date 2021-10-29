@@ -1,3 +1,9 @@
+dn-update-local-apt-repository (1.1-3) UNRELEASED; urgency=medium
+
+  * Change build files to be compatible with dn-build-deb v3.0
+
+ -- David Nebauer <david@nebauer.org>  Sat, 30 Oct 2021 00:16:11 +0930
+
 dn-update-local-apt-repository (1.1-2) UNRELEASED; urgency=medium
 
   * Remove cruft from debian rules build file

@@ -1,3 +1,9 @@
+dn-alsa-device (0.2-3) UNRELEASED; urgency=low
+
+  * Update build files for dn-build-deb v3.0
+
+ -- David Nebauer <david@nebauer.org>  Fri, 29 Oct 2021 17:20:51 +0930
+
 dn-alsa-device (0.2-2) UNRELEASED; urgency=low
 
   * change distro to UNRELEASED to prevent package signing

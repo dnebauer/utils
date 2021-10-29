@@ -1,3 +1,9 @@
+dn-mc-conf (0.7-3) UNRELEASED; urgency=low
+
+  * Change build files to be compatible with dn-build-deb v3.0
+
+ -- David Nebauer <david@nebauer.org>  Sat, 30 Oct 2021 00:15:34 +0930
+
 dn-mc-conf (0.7-2) UNRELEASED; urgency=low
 
   * Remove AUTHORS, ChangeLog, NEWS and README build files

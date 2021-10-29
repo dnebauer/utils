@@ -1161,6 +1161,9 @@ use namespace::clean;    # }}}1
             my $escaped_char = q{\\} . $char;
             for my $fname (@fnames) {
                 my $escaped_fname = $fname =~ s/$char/$escaped_char/xsmgr;
+
+                # - put '.' in 1-char character class so is not wildcard
+                $fname =~ s/[.]/\[.\]/xsmg;
                 $content =~ s/$fname/$escaped_fname/xsmg;
             }
         }
