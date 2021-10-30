@@ -678,7 +678,7 @@ use namespace::clean;    #                                             }}}1
     method _create_debian_build_files () {
         my $email      = $self->_email;
         my $export_cmd = [ 'export', "EMAIL=$email" ];
-        my $dh_cmd     = ['dh-make-perl'];
+        my $dh_cmd     = ['dh-make-perl', '--vcs', q{''}];
         my $connected  = $cp->internet_connection($TRUE);
         if ( not $connected ) {
             say "\nRunning dh-make-perl with '--no-network'";

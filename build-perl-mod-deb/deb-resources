@@ -21,7 +21,7 @@ package-name dn-build-perl-mod-deb
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.9.1
+version 0.9.3
 
 # Script and binary files
 # Executable files to be packaged.
