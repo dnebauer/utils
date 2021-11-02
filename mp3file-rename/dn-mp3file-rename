@@ -102,10 +102,7 @@ use utf8;        # }}}1
     use Types::Path::Tiny qw(AbsFile);
     use Types::Standard;
 
-    with qw(
-        Dn::Role::HasString
-        Dn::MP3Rename::Role
-    );
+    with qw(Role::Utils::Dn);
 
     const my $TRUE  => 1;
     const my $FALSE => 0;    # }}}2
@@ -322,10 +319,8 @@ use utf8;        # }}}1
     use Types::Standard;
 
     with qw(
-        Dn::Role::HasPath
-        Dn::Role::HasString
-        Dn::Role::HasUserInteraction
         Dn::MP3Rename::Role
+        Role::Utils::Dn
     );
 
     const my $TRUE  => 1;
@@ -865,11 +860,10 @@ template (C<-f>) with no placeholders.
 
 =head2 Perl modules
 
-autodie, Const::Fast, Dn::Role::HasPath, Dn::Role::HasString,
-Dn::Role::HasUserInteraction, English, Function::Parameters, Log::Log4perl,
-Moo, MooX::HandlesVia, MooX::Options, MP3::Info, namespace::clean, Path::Tiny,
-strictures, Term::ProgressBar::Simple, Text::Unidecode, Types::Path::Tiny,
-Types::Standard, utf8, version.
+autodie, Const::Fast, Role::Utils::Dn English, Function::Parameters,
+Log::Log4perl, Moo, MooX::HandlesVia, MooX::Options, MP3::Info,
+namespace::clean, Path::Tiny, strictures, Term::ProgressBar::Simple,
+Text::Unidecode, Types::Path::Tiny, Types::Standard, utf8, version.
 
 =head1 CONFIGURATION
 

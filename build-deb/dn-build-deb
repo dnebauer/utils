@@ -43,10 +43,7 @@ use namespace::clean;    # }}}1
     use Term::ReadKey;
     use Types::Standard;
 
-    with qw(
-        Dn::Role::HasPath
-        Dn::Role::HasUserInteraction
-    );
+    with qw(Role::Utils::Dn);
 
     const my $TRUE           => 1;
     const my $FALSE          => 0;
@@ -2178,17 +2175,21 @@ omitted. The root directory must be empty.
 
 =item update
 
-The update mode is activated by the C<-u> option. In this mode the following versions in the F<debian-files/control> file are updated to the current versions:
+The update mode is activated by the C<-u> option. In this mode the following
+versions in the F<debian-files/control> file are updated to the current
+versions:
 
 =over
 
 =item *
 
-debian compatibility level (debhelper-compat), which is derived from the current version of the F<debhelper> package
+debian compatibility level (debhelper-compat), which is derived from the
+current version of the F<debhelper> package
 
 =item *
 
-debian standards version, which is derived from the current version of the F<debian-policy> package
+debian standards version, which is derived from the current version of the
+F<debian-policy> package
 
 =item *
 
@@ -2200,7 +2201,8 @@ any package versions in the F<Build-Depends> and F<Depends> fields.
 
 =head2 Source Project
 
-This script is intended to work with standard autotools-compliant projects. The following directory structure is required:
+This script is intended to work with standard autotools-compliant projects. The
+following directory structure is required:
        
     <root>
      | 
@@ -2353,7 +2355,8 @@ tarball source distribution.
 
 There is no configuration of this script.
 
-There are ways to customise the build process for a given project. See L</Customising the build process> for further details.
+There are ways to customise the build process for a given project. See
+L</Customising the build process> for further details.
 
 =head1 INCOMPATIBILITIES
 
@@ -2606,7 +2609,8 @@ F<control> file or the F<debian-policy> package are found to be invalid.
 
 =head1 EXIT STATUS
 
-If the script exits because a shell command failed, the exit status is that reported by POSIX::WTERMSIG or, if that is not available, 1.
+If the script exits because a shell command failed, the exit status is that
+reported by POSIX::WTERMSIG or, if that is not available, 1.
 
 If the script exits because of a C<croak>, C<confess> or C<die> command, the
 exist status is that provided by the default command.
@@ -2615,13 +2619,12 @@ exist status is that provided by the default command.
 
 =head2 Perl modules
 
-autodie, Archive::Tar, Carp, Const::Fast, Dn::Role::HasPath,
-Dn::Role::HasUserInteraction, Dpkg::Version, Email::Date::Format, Email::Valid,
-English, Feature::Compat::Try, File::Basename, File::Copy::Recursive,
-File::Find::Rule, File::Path, File::Spec, File::chdir, FindBin,
-Function::Parameters, Moo, MooX::HandlesVia, MooX::Options, namespace::clean,
-Path::Tiny, Scalar::Util, strictures, Term::Clui, Term::ReadKey,
-Types::Standard, version.
+autodie, Archive::Tar, Carp, Const::Fast, Role::Utils::Dn, Dpkg::Version,
+Email::Date::Format, Email::Valid, English, Feature::Compat::Try,
+File::Basename, File::Copy::Recursive, File::Find::Rule, File::Path,
+File::Spec, File::chdir, FindBin, Function::Parameters, Moo, MooX::HandlesVia,
+MooX::Options, namespace::clean, Path::Tiny, Scalar::Util, strictures,
+Term::Clui, Term::ReadKey, Types::Standard, version.
 
 =head2 Executables
 

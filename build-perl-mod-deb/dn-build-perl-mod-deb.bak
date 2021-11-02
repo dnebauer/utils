@@ -177,10 +177,24 @@ use namespace::clean;    # }}}1
         format   => 's',
         required => $FALSE,
         short    => 'e',
-        doc      => 'Package maintainer email (default: david@nebauer.org)',
+        doc      => 'Package maintainer email',
 
         # this option is not used directly, but it used in
         # construction of attribute '_email'
+    );
+
+    # export_email (-x)    {{{1
+    option 'export_email' => (
+        is       => 'ro',
+        required => $FALSE,
+        short    => 'x',
+        doc      => 'Export email as environmental variable',
+
+        # in March 2017 a dh-make-perl bug (#856532,
+        # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=856532)
+        # surfaced which prevented it running; one workaround
+        # is to set the environmental variable EMAIL to the
+        # package maintainer email
     );
 
     # no_builddeps (-d)    {{{1
@@ -357,7 +371,7 @@ use namespace::clean;    # }}}1
         is      => 'rw',
         isa     => Types::Standard::Bool,
         default => sub {$FALSE},
-        doc     => 'Whether git repo created during build process (flag)',
+        doc     => 'Flag whether git repository created during build process',
     );
 
     # _module_dir    {{{1
@@ -676,6 +690,7 @@ use namespace::clean;    # }}}1
     # return: nil, die on error
     method _create_debian_build_files () {
         my $email      = $self->_email;
+        my $export_cmd = [ 'export', "EMAIL=$email" ];
         my $dh_cmd     = [ 'dh-make-perl', '--vcs', q{''} ];
         my $connected  = $cp->internet_connection($TRUE);
         if ( not $connected ) {
@@ -686,6 +701,7 @@ use namespace::clean;    # }}}1
             $self->_distro_name_ver );
         local $File::chdir::CWD = $File::chdir::CWD;
         $File::chdir::CWD = $self->_build_dir;
+        if ( $self->export_email ) { $cp->run_command($export_cmd); }
         $cp->run_command($dh_cmd);
     }
 
@@ -939,6 +955,15 @@ Nil.
 =item B<-e>  B<--email> I<email>
 
 Debian package maintainer email. Default = C<david@nebauer.org>
+
+=item B<-x>  B<--export_email>
+
+Run S<< C<dh-make-perl> >> with the environmental variable C<EMAIL> set to the
+package maintainer's email. Default = FALSE.
+
+Note: this option was introduced to work around a S<< C<dh-make-perl> >> bug.
+See L<debian bug
+#856532|https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=856532> for details.
 
 =item B<-d>  B<--no_builddeps>
 

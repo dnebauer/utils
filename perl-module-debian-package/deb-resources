@@ -21,7 +21,7 @@ package-name perl-module-debian-package
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.6
+version 0.7
  
 # Script and binary files
 # Executable files to be packaged.
@@ -163,11 +163,8 @@ depends-on perl (>= 5.20.2-6)
 #   Clipboard
 depends-on libclipboard-perl (>= 0.26-1)
  
-#   Dn::Role::HasPath
-depends-on libdn-role-haspath-perl (>= 0.1-1)
- 
-#   Moo
-depends-on libmoo-perl (>= 2.004004-1)
+#   Role::Utils::Dn
+depends-on librole-utils-dn-perl (>= 0.1-1)
  
 #   MooX::Options
 depends-on libmoox-options-perl (>= 4.018-1)

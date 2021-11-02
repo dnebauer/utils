@@ -21,7 +21,7 @@ package-name dn-html2ebooks
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.3
+version 0.4
  
 # Script and binary files
 # Executable files to be packaged.
@@ -181,11 +181,8 @@ depends-on perl (>= 5.26.0-8)
 #   Curses
 depends-on libcurses-perl (>= 1.36-1+b3)
 
-#   Dn::Role::HasPath
-depends-on libdn-role-haspath-perl (>= 0.1-1)
- 
-#   Dn::Role::HasString
-depends-on libdn-role-hasstring-perl (>= 0.1-1)
+#   Role::Utils::Dn
+depends-on librole-utils-dn-perl (>= 0.1-1)
  
 #   Function::Parameters
 depends-on libfunction-parameters-perl (>= 1.0705-1+b1)

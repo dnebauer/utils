@@ -60,10 +60,7 @@ use namespace::clean;    # }}}1
     use String::ShellQuote;
     use Types::Standard;
 
-    with qw(
-        Dn::Role::HasPath
-        Dn::Role::HasString
-    );
+    with qw(Role::Utils::Dn);
 
     Readonly my $TRUE  => 1;
     Readonly my $FALSE => 0;    # }}}1
@@ -387,9 +384,9 @@ debian systems.
 
 =head2 Perl modules
 
-Carp, Curses, Dn::Role::HasPath, Dn::Role::HasString, Function::Parameters,
-IPC::Cmd, Moo, MooX::HandlesVia, MooX::Options, namespace::clean, Readonly,
-strictures, String::ShellQuote, Types::Standard.
+Carp, Curses, Role::Utils::Dn, Function::Parameters, IPC::Cmd, Moo,
+MooX::HandlesVia, MooX::Options, namespace::clean, Readonly, strictures,
+String::ShellQuote, Types::Standard.
 
 =head2 Executables
 

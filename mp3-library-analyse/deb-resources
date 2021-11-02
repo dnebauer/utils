@@ -21,7 +21,7 @@ package-name dn-mp3-library-analyse
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.3
+version 0.4
  
 # Script and binary files
 # Executable files to be packaged.
@@ -178,11 +178,8 @@ depends-on perl (>= 5.32.1-3)
 #   Const::Fast
 depends-on libconst-fast-perl (>= 0.014-1.1)
  
-#   Dn::Role::HasPath
-depends-on libdn-role-haspath-perl (>= 0.1-1)
- 
-#   Dn::Role::HasProgramInteraction
-depends-on libdn-role-hasprograminteraction-perl (>= 0.1-1)
+#   Role::Utils::Dn
+depends-on librole-utils-dn-perl (>= 0.1-1)
  
 #   Function::Parameters
 depends-on libfunction-parameters-perl (>= 2.001003-2+b3)

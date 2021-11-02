@@ -24,10 +24,7 @@ use version; our $VERSION = qv('0.1');    # }}}1
     use Symbol;
     use Types::Standard;
 
-    with qw(
-        Dn::Role::HasPath
-        Dn::Role::HasProgramInteraction
-    );
+    with qw(Role::Utils::Dn);
 
     const my $TRUE  => 1;
     const my $FALSE => 0;    # }}}1
@@ -301,7 +298,7 @@ provided by the operating system.
 
 =head2 Perl modules
 
-Carp, Clipboard, Const::Fast, Dn::Role::HasPath, English, Function::Parameters,
+Carp, Clipboard, Const::Fast, Role::Utils::Dn, English, Function::Parameters,
 List::MoreUtils, List::Util, Moo, MooX::Options, namespace::clean, POSIX,
 strictures, Symbol, Types::Standard, version.
 

@@ -31,10 +31,7 @@ use utf8;
     use Path::Iterator::Rule;
     use Types::Standard;
 
-    with qw(
-        Dn::Role::HasPath
-        Dn::Role::HasProgramInteraction
-    );
+    with qw(Role::Utils::Dn);
 
     const my $TRUE     => 1;
     const my $FALSE    => 0;
@@ -388,10 +385,10 @@ Occurs when an invalid option is supplied.
 
 =head2 Perl modules
 
-Carp, Const::Fast, Cwd, Dn::Role::HasPath, Dn::Role::HasProgramInteraction,
-Encode, English, Env, File::Spec, Function::Parameters, IPC::Cmd, IPC::Run,
-Log::Log4perl, namespace::clean, Moo, MooX::Options, Path::Iterator::Rule,
-strictures, Types::Standard, utf8, version.
+Carp, Const::Fast, Cwd, Role::Utils::Dn, Encode, English, Env, File::Spec,
+Function::Parameters, IPC::Cmd, IPC::Run, Log::Log4perl, namespace::clean, Moo,
+MooX::Options, Path::Iterator::Rule, strictures, Types::Standard, utf8,
+version.
 
 =head1 CONFIGURATION
 

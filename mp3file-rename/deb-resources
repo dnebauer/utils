@@ -21,7 +21,7 @@ package-name dn-mp3file-rename
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.2
+version 0.3
  
 # Script and binary files
 # Executable files to be packaged.
@@ -177,11 +177,8 @@ depends-on perl (>= 5.20.2-6)
 #   Const::Fast
 depends-on libconst-fast-perl (>= 0.014-1)
  
-#   Dn::Role::HasPath
-depends-on libdn-role-haspath-perl (>= 0.1-1)
- 
-#   Function::Parameters
-depends-on libfunction-parameters-perl (>= 1.0603-1)
+#   Role::Utils::Dn
+depends-on librole-utils-dn-perl (>= 0.1-1)
  
 #   Log::Log4perl
 depends-on liblog-log4perl-perl (>= 1.53-1)

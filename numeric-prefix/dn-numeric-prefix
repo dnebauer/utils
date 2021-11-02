@@ -24,10 +24,7 @@ use namespace::clean;    #                                             }}}1
     use Readonly;
     use Types::Standard;
 
-    with qw(
-        Dn::Role::HasNumber
-        Dn::Role::HasPath
-    );
+    with qw(Role::Utils::Dn);
 
     Readonly my $TRUE  => 1;
     Readonly my $FALSE => 0;    #                                      }}}1

@@ -139,6 +139,9 @@ control-description Builds perl module. See man page for details.
 #   perl, Carp, English, experimental, File::Basename, Moo
 depends-on libmoo-perl (>= 2.000001-2)
 
+#   Const::Fast
+depends-on libconst-fast-perl (>= 0.014-1.1)
+
 #   Dist::Milla
 #   - provides 'milla'
 #   - not available from standard debian repositories
@@ -172,9 +175,6 @@ depends-on libnamespace-clean-perl (>= 0.25-1)
 
 #   Path::Tiny
 depends-on libpath-tiny-perl (>= 0.072-1)
-
-#   Readonly
-depends-on libreadonly-perl (>= 2.000-2)
 
 #   strictures
 depends-on libstrictures-perl (>= 2.000001-2)
