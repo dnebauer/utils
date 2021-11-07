@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-use Moo;    # {{{1
+use Moo;                 # {{{1
 use strictures 2;
 use 5.006;
 use 5.022_001;
@@ -29,15 +29,12 @@ use namespace::clean;    # }}}1
     use File::Copy::Recursive qw(dircopy);
     use File::Find::Rule;
     use File::Spec;
-    use File::Path qw(make_path);
     use FindBin qw($Script);
     use Function::Parameters;
     use IPC::Cmd;
-    use List::MoreUtils qw(first_value);
     use MooX::HandlesVia;
     use MooX::Options protect_argv => 0;
     use Path::Tiny;
-    use Scalar::Util qw(blessed reftype);
     use Term::Clui;
     local $ENV{CLUI_DIR} = 'OFF';
     use Term::ReadKey;
@@ -45,13 +42,11 @@ use namespace::clean;    # }}}1
 
     with qw(Role::Utils::Dn);
 
-    const my $TRUE           => 1;
-    const my $FALSE          => 0;
-    const my $TERM_MIN_WIDTH => 10;
-    const my $TERM_GUTTER    => 5;    # }}}1
+    const my $TRUE  => 1;
+    const my $FALSE => 0;    # }}}1
 
     # debug    # {{{1
-    use Data::Dumper::Simple;         # }}}1
+    use Data::Dumper::Simple;    # }}}1
 
     # options
 
@@ -465,7 +460,7 @@ use namespace::clean;    # }}}1
 
         # delete contents of build directory    {{{2
         my $tar_build = $self->_tar_build;
-        $self->_dir_clean( $tar_build->canonpath );
+        $self->dir_clean( $tar_build->canonpath );
 
         # copy contents of autotools and source to build    {{{2
         my @dirs = ( $self->_tar_auto, $self->_tar_source );
@@ -489,7 +484,7 @@ use namespace::clean;    # }}}1
             {
                 my @cmd = ( $tar_prep->canonpath );
                 my $err = 'Script failed';
-                $self->_run_cmd( $err, @cmd );
+                $self->run_command( $err, @cmd );
             }
         }
 
@@ -499,7 +494,7 @@ use namespace::clean;    # }}}1
         {
             my @cmd = qw(autoreconf --install);
             my $err = 'autoreconf failed';
-            $self->_run_cmd( $err, @cmd );
+            $self->run_command( $err, @cmd );
         }
 
         # escape special filename chars in configure    {{{2
@@ -515,7 +510,7 @@ use namespace::clean;    # }}}1
         {
             my @cmd = qw(./configure);
             my $err = './configure failed';
-            $self->_run_cmd( $err, @cmd );
+            $self->run_command( $err, @cmd );
         }
 
         # run 'make dist'    {{{2
@@ -523,7 +518,7 @@ use namespace::clean;    # }}}1
         {
             my @cmd = qw(make dist);
             my $err = 'make dist failed';
-            $self->_run_cmd( $err, @cmd );
+            $self->run_command( $err, @cmd );
         }
 
         # copy tarball to tar/archive directory    {{{2
@@ -545,7 +540,7 @@ use namespace::clean;    # }}}1
         say 'Copying tarball to debianise/source directory' or croak;
         {
             my $deb_source = $self->_deb_source;
-            $self->_dir_clean( $deb_source->canonpath );
+            $self->dir_clean( $deb_source->canonpath );
             File::Copy::Recursive::fcopy( $dist->canonpath,
                 $deb_source->canonpath )
                 or croak "Unable to copy tarball to deb source dir: $ERRNO";
@@ -645,7 +640,6 @@ use namespace::clean;    # }}}1
         return;
     }
 
-    # _capture_cmd_output($cmd)    {{{1
     #
     # does:   run system command and capture output
     # params: @cmd - command to run [list, required]
@@ -838,127 +832,6 @@ use namespace::clean;    # }}}1
         return qr{ $pre_version $version $post_version }xsm;
     }
 
-    # _debhelper_compat()    {{{1
-    #
-    # does:   get current debian compatibility level
-    #         - actually gets major version of debian package 'debhelper'
-    # params: nil
-    # prints: nil
-    # return: scalar string - version (undef if problem encountered)
-    method _debhelper_compat () {
-
-        # get full version
-        # - called method dies on failure
-        my $version_full = $self->_debian_package_version('debhelper');
-
-        # get semantic version
-        # - meaning only '[E:]X' and not, for example, '[E:]X.Y.Z')
-        my $match_full_version = qr{
-            \A                  # anchor to start of string
-            (\d+:)?             # epoch (optional)
-            [\d\N{FULL STOP}]+  # version: A.B.C...
-            \Z                  # anchor to start of string
-        }xsm;
-        my $match_major_version = qr{
-            \A                # anchor to start of string
-            (                 # start capture
-              (?:\d+:)?       # epoch (optional)
-              \d+             # major version number
-            )                 # end capture (don't care about string end)
-        }xsm;
-        my $major_version;
-        if ( $version_full =~ $match_full_version ) {
-            $version_full =~ $match_major_version;
-            $major_version = $1;
-        }
-        if ( not $major_version ) {
-            my $msg = 'Unable to extract debhelper major version number'
-                . " from version: $version_full";
-            croak $msg;
-        }
-
-        return $major_version;
-    }
-
-    # _debian_package_version($pkg)    {{{1
-    #
-    # does:   get version of debian package
-    # params: $pkg - name of debian package
-    # prints: nil
-    # return: scalar string - version
-    #         undef = dpkg command failed
-    #         dies on failure to parse version string
-    method _debian_package_version ($pkg) {
-
-        # check arg
-        return if not $pkg;
-
-        # get output of 'dpkg -s PKG'
-        my @cmd    = ( 'dpkg', '-s', $pkg );
-        my $result = $self->_capture_cmd_output(@cmd);
-        return if not $result->{'success'};
-
-        #if ( not $result->{'success'} ) {
-        #    my $error = $result->{'error'};
-        #    die "Unable to get version of package $pkg: $error\n";
-        #}
-
-        # get version line from status output
-        my @out      = @{ $result->{'stdout'} };
-        my $ver_line = List::MoreUtils::first_value {/\AVersion: /xsm} @out;
-        confess "Unable to extract version information for package $pkg"
-            if not $ver_line;
-
-        # get full version number
-        my $version = ( split /\s+/xsm, $ver_line )[1];
-        confess "Unable to extract $pkg version from $ver_line"
-            if not $version;
-
-        return $version;
-    }
-
-  # _debian_standards_version()    {{{1
-  #
-  # does:   get current version of debian standards
-  #         - actually gets semantic version of debian package 'debian-policy'
-  #         - if problem encountered returns safe version ('3.9.2')
-  # params: nil
-  # prints: nil
-  # return: scalar string - version
-    method _debian_standards_version () {
-
-        # get full version
-        # - called method dies on failure
-        my $version_full = $self->_debian_package_version('debian-policy');
-
-        # get semantic version
-        # - meaning only '[E:]X.Y.Z' and not, for example, '[E:]X.Y.Z.A')
-        my $match_full_version = qr{
-        \A                  # anchor to start of string
-        (\d+:)?             # epoch (optional)
-        [\d\N{FULL STOP}]+  # version: A.B.C...
-        \Z                  # anchor to start of string
-    }xsm;
-        my $match_semantic_version = qr{
-        \A                           # anchor to start of string
-        (                            # start capture
-          (?:\d+:)?                  # epoch (optional)
-          \d+                        # major version number
-          (?:\N{FULL STOP}\d+){0,2}  # up to two further version levels
-        )                            # end capture (ignore string end)
-    }xsm;
-        my $version;
-        if ( $version_full =~ $match_full_version ) {
-            $version_full =~ $match_semantic_version;
-            $version = $1;
-        }
-        confess "Unable to extract 3-part version from '$version_full'"
-            if not $version;
-
-        return $version;
-
-    }
-
     # _debianise()    {{{1
     #
     # does:   debianise distribution source
@@ -1007,7 +880,7 @@ use namespace::clean;    # }}}1
                 '--file',  $tarball->canonpath,
             );
             my $err = 'dh_make failed';
-            $self->_run_cmd( $err, @cmd );
+            $self->run_command( $err, @cmd );
         }
 
         # copy customised files to debian subdirectory    {{{2
@@ -1023,7 +896,7 @@ use namespace::clean;    # }}}1
                 if $kids_count != 1;
             $debian = $children[0];
             croak q{'debian' is not a directory} if not $debian->is_dir;
-            $self->_dir_clean($debian);
+            $self->dir_clean($debian);
             my $custom = $self->_deb_debian;
             File::Copy::Recursive::dircopy( $custom->canonpath,
                 $debian->canonpath )
@@ -1041,7 +914,7 @@ use namespace::clean;    # }}}1
                 my $content = $child->slurp_utf8;
                 $content =~ s/\@pkg_name\@/$pkg/xsmg;
                 my @new_content = split /\n/xsm, $content;
-                $self->_write_file( [@new_content], $child );
+                $self->file_write( [@new_content], $child );
             }
         }
 
@@ -1053,7 +926,7 @@ use namespace::clean;    # }}}1
             {
                 my @cmd = ( $deb_prep->canonpath );
                 my $err = 'Script failed';
-                $self->_run_cmd( $err, @cmd );
+                $self->run_command( $err, @cmd );
             }
         }
 
@@ -1063,7 +936,7 @@ use namespace::clean;    # }}}1
         {
             my @cmd = qw(dpkg-buildpackage -rfakeroot -us -uc);
             my $err = 'Package build failed';
-            $self->_run_cmd( $err, @cmd );
+            $self->run_command( $err, @cmd );
         }
 
         # check for package file    {{{2
@@ -1076,47 +949,6 @@ use namespace::clean;    # }}}1
             croak "$pkg is not a file" if not $pkg->is_file;
             $self->_deb_pkg($pkg);
             say 'Debian package build is complete' or croak;
-        }    # }}}2
-
-        return;
-    }
-
-    # _dir_clean($dir)    {{{1
-    #
-    # does:   remove all contents of directory
-    #
-    # params: $dir - dirpath to check [Path::Tiny object or string, required]
-    # prints: feedback on error
-    # return: n/a, dies on failure
-    method _dir_clean ($dir_param) {
-
-        # check directory param    {{{2
-        my $dir;
-        my $dir_reftype  = Scalar::Util::reftype $dir_param;
-        my $dir_obj_type = Scalar::Util::blessed $dir_param;
-        if ( defined $dir_reftype ) {
-
-            # is a reference
-            if ( defined $dir_obj_type ) {
-
-                # is an object
-                if ( $dir_obj_type eq 'Path::Tiny' ) { $dir = $dir_param; }
-                else { confess "Invalid directory: is $dir_obj_type object"; }
-            }
-            else { confess "Invalid directory: is $dir_reftype"; }
-        }
-        else {
-            # scalar, presumed to be string file path
-            $dir = Path::Tiny::path($dir_param)->absolute;
-        }
-        if ( not $dir ) { confess 'Unable to determine directory path'; }
-
-        # delete directory contents    {{{2
-        my @children  = map { $_->canonpath } $dir->children;
-        my $to_delete = scalar @children;
-        my $deleted   = File::Path::remove_tree(@children);
-        if ( $deleted < $to_delete ) {
-            confess "Tried to delete $to_delete items, deleted $deleted";
         }    # }}}2
 
         return;
@@ -1160,14 +992,14 @@ use namespace::clean;    # }}}1
                 my $escaped_fname = $fname =~ s/$char/$escaped_char/xsmgr;
 
                 # - put '.' in 1-char character class so is not wildcard
-                $fname =~ s/[.]/\[.\]/xsmg;
+                $fname   =~ s/[.]/\[.\]/xsmg;
                 $content =~ s/$fname/$escaped_fname/xsmg;
             }
         }
 
         # write edited content back to configure file    {{{2
         my @new_content = split /\n/xsm, $content;
-        $self->_write_file( [@new_content], $conf );    # }}}2
+        $self->file_write( [@new_content], $conf );    # }}}2
 
         return;
     }
@@ -1204,8 +1036,8 @@ use namespace::clean;    # }}}1
         say $divider or croak;
         if ( system @cmd ) { $success = $FALSE; }
         say $divider or croak;
-        if   ($success) { say 'Install complete' or croak; }
-        else            { warn "Install failed\n"; }
+        if ($success) { say 'Install complete' or croak; }
+        else          { warn "Install failed\n"; }
 
         return;
     }
@@ -1277,51 +1109,6 @@ use namespace::clean;    # }}}1
                 die "Building debian package requires $frag\n";
             }
         }    # }}}2
-
-        return;
-    }
-
-    # _run_cmd($err, @cmd)    {{{1
-    #
-    # does:   run system command and die on failure
-    #
-    # params: $err - error message [scalar string, required, can be undef]
-    #         @cmd - command and arguments [list, required]
-    # prints: feedback
-    # return: n/a, dies on failure
-    method _run_cmd ( $err, @cmd ) {
-
-        if ( not @cmd ) { confess 'No command provided'; }
-        my $divider = $self->_divider;
-        say $divider or croak;
-        if ( system @cmd ) {
-
-            say $divider or croak;
-            my $cmd_str = join q{ }, @cmd;
-            if ($err) { warn "$err\n"; }
-            warn "Failed command: $cmd_str\n";
-
-            # perlcritic mistakenly complains about ${^CHILD_ERROR_NATIVE}
-            # being a "magic punctuation variable" but it is actually the
-            # long name from the English module, so perlcritic is wrong
-            ## no critic (ProhibitPunctuationVars)
-            my $err = ${^CHILD_ERROR_NATIVE};
-            ## use critic
-
-            # decode the exit status with POSIX module functions
-            if ( POSIX::WIFEXITED($err) ) {
-                warn '- exited with status ', POSIX::WEXITSTATUS($err), "\n";
-            }
-            my $exit_status = 1;
-            if ( POSIX::WIFSIGNALED($err) ) {
-                warn '- killed by signal ', POSIX::WTERMSIG($err), "\n";
-                $exit_status = POSIX::WTERMSIG($err);
-            }
-
-            warn "Aborting...\n";
-            exit $exit_status;
-        }
-        say $divider or croak;
 
         return;
     }
@@ -1578,13 +1365,7 @@ use namespace::clean;    # }}}1
 
         # set divider    {{{2
         {
-            my $width = $self->term_width;
-            if ( $width < $TERM_MIN_WIDTH ) {
-                croak "Terminal < $TERM_MIN_WIDTH chars($width)";
-            }
-            my $length  = $width - $TERM_GUTTER;
-            my $divider = q{-} x $length;
-            $self->_divider($divider);
+            $self->_divider( $self->divider );
         }    # }}}2
 
         return;
@@ -1642,7 +1423,7 @@ use namespace::clean;    # }}}1
             my @matches = $content =~ $re;
             if ( scalar @matches == 1 ) {
                 my $existing = $matches[0];
-                my $current  = $self->_debhelper_compat;
+                my $current  = $self->debhelper_compat;
                 if ( $current > $existing ) {
                     $update{$compat_key}
                         = { exist => $existing, current => $current };
@@ -1660,8 +1441,8 @@ use namespace::clean;    # }}}1
                 my $existing = Dpkg::Version->new( $matches[0] );
                 die "Invalid existing standards version: $existing\n"
                     if not $existing->is_valid;
-                my $current = Dpkg::Version->new(
-                    $self->_debian_standards_version() );
+                my $current
+                    = Dpkg::Version->new( $self->debian_standards_version() );
                 die "Invalid current standards version: $current\n"
                     if not $current->is_valid;
                 if ( $current > $existing ) {
@@ -1725,7 +1506,7 @@ use namespace::clean;    # }}}1
             while ( my ( $pkg, $val ) = each %pkg_version ) {
                 my $op          = $val->{'op'};
                 my $existing    = $val->{'ver'};
-                my $current_val = $self->_debian_package_version($pkg);
+                my $current_val = $self->debian_package_version($pkg);
                 if ( not $current_val ) {
                     warn "Unable to get version of package: $pkg\n";
                     push @manual, $pkg;
@@ -1774,7 +1555,7 @@ use namespace::clean;    # }}}1
         # write updated content to file    {{{2
         {
             my @new_content = split /\n/xsm, $content;
-            $self->_write_file( [@new_content], $deb_control );
+            $self->file_write( [@new_content], $deb_control );
             say 'Update complete' or croak;
         }    # }}}2
 
@@ -1884,7 +1665,7 @@ use namespace::clean;    # }}}1
             );
 
         # write file
-        $self->_write_file( [@c], $self->_tar_prep, '0744' );
+        $self->file_write( [@c], $self->_tar_prep, '0744' );
 
         return;
     }
@@ -1930,7 +1711,7 @@ use namespace::clean;    # }}}1
             );
 
         # write file
-        $self->_write_file( [@c], $self->_deb_prep, '0744' );
+        $self->file_write( [@c], $self->_deb_prep, '0744' );
 
         return;
     }
@@ -1977,72 +1758,7 @@ use namespace::clean;    # }}}1
             );
 
         # write file
-        $self->_write_file( [@c], $self->_wrapper, '0744' );
-
-        return;
-    }
-
-    # _write_file($content, $file, [$perm])    {{{1
-    #
-    # does:   write file
-    #
-    # params: $content - file content [array reference, required]
-    #         $file    - file path to write to
-    #                    [string or Path::Tiny object, required]
-    #         $perm    - permissions for file [quoted octal string, optional,
-    #                                          default=current umask]
-    # prints: nil, except on failure
-    # return: n/a, dies on file operation failure
-    method _write_file ( $content, $file, $perm = undef ) {
-
-        # set vars
-        if ( not $content ) {
-            confess 'No content provided';
-        }
-        if ( ref $content ne 'ARRAY' ) {
-            confess 'Content not an array';
-        }
-        if ( not $file ) {
-            confess 'No file provided';
-        }
-        my $dest;
-        my $file_reftype  = Scalar::Util::reftype $file;
-        my $file_obj_type = Scalar::Util::blessed $file;
-        if ( defined $file_reftype ) {
-
-            # is a reference
-            if ( defined $file_obj_type ) {
-
-                # is an object
-                if ( $file_obj_type eq 'Path::Tiny' ) { $dest = $file; }
-                else { confess "Invalid file: is $file_obj_type object"; }
-            }
-            else { confess "Invalid file: is $file_reftype"; }
-        }
-        else {
-            # scalar, presumed to be string file path
-            $dest = Path::Tiny::path($file)->absolute;
-        }
-        if ( not $dest ) {
-            confess 'Unable to determine destination file path';
-        }
-
-        # write file
-        my @lines = map {"$_\n"} @{$content};
-        try { $dest->spew_utf8(@lines); }
-        catch ($err) { confess "Unable to write to '$dest': $err"; }
-
-        # set file permissions
-        # - use of Feature::Compat::Try's try construct causes Perl::Critic to
-        #   issue warning regarding use of postfix control "if"
-        if ($perm) {    ## no critic (ProhibitPostfixControls)
-            try {
-                $dest->chmod($perm);
-            }
-            catch ($err) {
-                confess "Unable to modify permissions of '$dest': $err";
-            }
-        }
+        $self->file_write( [@c], $self->_wrapper, '0744' );
 
         return;
     }
@@ -2433,9 +2149,9 @@ total number of files and subdirectories initially detected.
 
 =head2 No command provided
 
-Occurs if the method that runs shell commands, C<_run_cmd>, is called without a
-command parameter. This reflects a programming mistake rather than a system
-error.
+Occurs if the role method that runs shell commands, C<run_command>, is called
+without a command parameter. This reflects a programming mistake rather than a
+system error.
 
 =head2 Terminal < TERM_MIN_WIDTH chars(X)
 
@@ -2621,9 +2337,9 @@ exist status is that provided by the default command.
 
 autodie, Archive::Tar, Carp, Const::Fast, Role::Utils::Dn, Dpkg::Version,
 Email::Date::Format, Email::Valid, English, Feature::Compat::Try,
-File::Basename, File::Copy::Recursive, File::Find::Rule, File::Path,
+File::Basename, File::Copy::Recursive, File::Find::Rule,
 File::Spec, File::chdir, FindBin, Function::Parameters, Moo, MooX::HandlesVia,
-MooX::Options, namespace::clean, Path::Tiny, Scalar::Util, strictures,
+MooX::Options, namespace::clean, Path::Tiny, strictures,
 Term::Clui, Term::ReadKey, Types::Standard, version.
 
 =head2 Executables
