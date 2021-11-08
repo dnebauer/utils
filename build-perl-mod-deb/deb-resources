@@ -146,8 +146,8 @@ depends-on libconst-fast-perl (>= 0.014-1.1)
 #   - provides 'milla'
 #   - not available from standard debian repositories
 
-#   Dn::Common
-depends-on libdn-common-perl (>= 1.0.2-1)
+#   Feature::Compat::Try
+depends-on libfeature-compat-try-perl (>= 0.04-2)
 
 #   File::chdir
 depends-on libfile-chdir-perl (>= 0.1008-1)
@@ -161,8 +161,8 @@ depends-on libfile-dirsync-perl (>= 1.22-1)
 #   Function::Parameters
 depends-on libfunction-parameters-perl (>= 1.0603-1)
 
-#   Module::Build::Tiny
-depends-on libmodule-build-tiny-perl (>= 0.039-1)
+#   Git::Wrapper
+depends-on libgit-wrapper-perl (>= 0.048-1)
 
 #   MooX::HandlesVia
 depends-on libmoox-handlesvia-perl (>= 0.001008-2)
@@ -176,14 +176,11 @@ depends-on libnamespace-clean-perl (>= 0.25-1)
 #   Path::Tiny
 depends-on libpath-tiny-perl (>= 0.072-1)
 
+#   Role::Utils::Dn
+depends-on librole-utils-dn-perl (>= 0.1-1)
+
 #   strictures
 depends-on libstrictures-perl (>= 2.000001-2)
-
-#   Test::Pod
-depends-on libtest-pod-perl (>= 1.52-1)
-
-#   Try::Tiny
-depends-on libtry-tiny-perl (>= 0.22-1)
 
 #   Types::Dn
 depends-on libtypes-dn-perl (>= 0.1-1)

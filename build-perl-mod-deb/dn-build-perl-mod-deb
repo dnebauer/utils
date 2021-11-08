@@ -17,10 +17,10 @@ use namespace::clean;    # }}}1
 
     # For each archive type this package provides:
 
-    # - a glob that matches the archive file name
-    #   . usually a distinctive suffix
-    #   . string
-    #   . in targz archives = '*.tar.gz'
+    # - a regular expression that matches the archive file name
+    #   . usually matches on a distinctive suffix
+    #   . regex
+    #   . in targz archives = qr/[.]tar[.]gz\z/xsm
 
     # - number of elements in the suffix
     #   . useful for snipping them off filenames
@@ -40,18 +40,18 @@ use namespace::clean;    # }}}1
     use strictures 2;
     use namespace::clean;
     use Carp qw(confess);
+    use Const::Fast;
     use Function::Parameters;
-    use Readonly;
     use Types::Standard;
 
-    Readonly my $TRUE       => 1;
-    Readonly my $FILE_TOKEN => '::FILE::';
+    const my $TRUE       => 1;
+    const my $FILE_TOKEN => '::FILE::';
 
     has 'match' => (
         is       => 'rw',
-        isa      => Types::Standard::Str,
+        isa      => Types::Standard::RegexpRef,
         required => $TRUE,
-        doc      => 'Glob for matching file name',
+        doc      => 'Regular expression for matching file name',
     );
 
     has 'ext_snips' => (
@@ -76,7 +76,7 @@ use namespace::clean;    # }}}1
         foreach my $part (@cmd) {
             if ( $part eq $FILE_TOKEN ) { $part = $file; }
         }
-        return [@cmd];
+        return @cmd;
     }
 }
 
@@ -106,10 +106,10 @@ use namespace::clean;    # }}}1
     use Moo;
     use strictures 2;
     use namespace::clean;
-    use Readonly;
+    use Const::Fast;
     use Types::Standard;
 
-    Readonly my $TRUE => 1;
+    const my $TRUE => 1;
 
     has 'name' => (
         is       => 'rw',
@@ -145,31 +145,30 @@ use namespace::clean;    # }}}1
     use namespace::clean -except => [ '_options_data', '_options_config' ];
     use MooX::Options;
     use MooX::HandlesVia;
-    use Function::Parameters;
-    use Try::Tiny;
-    use English qw(-no_match_vars);
-    use Carp qw(croak confess);
+    use Carp qw(confess);
     use Const::Fast;
-    use Dn::Common;             # instantiated below
+    use English qw(-no_match_vars);
+    use Feature::Compat::Try;
     use File::Basename;
     use File::Copy::Recursive;
     use File::DirSync;
     use File::chdir;            # provides $CWD
+    use Function::Parameters;
+    use Git::Wrapper;
     use Path::Tiny;
     use Types::Dn;              # custom subtypes
     use Types::Path::Tiny;
     use Types::Standard;
     use experimental qw(switch);
 
+    with qw(Role::Utils::Dn);
+
     const my $TRUE              => 1;
     const my $FALSE             => 0;
     const my $INDEX_FINAL       => -1;
-    const my $INDEX_PENULTIMATE => -2;
+    const my $INDEX_PENULTIMATE => -2;    # }}}1
 
-    # abort on failed system command
-    my $cp = Dn::Common->new( run_command_fatal => $TRUE );    # }}}1
-
-    # Options
+    # options
 
     # email        (-e)    {{{1
     option 'email' => (
@@ -209,16 +208,16 @@ use namespace::clean;    # }}}1
         doc      => 'Suppress installation of debian package',
     );    # }}}1
 
-    # Attributes
+    # attributes
 
     # _base_dir    {{{1
     has '_base_dir_path' => (
-        is       => 'ro',
-        isa      => Types::Path::Tiny::AbsDir,
-        coerce   => $TRUE,
-        required => $TRUE,
-        default  => sub { $cp->parent_dir( $cp->cwd() ) },
-        doc      => q{Base directory (parent of 'source' and 'build')},
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => sub {undef},
+        doc     => q{Base directory (parent of 'source' and 'build')},
     );
 
     method _base_dir () {
@@ -227,16 +226,13 @@ use namespace::clean;    # }}}1
 
     # _build_dir    {{{1
     has '_build_dir_path' => (
-        is     => 'lazy',
-        isa    => Types::Path::Tiny::AbsDir,
-        coerce => $TRUE,
-        doc    => 'Build directory',
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => sub {undef},
+        doc     => 'Build directory',
     );
-
-    method _build__build_dir_path () {
-        my $path = $self->_base_dir;
-        return $cp->dir_add_dir( $path, 'build' );
-    }
 
     method _build_dir () {
         return $self->_build_dir_path->canonpath();
@@ -276,9 +272,8 @@ use namespace::clean;    # }}}1
         if ( not $self->_distro_name_ver ) {
             confess "Cannot construct module debian directory pathname\n";
         }
-        my $path = $self->_base_dir;
-        return $cp->dir_add_dir( $path, 'build', $self->_distro_name_ver,
-            'debian' );
+        my $build = $self->_build_dir;
+        return $self->dir_join( $build, $self->_distro_name_ver, 'debian' );
     }
 
     method _debian_dir () {
@@ -334,7 +329,9 @@ use namespace::clean;    # }}}1
         # command to represent the file name
         return {
             targz => Dn::Distro::Archive->new(
-                match             => '*.tar.gz',
+
+                #match             => '*.tar.gz',
+                match             => qr/[.]tar[.]gz\z/xsm,
                 ext_snips         => 2,
                 extract_cmd_parts => [ 'tar', 'zxvf', '::FILE::' ],
             ),
@@ -374,8 +371,8 @@ use namespace::clean;    # }}}1
         if ( not $self->_distro_name_ver ) {
             confess "Cannot construct module directory pathname\n";
         }
-        my $path = $self->_base_dir;
-        return $cp->dir_add_dir( $path, 'build', $self->_distro_name_ver );
+        my $build = $self->_build_dir;
+        return $self->dir_join( $build, $self->_distro_name_ver );
     }
 
     method _module_dir () {
@@ -391,8 +388,8 @@ use namespace::clean;    # }}}1
     );
 
     method _build__required_dir_path () {
-        my $path = $self->_base_dir;
-        $path = $cp->dir_add_dir( $path, 'build', 'required' );
+        my $build = $self->_build_dir;
+        return $self->dir_join( $build, 'required' );
     }
 
     method _required_dir () {
@@ -401,16 +398,13 @@ use namespace::clean;    # }}}1
 
     # _source_dir    {{{1
     has '_source_dir_path' => (
-        is     => 'lazy',
-        isa    => Types::Path::Tiny::AbsDir,
-        coerce => $TRUE,
-        doc    => 'Source directory',
+        is  => 'rw',
+        isa => Types::Standard::Maybe [
+            Types::Standard::InstanceOf ['Path::Tiny']
+        ],
+        default => sub {undef},
+        doc     => 'Source directory',
     );
-
-    method _build__source_dir_path () {
-        my $path = $self->_base_dir;
-        return $cp->dir_add_dir( $path, 'source' );
-    }
 
     method _source_dir () {
         return $self->_source_dir_path->canonpath();
@@ -424,9 +418,9 @@ use namespace::clean;    # }}}1
         doc      => 'Distro file archive type',
 
         # one of the keys from attribute '_distro_types_details'
-    );                                    # }}}1
+    );                      # }}}1
 
-    # Methods
+    # methods
 
     # main()  {{{1
     #
@@ -436,6 +430,7 @@ use namespace::clean;    # }}}1
     # return: n/a
     method main () {
         if ( not $self->_tools_available ) { return; }
+        $self->_setup;
         $self->_build_dist;
         $self->_extract_module_name_version_type;
         $self->_extract_distribution;
@@ -455,7 +450,57 @@ use namespace::clean;    # }}}1
     # return: boolean
     method _tools_available () {
         my @tools = qw(debuild make tar);
-        return $cp->tools_available(@tools);
+        return $self->tools_available(@tools);
+    }
+
+   # _setup()  {{{1
+   #
+   # does:   setup attributes that cannot be "lazy built" (because it requires
+   #         a method from $self, including from Role::Utils::Dn)
+   # params: nil
+   # prints: messages if errors encountered
+   # return: nil
+    method _setup () {
+
+        # base dir    {{{2
+        my $base;
+        {
+            my $cwd = Path::Tiny::path( $self->cwd );
+            $base = $cwd->parent;
+            $self->_base_dir_path($base);
+        }
+
+        # build dir    {{{2
+        {
+            # Path::Tiny requires regex for 'children' method
+            ## no critic (ProhibitFixedStringMatches)
+            my @children = $base->children(qr/\Abuild\z/xsm);
+            ## use critic
+            if ( scalar @children == 1 and $children[0]->is_dir ) {
+                $self->_build_dir_path( $children[0] );
+            }
+            else {
+                die "Cannot find build directory\n";
+            }
+        }
+
+        # source dir    {{{2
+        {
+            # Path::Tiny requires regex for 'children' method
+            ## no critic (ProhibitFixedStringMatches)
+            my @children = $base->children(qr/\Asource\z/xsm);
+            ## use critic
+            if ( scalar @children == 1 and $children[0]->is_dir ) {
+                $self->_source_dir_path( $children[0] );
+            }
+            else {
+                die "Cannot find source directory\n";
+            }
+        }
+
+        # }}}2
+
+        return;
     }
 
     # _build_dist()  {{{1
@@ -502,12 +547,11 @@ use namespace::clean;    # }}}1
                 = File::DirSync->new(
                 { src => $source, dst => $build, nocache => $TRUE } );
             $dirsync->dirsync();
-            say 'Copied source to build directory' or croak;
+            say 'Copied source to build directory' or confess;
         }
-        catch {
-            warn "Copy of source to build directory failed with error:\n";
-            confess $_;    # Try::Tiny puts error in $_
-        };
+        catch ($err) {
+            confess "Copy of source to build directory failed: $err";
+        }
     }
 
     # _has_dist_ini()  {{{1
@@ -518,7 +562,7 @@ use namespace::clean;    # }}}1
     # return: boolean
     method _has_dist_ini () {
         my $build_dir = $self->_build_dir;
-        return $cp->find_files_in_dir( $build_dir, qr/^dist.ini$/xsm );
+        return $self->file_list( $build_dir, qr/\Adist[.]ini\z/xsm );
     }
 
     # _build_dist_using_milla()  {{{1
@@ -528,11 +572,38 @@ use namespace::clean;    # }}}1
     # prints: nil
     # return: nil, die on error
     method _build_dist_using_milla () {
+
+        # change to build directory
+        my $build = $self->_build_dir;
         local $File::chdir::CWD = $File::chdir::CWD;
-        $File::chdir::CWD = $self->_build_dir;
-        $cp->run_command( [ 'prove', '-l', 't' ] );    # prove -l t
-        $cp->run_command( [ 'milla', 'test' ] );       # milla test
-        $cp->run_command( [ 'milla', 'build' ] );      # milla build
+        $File::chdir::CWD = $build;
+
+        # milla requires git repository
+        my $git_dirpath = $self->dir_join( $build, '.git' );
+        my $git_dir     = Path::Tiny::path($git_dirpath);
+        if ( $git_dir->is_dir ) { $self->path_remove($git_dirpath); }
+        my $git = Git::Wrapper->new($build) or confess;
+        try {
+            $git->init;
+            $git->add( { all => $TRUE } );
+            $git->commit( { message => 'Initial commit' } );
+        }
+        catch ($err) {
+            confess "git command failed: $err"
+        }
+
+        # build using milla
+        my @cmds = ( [qw( prove -l t )], [qw( milla test )],
+            [qw( milla build )], );
+        for my $cmd (@cmds) {
+            say q{Running '} . join( q{ }, @{$cmd} ) . q{':} or confess;
+            $self->run_command( undef, @{$cmd} );
+        }
+
+        # remove git repo (because of higher level git repo)
+        $self->path_remove($git_dirpath);
+
+        return;
     }
 
     # _has_makefile_pl()  {{{1
@@ -543,7 +614,7 @@ use namespace::clean;    # }}}1
     # return: boolean
     method _has_makefile_pl () {
         my $build_dir = $self->_build_dir;
-        return $cp->find_files_in_dir( $build_dir, qr/^Makefile.PL$/xsm );
+        return $self->file_list( $build_dir, qr/\AMakefile[.]PL\z/xsm );
     }
 
     # _build_dist_using_extutils_makemaker    {{{1
@@ -555,9 +626,14 @@ use namespace::clean;    # }}}1
     method _build_dist_using_extutils_makemaker () {
         local $File::chdir::CWD = $File::chdir::CWD;
         $File::chdir::CWD = $self->_build_dir;
-        $cp->run_command( [ 'perl', 'Makefile.PL' ] );    # perl Makefile.PL
-        $cp->run_command( [ 'make', 'test' ] );           # make test
-        $cp->run_command( [ 'make', 'dist' ] );           # make dist
+
+        my @cmds = (
+            [qw( perl Makefile.PL )], [qw( make test )], [qw( make dist )],
+        );
+        for my $cmd (@cmds) {
+            say q{Running '} . join( q{ }, @{$cmd} ) . q{':} or confess;
+            $self->run_command( undef, @{$cmd} );
+        }
     }
 
     # _has_build_pl()  {{{1
@@ -568,7 +644,7 @@ use namespace::clean;    # }}}1
     # return: boolean
     method _has_build_pl () {
         my $build_dir = $self->_build_dir;
-        return $cp->find_files_in_dir( $build_dir, qr/^Build.PL$/xsm );
+        return $self->file_list( $build_dir, qr/\ABuild[.]PL\z/xsm );
     }
 
     # _build_dist_using_module_build    {{{1
@@ -580,10 +656,14 @@ use namespace::clean;    # }}}1
     method _build_dist_using_module_build () {
         local $File::chdir::CWD = $File::chdir::CWD;
         $File::chdir::CWD = $self->_build_dir;
-        $cp->run_command( [ 'perl', 'Build.PL' ] );    # perl Build.PL
-        $cp->run_command( ['./Build'] );               # ./Build
-        $cp->run_command( [ './Build', 'test' ] );     # ./Build test
-        $cp->run_command( [ './Build', 'dist' ] );     # ./Build dist
+        my @cmds = (
+            [qw ( perl Build.PL )], [qw ( ./Build )],
+            [qw ( ./Build test )],  [qw ( ./Build dist )],
+        );
+        for my $cmd (@cmds) {
+            say q{Running '} . join( q{ }, @{$cmd} ) . q{':} or confess;
+            $self->run_command( undef, @{$cmd} );
+        }
     }
 
     # _extract_module_name_version_type()  {{{1
@@ -605,9 +685,9 @@ use namespace::clean;    # }}}1
         foreach my $type (@distro_types) {    # cycle through distro types
             my $num_snips    = $self->_distro_type($type)->ext_snips;
             my $pattern      = $self->_distro_type($type)->match;
-            my @file_matches = $cp->find_files_in_dir( $CWD, $pattern );
+            my @file_matches = $self->file_list( $CWD, $pattern );
             foreach my $file_match (@file_matches) {   # expect 0 or 1 matches
-                my $distro_file = $cp->get_filename($file_match);
+                my $distro_file = $self->file_name($file_match);
                 my $module_ver  = $distro_file;        # get module-ver
                 for ( 1 .. $num_snips ) {
                     my ( $file, $dir, $suffix )
@@ -660,12 +740,13 @@ use namespace::clean;    # }}}1
         # assemble extraction command
         my $type = $self->_this_distro_type;
         my $file = $self->_distro_file;
-        my $cmd  = $self->_distro_type($type)->extract_cmd($file);
+        my @cmd  = $self->_distro_type($type)->extract_cmd($file);
 
         # run command
         local $File::chdir::CWD = $File::chdir::CWD;
         $File::chdir::CWD = $self->_build_dir;
-        $cp->run_command($cmd);
+        say q{Running '} . join( q{ }, @cmd ) . q{':} or confess;
+        $self->run_command( undef, @cmd );
     }
 
     # _create_debian_build_files()  {{{1
@@ -675,18 +756,18 @@ use namespace::clean;    # }}}1
     # prints: nil
     # return: nil, die on error
     method _create_debian_build_files () {
-        my $email      = $self->_email;
-        my $dh_cmd     = [ 'dh-make-perl', '--vcs', q{''} ];
-        my $connected  = $cp->internet_connection($TRUE);
+        my $email     = $self->_email;
+        my @cmd       = ( 'dh-make-perl', '--vcs', q{''} );
+        my $connected = $self->internet_connection($TRUE);
         if ( not $connected ) {
-            say "\nRunning dh-make-perl with '--no-network'" or croak;
-            $dh_cmd = $cp->push_arrayref( $dh_cmd, '--no-network' );
+            say "\nRunning dh-make-perl with '--no-network'" or confess;
+            push @cmd, '--no-network';
         }
-        $dh_cmd = $cp->push_arrayref( $dh_cmd, '--email', $email,
-            $self->_distro_name_ver );
+        push @cmd, '--email', $email, $self->_distro_name_ver;
         local $File::chdir::CWD = $File::chdir::CWD;
         $File::chdir::CWD = $self->_build_dir;
-        $cp->run_command($dh_cmd);
+        say q{Running '} . join( q{ }, @cmd ) . q{':} or confess;
+        $self->run_command( undef, @cmd );
     }
 
     # _derive_pkg_name_from_changelog()  {{{1
@@ -699,7 +780,7 @@ use namespace::clean;    # }}}1
 
         # get content of changelog
         my $debian_dir = $self->_debian_dir;
-        my $changelog  = $cp->dir_add_file( $debian_dir, 'changelog' );
+        my $changelog  = $self->path_join( $debian_dir, 'changelog' );
         if ( not( -f $changelog ) ) {
             confess "Cannot locate changelog '$changelog'";
         }
@@ -730,7 +811,7 @@ use namespace::clean;    # }}}1
 
         # get debian subdirectory    {{{2
         my $debian_dir = $self->_debian_dir;
-        my $rules_fp   = $cp->dir_add_file( $debian_dir, 'rules' );
+        my $rules_fp   = $self->path_join( $debian_dir, 'rules' );
         if ( not -f $rules_fp ) { confess 'Cannot find rules file'; }
 
         # read in default rules file    {{{2
@@ -753,7 +834,7 @@ use namespace::clean;    # }}}1
         my $pkg_name = $self->_derive_pkg_name_from_changelog;
         my $required = $self->_required_dir;
         my $bashcomp
-            = $cp->dir_add_file( $required, $pkg_name ) . '.bash-completion';
+            = $self->path_join( $required, $pkg_name ) . '.bash-completion';
         if ( -e $bashcomp ) {
             foreach my $line (@rules) {
                 if ( $line =~ /^\s*dh\s+/xsm ) {
@@ -824,9 +905,9 @@ use namespace::clean;    # }}}1
         # report outcome
         if ( $files_and_dirs_num > 0 ) {
             my $files_num = $files_and_dirs_num - $dirs_num;
-            say q{ } or croak;
+            say q{ } or confess;
             say "Copied $files_num required debian files to build tree"
-                or croak;
+                or confess;
         }
     }
 
@@ -837,21 +918,20 @@ use namespace::clean;    # }}}1
     # prints: nil
     # return: nil, die on error
     method _create_debian_package () {
-        say q{ }                      or croak;
-        say 'Building debian package' or croak;
+        say q{ }                      or confess;
+        say 'Building debian package' or confess;
 
         # debuild options: -i  = filter out revision control system files
         #                  -us = do not sign source package
         #                  -uc = do not sign .changes file
         #                  -b  = binary build only - no source files
         #                  -d  = do not check building dependencies
-        my $cmd = [qw/debuild -i -us -uc -b/];
-        if ( $self->no_builddeps ) {
-            $cmd = $cp->push_arrayref( $cmd, '-d' );
-        }
+        my @cmd = qw(debuild -i -us -uc -b);
+        if ( $self->no_builddeps ) { push @cmd, '-d'; }
         local $File::chdir::CWD = $File::chdir::CWD;
         $File::chdir::CWD = $self->_module_dir;
-        $cp->run_command($cmd);
+        say q{Running '} . join( q{ }, @cmd ) . q{':} or confess;
+        $self->run_command( undef, @cmd );
     }
 
     # _retrieve_deb_file_name()  {{{1
@@ -866,7 +946,7 @@ use namespace::clean;    # }}}1
     method _retrieve_deb_file_name () {
         local $File::chdir::CWD = $File::chdir::CWD;
         $File::chdir::CWD = $self->_build_dir;
-        my @debs = $cp->find_files_in_dir( $CWD, '*.deb' );
+        my @debs = $self->file_list( $CWD, qr/[.]deb\z/xsm );
         if ( scalar @debs == 0 ) {      # error
             confess "Unable to find built deb file\n";
         }
@@ -879,9 +959,9 @@ use namespace::clean;    # }}}1
         }
         else {                          # success
             my $deb_path = $debs[0];
-            my $deb_name = $cp->get_filename($deb_path);
-            say q{ }                                  or croak;
-            say "Built deb file '../build/$deb_name'" or croak;
+            my $deb_name = $self->file_name($deb_path);
+            say q{ }                                  or confess;
+            say "Built deb file '../build/$deb_name'" or confess;
             $self->_deb_file_name($deb_name);
         }
     }
@@ -896,14 +976,14 @@ use namespace::clean;    # }}}1
 
         # shall we install?
         if ( $self->no_install ) {
-            say q{ }                                     or croak;
-            say 'Not installing package at your request' or croak;
+            say q{ }                                     or confess;
+            say 'Not installing package at your request' or confess;
             return;
         }
 
         # okay, let's install
         my $deb = '../build/' . $self->_deb_file;
-        $cp->debian_install_deb($deb);
+        $self->debian_install_deb($deb);
     }                            # }}}1
 
 }
@@ -1306,10 +1386,10 @@ the script.
 
 =head2 Perl modules
 
-Carp, Const::Fast, Dn::Common, English, experimental, File::Basename,
-File::chdir, File::Copy::Recursive, File::DirSync, Function::Parameters, Moo,
-MooX::HandlesVia, MooX::Options, namespace::clean, Path::Tiny, strictures,
-Try::Tiny, Types::Dn, Types::Path::Tiny, Types::Standard, version.
+Carp, Const::Fast, English, experimental, File::Basename, File::chdir,
+File::Copy::Recursive, File::DirSync, Function::Parameters, Git::Wrapper, Moo,
+MooX::HandlesVia, MooX::Options, namespace::clean, Path::Tiny, Role::Utils::Dn,
+strictures, Types::Dn, Types::Path::Tiny, Types::Standard, version.
 
 =head2 Executables
 

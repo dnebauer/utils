@@ -133,7 +133,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DN-BUILD-PERL-MOD-DEB 1"
-.TH DN-BUILD-PERL-MOD-DEB 1 "2021-10-30" "perl v5.32.1" "User Contributed Perl Documentation"
+.TH DN-BUILD-PERL-MOD-DEB 1 "2021-11-08" "perl v5.32.1" "User Contributed Perl Documentation"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -145,19 +145,14 @@ dn\-build\-perl\-mod\-deb \- build debian package
 \&\fBdn-build-perl-mod-deb\fR [\fB\-e\fR \fIemail\fR] [\fB\-x\fR] [\fB\-d\fR] [\fB\-n\fR]
 .PP
 \&\fBdn-build-perl-mod-deb \-h\fR
+.SH "REQUIRED ARGUMENTS"
+.IX Header "REQUIRED ARGUMENTS"
+Nil.
 .SH "OPTIONS"
 .IX Header "OPTIONS"
 .IP "\fB\-e\fR  \fB\-\-email\fR \fIemail\fR" 4
 .IX Item "-e --email email"
 Debian package maintainer email. Default = \f(CW\*(C`david@nebauer.org\*(C'\fR
-.IP "\fB\-x\fR  \fB\-\-export_email\fR" 4
-.IX Item "-x --export_email"
-Run \f(CW\*(C`dh\-make\-perl\*(C'\fR with the environmental variable \f(CW\*(C`EMAIL\*(C'\fR set to the
-package maintainer's email. Default = \s-1FALSE.\s0
-.Sp
-Note: this option was introduced to work around a \f(CW\*(C`dh\-make\-perl\*(C'\fR bug.
-See debian bug
-#856532 <https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=856532> for details.
 .IP "\fB\-d\fR  \fB\-\-no_builddeps\fR" 4
 .IX Item "-d --no_builddeps"
 \&\f(CW\*(C`debuild\*(C'\fR default behaviour is to run \f(CW\*(C`dpkg\-checkbuilddeps\*(C'\fR to check
@@ -412,14 +407,74 @@ Copies all files in the \fIbuild/required\fR directory to the module's
 \&\fIdebian\fR directory
 .IP "\(bu" 4
 Installs the created package.
+.SH "DIAGNOSTICS"
+.IX Header "DIAGNOSTICS"
+.SS "No Makefile.PL, Build.PL or dist.ini found"
+.IX Subsection "No Makefile.PL, Build.PL or dist.ini found"
+Occurs if script cannot find evidence of a supported build system.
+.SS "Cannot locate source directory '\s-1DIR\s0'"
+.IX Subsection "Cannot locate source directory 'DIR'"
+.SS "Cannot locate build directory '\s-1DIR\s0'"
+.IX Subsection "Cannot locate build directory 'DIR'"
+.SS "Copy of source to build directory failed with error: \s-1ERROR\s0"
+.IX Subsection "Copy of source to build directory failed with error: ERROR"
+These errors occur when the script is unable to recursively copy the contents
+of the \fIsource\fR directory to the \fIbuild\fR directory.
+.SS "Cannot locate changelog '\s-1PATH\s0'"
+.IX Subsection "Cannot locate changelog 'PATH'"
+Occurs when the script is unable to locate the \fIchangelog\fR file in the
+\&\fIdebian\fR subdirectory of the source distribution base directory.
+.SS "Unable to open \s-1FILE: ERROR\s0"
+.IX Subsection "Unable to open FILE: ERROR"
+.SS "Unable to close \s-1FILE: ERROR\s0"
+.IX Subsection "Unable to close FILE: ERROR"
+These errors occur when the script is unable to open or close a disk file. The
+files this script attempts to access in this way are the \fIchangelog\fR and
+\&\fIrules\fR debian control files.
+.SS "No file provided"
+.IX Subsection "No file provided"
+.SS "Unable to extract module name and version from distribution file"
+.IX Subsection "Unable to extract module name and version from distribution file"
+.SS "Multiple distribution files detected ..."
+.IX Subsection "Multiple distribution files detected ..."
+Occurs when the script attempts to locate a source distribution file after the
+initial build process. It indicate that no file matching the supported build
+processes was found, or that multiple matching files were found.
+.SS "Cannot construct module debian directory pathname"
+.IX Subsection "Cannot construct module debian directory pathname"
+.SS "Cannot construct module directory pathname"
+.IX Subsection "Cannot construct module directory pathname"
+Occurs when the script is unable to derive the name of the extracted source
+distribution base directory.
+.SS "Unable to extract package name"
+.IX Subsection "Unable to extract package name"
+Occurs when the script is unable to extract the package name from the
+\&\fIchangelog\fR debian control file.
+.SS "Cannot find rules file"
+.IX Subsection "Cannot find rules file"
+Occurs when the script is unable to locate the \fIrules\fR debian control file.
+.SS "Unable to write to \s-1FILE: ERROR\s0"
+.IX Subsection "Unable to write to FILE: ERROR"
+Occurs if the script is unable to write to a disk file. This can occur with the
+\&\fIrules\fR debian control file.
+.SS "Copy of required debian files failed"
+.IX Subsection "Copy of required debian files failed"
+Occurs when attempting to copy required debian control files from
+\&\fIbuild/required/\fR to \fIbuild/DIST_SOURCE_BASE/debian\fR.
+.SS "Unable to find built deb file"
+.IX Subsection "Unable to find built deb file"
+.SS "Multiple distribution files detected: ..."
+.IX Subsection "Multiple distribution files detected: ..."
+These errors occur when attempting to locate the debian package file built by
+the script.
 .SH "DEPENDENCIES"
 .IX Header "DEPENDENCIES"
 .SS "Perl modules"
 .IX Subsection "Perl modules"
-Carp, Dn::Common, English, experimental, File::Basename, File::chdir,
-File::Copy::Recursive, File::DirSync, Function::Parameters, Moo,
-MooX::HandlesVia, MooX::Options, namespace::clean, Path::Tiny, Readonly,
-strictures, Try::Tiny, Types::Dn, Types::Path::Tiny, Types::Standard, version.
+Carp, Const::Fast, English, experimental, File::Basename, File::chdir,
+File::Copy::Recursive, File::DirSync, Function::Parameters, Git::Wrapper, Moo,
+MooX::HandlesVia, MooX::Options, namespace::clean, Path::Tiny, Role::Utils::Dn,
+strictures, Types::Dn, Types::Path::Tiny, Types::Standard, version.
 .SS "Executables"
 .IX Subsection "Executables"
 debuild, dh-make-perl, make, milla, prove, tar.
@@ -427,6 +482,15 @@ debuild, dh-make-perl, make, milla, prove, tar.
 .IX Subsection "Debian packaging"
 The executable 'milla' is part of the Dist::Milla perl module, but that module
 is not available from standard debian repositories.
+.SH "CONFIGURATION"
+.IX Header "CONFIGURATION"
+There is no script configuration.
+.SH "EXIT STATUS"
+.IX Header "EXIT STATUS"
+Exits with zero if successful or one if not.
+.SH "INCOMPATIBILITIES"
+.IX Header "INCOMPATIBILITIES"
+There are no known incompatibilities.
 .SH "BUGS AND LIMITATIONS"
 .IX Header "BUGS AND LIMITATIONS"
 Please report any bugs to the author.
