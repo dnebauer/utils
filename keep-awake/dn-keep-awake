@@ -237,8 +237,8 @@ use version; our $VERSION = qv('0.1');
 
     Readonly my $TRUE          => 1;
     Readonly my $FALSE         => 0;
-    Readonly my $manual_cmd    => '@lib_dir@/@pkg@/dn-keep-awake-manual';
-    Readonly my $manual_psgrep => qr(@lib_dir@/@pkg@/dn-keep-awake-manual);
+    Readonly my $manual_cmd    => '@libexec_dir@/@pkg@/dn-keep-awake-manual';
+    Readonly my $manual_psgrep => qr(@libexec_dir@/@pkg@/dn-keep-awake-manual);
 
     #                                                                  }}}1
 
