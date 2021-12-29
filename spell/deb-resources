@@ -21,7 +21,7 @@ package-name dn-spell
 # Package version
 # Version number for package.
 # Required.  One only.
-version 0.4
+version 0.5
 
 # Script and binary files
 # Executable files to be packaged.

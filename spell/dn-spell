@@ -9,7 +9,7 @@
 
 args="${*}"
 msg="Loading libraries" ; echo -ne "\\033[1;37;41m${msg}\\033[0m"
-source "@lib_dir@/libdncommon-bash/liball"  # supplies functions
+source "@libexec_dir@/libdncommon-bash/liball"  # supplies functions
 dnEraseText "${msg}"
 # libdncommon-bash provides variable - declare to avoid SC2154
 declare dn_self dn_true dn_false OPTARG
