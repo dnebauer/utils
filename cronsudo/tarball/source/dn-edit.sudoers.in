@@ -4,3 +4,5 @@
 # editors
 david ALL= NOPASSWD: /usr/bin/vim
 david ALL= NOPASSWD: /usr/bin/gvim
+david ALL= NOPASSWD: /usr/bin/nvim
+david ALL= NOPASSWD: /usr/bin/nvim-qt
