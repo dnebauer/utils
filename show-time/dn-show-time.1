@@ -133,7 +133,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DN-SHOW-TIME 1"
-.TH DN-SHOW-TIME 1 "2015-08-26" "perl v5.32.1" "User Contributed Perl Documentation"
+.TH DN-SHOW-TIME 1 "2022-01-04" "perl v5.32.1" "User Contributed Perl Documentation"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -152,31 +152,12 @@ dn\-show\-time \- display current time and date in system notification
 Display help and exit.
 .SH "DESCRIPTION"
 .IX Header "DESCRIPTION"
-Display time and date in notification popup. Uses time format '\s-1HH:MM\s0 am' and date format 'Thursday, 8 June 2000'.
+Display time and date in notification popup. Uses time format '\s-1HH:MM\s0 am' and
+date format 'Thursday, 8 June 2000'.
 .SH "DEPENDENCIES"
 .IX Header "DEPENDENCIES"
-.IP "Dn::Common" 4
-.IX Item "Dn::Common"
-.PD 0
-.IP "Function::Parameters" 4
-.IX Item "Function::Parameters"
-.IP "Getopt::Long::Descriptive" 4
-.IX Item "Getopt::Long::Descriptive"
-.IP "Moo" 4
-.IX Item "Moo"
-.IP "namespace::clean" 4
-.IX Item "namespace::clean"
-.IP "Readonly" 4
-.IX Item "Readonly"
-.IP "strictures" 4
-.IX Item "strictures"
-.IP "Time::CTime" 4
-.IX Item "Time::CTime"
-.IP "Types::Standard" 4
-.IX Item "Types::Standard"
-.IP "version" 4
-.IX Item "version"
-.PD
+Dn::Common, Function::Parameters, Getopt::Long::Descriptive, Moo,
+namespace::clean, Readonly, strictures, Time::CTime, Types::Standard, version.
 .SH "BUGS AND LIMITATIONS"
 .IX Header "BUGS AND LIMITATIONS"
 Please report any bugs to the author.
@@ -189,12 +170,3 @@ Copyright (c) 2015 David Nebauer <davidnebauer@hotkey.net.au>
 .PP
 This script is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
-.SH "POD ERRORS"
-.IX Header "POD ERRORS"
-Hey! \fBThe above document had some coding errors, which are explained below:\fR
-.IP "Around line 130:" 4
-.IX Item "Around line 130:"
-\&'=item' outside of any '=over'
-.IP "Around line 150:" 4
-.IX Item "Around line 150:"
-You forgot a '=back' before '=head1'
