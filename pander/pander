@@ -819,8 +819,10 @@ do
         end
     end
 
-    function json.encodeexception(reason, value, state, defaultmessage)
-        return quotestring('<' .. defaultmessage .. '>')
+    function json.encodeexception(...)
+        -- args are: reason, value, state, defaultmessage
+        -- only use: defaultmessage
+        return quotestring('<' .. select(4, ...) .. '>')
     end
 
     encode2 = function(value, indent, level, buffer,
@@ -2162,12 +2164,13 @@ function pander_args(arg)
         list={['---list-keywords']=''},
         quiet={['---quiet']=''}
     }
-    local script, script_option_groups = {}
+    local script_option_groups
     do
         local err
         script_option_groups, err = truthify(script_option_groups_skeleton)
         if not script_option_groups then return nil, err end
     end
+    local script = {}
     for k, _ in pairs(script_option_groups) do script[k]=false end
     -- extract options and arguments
     -- 'pandoc.args' preserves argument order for non-script-related args
