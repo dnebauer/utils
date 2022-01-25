@@ -1,3 +1,9 @@
+dn-mc-conf (0.8-1) UNRELEASED; urgency=low
+
+  * Add user menu option 'c' for copying file name to clipboard
+
+ -- David Nebauer <david@nebauer.org>  Tue, 25 Jan 2022 22:18:36 +0930
+
 dn-mc-conf (0.7-3) UNRELEASED; urgency=low
 
   * Change build files to be compatible with dn-build-deb v3.0

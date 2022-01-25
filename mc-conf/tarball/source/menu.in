@@ -28,4 +28,28 @@
 e       Email as attachment
   @bin_dir@/dn-attach %d %s
 
+# MENU ITEM: Copy file name to system clipboard
+
+# Works on tagged files, or file under cursor if no files tagged
+
+# Explanation of first line of entry:
+#   =: condition for menu entry being made available
+#   t: condition is that file(s) must be of certain type(s)
+#   r: can be regular file
+#   x: can be regular file
+#   t: can be tagged file
+
+# Explanation of second line of entry:
+#   c: hotkey
+#   seven spaces: match convention in global file
+#   'Copy filename to clipboard': menu item text
+
+# Explanation of third line of entry:
+#   execute utility 'xclip' with parameters
+#   %s: file(s), tagged or under cursor
+
+= t rxt
+c       Copy filename to clipboard
+  echo %s | xclip -sel clip
+
 ### End of entries inserted by @pkg@ ###
