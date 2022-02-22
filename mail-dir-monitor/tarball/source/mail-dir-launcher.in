@@ -19,7 +19,7 @@ Getopt::Long::GetOptions(
 );
 
 my $args = [ '--delay', $delay ];
-if ($conf_dir) { push @{$args}, '--conf_dir'; }
+if ($conf_dir) { push @{$args}, '--conf_dir', $conf_dir; }
 
 # run daemon
 
