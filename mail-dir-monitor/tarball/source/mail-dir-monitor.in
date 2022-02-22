@@ -364,7 +364,7 @@ local $OUTPUT_AUTOFLUSH = $TRUE;    # }}}1
     # _report_stuck($files)    {{{2
     #
     # does:   find files in both current and previous file lists
-    # params: $files - arrayref of file 'stuck' in mail queue directory
+    # params: $files - arrayref of files 'stuck' in mail queue directory
     # prints: send message to system log and desktop notification
     # return: n/a
     method _report_stuck ($files_ref) {
@@ -378,7 +378,7 @@ local $OUTPUT_AUTOFLUSH = $TRUE;    # }}}1
         my $count    = scalar @files;
         my $msg_base = sprintf "$name ($dir) has %d stuck %s: ", $count,
             ( $count == 1 ) ? 'file' : 'files';
-        my $msg = sprintf "$title: $msg_base";
+        my $msg = "$title: $msg_base";
         $msg .= join q{, }, @files;
         $self->log( $msg, 'warn' );
 
