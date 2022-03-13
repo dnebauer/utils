@@ -115,28 +115,71 @@ Numbered list:
 .\" MANPAGE CONTENT
 .\" -----------------------------------------------------------------
 
-.TH "DN-LOAD-CLIPBOARD" "1" "2021-01-09" "" "DN-LOAD-CLIPBOARD Manual"
+.TH "DN-LOAD-CLIPBOARD" "1" "2022-03-13" "" "DN-LOAD-CLIPBOARD Manual"
 .SH "NAME"
 \*[self] \- load selected value into system clipboard
 .SH "SYNOPSIS"
 .BR "\*[self] "
 .SH "DESCRIPTION"
-The user selects from a list of pre-defined values and the selected value is
-loaded into the system clipboard.
-
-The pre-defined values are:
-.IP \[bu] 2
-david@nebauer.id.au
-.IP \[bu]
-david.nebauer@nt.gov.au
-.IP \[bu]
-davidnebauer@gmail.com
-.IP \[bu]
-davidnebauer@hotkey.net.au
-.IP \[bu]
-davidnebauer3@bigpond.com
-.IP \[bu]
-david_nebauer
+The user selects from menus of pre-defined options. The selected option is loaded into the system clipboard.
+.PP
+A submenu is indicated by an option with an appended '-->'. Selecting such an option opens a submenu.
+.PP
+Menu options have a two character prefix to enable quick option selection: the characters are chosen so that typing them highlights that entry for selection.
+.PP
+The current set of options is:
+.PP
+.RS 2
+ii: david@nebauer.id.au
+.br
+nn: David Nebauer
+.br
+uu: david_nebauer
+.br
+dd: Date -->
+.RE
+.RS 6
+.br
+ff: Full date
+.br
+nn: Full date with no-break spaces
+.br
+ii: ISO 8601 date
+.br
+rr: RFC Email date
+.RE
+.RS 2
+.br
+ee: Email -->
+.RE
+.RS 6
+.br
+ii: david@nebauer.id.au
+.br
+ww: david.nebauer@nt.gov.au
+.br
+gg: davidnebauer@gmail.com
+.br
+bb: davidnebauer3@bigpond.com
+.br
+hh: davidnebauer@hotkey.net.au
+.RE
+.RS 2
+.br
+aa: Address -->
+.RE
+.RS 6
+.br
+pp: Shop 1, 4 Rowling Street, Parcel Locker 10108 96917, Casuarina NT 0810
+.br
+hh: 3 McColl St, Unit 4, Fannie Bay NT 0820
+.br
+cc: Level 1B, Casuarina Plaza, 258 Trower Road, Casuarina NT 0810
+.br
+rr: Central Registry, Royal Darwin Hospital, 105 Rocklands Drive, Tiwi NT 0810
+.br
+mm: PO Box 41326, Casuarina NT 0811
+.RE
 .SH "OPTIONS"
 .TP
 .B "\-h"
