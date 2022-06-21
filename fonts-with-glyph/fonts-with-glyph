@@ -1,0 +1,134 @@
+#!/usr/bin/perl
+
+use strictures 2;
+use 5.006;
+use 5.022_001;
+use namespace::clean;
+use version; our $VERSION = qv('1.0.3');
+use Carp qw(croak);
+use Const::Fast;
+use English qw( -no_match_vars );
+use Font::FreeType;
+use IPC::Cmd;
+use IPC::Run;    # adds extra capabilities to IPC::Cmd
+use utf8;
+
+const my $TIMEOUT => 5;
+
+# get user-supplied glyph
+my ($char) = @ARGV;
+die "No glyph provided\n" if not $char;
+
+# get all installed fonts
+my @cmd = qw(fc-list);
+my ( $succeed, $err, $full, $stdout, $stderr )
+    = IPC::Cmd::run( command => [@cmd], timeout => $TIMEOUT );
+croak "fc-list: $err" if not $succeed;
+
+# - @{$stdout} contains the concatenated output of fc-list chopped into
+#   4096 character long strings (no idea why!)
+# - need to recombine them and split on newline character
+my $output = join q{}, @{$stdout};
+my @fonts  = split /\n/xsm, $output;
+
+#foreach my $font_def (`fc-list`) {
+foreach my $font_def (@fonts) {
+    my ( $file, $name ) = split /: /xsm, $font_def;
+    my $face  = Font::FreeType->new->face($file);
+    my $glyph = $face->glyph_from_char($char);
+    if ($glyph) {
+        say $font_def or croak;
+    }
+}
+
+1;
+
+# POD    {{{1
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+fonts-with-glyph - find fonts containing a glyph
+
+=head1 USAGE
+
+B<fonts-with-glyph> I<glyph>
+
+B<fonts-with-glyph -h>
+
+=head1 REQUIRED ARGUMENTS
+
+=over
+
+=item B<glyph>
+
+The glyph to search fonts for.
+
+Character. Required.
+
+=back
+
+=head1 OPTIONS
+
+=over
+
+=item B<-h>
+
+Display help and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+Lists all fonts containing the specified glyph.
+
+=head1 DIAGNOSTICS
+
+=head2 malformed string (looks as UTF-8, but isn't it)
+
+This can be caused by providing multiple glyphs.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+Carp, Const::Fast, English, Font::FreeType, IPC::Cmd, IPC::Run,
+namespace::clean, strictures, utf8, version.
+
+=head2 Executables
+
+fc-list.
+
+=head1 CONFIGURATION
+
+There is no configuration for this script.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 EXIT STATUS
+
+If the script exits with a non-zero exit status, it is an error status provided
+by the operating system.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 AUTHOR
+
+David Nebauer (david at nebauer dot org)
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2022 David Nebauer (david at nebauer dot org)
+
+This script is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
+
+# vim:foldmethod=marker:
