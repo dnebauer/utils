@@ -1,3 +1,21 @@
+dn-mc-conf (1.0-1) UNRELEASED; urgency=low
+
+  * Add rule for pdf
+
+ -- David Nebauer <david@nebauer.org>  Wed, 1 Jun 2022 13:57:32 +0930
+
+dn-mc-conf (0.9-2) UNRELEASED; urgency=low
+
+  * Actually add rule for markdown (*.md) file opening this time
+
+ -- David Nebauer <david@nebauer.org>  Sat, 19 Mar 2022 22:33:11 +0930
+
+dn-mc-conf (0.9-1) UNRELEASED; urgency=low
+
+  * Add rule for markdown (*.md) file opening
+
+ -- David Nebauer <david@nebauer.org>  Sat, 19 Mar 2022 22:20:04 +0930
+
 dn-mc-conf (0.8-2) UNRELEASED; urgency=low
 
   * Version bump to force reinstall

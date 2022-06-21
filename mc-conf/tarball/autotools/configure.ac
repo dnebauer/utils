@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.71])
 AC_INIT([Regenerate local mc configuration files],
-        [0.8],
+        [1.0],
         [david@nebauer.org],
         [dn-mc-conf],
 )

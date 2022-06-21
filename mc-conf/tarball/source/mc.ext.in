@@ -119,6 +119,10 @@ regex/i/\.ps\.gz$
 regex/i/\.pdf\.gz$
 	Include=output
 
+# PDF
+regex/i/\.pdf$
+	Include=output
+
 include/output
 	Open=(okular %f >/dev/null 2>&1 &)
 
@@ -176,7 +180,7 @@ regex/i/\.docx$
 
 # [*.planner]
 regex/\.planner$
-	Open=( planner %f > /dev/null 2>&1 & )
+	Open=(planner %f > /dev/null 2>&1 &)
 
 # [*.azw]
 type/i/^Mobipocket E-book
@@ -256,6 +260,12 @@ regex/i/\.sla$
 
 include/scribus
 	Open=(scribus %f >/dev/null 2>&1 &)
+
+# markdown
+
+## [*.md]
+regex/i/\.md$
+	Open=(nvim-qt %f >/dev/null 2>&1 &)
 
 # plain text
 type/English\ text
