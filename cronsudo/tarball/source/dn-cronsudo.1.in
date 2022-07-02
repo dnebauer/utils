@@ -178,14 +178,27 @@ Daily.
 .SS "Sudo settings"
 \*[self] also installs sudo files in directory \*[sudoers]:
 .PP
+dn-edit
+.IP
+Enable ordinary user to edit system files with tools such as (g)vim.
+.PP
+dn-filesys
+.IP
+Enable ordinary user to manipulate the filesystem with commands like mount,
+umount and eject.
+.PP
+dn-logging
+.IP
+Enable ordinary user to rotate system logs with logrotate.
+.PP
+dn-network
+.IP
+Enable ordinary user to run the network management command ifup.
+.PP
 dn-pkg-manage
 .IP
 Enable ordinary user to run package management tools such as apt-get,
 apt-file, aptitude, dpkg, gdebi, checkinstall, pip, pip2 and pip3.
-.PP
-dn-edit
-.IP
-Enable ordinary user to edit system files with tools such as (g)vim.
 .PP
 dn-wireless
 .IP

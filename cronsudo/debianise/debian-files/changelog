@@ -1,3 +1,16 @@
+dn-cronsudo (2.3-2) UNRELEASED; urgency=low
+
+  * sudo: add Cdn-logging stem to postinstall script
+
+ -- David Nebauer <david@nebauer.org>  Tue, 21 Jun 2022 23:00:55 +0930
+
+dn-cronsudo (2.3-1) UNRELEASED; urgency=low
+
+  * new upstream release
+  * sudo: add logrotate
+
+ -- David Nebauer <david@nebauer.org>  Tue, 21 Jun 2022 22:49:16 +0930
+
 dn-cronsudo (2.2-1) UNRELEASED; urgency=low
 
   * sudo: add nvim[-qt] to editors

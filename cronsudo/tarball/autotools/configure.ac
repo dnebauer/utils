@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.71])
 AC_INIT([Cron tasks and sudoers files],
-        [2.2],
+        [2.3],
         [david@nebauer.org],
         [dn-cronsudo],
 )
@@ -132,6 +132,7 @@ AC_CONFIG_FILES([
     dn-cronsudo.1
     dn-edit.sudoers
     dn-filesys.sudoers
+    dn-logging.sudoers
     dn-network.sudoers
     dn-pkg-manage.sudoers
     dn-wireless.sudoers

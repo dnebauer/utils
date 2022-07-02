@@ -82,6 +82,7 @@ pkgvardir = @localstatedir@/lib/$(PACKAGE)
 # for the package in /usr/share/$(PACKAGE)
 pkgdata_DATA = dn-edit.sudoers       \
 			   dn-filesys.sudoers    \
+			   dn-logging.sudoers    \
 			   dn-network.sudoers    \
 			   dn-pkg-manage.sudoers \
 			   dn-wireless.sudoers

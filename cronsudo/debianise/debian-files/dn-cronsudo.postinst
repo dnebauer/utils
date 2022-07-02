@@ -21,7 +21,7 @@ set -e
 # - for package file '/usr/share/dn-cronsudo/dn-pkg-manage.sudoers' the file
 #   name is 'dn-pkg-manage', i.e., the '.sudoers' is stripped
 # - can use plain string as virtual array because elements do not contain spaces
-dn_stems="dn-pkg-manage dn-edit dn-wireless dn-filesys"
+dn_stems="dn-pkg-manage dn-edit dn-wireless dn-filesys dn-logging"
 # package name
 pkg="dn-cronsudo"
 
