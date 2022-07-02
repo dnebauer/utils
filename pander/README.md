@@ -77,8 +77,8 @@ The styles currently defined have the following dependencies:
   repository tomduck/pandoc-xnos)
 * latex packages: extsizes, fontspec, microtype, placeins, ucharclasses, and
   xcolor
-* latex fonts: IPAexMincho, Inconsolata, Junicode, Linux Biolinum O, and Linux
-  Libertine O.
+* latex fonts: IPAexMincho, Inconsolata, Junicode Two Beta, Linux Biolinum O,
+  and Linux Libertine O.
 
 This is free software. See the
 [LICENSE](https://github.com/dnebauer/pander/blob/main/LICENSE) file for more

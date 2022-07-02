@@ -250,8 +250,8 @@ local keyword_actions_data = {
                 ["header-includes"] = {
                     "\\usepackage{xcolor}",
                     "\\usepackage{fontspec}",
-                    "\\setmainfont{Junicode}",
-                    "\\newfontfamily\\myregularfont{Junicode}",
+                    "\\setmainfont{Junicode Two Beta}",
+                    "\\newfontfamily\\myregularfont{Junicode Two Beta}",
                     "\\newfontfamily\\mychinesefont{IPAexMincho}",
                     "\\usepackage[CJK]{ucharclasses}",
                     "\\setTransitionsForCJK{\\mychinesefont}{\\myregularfont}"
@@ -281,8 +281,8 @@ local keyword_actions_data = {
                 ["header-includes"] = {
                     "\\usepackage{xcolor}",
                     "\\usepackage{fontspec}",
-                    "\\setmainfont{Junicode}",
-                    "\\newfontfamily\\myregularfont{Junicode}",
+                    "\\setmainfont{Junicode Two Beta}",
+                    "\\newfontfamily\\myregularfont{Junicode Two Beta}",
                     "\\newfontfamily\\mychinesefont{IPAexMincho}",
                     "\\usepackage[CJK]{ucharclasses}",
                     "\\setTransitionsForCJK{\\mychinesefont}{\\myregularfont}",
@@ -343,8 +343,8 @@ local keyword_actions_data = {
                 ["header-includes"] = {
                     "\\usepackage{xcolor}",
                     "\\usepackage{fontspec}",
-                    "\\setmainfont{Junicode}",
-                    "\\newfontfamily\\myregularfont{Junicode}",
+                    "\\setmainfont{Junicode Two Beta}",
+                    "\\newfontfamily\\myregularfont{Junicode Two Beta}",
                     "\\newfontfamily\\mychinesefont{IPAexMincho}",
                     "\\usepackage[CJK]{ucharclasses}",
                     "\\setTransitionsForCJK{\\mychinesefont}{\\myregularfont}"
@@ -2985,7 +2985,7 @@ Inconsolata
 
 =item *
 
-Junicode
+Junicode Two Beta
 
 =item *
 
