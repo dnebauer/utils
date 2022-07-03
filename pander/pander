@@ -568,13 +568,14 @@ do
 end
 
 -- dkjson    {{{1
-local json
+local json = {}
 do
     --[==[
 
-    David Kolf's JSON module for Lua 5.1/5.2
+    David Kolf's JSON module for Lua 5.1 - 5.4
 
-    Version 2.5
+    Version 2.6
+
 
     For the documentation see the corresponding readme.txt or visit
     <http://dkolf.de/src/dkjson-lua.fsl/>.
@@ -582,7 +583,8 @@ do
     You can contact the author by sending an e-mail to 'david' at the
     domain 'dkolf.de'.
 
-    Copyright (C) 2010-2013 David Heiko Kolf
+
+    Copyright (C) 2010-2021 David Heiko Kolf
 
     Permission is hereby granted, free of charge, to any person obtaining
     a copy of this software and associated documentation files (the
@@ -618,7 +620,7 @@ do
     local strmatch = string.match
     local concat = table.concat
 
-    json = { version = 'dkjson 2.5' }
+    json['version'] = "dkjson 2.6"
 
     pcall(function()
         -- Enable access to blocked metatables.
@@ -674,11 +676,11 @@ do
         elseif 0xe0 <= a and a <= 0xef and b >= 0x80 and c >= 0x80 then
             value = ((a - 0xe0) * 0x40 + b - 0x80) * 0x40 + c - 0x80
         elseif 0xf0 <= a and a <= 0xf7 and b >= 0x80 and c >= 0x80
-        and d >= 0x80 then
+                and d >= 0x80 then
             value = (((a - 0xf0) * 0x40 + b - 0x80) * 0x40 + c - 0x80)
-            * 0x40 + d - 0x80
+                * 0x40 + d - 0x80
         else
-            return ""
+            return ''
         end
         if value <= 0xffff then
             return strformat('\\u%.4x', value)
@@ -689,7 +691,7 @@ do
             local lowsur = 0xDC00 + (value % 0x400)
             return strformat('\\u%.4x\\u%.4x', highsur, lowsur)
         else
-            return ""
+            return ''
         end
     end
 
@@ -738,7 +740,7 @@ do
         decpoint = strmatch(tostring(0.5), '([^05+])')
         -- build a filter that can be used to remove group separators
         numfilter = '[^0-9%-%+eE'
-        .. gsub(decpoint, '[%^%$%(%)%%%.%[%]%*%+%-%?]', '%%%0') .. ']+'
+            .. gsub(decpoint, '[%^%$%(%)%%%.%[%]%*%+%-%?]', '%%%0') .. ']+'
     end
 
     updatedecpoint()
@@ -766,9 +768,9 @@ do
     function json.addnewline(state)
         if state.indent then
             state.bufferlen = addnewline2(
-                state.level or 0, state.buffer,
-                state.bufferlen or #(state.buffer)
-            )
+                state.level or 0,
+                state.buffer,
+                state.bufferlen or #(state.buffer))
         end
     end
 
@@ -779,7 +781,7 @@ do
         local kt = type(key)
         if kt ~= 'string' and kt ~= 'number' then
             return nil, "type '" .. kt
-            .. "' is not supported as a key by JSON."
+                .. "' is not supported as a key by JSON."
         end
         if prev then
             buflen = buflen + 1
@@ -906,7 +908,7 @@ do
                     for i = 1, n do
                         local k = order[i]
                         local v = value[k]
-                        if v then
+                        if v ~= nil then
                             used[k] = true
                             buflen = addpair(
                                 k, v, prev, indent, level, buffer,
@@ -988,12 +990,12 @@ do
                 break
             end
         end
-        return 'line ' .. line .. ', column ' ..(where - linepos)
+        return 'line ' .. line .. ', column ' .. (where - linepos)
     end
 
     local function unterminated(str, what, where)
-        return nil, strlen(str) + 1, 'unterminated '
-        .. what .. ' at ' .. loc(str, where)
+        return nil, strlen (str) + 1,
+            'unterminated ' .. what .. ' at ' .. loc(str, where)
     end
 
     local function scanwhite(str, pos)
@@ -1002,7 +1004,7 @@ do
             if not pos then return nil end
             local sub2 = strsub(str, pos, pos + 1)
             if sub2 == '\239\187'
-                and strsub(str, pos + 2, pos + 2) == '\191' then
+                    and strsub(str, pos + 2, pos + 2) == '\191' then
                 -- UTF-8 Byte Order Mark
                 pos = pos + 3
             elseif sub2 == '//' then
@@ -1030,20 +1032,20 @@ do
             return strchar(value)
         elseif value <= 0x07ff then
             return strchar(
-                0xc0 + floor(value/0x40), 0x80 +(floor(value) % 0x40)
+                0xc0 + floor(value/0x40), 0x80 + (floor(value) % 0x40)
             )
         elseif value <= 0xffff then
             return strchar(
                 0xe0 + floor(value/0x1000),
-                0x80 +(floor(value/0x40) % 0x40),
-                0x80 +(floor(value) % 0x40)
+                0x80 + (floor(value/0x40) % 0x40),
+                0x80 + (floor(value) % 0x40)
             )
         elseif value <= 0x10ffff then
             return strchar(
                 0xf0 + floor(value/0x40000),
-                0x80 +(floor(value/0x1000) % 0x40),
-                0x80 +(floor(value/0x40) % 0x40),
-                0x80 +(floor(value) % 0x40)
+                0x80 + (floor(value/0x1000) % 0x40),
+                0x80 + (floor(value/0x40) % 0x40),
+                0x80 + (floor(value) % 0x40)
             )
         else
             return nil
@@ -1069,7 +1071,9 @@ do
                 local escchar = strsub(str, nextpos + 1, nextpos + 1)
                 local value
                 if escchar == 'u' then
-                    value = tonumber(strsub(str, nextpos + 2, nextpos + 5), 16)
+                    value = tonumber(
+                        strsub (str, nextpos + 2, nextpos + 5), 16
+                    )
                     if value then
                         local value2
                         if 0xD800 <= value and value <= 0xDBff then
@@ -1079,13 +1083,13 @@ do
                             if strsub(
                                 str, nextpos + 6, nextpos + 7
                             ) == '\\u' then
-                                value2 = tonumber(strsub(
-                                    str, nextpos + 8, nextpos + 11
-                                ), 16)
+                                value2 = tonumber(
+                                    strsub(str, nextpos + 8, nextpos + 11), 16
+                                )
                                 if value2 and 0xDC00 <= value2
-                                and value2 <= 0xDFFF then
-                                    value =(value - 0xD800) * 0x400
-                                    + (value2 - 0xDC00) + 0x10000
+                                        and value2 <= 0xDFFF then
+                                    value = (value - 0xD800) * 0x400
+                                        + (value2 - 0xDC00) + 0x10000
                                 else
                                     -- in case it was out of range
                                     -- for a low surrogate
@@ -1116,14 +1120,14 @@ do
         elseif n > 1 then
             return concat(buffer), lastpos
         else
-            return "", lastpos
+            return '', lastpos
         end
     end
 
     local scanvalue -- forward declaration
 
     local function scantable(what, closechar, str, startpos,
-    nullval, objectmeta, arraymeta)
+            nullval, objectmeta, arraymeta)
         local tbl, n = {}, 0
         local pos = startpos + 1
         if what == 'object' then
@@ -1148,8 +1152,8 @@ do
             char = strsub(str, pos, pos)
             if char == ':' then
                 if val1 == nil then
-                    return nil, pos,
-                    'cannot use nil as table index(at ' .. loc(str, pos) .. ')'
+                    return nil, pos, 'cannot use nil as table index (at '
+                        .. loc(str, pos) .. ')'
                 end
                 pos = scanwhite(str, pos + 1)
                 if not pos then return unterminated(str, what, startpos) end
@@ -1176,7 +1180,8 @@ do
         pos = pos or 1
         pos = scanwhite(str, pos)
         if not pos then
-            return nil, strlen(str) + 1, 'no valid JSON value(reached the end)'
+            return nil, strlen(str) + 1,
+                'no valid JSON value (reached the end)'
         end
         local char = strsub(str, pos, pos)
         if char == '{' then
