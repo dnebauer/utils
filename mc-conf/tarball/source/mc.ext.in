@@ -66,9 +66,11 @@ shell/.ico
 #  - do not quote %f as underlying filesystem backslash escapes them,
 #    and if that is then quoted gwenview thinks the backslash is part
 #    of the file path, and cannot locate the file
+# 2022-07-09: opening with imv-x11
 include/image
 	#Open=(see %f &>/dev/null &)
-	Open=(gwenview %f &>/dev/null &)
+	#Open=(gwenview %f &>/dev/null &)
+	Open=(imv-x11 -d -c 'open ./*' "%f" &>/dev/null &)
 	#View=%view{ascii} asciiview %f
 	View=%view{ascii} identify %f
 	Edit=(gimp %f &>/dev/null &)

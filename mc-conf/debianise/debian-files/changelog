@@ -1,3 +1,9 @@
+dn-mc-conf (1.1-1) UNRELEASED; urgency=low
+
+  * Change image viewer from gwenview to imv-x11
+
+ -- David Nebauer <david@nebauer.org>  Sat, 9 Jul 2022 19:14:38 +0930
+
 dn-mc-conf (1.0-1) UNRELEASED; urgency=low
 
   * Add rule for pdf
