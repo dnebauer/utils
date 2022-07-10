@@ -155,18 +155,19 @@ local keyword_actions_data = {
                         "105 Rocklands Drive",
                         "Tiwi NT 0810"
                     },
-                    affiliation = "Ministerial Liaison and Complaints Unit",
+                    affiliation = "Government and Consumer Relations Unit",
                     email = "david.nebauer@nt.gov.au",
                     image = "/home/david/.local/share/pandoc/template/img/eulogo.pdf",
                     name = "Mr David Nebauer",
                     phone = "+61 (0)8 8922 8631",
-                    position = "Senior Complaints and Consumer Liaison Officer",
+                    position = "Senior Complaints Officer",
                     website = "www.health.nt.gov.au"
                 },
                 opening = false,
                 ps = false,
                 signature = "/home/david/.local/share/pandoc/resources/signature.png",
-                signed = true
+                signed = true,
+                ["tablenos-warning-level"] = 1
             }
         }
     },
@@ -238,7 +239,8 @@ local keyword_actions_data = {
                 numbersections = false,
                 papersize = "a4",
                 ["secnos-cleveref"] = true,
-                ["tablenos-cleveref"] = true
+                ["tablenos-cleveref"] = true,
+                ["tablenos-warning-level"] = 1
             },
             options = {
                 ["--self-contained"] = true,
@@ -331,7 +333,8 @@ local keyword_actions_data = {
                 numbersections = false,
                 papersize = "A4",
                 ["secnos-cleveref"] = true,
-                ["tablenos-cleveref"] = true
+                ["tablenos-cleveref"] = true,
+                ["tablenos-warning-level"] = 1
             },
             options = {
                 ["--self-contained"] = true,
@@ -380,7 +383,7 @@ local keyword_actions_data = {
                 linkcolor = "RoyalBlue",
                 mainfont = "Linux Libertine O",
                 microtypeoptions = "babel",
-                monofont = "Inconsolata",
+                monofont = "Inconsolata Nerd Font Mono",
                 newtxmathoptions = {
                     "cmintegrals",
                     "cmbraces"
@@ -2986,7 +2989,7 @@ IPAexMincho
 
 =item *
 
-Inconsolata
+Inconsolata Nerd Font Mono
 
 =item *
 

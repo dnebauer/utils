@@ -235,10 +235,8 @@ local keyword_data = {
                     letterhead = {
                         image = datadir..'/template/img/eulogo.pdf',
                         name = 'Mr David Nebauer',
-                        position = 'Senior Complaints and Consumer '
-                            ..'Liaison Officer',
-                        affiliation = 'Ministerial Liaison and '
-                            ..'Complaints Unit',
+                        position = 'Senior Complaints Officer',
+                        affiliation = 'Government and Consumer Relations Unit',
                         address = {
                             'Royal Darwin Hospital',
                             '105 Rocklands Drive',
@@ -253,6 +251,7 @@ local keyword_data = {
                     incl = false,
                     signed = true,  -- sign using image below
                     signature = datadir..'/resources/signature.png',
+                    ['tablenos-warning-level'] = 1,
                 },
                 latex = {
                     template = 'UoE-letter.latex',
@@ -390,6 +389,7 @@ local keyword_data = {
                     ['fignos-plus-name'] = 'figure',
                     ['secnos-cleveref'] = true,
                     ['tablenos-cleveref'] = true,
+                    ['tablenos-warning-level'] = 1,
                 },
                 extensions = {
                     '+footnotes',
@@ -414,8 +414,8 @@ local keyword_data = {
                     ['header-includes'] = {
                         '\\usepackage{xcolor}',
                         '\\usepackage{fontspec}',
-                        '\\setmainfont{Junicode}',
-                        '\\newfontfamily\\myregularfont{Junicode}',
+                        '\\setmainfont{Junicode Two Beta}',
+                        '\\newfontfamily\\myregularfont{Junicode Two Beta}',
                         '\\newfontfamily\\mychinesefont{IPAexMincho}',
                         '\\usepackage[CJK]{ucharclasses}',
                         '\\setTransitionsForCJK{\\mychinesefont}'
@@ -448,8 +448,8 @@ local keyword_data = {
                     ['header-includes'] = {
                         '\\usepackage{xcolor}',
                         '\\usepackage{fontspec}',
-                        '\\setmainfont{Junicode}',
-                        '\\newfontfamily\\myregularfont{Junicode}',
+                        '\\setmainfont{Junicode Two Beta}',
+                        '\\newfontfamily\\myregularfont{Junicode Two Beta}',
                         '\\newfontfamily\\mychinesefont{IPAexMincho}',
                         '\\usepackage[CJK]{ucharclasses}',
                         '\\setTransitionsForCJK{\\mychinesefont}'
@@ -515,6 +515,7 @@ local keyword_data = {
                     ['fignos-plus-name'] = 'figure',
                     ['secnos-cleveref'] = true,
                     ['tablenos-cleveref'] = true,
+                    ['tablenos-warning-level'] = 1,
                 },
                 extensions = {
                     '+footnotes',
@@ -539,8 +540,8 @@ local keyword_data = {
                     ['header-includes'] = {
                         '\\usepackage{xcolor}',
                         '\\usepackage{fontspec}',
-                        '\\setmainfont{Junicode}',
-                        '\\newfontfamily\\myregularfont{Junicode}',
+                        '\\setmainfont{Junicode Two Beta}',
+                        '\\newfontfamily\\myregularfont{Junicode Two Beta}',
                         '\\newfontfamily\\mychinesefont{IPAexMincho}',
                         '\\usepackage[CJK]{ucharclasses}',
                         '\\setTransitionsForCJK{\\mychinesefont}'
@@ -575,7 +576,7 @@ local keyword_data = {
                     documentclass = 'tufte-handout',
                     fontsize = '12pt',
                     mainfont = 'Linux Libertine O',
-                    monofont = 'Inconsolata',
+                    monofont = 'Inconsolata Nerd Font Mono',
                     sansfont = 'Linux Biolinum O',
                     -- mathfont = 'TeX Gyre Pagella Math',
                     newtxmathoptions = {
