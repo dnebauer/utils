@@ -156,7 +156,9 @@ function returnArray {
 #   return: selected option
 selectOption () {
     local -a options=( "${@}" )
-    local selection="$(echo "${options}" | rofi -dmenu -p "${prompt}")"
+    local selection="$(
+        echo "${options}" | rofi -dmenu -monitor primary -p "${prompt}"
+    )"
     [ $? -eq 0 ] || exit
     [ -n "${selection}" ] || exit
     local option="$(echo "${selection}" | sed -e "s/^.*${separator}//")"
