@@ -23,8 +23,25 @@ set -o pipefail
 # Basic variables    {{{1
 self="$(basename $0)"
 prompt='Select value to copy to clipboard'
-separator=': '
 # each menu option must be of form "<PREFIX><SEPARATOR><VALUE>"
+separator=': '
+display_server='x11'
+if [[ -n "$XDG_SESSION_TYPE" ]] ; then
+    if [[ 'wayland' = "$XDG_SESSION_TYPE" ]] ; then
+        display_server='wayland'
+    fi
+else
+    if command -v loginctl &>/dev/null && [[ -n "$XDG_SESSION_ID" ]] ; then
+        output="$(loginctl show-session "$XDG_SESSION_ID" -p Type --value)"
+        if [[ 'wayland' = "$output" ]] ; then
+            display_server='wayland'
+        fi
+    fi
+fi
+required_tools=(getopt)
+[[ 'x11' = "$display_server" ]] && required_tools+=(rofi xclip)
+[[ 'wayland' = "$display_server" ]] && required_tools+=(wofi wl-copy)
+primary="${MY_PRIMARY_MONITOR:-primary}"
 
 # Main menu options    {{{1
 submenu="-->"
@@ -33,9 +50,9 @@ main_values=$(cat <<-END
 	ii${separator}david@nebauer.id.au
 	nn${separator}David Nebauer
 	uu${separator}david_nebauer
-	dd${separator}Date ${submenu}
-	ee${separator}Email ${submenu}
-	aa${separator}Address ${submenu}
+	dd${separator}Date $submenu
+	ee${separator}Email $submenu
+	aa${separator}Address $submenu
 	END
 )
 
@@ -47,10 +64,10 @@ central_registry='Central Registry, Royal Darwin Hospital'
 central_registry+=', 105 Rocklands Drive, Tiwi NT 0810'
 cas_plaza='Level 1B, Casuarina Plaza, 258 Trower Road, Casuarina NT 0810'
 address_values=$(cat <<-END
-	pp${separator}${parcel_locker}
+	pp${separator}$parcel_locker
 	hh${separator}3 McColl St, Unit 4, Fannie Bay NT 0820
-	cc${separator}${cas_plaza}
-	rr${separator}${central_registry}
+	cc${separator}$cas_plaza
+	rr${separator}$central_registry
 	mm${separator}PO Box 41326, Casuarina NT 0811
 	END
 )
@@ -59,18 +76,18 @@ address_values=$(cat <<-END
 months=(Offset January February March April May June)
 months+=(July August September October November December)
 month_num=$(date +'%-m')
-month="${months[${month_num}]}"
+month="${months[$month_num]}"
 full_template="$(date +'%-d %% %Y')"
-full="${full_template/\%/${month}}"
+full="${full_template/\%/$month}"
 full_nbsp="${full// / }"
 iso_8601="$(date --iso-8601)"
 rfc_email="$(date --rfc-email)"
 # - heredoc indents MUST be tabs, not spaces, for <<- to ignore them
 date_values=$(cat <<-END
-	ff${separator}${full}
-	nn${separator}${full_nbsp}
-	ii${separator}${iso_8601}
-	rr${separator}${rfc_email}
+	ff${separator}$full
+	nn${separator}$full_nbsp
+	ii${separator}$iso_8601
+	rr${separator}$rfc_email
 	END
 )
 
@@ -95,16 +112,16 @@ unset months month_num month full_template full iso_8601 rfc_email    # }}}1
 #   return: nil
 displayUsage () {
 cat << _USAGE
-${self}: load selected value into system clipboard
+$self: load selected value into system clipboard
 
 User selects from a menu of pre-defined options and the
 selected option is loaded into the system clipboard.
 
 A submenu is indicated by an option with an appended
-'${submenu}'. Selecting such an option opens a submenu.
+'$submenu'. Selecting such an option opens a submenu.
 
-Usage: ${self}
-       ${self} -h
+Usage: $self
+       $self -h
 _USAGE
 }
 
@@ -115,7 +132,7 @@ _USAGE
 #   note:   after execution variable ARGS contains
 #           remaining command line args (after options removed)
 processOptions () {
-	# read the command line options
+    # read the command line options
     local OPTIONS="$(                     \
         getopt                            \
             --options hvd                 \
@@ -123,21 +140,21 @@ processOptions () {
             --name    "${BASH_SOURCE[0]}" \
             -- "${@}"                     \
     )"
-    [[ ${?} -eq 0 ]] || {
+    [[ $? -eq 0 ]] || {
         echo 'Invalid command line options' 1>&2
         exit 1
     }
-    eval set -- "${OPTIONS}"
-	while true ; do
-		case "${1}" in
+    eval set -- "$OPTIONS"
+    while true ; do
+        case "$1" in
         -h | --help    ) displayUsage   ; exit 0  ;;
         -v | --verbose ) set -o verbose ; shift 1 ;;
         -d | --debug   ) set -o xtrace  ; shift 1 ;;
         --             ) shift ; break ;;
         *              ) break ;;
-		esac
-	done
-	ARGS="${@}"  # remaining arguments
+        esac
+    done
+    ARGS="$@"  # remaining arguments
 }
 
 # Helper function for returning arrays    {{{1
@@ -150,56 +167,99 @@ function returnArray {
     echo ${r//\[[0-9]\]=}
 }
 
+# Join items    {{{1
+#   params: 1  - delimiter
+#           2+ - items to be joined
+#   prints: string containing joined items
+#   return: nil
+function joinBy () {
+    local d=$1
+    shift
+    local f=$1
+    shift
+    printf %s "$f" "${@/#/$d}"
+}
+
 # Select option from menu    {{{1
 #   params: options = array of menu options
 #   prints: nil
 #   return: selected option
 selectOption () {
-    local -a options=( "${@}" )
-    local selection="$(
-        echo "${options}" | rofi -dmenu -monitor primary -p "${prompt}"
-    )"
+    local -a options=( "$@" )
+    if [[ 'x11' = "$display_server" ]] ; then
+        local selection="$(
+            echo "$options" | rofi -dmenu \
+                                   -monitor "$primary" \
+                                   -p "$prompt"
+        )"
+    else
+        # $display_server = wayland
+        local selection="$(
+            echo "$options" | wofi --dmenu \
+                                   --monitor "$primary" \
+                                   --prompt "$prompt"
+        )"
+    fi
     [ $? -eq 0 ] || exit
-    [ -n "${selection}" ] || exit
-    local option="$(echo "${selection}" | sed -e "s/^.*${separator}//")"
+    [ -n "$selection" ] || exit
+    local option="$(echo "$selection" | sed -e "s/^.*$separator//")"
     local word='A-Za-z0-9 _-'
     local char='A-Za-z0-9_-'
-    local submenu_re="^([${word}]{0,}[${char}])[ ]*${submenu}$"
+    local submenu_re="^([$word]{0,}[$char])[ ]*$submenu$"
     local -a return_values
     # must not quote bash regex variable
-    if [[ "${option}" =~ $submenu_re ]] ; then
+    if [[ "$option" =~ $submenu_re ]] ; then
         return_values+=(submenu "${BASH_REMATCH[1]}")
     else
-        return_values+=(option "${option}")
+        return_values+=(option "$option")
     fi
     returnArray return_values
 }    # }}}1
 
 # MAIN
 
+# Check for required tools    {{{1
+missing=()
+for tool in "${required_tools[@]}" ; do
+    command -v "$tool" &>/dev/null || missing+=("$tool")
+done
+if [[ ${#missing[@]} -ne 0 ]] ; then
+    echo "Can't run without: $(joinBy ', ' "${missing[@]}")" > /dev/stderr
+    exit 1
+fi
+unset missing tools required_tools
+
 # Process command line options    {{{1
 # - results in $ARGS holding remaining non-option command line arguments
-processOptions "${@}"
+processOptions "$@"
 
 # Select option    {{{1
 # - opt_type can be 'option' or 'submenu'
 # - start with main menu (selection='Main')
 opt_type='submenu' ; selection='Main'
-while [ "${opt_type}" = 'submenu' ] ; do
+while [ "$opt_type" = 'submenu' ] ; do
     menu_values=()
-    case "${selection}" in
-        'Address' ) menu_values+=("${address_values}") ;;
-        'Date'    ) menu_values+=("${date_values}")    ;;
-        'Email'   ) menu_values+=("${email_values}")   ;;
-        'Main'    ) menu_values+=("${main_values}")    ;;
-        *         ) echo "Invalid submenu: '${selection}'" ; exit 1 ;;
+    case "$selection" in
+        'Address' ) menu_values+=("$address_values") ;;
+        'Date'    ) menu_values+=("$date_values")    ;;
+        'Email'   ) menu_values+=("$email_values")   ;;
+        'Main'    ) menu_values+=("$main_values")    ;;
+        *         ) echo "Invalid submenu: '$selection'" ; exit 1 ;;
     esac
     eval declare -a return_vals="$(selectOption "${menu_values[@]}")"
+    # eval prevents function exiting script on failure:
+    # it instead returns an array with a single zero-length element
+    [[ ${#return_vals[*]} -eq 1 ]] && [[ -z "${return_vals[0]}" ]] && exit
     opt_type="${return_vals[0]}" ; selection="${return_vals[1]}"
 done
 
 # Send option to clipboard    {{{1
-echo -n "${selection}" | xclip -selection clipboard
+if [[ 'x11' = "$display_server" ]] ; then
+    echo -n "$selection" | xclip -selection clipboard
+else
+    # $display_server = wayland
+    echo -n "$selection" | wl-copy --foreground --trim-newline --no-newline
+fi
 # }}}1
 
 # vim:foldmethod=marker:
