@@ -1,3 +1,9 @@
+dn-cronsudo (2.4-1) UNRELEASED; urgency=low
+
+  * cron: add update of email address cache file
+
+ -- David Nebauer <david@nebauer.org>  Sun, 7 Aug 2022 17:28:20 +0930
+
 dn-cronsudo (2.3-2) UNRELEASED; urgency=low
 
   * sudo: add Cdn-logging stem to postinstall script

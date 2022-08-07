@@ -127,6 +127,77 @@ log () {
     fi
 }
 
+# notmuch_addresses    {{{1
+#   intent: update notmuch email addresses cache file
+#   params: nil
+#   prints: nil
+#   return: boolean (0|1 = true|false)
+notmuch_addresses () {
+
+    # logging
+    local task ; task="updating email address cache"
+    local prefix ; prefix="EMAILCACHE"
+
+    echo 'Checking for notmuch'
+    # requires notmuch
+    local exe ; exe="/usr/bin/notmuch"
+    if ! test -x ${exe} ; then
+        log "${prefix}" "Can't find notmuch" "err"
+        return
+    fi
+
+    echo 'Checking user david'
+    # performed as user david
+    local user ; user="david"
+    if ! check_user "${user}" ; then
+        log "${prefix}" "Invalid user '${user}' - aborting ${task}" "err"
+        return
+    fi
+
+    local tmr ; tmr="$(timer)"
+    log "${prefix}" "Begin ${task}"
+
+    echo 'Create temp file'
+    # create temporary file
+    local temp_file
+    if ! temp_file="$(mktemp 2>/dev/null)" ; then
+        log "${prefix}" "FAILED ${task}: can't create temp file" "err"
+        return
+    fi
+    if ! chown ${user}:${user} $temp_file ; then
+        log "${prefix}" "FAILED ${task}: can't chown temp file" "err"
+        return
+    fi
+
+    echo 'Run notmuch'
+    # harvest email addresses
+    local cache_dir cache_file
+    cache_dir="/home/${user}/.cache/notmuch-addresses"
+    cache_file="${cache_dir}/email-address.cache"
+    if ! su --login --command "notmuch address --output=recipients \
+            --output=sender --deduplicate=address > ${temp_file} '*' \
+            2>/dev/null" ${user} ; then
+        log "${prefix}" "FAILED ${task}: can't capture notmuch output" "err"
+        return
+    fi
+
+    # overwrite cache file
+    echo 'Create cache path if necessary'
+    if ! su --login --command "mkdir -p ${cache_dir}" ${user} ; then
+        log "${prefix}" "FAILED ${task}: can't create cache directory" "err"
+        return
+    fi
+    echo 'Overwrite cache'
+    if ! su --login --command "mv ${temp_file} ${cache_file}" ${user} ; then
+        log "${prefix}" "FAILED ${task}: can't overwrite cache file" "err"
+        return
+    fi
+
+    log "${prefix}" "Finished ${task}"
+    local elapsed ; elapsed="$(timer "${tmr}")"
+    log "${prefix}" "Elapsed time ${elapsed}"
+}
+
 # rotate_logs    {{{1
 #   intent: rotate system logs to prevent VAR partition filling up
 #   params: nil
@@ -383,6 +454,9 @@ bbc_podcasts
 
 # Check rss feeds
 rss_feeds
+
+# Update email address cache
+notmuch_addresses
 
 # Update system clock
 update_clock

@@ -135,6 +135,11 @@ Check RSS feeds
 Use r2e (rss2email) to check selected rss feeds for new articles, which are
 sent to the local mail spool for user 'david'. Daily.
 .PP
+Update email address cache
+.IP
+Use notmuch to harvest email addresses and write to cache file
+/home/david/notmuch-addresses/email-address.cache. Daily.
+.PP
 System clock
 .IP
 Update system clock from internet public time server.
