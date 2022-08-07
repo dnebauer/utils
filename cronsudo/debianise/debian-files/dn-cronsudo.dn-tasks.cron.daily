@@ -5,85 +5,6 @@
 
 # PROCEDURES
 
-# timer    {{{1
-#   intent: get elapsed time
-#   params: 1 - start time [optional, provided by this function]
-#   prints: if no param - current time (seconds since epoch)
-#           if param    - elapsed time string (hh:mm:ss)
-#   return: print value
-#   usage:  $tmr=$(timer)
-#           # ...
-#           $elapsed="$(timer $tmr)"    # '12:34:56'
-timer() {
-    if test ${#} -eq 0 ; then    # no param - return seconds since epoch
-        date '+%s'
-    else    # time param - return elapsed time
-        local stime ; stime="${1}"
-        local etime ; etime="$(date '+%s')"
-        if test -z "${stime}" ; then stime="${etime}" ; fi
-        local dt ; dt="$((etime - stime))"
-        local ds ; ds="$((dt % 60))"
-        local dm ; dm="$(((dt / 60) % 60))"
-        local dh ; dh="$((dt / 3600))"
-        printf '%d:%02d:%02d' ${dh} ${dm} ${ds}
-    fi
-}
-
-# log    {{{1
-#   intent: write message to system log
-#   params: 1 - prefix [required]
-#           2 - message [required]
-#           3 - priority [optional, default='info']
-#               can be emerg|alert|crit|err|warning|notice|info|debug
-#   prints: toggled value
-#   return: toggled value
-log () {
-
-    # process parameters
-    local prefix ; prefix="${1}"
-    local message ; message="${2}"
-    local priority ; priority="${3}"
-    if test -z "${priority}" ; then priority="info" ; fi
-
-    # log message if logger is available
-    local exe ; exe="/usr/bin/logger"
-    if test -x ${exe} ; then
-        ${exe} --priority "cron.${priority}" --tag "${prefix}" "${message}"
-    fi
-}
-
-# toggle_bool    {{{1
-#   intent: toggle boolean value, i.e., true->false and vice versa
-#   params: value
-#   prints: toggled value
-#   return: toggled value
-toggle_bool () {
-    case ${1} in
-        0 ) echo '1' ; return 1;;
-        * ) echo '0' ; return 0;;
-    esac
-}
-
-# check_user    {{{1
-#   intent: whether user is valid (has account and home directory)
-#   params: 1 - user
-#   prints: nil
-#   return: boolean (0|1 = true|false)
-check_user () {
-    local user ; user="${1}"
-    local users
-    users="$( while IFS= read -r line ; do \
-                  usr=$( echo "${line}" | cut -d: -f1 ) ; \
-                  dir -1 /home/ | grep "\b${usr}\b" ; \
-              done < "/etc/passwd" \
-    )"
-    # check user
-    return "$( \
-        toggle_bool "$( echo "${users}" | grep -c "\b${user}\b" )" \
-    )"
-
-}
-
 # bbc_podcasts    {{{1
 #   intent: download new BBC Radio program podcasts
 #   params: nil
@@ -113,6 +34,128 @@ bbc_podcasts () {
     local tmr ; tmr="$(timer)"
     log "${prefix}" "Begin ${task}"
     if ! su --login --command "${exe} --pvr 2>/dev/null" ${user} ; then
+        log "${prefix}" "FAILED ${task}" "err"
+        return
+    fi
+    log "${prefix}" "Finished ${task}"
+    local elapsed ; elapsed="$(timer "${tmr}")"
+    log "${prefix}" "Elapsed time ${elapsed}"
+}
+
+# check_user    {{{1
+#   intent: whether user is valid (has account and home directory)
+#   params: 1 - user
+#   prints: nil
+#   return: boolean (0|1 = true|false)
+check_user () {
+    local user ; user="${1}"
+    local users
+    users="$( while IFS= read -r line ; do \
+                  usr=$( echo "${line}" | cut -d: -f1 ) ; \
+                  dir -1 /home/ | grep "\b${usr}\b" ; \
+              done < "/etc/passwd" \
+    )"
+    # check user
+    return "$( \
+        toggle_bool "$( echo "${users}" | grep -c "\b${user}\b" )" \
+    )"
+
+}
+
+# flush mail queue    {{{1
+#   intent: attempt to send any queued emails
+#   params: logs result in system log
+#   prints: nil
+#   return: nil
+flush_mail_queue () {
+
+    # logging
+    local task ; task="flushing mail queue"
+    local prefix ; prefix="MAIL_QUEUE"
+
+    # performed as user david
+    local user ; user="david"
+    if ! check_user "${user}" ; then
+        log "${prefix}" "Invalid user '${user}' - aborting ${task}" "err"
+        return
+    fi
+
+    # requires msmtp-queue and logger
+    local exe ; exe="/home/david/.local/bin/msmtp-queue"
+    if ! which "${exe}" &>/dev/null ; then
+        log "${prefix}" "Can't find ${exe}" "err"
+        return
+    fi
+
+    # flush queue
+    # - can send output directly to logger
+    local tmr ; tmr="$(timer)"
+    log "${prefix}" "Begin ${task}"
+    local logger="/usr/bin/logger"
+    if test -x ${logger} ; then
+        su --login --command \
+            "set -o pipefail ; ${exe} -r  | ${logger} -t ${prefix}" ${user}
+    else
+        su --login --command "${exe} -r" ${user}
+    fi
+    if test ${?} -ne 0 ; then log "${prefix}" "FAILED ${task}" "err" ; fi
+    log "${prefix}" "Finished ${task}"
+    local elapsed ; elapsed="$(timer "${tmr}")"
+    log "${prefix}" "Elapsed time ${elapsed}"
+}
+
+# log    {{{1
+#   intent: write message to system log
+#   params: 1 - prefix [required]
+#           2 - message [required]
+#           3 - priority [optional, default='info']
+#               can be emerg|alert|crit|err|warning|notice|info|debug
+#   prints: toggled value
+#   return: toggled value
+log () {
+
+    # process parameters
+    local prefix ; prefix="${1}"
+    local message ; message="${2}"
+    local priority ; priority="${3}"
+    if test -z "${priority}" ; then priority="info" ; fi
+
+    # log message if logger is available
+    local exe ; exe="/usr/bin/logger"
+    if test -x ${exe} ; then
+        ${exe} --priority "cron.${priority}" --tag "${prefix}" "${message}"
+    fi
+}
+
+# rotate_logs    {{{1
+#   intent: rotate system logs to prevent VAR partition filling up
+#   params: nil
+#   prints: nil
+#   return: nil
+rotate_logs () {
+
+    # logging
+    local task ; task="rotating system logs"
+    local prefix ; prefix="ROTATELOGS"
+
+    # requires logrotate
+    local exe ; exe="/usr/sbin/logrotate"
+    if ! test -x ${exe} ; then
+        log "${prefix}" "Can't find ${exe}" "err"
+        return
+    fi
+
+    # requires logrotate configuration file
+    local conf ; conf="/etc/logrotate.conf"
+    if ! test -f ${conf} ; then
+        log "${prefix}" "Can't find ${conf}" "err"
+        return
+    fi
+
+    # perform rotation
+    local tmr ; tmr="$(timer)"
+    log "${prefix}" "Begin ${task}"
+    if ! ${exe} -f ${conf} ; then
         log "${prefix}" "FAILED ${task}" "err"
         return
     fi
@@ -158,46 +201,40 @@ rss_feeds () {
     log "${prefix}" "Elapsed time ${elapsed}"
 }
 
-# flush mail queue    {{{1
-#   intent: attempt to send any queued emails
-#   params: logs result in system log
-#   prints: nil
-#   return: nil
-flush_mail_queue () {
-
-    # logging
-    local task ; task="flushing mail queue"
-    local prefix ; prefix="MAIL_QUEUE"
-
-    # performed as user david
-    local user ; user="david"
-    if ! check_user "${user}" ; then
-        log "${prefix}" "Invalid user '${user}' - aborting ${task}" "err"
-        return
+# timer    {{{1
+#   intent: get elapsed time
+#   params: 1 - start time [optional, provided by this function]
+#   prints: if no param - current time (seconds since epoch)
+#           if param    - elapsed time string (hh:mm:ss)
+#   return: print value
+#   usage:  $tmr=$(timer)
+#           # ...
+#           $elapsed="$(timer $tmr)"    # '12:34:56'
+timer() {
+    if test ${#} -eq 0 ; then    # no param - return seconds since epoch
+        date '+%s'
+    else    # time param - return elapsed time
+        local stime ; stime="${1}"
+        local etime ; etime="$(date '+%s')"
+        if test -z "${stime}" ; then stime="${etime}" ; fi
+        local dt ; dt="$((etime - stime))"
+        local ds ; ds="$((dt % 60))"
+        local dm ; dm="$(((dt / 60) % 60))"
+        local dh ; dh="$((dt / 3600))"
+        printf '%d:%02d:%02d' ${dh} ${dm} ${ds}
     fi
+}
 
-    # requires msmtp-queue and logger
-    local exe ; exe="/home/david/.local/bin/msmtp-queue"
-    if ! which "${exe}" &>/dev/null ; then
-        log "${prefix}" "Can't find ${exe}" "err"
-        return
-    fi
-
-    # flush queue
-    # - can send output directly to logger
-    local tmr ; tmr="$(timer)"
-    log "${prefix}" "Begin ${task}"
-    local logger="/usr/bin/logger"
-    if test -x ${logger} ; then
-        su --login --command \
-            "set -o pipefail ; ${exe} -r  | ${logger} -t ${prefix}" ${user}
-    else
-        su --login --command "${exe} -r" ${user}
-    fi
-    if test ${?} -ne 0 ; then log "${prefix}" "FAILED ${task}" "err" ; fi
-    log "${prefix}" "Finished ${task}"
-    local elapsed ; elapsed="$(timer "${tmr}")"
-    log "${prefix}" "Elapsed time ${elapsed}"
+# toggle_bool    {{{1
+#   intent: toggle boolean value, i.e., true->false and vice versa
+#   params: value
+#   prints: toggled value
+#   return: toggled value
+toggle_bool () {
+    case ${1} in
+        0 ) echo '1' ; return 1;;
+        * ) echo '0' ; return 0;;
+    esac
 }
 
 # update_clock    {{{1
@@ -261,43 +298,6 @@ update_file_db () {
     local tmr ; tmr="$(timer)"
     log "${prefix}" "Begin ${task}"
     if ! ${exe} ; then
-        log "${prefix}" "FAILED ${task}" "err"
-        return
-    fi
-    log "${prefix}" "Finished ${task}"
-    local elapsed ; elapsed="$(timer "${tmr}")"
-    log "${prefix}" "Elapsed time ${elapsed}"
-}
-
-# rotate_logs    {{{1
-#   intent: rotate system logs to prevent VAR partition filling up
-#   params: nil
-#   prints: nil
-#   return: nil
-rotate_logs () {
-
-    # logging
-    local task ; task="rotating system logs"
-    local prefix ; prefix="ROTATELOGS"
-
-    # requires logrotate
-    local exe ; exe="/usr/sbin/logrotate"
-    if ! test -x ${exe} ; then
-        log "${prefix}" "Can't find ${exe}" "err"
-        return
-    fi
-
-    # requires logrotate configuration file
-    local conf ; conf="/etc/logrotate.conf"
-    if ! test -f ${conf} ; then
-        log "${prefix}" "Can't find ${conf}" "err"
-        return
-    fi
-
-    # perform rotation
-    local tmr ; tmr="$(timer)"
-    log "${prefix}" "Begin ${task}"
-    if ! ${exe} -f ${conf} ; then
         log "${prefix}" "FAILED ${task}" "err"
         return
     fi
