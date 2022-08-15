@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.71])
 AC_INIT([Cron tasks and sudoers files],
-        [2.4],
+        [2.5],
         [david@nebauer.org],
         [dn-cronsudo],
 )

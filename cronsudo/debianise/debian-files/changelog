@@ -1,3 +1,9 @@
+dn-cronsudo (2.5-1) UNRELEASED; urgency=low
+
+  * cron: upstream fix of email cache command
+
+ -- David Nebauer <david@nebauer.org>  Sun, 7 Aug 2022 22:56:00 +0930
+
 dn-cronsudo (2.4-1) UNRELEASED; urgency=low
 
   * cron: add update of email address cache file

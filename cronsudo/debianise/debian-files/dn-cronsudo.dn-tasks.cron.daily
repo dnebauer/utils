@@ -175,8 +175,8 @@ notmuch_addresses () {
     cache_dir="/home/${user}/.cache/notmuch-addresses"
     cache_file="${cache_dir}/email-address.cache"
     if ! su --login --command "notmuch address --output=recipients \
-            --output=sender --deduplicate=address > ${temp_file} '*' \
-            2>/dev/null" ${user} ; then
+            --output=sender --deduplicate=address '*' \
+            2>/dev/null > ${temp_file}" ${user} ; then
         log "${prefix}" "FAILED ${task}: can't capture notmuch output" "err"
         return
     fi
