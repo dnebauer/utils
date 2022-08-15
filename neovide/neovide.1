@@ -1,0 +1,223 @@
+.\" Hey, EMACS: -*- nroff -*-
+
+.\" Filename: neovide.1
+.\" Author:   David Nebauer
+.\" History:  2022-08-15 - created
+
+.\" -----------------------------------------------------------------
+.\" NOTES
+.\" -----------------------------------------------------------------
+.ig
+
+For header (.TH), first parameter, NAME, should be all caps
+Second parameter, SECTION, should be 1-8, maybe w/ subsection
+Other parameters are allowed: see man(7), man(1)
+Please adjust the date whenever revising the manpage.
+
+Some roff macros, for reference:
+.nh        disable hyphenation
+.hy        enable hyphenation
+.ad l      left justify
+.ad b      justify to both left and right margins
+.nf        disable filling
+.fi        enable filling
+.br        insert line break
+.sp <n>    insert n+1 empty lines
+for manpage-specific macros, see groff_man(7) and man(7)
+
+Formatting [see groff_char (7) and man (7) for details]:
+\(aq  : escape sequence for (')
+\[dq] : plain double quote
+\[lq] : left/open double quote
+\[rq] : right/close double quote
+`     : left/open single quote
+'     : right/close single quote
+\(em  : escape sequence for em dash
+\(en  : escape sequence for en dash
+\.    : escape sequence for period/dot
+\(rg  : registration symbol
+\(tm  : trademark symbol
+\fX   : escape sequence that changes font, where 'X' can be 'R|I|B|BI'
+        (R = roman/normal | I = italic | B = bold | BI = bold-italic)
+\fP   : switch to previous font
+        in this case '\fR' could also have been used
+.B    : following arguments are boldened
+.I    : following arguments are italicised
+.BI   : following arguments are bold alternating with italics
+.BR   : following arguments are bold alternating with roman
+.IB   : following arguments are italics alternating with bold
+.IR   : following arguments are italics alternating with roman
+.RB   : following arguments are roman alternating with bold
+.RI   : following arguments are roman alternating with italics
+.SM   : following arguments are small (scaled 9/10 of the regular size)
+.SB   : following arguments are small bold (not small alternating with bold)
+        [note: if argument in alternating pattern contains whitespace,
+               enclose in whitespace]
+.RS x : indent following lines by x characters
+.RE   : end indent
+
+Bulleted list:
+   A bulleted list:
+   .IP \[bu] 2
+   lawyers
+   .IP \[bu]
+   guns
+   .IP \[bu]
+   money
+Numbered list:
+   .nr step 1 1
+   A numbered list:
+   .IP \n[step] 3
+   lawyers
+   .IP \n+[step]
+   guns
+   .IP \n+[step]
+   money
+..
+
+.\" -----------------------------------------------------------------
+.\" SETUP
+.\" -----------------------------------------------------------------
+
+.\" Macro: Format URL
+.\"  usage:  .URL "http:\\www.gnu.org" "GNU Project" " of the"
+.\"  params: 1 = url
+.\"          2 = link text/name
+.\"          3 = postamble (optional)
+.\"  note:   The www.tmac macro provides a .URL macro package; this
+.\"          is a local fallback in case www.tmac is unavailable
+.\"  credit: man(7)
+.de URL
+\\$2 \(laURL: \\$1 \(ra\\$3
+..
+
+.\" Prefer .URL macro from www.tmac macro package if it is available
+.\"  note: In the conditional below the '\n' escape returns the value of
+.\"        a register, in this the '.g'
+.\"        The '.g' register is only found in GNU 'troff', and it is
+.\"        assumed that GNU troff will always include the www.tmac
+.\"        macro package
+.if \n[.g] .mso www.tmac
+
+.\" Macro: Ellipsis
+.\"  usage: .ellipsis
+.\"  note: only works at beginning of line
+.de ellipsis
+.cc ^
+...
+^cc
+..
+
+.\" String: Command name
+.ds self neovide
+
+.\" -----------------------------------------------------------------
+.\" MANPAGE CONTENT
+.\" -----------------------------------------------------------------
+
+.TH "NEOVIDE" "1" "2022-08-15" "" "NEOVIDE Manual"
+.SH "NAME"
+\*[self] \- a simple graphical user interface for Neovim
+.SH "SYNOPSIS"
+.B "\*[self] "
+.RI "[" "OPTIONS" "] [" "<files>" "] [--" "<neovim_args>" "]"
+.SH "DESCRIPTION"
+A simple, no-nonsense, cross-platform graphical user interface for
+Neovim (an aggressively refactored and updated Vim editor). Where possible
+there are some graphical improvements, but functionally it should act like the
+terminal UI.
+.SH "ARGUMENTS"
+.TP
+.I <files>
+Files to open. Specified in a space-separated list. Optional.
+.TP
+.I <neovim_args>
+Arguments to pass to neovim. Precede with a double dash. Optional.
+.SH "OPTIONS"
+.TP
+.BI "--frame " "frame"
+Configure the window frame. NOTE: Window might not be resizable if setting is
+.IR "None" "."
+.TP
+.BI "--geometry " "geometry"
+Specify the geometry of the window. Format is
+.I <width>x<height>
+in characters.
+.TP
+.BR "-h" ", " "--help"
+Print help information.
+.TP
+.B "--log"
+Enables the log file for debugging purposes. This will write a file next to the
+executable containing trace events which may help debug an issue.
+.TP
+.B "--maximized"
+Maximize the window.
+.TP
+.B "--multigrid"
+Enable neovim's multigrid functionality which will also enable floating window
+blurred backgrounds and window animations. For now this is disabled due to some
+mouse input bugs upstream and floating window transparency issues.
+
+This feature can also be switched on by declaring environmental variable
+.IR "NEOVIDE_MULTIGRID" "."
+.TP
+.BI "--neovim-bin " "neovim_bin"
+Specify path to the neovim binary. If unset, neovide will try to find
+.I "nvim"
+on the
+.I "PATH"
+environment variable instead.
+.TP
+.B "--nofork"
+Instead of spawning a child process and leaking it, be "blocking" and have the
+shell directly as parent process.
+.TP
+.B "--noidle"
+Render every frame. Takes more power and cpu time but possibly fixes animation
+issues.
+.TP
+.B "--nosrgb"
+Do not use standard color space to initialize the window. Swapping this
+variable sometimes fixes issues on startup.
+.TP
+.B "--notabs"
+Open multiple files in normal buffers \(em the default behaviour is to open
+them in multiple tabs.
+.TP
+.BI "--remote-tcp " "remote_tcp"
+Connect to remote TCP.
+.TP
+.BR "-V" ", " "--version"
+Print version information.
+.TP
+.BI "--wayland-app-id " "wayland_app_id"
+Specify an App ID for Wayland.
+
+This can also be set by an environment variable called
+.IR "NEOVIDE_APP_ID" "."
+.TP
+.B "--wsl"
+Run neovim from inside
+.URL "https://docs.microsoft.com/en-us/windows/wsl/" \
+     "Windows Subsystem for Linux"
+rather than as a normal executable.
+.TP
+.BI "--x11-wm-class " "x11_wm_class"
+Specify the class part of the X11 WM_CLASS property.
+
+This can also be set by an environment variable called
+.IR "NEOVIDE_WM_CLASS" "."
+.TP
+.BI "--x11-wm-class-instance " "x11_wm_class_instance"
+Specify the instance part of the X11 WM_CLASS property.
+
+This can also be set by an environment variable called
+.IR "NEOVIDE_WM_CLASS_INSTANCE" "."
+.SH "SEE ALSO"
+.BR "nvim " "(1)."
+.SH "AUTHOR"
+\*[self] was written by keith <keith@the-simmons.net>.
+.PP
+This manual page was written by David Nebauer (david at nebauer dot org)
+for the Debian project (but may be used by others).

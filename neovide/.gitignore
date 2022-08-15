@@ -1,0 +1,6 @@
+*.diff.gz
+*.dsc
+*.orig
+*.tar
+*.gz
+tags
