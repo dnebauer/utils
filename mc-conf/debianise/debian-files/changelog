@@ -1,3 +1,21 @@
+dn-mc-conf (1.4-1) UNRELEASED; urgency=low
+
+  * improve package documentation
+
+ -- David Nebauer <david@nebauer.org>  Fri, 14 Oct 2022 02:22:09 +0930
+
+dn-mc-conf (1.3-1) UNRELEASED; urgency=low
+
+  * move email wrapper script into package
+
+ -- David Nebauer <david@nebauer.org>  Fri, 14 Oct 2022 02:01:02 +0930
+
+dn-mc-conf (1.2-1) UNRELEASED; urgency=low
+
+  * change path of email file attach wrapper script
+
+ -- David Nebauer <david@nebauer.org>  Thu, 13 Oct 2022 17:16:44 +0930
+
 dn-mc-conf (1.1-1) UNRELEASED; urgency=low
 
   * Change image viewer from gwenview to imv-x11

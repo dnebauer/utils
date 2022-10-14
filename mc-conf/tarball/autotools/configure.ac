@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.71])
 AC_INIT([Regenerate local mc configuration files],
-        [1.1],
+        [1.4],
         [david@nebauer.org],
         [dn-mc-conf],
 )
@@ -89,6 +89,15 @@ AC_SUBST(lib_dir)
 pkglib_dir="${prefix}/lib/${PACKAGE}"
 AC_SUBST(pkglib_dir)
 
+# pkglibexec_dir
+# - package executables run by other executables, not user,
+#   and package libraries
+# - default value in built deb package: /usr/libexec/${PACKAGE}
+#   but occasionally overridden to /libexec/${PACKAGE}
+#   in important packages, e.g., udev
+pkglibexec_dir="${prefix}/libexec/${PACKAGE}"
+AC_SUBST(pkglibexec_dir)
+
 # mclib_dir
 # - mc (midnight commander) package executables run by other
 #   executables, not user, and package libraries
@@ -149,5 +158,6 @@ AC_CONFIG_FILES([
     dn-urar
     mc.ext
     menu
+    neomutt-my-attach-wrapper
 ])
 AC_OUTPUT

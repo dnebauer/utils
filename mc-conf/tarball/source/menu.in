@@ -25,8 +25,8 @@
 #   %s: file(s), tagged or under cursor
 
 = t rxt
-e       Email as attachment
-  @bin_dir@/dn-attach %d %s
+e       Email as attachment using neomutt
+  @pkglibexec_dir@/neomutt-my-attach-wrapper %d %s
 
 # MENU ITEM: Copy file name to system clipboard
 

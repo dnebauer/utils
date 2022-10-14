@@ -63,7 +63,7 @@ bin_SCRIPTS = dn-mc-conf
 # (and definitely no executables), while FHS uses libdir
 # for both -- although the debian defaults match FHS this
 # is the only way to get scripts into this directory
-#libexec_SCRIPTS = 
+pkglibexec_SCRIPTS = neomutt-my-attach-wrapper
 mcextfs_SCRIPTS = dn-urar
 
 # Packaging tools will let you put scripts in

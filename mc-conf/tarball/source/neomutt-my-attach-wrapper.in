@@ -1,0 +1,181 @@
+#!/bin/bash
+
+# File: neomutt-my-attach-wrapper
+# Author: David Nebauer (david at nebauer dot org)
+# Purpose: open new email in neomutt with file(s) attached
+# Created: 2022-10-13
+
+# ERROR HANDLING    {{{1
+
+# Exit on error. Append "|| true" if you expect an error.
+set -o errexit
+# Exit on error inside any functions or subshells.
+set -o errtrace
+# Do not allow use of undefined vars. Use ${VAR:-} to use an undefined VAR
+set -o nounset
+# Catch error in case mysqldump fails (but gzip succeeds) in `mysqldump |gzip`
+set -o pipefail
+# Turn on traces, useful while debugging but commented out by default
+# set -o xtrace
+
+# VARIABLES    {{{1
+
+self="$(basename $0)"
+parameters="[-v] [-d] dir file [...]"
+# required tools findable on system path
+required_system_tools=(
+    getopt
+    neomutt
+)
+# required tools specified by full path
+required_local_tools=()
+# }}}1
+
+# PROCEDURES
+
+# checkPrereqs()    {{{1
+#   intent: check for required tools
+#   params: nil
+#   prints: error message if tool(s) missing
+#   return: n/a, aborts scipts on failure
+function checkPrereqs () {
+    local missing tool
+    missing=()
+    # these tools can be found on the base system path
+    for tool in "${required_system_tools[@]}" ; do
+        command -v "$tool" &>/dev/null || missing+=("$tool")
+    done
+    # these tools are specified by absolute path
+    for tool in "${required_local_tools[@]}" ; do
+        [[ -x "$tool" ]] || missing+=("$tool")
+    done
+    if [[ ${#missing[@]} -ne 0 ]] ; then
+        local msg ; msg="Can't run without: $(joinBy ', ' "${missing[@]}")"
+        echo "$msg" 1>&2
+        exit 1
+    fi
+    unset required_system_tools required_local_tools
+}
+# displayUsage()    {{{1
+#   intent: display usage information
+#   params: nil
+#   prints: nil
+#   return: nil
+displayUsage () {
+cat << _USAGE
+$self: neomutt wrapper script
+
+This script takes a directory path and the names of one or
+more files in that directory and then invokes neomutt with
+the files as attachments to a new email. Spaces in either
+directory path or file names are handled gracefully.
+
+The design choices for this script were made assuming it
+will be used as part of a user menu option in mc (midnight
+commander). The menu option definition is assumed to be:
+
+    = t rxt
+    e       Email as attachment
+      $self %d %s
+
+Usage: $self $parameters
+       $self -h
+
+Options: -v = print input lines after command expansion
+              (equivalent to 'set -o verbose')
+         -d = print input lines as they are read
+              (equivalent to 'set -o xtrace')
+
+Arguments: dir      = directory path [required]
+           file ... = name of file [at least one required,
+                                    can have multiple]
+_USAGE
+}
+# processOptions([@options])    {{{1
+#   intent: process all command line options
+#   params: @options - all command line parameters
+#   prints: feedback
+#   return: nil
+#   note:   after execution variable @ARGS contains
+#           remaining command line args (after options removed)
+processOptions () {
+    # read the command line options
+    local OPTIONS="$(                     \
+        getopt                            \
+            --options hvd                 \
+            --long    help,verbose,debug  \
+            --name    "${BASH_SOURCE[0]}" \
+            -- "${@}"                     \
+    )"
+    [[ ${?} -eq 0 ]] || {
+        echo 'Invalid command line options' 1>&2
+        exit 1
+    }
+    eval set -- "${OPTIONS}"
+    while true ; do
+        case "${1}" in
+        -h | --help    ) displayUsage   ; exit 0  ;;
+        -v | --verbose ) set -o verbose ; shift 1 ;;
+        -d | --debug   ) set -o xtrace  ; shift 1 ;;
+        --             ) shift ; break ;;
+        *              ) break ;;
+        esac
+    done
+    ARGS=("${@}")  # remaining arguments
+}
+# joinBy($delim, @items)    {{{1
+#   intent: join all items using delimiter
+#   params: delim - delimiter
+#           items - items to be joined
+#   prints: string containing joined items
+#   return: nil
+function joinBy () {
+    local delimiter first_item
+    delimiter="${1:-}"
+    shift
+    first_item="${1:-}"
+    shift
+    printf %b%s "$first_item" "${@/#/$delimiter}"
+}
+# abortScript($msg)    {{{1
+#   intent: exit with message and error status
+#   params: msg - string message
+#   prints: string containing joined items
+#   return: nil
+function abortScript () {
+    echo "$1" 1>&2
+    exit 1
+}
+# }}}1
+
+# MAIN
+
+# check for required tools    {{{1
+checkPrereqs
+
+# process command line options    {{{1
+processOptions "${@}"  # leaves ${ARGS[@]} holding positional arguments
+
+# check arguments    {{{1
+# - need at least two args
+count=${#ARGS[@]}
+[[ $count -ge 2 ]] || abortScript "Need at least 2 arguments, got $count"
+# - directory (first arg) needs to be valid
+[[ -d "${ARGS[0]}" ]] || abortScript "Invalid directory: ${ARGS[0]}"
+unset count
+
+# get filepaths    {{{1
+dir="${ARGS[0]}"
+files=("${ARGS[@]:1}")
+fps=()
+for file in "${files[@]}" ; do
+    fps+=("$dir/$file")
+done
+unset dir files
+
+# invoke neomutt    {{{1
+neomutt -a "${fps[@]}"
+# }}}1
+
+# vim: set ft=bash fdm=marker:
+# warning: filetype set to 'mail' because filename starts with 'neomutt-'!
