@@ -26,7 +26,7 @@
 
 = t rxt
 e       Email as attachment using neomutt
-  @pkglibexec_dir@/neomutt-my-attach-wrapper %d %s
+  @pkglibexec_dir@/neomutt_my-attach-wrapper %d %s
 
 # MENU ITEM: Copy file name to system clipboard
 

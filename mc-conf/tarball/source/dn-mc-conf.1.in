@@ -112,7 +112,7 @@ Numbered list:
 .ds menu_file_pkg @pkgconf_dir@/menu
 .ds menu_file_global @sysconf_dir@/mc/mc.menu
 .ds menu_file_local ~/.config/mc/menu
-.ds menu_email_wrapper @pkglibexec_dir@/neomutt-my-attach-wrapper
+.ds menu_email_wrapper @pkglibexec_dir@/neomutt_my-attach-wrapper
 .ds cron_script @sysconf_dir@/cron.daily/@pkg@
 .ds rar_extfs_default @mclib_dir@/extfs.d/urar
 .ds rar_extfs_custom @mclib_dir@/extfs.d/dn-urar

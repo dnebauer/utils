@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# File: neomutt-my-attach-wrapper
+# File: neomutt_my-attach-wrapper
 # Author: David Nebauer (david at nebauer dot org)
 # Purpose: open new email in neomutt with file(s) attached
 # Created: 2022-10-13
@@ -177,5 +177,4 @@ unset dir files
 neomutt -a "${fps[@]}"
 # }}}1
 
-# vim: set ft=bash fdm=marker:
-# warning: filetype set to 'mail' because filename starts with 'neomutt-'!
+# vim: set fdm=marker:

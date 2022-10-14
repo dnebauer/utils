@@ -158,6 +158,6 @@ AC_CONFIG_FILES([
     dn-urar
     mc.ext
     menu
-    neomutt-my-attach-wrapper
+    neomutt_my-attach-wrapper
 ])
 AC_OUTPUT
