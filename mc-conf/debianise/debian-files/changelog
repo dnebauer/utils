@@ -1,8 +1,15 @@
+dn-mc-conf (1.4-2) UNRELEASED; urgency=low
+
+  * add missing package dependencies
+
+ -- David Nebauer <david@nebauer.org>  Sun, 08 Jan 2023 14:33:29 +0930
+
 dn-mc-conf (1.4-1) UNRELEASED; urgency=low
 
   * improve package documentation
 
  -- David Nebauer <david@nebauer.org>  Fri, 14 Oct 2022 02:22:09 +0930
+
 
 dn-mc-conf (1.3-1) UNRELEASED; urgency=low
 
