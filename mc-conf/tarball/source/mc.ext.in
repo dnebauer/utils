@@ -327,6 +327,15 @@ regex/i/\.tc$
 	Open=(tellico %f >/dev/null 2>&1 &)
 
 
+### Email ###
+
+# [*.eml]
+# - neomutt_my-eml-viewer provided in mail dotfiles
+regex/i/\.eml$
+	Open=(neomutt_my-eml-viewer %f)
+	View=(sensible-editor %f >/dev/null 2>&1 &)
+
+
 ### Miscellaneous ###
 
 # nsis
