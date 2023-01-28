@@ -102,6 +102,17 @@ regex/i/\.(m3u|pls)$
 	Open=/usr/lib/mc/ext.d/sound.sh open playlist
 
 
+### Email ###
+
+# [*.eml]
+# - neomutt_my-eml-viewer provided in mail dotfiles
+# - put here, even though an addition, because it must go before
+#   type=plain-text (because that is how 'file' commonly reads these files)
+regex/i/\.eml$
+	Open=(neomutt_my-eml-viewer %f)
+	View=(sensible-editor %f >/dev/null 2>&1 &)
+
+
 ### Documents ###
 
 # HTML
@@ -325,15 +336,6 @@ regex/i/\.grdb$
 ## [*.tc]
 regex/i/\.tc$
 	Open=(tellico %f >/dev/null 2>&1 &)
-
-
-### Email ###
-
-# [*.eml]
-# - neomutt_my-eml-viewer provided in mail dotfiles
-regex/i/\.eml$
-	Open=(neomutt_my-eml-viewer %f)
-	View=(sensible-editor %f >/dev/null 2>&1 &)
 
 
 ### Miscellaneous ###

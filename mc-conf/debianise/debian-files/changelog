@@ -1,3 +1,9 @@
+dn-mc-conf (1.7-1) UNRELEASED; urgency=low
+
+  * change precendence of eml handler
+
+ -- David Nebauer <david@nebauer.org>  Sun, 29 Jan 2023 00:41:50 +0930
+
 dn-mc-conf (1.6-1) UNRELEASED; urgency=low
 
   * move eml handler block and tweak file open command
