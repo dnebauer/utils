@@ -84,7 +84,7 @@ mcextfs_SCRIPTS = dn-urar
 
 # You put read-only architecture-independent data files
 # for the package in /usr/share/$(PACKAGE)
-pkgdata_DATA = mc.ext menu
+pkgdata_DATA = mc.ext.ini menu
 
 # Debian icons are placed in /usr/share/icons
 pkgicon_DATA = dn-mc-conf-error.png

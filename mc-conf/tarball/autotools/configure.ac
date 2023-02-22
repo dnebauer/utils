@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.71])
 AC_INIT([Regenerate local mc configuration files],
-        [1.7],
+        [2.0],
         [david@nebauer.org],
         [dn-mc-conf],
 )
@@ -156,7 +156,7 @@ AC_CONFIG_FILES([
     dn-mc-conf.1
     dn-mc-conf-error.png
     dn-urar
-    mc.ext
+    mc.ext.ini
     menu
     neomutt_my-attach-wrapper
 ])

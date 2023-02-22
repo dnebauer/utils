@@ -10,9 +10,9 @@ bool_true=$( true ; echo ${?} )
 bool_false=$( false ; echo ${?} )
 use_logger=$( which logger &>/dev/null ; echo ${?} )
 local_conf_dir_template="/home/USER/.config/mc"
-ext_file_global="/etc/mc/mc.ext"
-ext_file_local_template="${local_conf_dir_template}/mc.ext"
-ext_file_pkg="/usr/share/dn-mc-conf/mc.ext"
+ext_file_global="/etc/mc/mc.ext.ini"
+ext_file_local_template="${local_conf_dir_template}/mc.ext.ini"
+ext_file_pkg="/usr/share/dn-mc-conf/mc.ext.ini"
 menu_file_global="/etc/mc/mc.menu"
 menu_file_local_template="${local_conf_dir_template}/menu"
 menu_file_pkg="/usr/share/dn-mc-conf/menu"
@@ -96,24 +96,24 @@ listUsers () {
 #   prints: nil
 #   return: nil
 logMsg () {
-	while [ -n "${1}" ] ; do
+    while [ -n "${1}" ] ; do
         if flagTrue ${use_logger} ; then
             logger -p user.info -t "${self}" "${1}"
         else
             echo "${self}: ${1}"
         fi
-		shift
-	done
+        shift
+    done
 }
 logErr () {
-	while [ -n "${1}" ] ; do
+    while [ -n "${1}" ] ; do
         if flagTrue ${use_logger} ; then
             logger -p user.err -t "${self}" "${1}"
         else
             echo "${self}: ERROR: ${1}" > /dev/stderr
         fi
-		shift
-	done
+        shift
+    done
 }
 # Function: flagTrue
 #   intent: check if flag variable equal to true/zero
@@ -121,8 +121,8 @@ logErr () {
 #   prints: nil
 #   return: boolean
 flagTrue () {
-	[ -n "${1}" ] || return 1  # empty flag variable is false
-	return ${1}
+    [ -n "${1}" ] || return 1  # empty flag variable is false
+    return ${1}
 }
 
 

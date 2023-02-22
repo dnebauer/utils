@@ -1,3 +1,21 @@
+dn-mc-conf (2.0-1) UNRELEASED; urgency=low
+
+  * mc.ext.ini: fix incorrect entries
+
+ -- David Nebauer <david@nebauer.org>  Wed, 22 Feb 2023 23:08:24 +0930
+
+dn-mc-conf (1.9-1) UNRELEASED; urgency=low
+
+  * add blank line to conf file
+
+ -- David Nebauer <david@nebauer.org>  Wed, 22 Feb 2023 22:47:34 +0930
+
+dn-mc-conf (1.8-1) UNRELEASED; urgency=low
+
+  * upgrade conf file to version 4
+
+ -- David Nebauer <david@nebauer.org>  Wed, 22 Feb 2023 22:26:58 +0930
+
 dn-mc-conf (1.7-1) UNRELEASED; urgency=low
 
   * change precendence of eml handler
