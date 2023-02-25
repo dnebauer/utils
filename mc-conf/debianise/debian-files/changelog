@@ -1,3 +1,9 @@
+dn-mc-conf (2.1-1) UNRELEASED; urgency=low
+
+  * use unique section names in config file
+
+ -- David Nebauer <david@nebauer.org>  Fri, 24 Feb 2023 21:41:48 +0930
+
 dn-mc-conf (2.0-1) UNRELEASED; urgency=low
 
   * mc.ext.ini: fix incorrect entries

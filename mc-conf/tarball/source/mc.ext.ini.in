@@ -6,7 +6,7 @@
 
 ### Archives ###
 
-[rar]
+[dn_rar]
 Regex=\.r(ar|[0-9][0-9])$
 RegexIgnoreCase=true
 Open=%cd %p/dn-urar://
@@ -23,7 +23,7 @@ Edit=(gimp %f &>/dev/null &)
 
 ### Sound files ###
 
-#[mp3]
+#[dn_mp3]
 #Shell=.mp3
 #ShellIgnoreCase=true
 #Open=(run-mailcap audio/mpeg:%f >/dev/null 2>&1 &)
@@ -33,7 +33,7 @@ Edit=(gimp %f &>/dev/null &)
 #View=%view{ascii} mpg123 -vtn1 %f 2>&1 | sed -n '/^Title/,/^Comment/p;/^MPEG/,/^Audio/p'
 #Edit=%view{ascii} mp3info2 %f
 
-#[wma]
+#[dn_wma]
 #Shell=.wma
 #ShellIgnoreCase=true
 #Open=(run-mailcap audio/x-ms-wma:%f >/dev/null 2>&1 &)
@@ -45,7 +45,7 @@ Edit=(gimp %f &>/dev/null &)
 # [copy existing playlist actions from later in file to here,
 #  before the plain text actions, because playlist files are plain text]
 
-[playlist]
+[dn_playlist]
 Regex=\.(m3u|pls)$
 RegexIgnoreCase=true
 Open=/usr/lib/mc/ext.d/sound.sh open playlist
@@ -53,7 +53,7 @@ Open=/usr/lib/mc/ext.d/sound.sh open playlist
 
 ### Email ###
 
-[eml]
+[dn_eml]
 # * neomutt_my-eml-viewer provided in mail dotfiles
 # * put here, even though an addition, because it must go before
 #   type=plain-text (because that is how 'file' commonly reads these files)
@@ -65,30 +65,30 @@ View=(sensible-editor %f >/dev/null 2>&1 &)
 
 ### Documents ###
 
-[html]
+[dn_html]
 Regex=\.html?$
 RegexIgnoreCase=true
 Open=(if test -n "" && test -n "$DISPLAY"; then ( file://%d/%p &) 1>&2; else qutebrowser %f || google-chrome %f || firefox %f || lynx -force_html %f || ${PAGER:-more} %f; fi) 2>/dev/null
 View=%view{ascii} links -dump %f 2>/dev/null || w3m -dump %f 2>/dev/null || lynx -dump -force_html %f
 
-[dvi]
+[dn_dvi]
 # plain and gzipped
 Regex=\.dvi(\.gz)?$
-Include=output
+Include=dn_output
 
-[postscript-gzipped]
+[dn_postscript-gzipped]
 Regex=\.ps\.gz$
-Include=output
+Include=dn_output
 
-[pdf-gzipped]
+[dn_pdf-gzipped]
 Regex=\.pdf\.gz$
-Include=output
+Include=dn_output
 
-[pdf]
+[dn_pdf]
 Shell=.pdf
-Include=output
+Include=dn_output
 
-[Include/output]
+[Include/dn_output]
 Open=(okular %f >/dev/null 2>&1 &)
 
 
@@ -96,14 +96,14 @@ Open=(okular %f >/dev/null 2>&1 &)
 
 ### Archives ###
 
-[mht]
+[dn_mht]
 Regex=\.mht(ml)?$
 RegexIgnoreCase=true
 Open=(firefox %f >/dev/null 2>&1 &)
 
 ### Sound files ###
 
-[mpc]
+[dn_mpc]
 # Musepack Compressed Audio
 # - omission of mime-type in run-mailcap command causes it
 #   to try and match the extension in the mime.types files
@@ -115,17 +115,17 @@ Shell=.mpc
 ShellIgnoreCase=true
 Open=(run-mailcap %f >/dev/null 2>&1 &)
 
-[ac3]
+[dn_ac3]
 Shell=.ac3
 ShellIgnoreCase=true
 Open=(run-mailcap audio/ac3:%f >/dev/null 2>&1 &)
 
-#[m4a]
+#[dn_m4a]
 #Shell=.m4a
 #ShellIgnoreCase=true
 #Open=(run-mailcap audio/mp4:%f >/dev/null 2>&1 &)
 
-#[flac]
+#[dn_flac]
 #Shell=.flac
 #ShellIgnoreCase=true
 #Open=(run-mailcap audio/flac:%f >/dev/null 2>&1 &)
@@ -134,17 +134,17 @@ Open=(run-mailcap audio/ac3:%f >/dev/null 2>&1 &)
 
 ### Video ###
 
-[m2v]
+[dn_m2v]
 Shell=.m2v
 ShellIgnoreCase=true
 Include=video
 
-#[mp4]
+#[dn_mp4]
 #Shell=.mp4
 #ShellIgnoreCase=true
 #Open=(run-mailcap video/mp4:%f >/dev/null 2>&1 &)
 
-[rm]
+[dn_rm]
 Shell=.rm
 ShellIgnoreCase=true
 Open=(run-mailcap application/vnd.rn-realmedia:%f >/dev/null 2>&1 &)
@@ -153,188 +153,188 @@ Open=(run-mailcap application/vnd.rn-realmedia:%f >/dev/null 2>&1 &)
 ### Documents ###
 
 ## Microsoft Word Document
-#[msdoc-by-shell]
+#[dn_msdoc-by-shell]
 #Shell=.docx
 #ShellIgnoreCase=true
 #Open=/usr/lib/mc/ext.d/doc.sh open msdoc
 #View=%view{ascii} /usr/lib/mc/ext.d/doc.sh view msdoc
 
-[planner]
+[dn_planner]
 Shell=.planner
 ShellIgnoreCase=true
 Open=(planner %f > /dev/null 2>&1 &)
 
-[azw-by-type]
+[dn_azw-by-type]
 Type=^Mobipocket\ E-book
 TypeIgnoreCase=true
-Include=azwbook
+Include=dn_azwbook
 
-[azw-by-extension]
+[dn_azw-by-extension]
 Shell=.azw
 ShellIgnoreCase=true
-Include=azwbook
+Include=dn_azwbook
 
-[Include/azwbook]
+[Include/dn_azwbook]
 Open=(ebook-viewer %f >/dev/null 2>&1 &)
 View=(sensible-editor %f >/dev/null 2>&1 &)
 
-[epub-by-type]
+[dn_epub-by-type]
 Type=(EPUB\ ebook\ data|EPUB\ document)
 TypeIgnoreCase=true
-Include=ebook
+Include=dn_ebook
 
-[epub-by-extension]
+[dn_epub-by-extension]
 Shell=.epub
 ShellIgnoreCase=true
-Include=ebook
+Include=dn_ebook
 
-[mobi]
+[dn_mobi]
 Shell=.mobi
 ShellIgnoreCase=true
-Include=ebook
+Include=dn_ebook
 
-[Include/ebook]
+[Include/dn_ebook]
 Open=(ebook-viewer %f >/dev/null 2>&1 &)
 View=(sensible-editor %f >/dev/null 2>&1 &)
 
 # LibreOffice (only those extensions missed by default mechanism)
 
-#[doc]
+#[dn_doc]
 #Shell=.doc
 #ShellIgnoreCase=true
-#Include=libreoffice
+#Include=dn_libreoffice
 
-#[rtf]
+#[dn_rtf]
 #Shell=.rtf
 #ShellIgnoreCase=true
-#Include=libreoffice
+#Include=dn_libreoffice
 
-#[fodt]
+#[dn_fodt]
 #Shell=.fodt
 #ShellIgnoreCase=true
-#Include=libreoffice
+#Include=dn_libreoffice
 
-#[xlsx]
+#[dn_xlsx]
 #Shell=.xlsx
 #ShellIgnoreCase=true
-#Include=libreoffice
+#Include=dn_libreoffice
 
-[xlsb]
+[dn_xlsb]
 Shell=.xlsb
 ShellIgnoreCase=true
-Include=libreoffice
+Include=dn_libreoffice
 
-[xlsm]
+[dn_xlsm]
 Shell=.xlsm
 ShellIgnoreCase=true
-Include=libreoffice
+Include=dn_libreoffice
 
-#[ppt]
+#[dn_ppt]
 #Shell=.ppt
 #ShellIgnoreCase=true
-#Include=libreoffice
+#Include=dn_libreoffice
 
-#[pptx]
+#[dn_pptx]
 #Shell=.pptx
 #ShellIgnoreCase=true
-#Include=libreoffice
+#Include=dn_libreoffice
 
-[Include/libreoffice]
+[Include/dn_libreoffice]
 Open=(libreoffice %f >/dev/null 2>&1 &)
 
 # scribus
 
-[sla]
+[dn_sla]
 Shell=.sla
 ShellIgnoreCase=true
-Include=scribus
+Include=dn_scribus
 
-[Include/scribus]
+[Include/dn_scribus]
 Open=(scribus %f >/dev/null 2>&1 &)
 
 # markdown
 
-[markdown]
+[dn_markdown]
 Shell=.md
 ShellIgnoreCase=true
 Open=(nvim-qt %f >/dev/null 2>&1 &)
 
 # plain text
 
-[plain-text-english-text]
+[dn_plain-text-english-text]
 Type=English\ text
 TypeIgnoreCase=false
-Include=plaintext
+Include=dn_plaintext
 
-[plain-text-ascii-news]
+[dn_plain-text-ascii-news]
 Type=^ASCII\ news\ text
 TypeIgnoreCase=true
-Include=plaintext
+Include=dn_plaintext
 
-[plain-text-ascii-text]
+[dn_plain-text-ascii-text]
 Type=^ASCII\ text
 TypeIgnoreCase=true
-Include=plaintext
+Include=dn_plaintext
 
-[plain-text-pascal-program]
+[dn_plain-text-pascal-program]
 # get when oowrite saves to text format
 Type=^UTF-8\ Unicode\ \(with\ BOM\)\ Pascal\ program\ text
 TypeIgnoreCase=true
-Include=plaintext
+Include=dn_plaintext
 
-[plain-text-script]
+[dn_plain-text-script]
 Type=^POSIX\ shell\ script\ text\ executable
 TypeIgnoreCase=true
-Include=plaintext
+Include=dn_plaintext
 
-[plain-text-non-iso-standard]
+[dn_plain-text-non-iso-standard]
 # found in Met-Art downloads
 Type=^Non-ISO\ extended-ASCII\ text,\ with\ CRLF\ line\ terminators
 TypeIgnoreCase=true
-Include=plaintext
+Include=dn_plaintext
 
-[plain-text-non-iso-long]
+[dn_plain-text-non-iso-long]
 # found in Met-Art downloads
 Type=^Non-ISO\ extended-ASCII\ text,\ with\ very\ long\ lines,\ with\ CRLF\ line\ terminators
 TypeIgnoreCase=true
-Include=plaintext
+Include=dn_plaintext
 
-[plain-text-ice]
+[dn_plain-text-ice]
 # found in Met-Art downloads
 Type=^ICE\ authority\ data
 TypeIgnoreCase=true
-Include=plaintext
+Include=dn_plaintext
 
-[plain-text-semone]
+[dn_plain-text-semone]
 # found in Met-Art downloads
 Type=^SemOne\ archive\ data
 TypeIgnoreCase=true
-Include=plaintext
+Include=dn_plaintext
 
-[plain-text-pascal-source]
+[dn_plain-text-pascal-source]
 # found in asstr downloads
 Type=^Pascal\ source,\ ISO-8859\ text,\ with\ CRLF\ line\ terminators
 TypeIgnoreCase=true
-Include=plaintext
+Include=dn_plaintext
 
-[plain-text-cpp-source]
+[dn_plain-text-cpp-source]
 # found in asstr downloads
 Type=^C++\ source,\ Non-ISO\ extended-ASCII\ text,\ with\ CRLF\ line\ terminators
 TypeIgnoreCase=true
-Include=plaintext
+Include=dn_plaintext
 
-[plain-text-iso-8859]
+[dn_plain-text-iso-8859]
 # found in asstr downloads
 Type=^ISO-8859\ text,\ with\ very\ long\ lines,\ with\ CRLF\ line\ terminators
 TypeIgnoreCase=true
-Include=plaintext
+Include=dn_plaintext
 
-[plain-text-unicode]
+[dn_plain-text-unicode]
 Type=^UTF-8\ Unicode\ text
 TypeIgnoreCase=true
-Include=plaintext
+Include=dn_plaintext
 
-[Include/plaintext]
+[Include/dn_plaintext]
 Open=sensible-editor %f
 
 
@@ -342,14 +342,14 @@ Open=sensible-editor %f
 
 # gramps
 
-[grdb]
+[dn_grdb]
 Shell=.grdb
 ShellIgnoreCase=true
 Open=(gramps %f >/dev/null 2>&1 &)
 
 # tellico
 
-[tc]
+[dn_tc]
 ## is a compressed file with mime type 'application/zip'
 ## so this entry must occur before that for zip
 Shell=.tc
@@ -361,7 +361,7 @@ Open=(tellico %f >/dev/null 2>&1 &)
 
 # nsis
 
-[nsi]
+[dn_nsi]
 Shell=.nsi
 ShellIgnoreCase=true
 Open=makensis %f;echo;echo "Press ENTER to exit...";read y
