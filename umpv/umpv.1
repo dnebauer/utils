@@ -136,12 +136,6 @@ will typically just fill ~/.xsession-errors with garbage.
 mpv will terminate if there are no more files to play, and running \*[self]
 after that will start a new mpv instance.
 .PP
-Note that you can control the mpv instance by writing to the command fifo:
-.PP
-.RS 4
-echo "cycle fullscreen" > ~/.umpv_fifo
-.RE
-.PP
 Note: You can supply custom mpv path and options with the MPV environment
 variable. The environment variable will be split on whitespace, and the
 first item is used as path to mpv binary and the rest is passed as options
