@@ -1,3 +1,21 @@
+dn-mc-conf (3.0-3) UNRELEASED; urgency=low
+
+  * trigger version bump for troubleshooting purposes
+
+ -- David Nebauer <david@nebauer.org>  Mon, 24 Apr 2023 15:19:53 +0930
+
+dn-mc-conf (3.0-2) UNRELEASED; urgency=low
+
+  * fix: hard code paths in cron script
+
+ -- David Nebauer <david@nebauer.org>  Mon, 24 Apr 2023 15:10:02 +0930
+
+dn-mc-conf (3.0-1) UNRELEASED; urgency=low
+
+  * update to ini format for extensions file
+
+ -- David Nebauer <david@nebauer.org>  Mon, 24 Apr 2023 14:57:47 +0930
+
 dn-mc-conf (2.1-1) UNRELEASED; urgency=low
 
   * use unique section names in config file

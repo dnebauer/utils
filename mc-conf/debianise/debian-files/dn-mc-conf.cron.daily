@@ -12,7 +12,9 @@ use_logger=$( which logger &>/dev/null ; echo ${?} )
 local_conf_dir_template="/home/USER/.config/mc"
 ext_file_global="/etc/mc/mc.ext.ini"
 ext_file_local_template="${local_conf_dir_template}/mc.ext.ini"
-ext_file_pkg="/usr/share/dn-mc-conf/mc.ext.ini"
+#ext_file_pkg="/usr/share/dn-mc-conf/mc.ext.ini"
+ext_file_pkg_pre="/usr/share/dn-mc-conf/mc.ext.pre.ini"
+ext_file_pkg_post="/usr/share/dn-mc-conf/mc.ext.post.ini"
 menu_file_global="/etc/mc/mc.menu"
 menu_file_local_template="${local_conf_dir_template}/menu"
 menu_file_pkg="/usr/share/dn-mc-conf/menu"
@@ -34,11 +36,13 @@ confFilesPresent () {
         return ${bool_false}
     fi
     # - package
-    if ! [ -e ${ext_file_pkg} ] ; then
-        logErr "cannot generate local extension file" \
-              "no package extension file '${ext_file_pkg}'"
-        return ${bool_false}
-    fi
+    for file in "${ext_file_pkg_pre}" "${ext_file_pkg_post}" ; do
+        if ! [ -e ${file} ] ; then
+            logErr "cannot generate local extension file" \
+                  "no package extension file '${file}'"
+            return ${bool_false}
+        fi
+    done
     # menu files
     # - global
     if ! [ -e ${menu_file_global} ] ; then
@@ -139,7 +143,11 @@ for user in ${users} ; do
     # generate local extension file
     ext_file_local="$( substituteUser "${ext_file_local_template}" "${user}" )"
     # - prepend pkg file to global file because first match is used
-    if cat "${ext_file_pkg}" "${ext_file_global}" > "${ext_file_local}" ; then
+    if cat  "${ext_file_pkg_pre}"  \
+            "${ext_file_global}"   \
+            "${ext_file_pkg_post}" \
+            > "${ext_file_local}"
+    then
         logMsg "generated local mc extension file for user '${user}'"
         chown ${user} "${ext_file_local}"
     else
@@ -147,11 +155,14 @@ for user in ${users} ; do
               "cannot concatenate global and package files"
     fi
     # generate local menu file
-    menu_file_local="$( substituteUser "${menu_file_local_template}" "${user}" )"
+    menu_file_local="$(substituteUser "${menu_file_local_template}" "${user}")"
     # - append pkg file to global file because first line of global menu file
     #   is an instruction that is misinterpreted if it is on any other line
     #   in the file
-    if cat "${menu_file_global}" "${menu_file_pkg}" > "${menu_file_local}" ; then
+    if cat "${menu_file_global}" \
+            "${menu_file_pkg}"   \
+            > "${menu_file_local}"
+    then
         logMsg "generated local mc menu file for user '${user}'"
         chown ${user} "${menu_file_local}"
     else
