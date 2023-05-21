@@ -21,7 +21,7 @@ package-name pander
 # Package version
 # Version number for package.
 # Required. One only.
-version 1.8
+version 1.9
  
 # Script and binary files
 # Executable files to be packaged.
