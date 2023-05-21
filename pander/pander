@@ -2,7 +2,7 @@
 
 --- Pandoc wrapper script
 -- @script pander
--- @version 1.4.0 -- set in pander_version()
+-- @version 1.7.0 -- set in pander_version()
 -- @author David Nebauer
 -- @license GPL-3+
 -- @copyright David Nebauer
@@ -64,6 +64,13 @@ local keyword_actions_data = {
             },
             metadata = {
                 ["include-auto"] = true
+            }
+        }
+    },
+    KeepData = {
+        all = {
+            post_run = {
+                "keep-data"
             }
         }
     },
@@ -305,7 +312,7 @@ local keyword_actions_data = {
                     "```{=latex}",
                     "\\usepackage[section]{placeins}",
                     "\\makeatletter",
-                    "\\AtBeginDocument{\\expandafter\\renewcommand\\expandafter\\subsection\\expandafter{\\expandafter\\@fb@secFB\\subsection}}",
+                    "\\AtBeginDocument{\\expandafter\\renewcommand\\expandafter\\subsection\\expandafter{\\expandafter\\@fb@secFB\\subsection}}", --luacheck: no max line length
                     "\\makeatother",
                     "```"
                 }
@@ -435,6 +442,7 @@ local keyword_conflict_data = {
 local keyword_describe_data = {
     Include = "include other files",
     IncludeAuto = "include other files (shift headers automatically)",
+    KeepData = "do not delete the metadata file",
     Latex8pt = "set font size to 8 pt in latex output",
     Latex9pt = "set font size to 9 pt in latex output",
     Latex10pt = "set font size to 10 pt in latex output",
@@ -471,7 +479,7 @@ local keyword_expand_data = {}
 -- @local
 -- @table keyword_valid_data
 local keyword_valid_data = {
-    Include = true, IncludeAuto = true,
+    Include = true, IncludeAuto = true, KeepData = true,
     Latex8pt = true, Latex9pt = true, Latex10pt = true,
     Latex11pt = true, Latex12pt = true, Latex14pt = true,
     Latex17pt = true, Latex20pt = true,
@@ -666,6 +674,7 @@ do
     }
 
     local function escapeutf8(uchar)
+        ---@diagnostic disable:cast-local-type
         local value = escapecodes[uchar]
         if value then
             return value
@@ -696,6 +705,7 @@ do
         else
             return ''
         end
+        ---@diagnostic disable:cast-local-type
     end
 
     local function fsub(str, pattern, repl)
@@ -834,6 +844,7 @@ do
             buflen, tables, globalorder, state)
         local valtype = type(value)
         local valmeta = getmetatable(value)
+        ---@diagnostic disable-next-line:cast-local-type
         valmeta = type(valmeta) == 'table' and valmeta -- only tables
         local valtojson = valmeta and valmeta.__tojson
         if valtojson then
@@ -1672,8 +1683,11 @@ function capture(cmd, raw)
     -- error token method based on https://stackoverflow.com/a/24227576
     local err_token = '::ERROR::'
     local handle = io.popen(cmd .. ' 2>&1 || echo ' .. err_token, 'r')
+    -- nil-checking fails to remove 'need-check-nil' errors
+    ---@diagnostic disable:need-check-nil
     local output = handle:read('*a')
     handle:close()
+    ---@diagnostic enable:need-check-nil
     if output:find(err_token) then
         error(output:match('^(.-)%s*'..err_token), 2)
     end
@@ -2315,7 +2329,7 @@ end
 -- @return nil
 -- @function pander_version
 function pander_version()
-    local version = 'pander 1.1'
+    local version = 'pander 1.7'
     info(version)
     os.exit()
 end
@@ -2427,11 +2441,14 @@ function pandoc_cmd_style_actions(cmd, actions, fname)
                 os.remove(metadata_file)
                 return nil, sf("can't open %s: %s", metadata_file, fh)
             end
+            ---@diagnostic disable:need-check-nil,param-type-mismatch
             ok, err = pcall(function () fh:write(metadata) end)
+            ---@diagnostic enable:need-check-nil,param-type-mismatch
             if not ok then
                 os.remove(metadata_file)
                 return nil, sf("can't write to %s: %s", metadata_file, err)
             end
+            ---@diagnostic disable-next-line:need-check-nil
             ok, err = pcall(function () fh:close() end)
             if not ok then
                 os.remove(metadata_file)
@@ -2457,7 +2474,7 @@ function path_exists(path)
     local result = pcall(
         function ()
             local fh = io.open(path, 'r')
-            fh:close()
+            fh:close() ---@diagnostic disable-line: need-check-nil
         end
     )
     return result
@@ -2491,6 +2508,8 @@ function post_process(tasks, fname)
             if not ok then return nil, err end
         elseif task == 'pause' then
             pander.pause_on_exit = true
+        elseif task == 'keep-data' then
+            pander.keep_data = true
         else
             return nil, sf("invalid post-processing task '%s'", task)
         end
@@ -2506,7 +2525,7 @@ end
 -- @function remove_metadata_file
 function remove_metadata_file()
     -- remove metadata_file if it exists
-    if pander.metadata_file then
+    if pander.keep_data and pander.metadata_file then
         local ok, err = os.remove(pander.metadata_file)
         return ok and true or nil, err
     end
@@ -2623,6 +2642,8 @@ pander = {
     output_format = false,                -- output format
     metadata_file = false,                -- path to temporary metadata file
     pause_on_exit = false,                -- whether pause before exiting
+    keep_data = false,                    -- whether to keep metadata file
+                                          -- instead of deleting it
     quiet = false,                        -- whether to suppress feedback
 }
 
@@ -2638,6 +2659,7 @@ if not options then abort(input_files) end
 -- assumes markdown input file is last argument on command line
 -- (this is enforced by vim's vim-pandoc plugin)
 pander.input_filename = input_files[#input_files]
+---@diagnostic disable-next-line: need-check-nil
 pander.output_format = options['--to'] -- }}}2
 
 -- get metadata styles    {{{1
@@ -2645,8 +2667,10 @@ pander.output_format = options['--to'] -- }}}2
 -- run pandoc command    {{{2
 local styles
 do
+    ---@diagnostic disable: param-type-mismatch
     local cmd = sf('pandoc --template="%s" "%s"',
         pander.template, table.concat(input_files, '" "'))
+    ---@diagnostic enable: param-type-mismatch
     show_cmd('Extract metadata: ', cmd)
     local ok, output = pcall(capture, cmd)
     if not ok then abort('metadata retrieval failed:\n'..output) end
@@ -2693,11 +2717,13 @@ local cmd = 'pandoc'
 do
     local metadata_file
     -- metadata filepath returned so it can be properly deleted in time
+    ---@diagnostic disable-next-line: cast-local-type
     cmd, metadata_file = pandoc_cmd_style_actions(
         cmd, actions, pander.input_filename
     )
     if not cmd then abort(metadata_file) end
     -- metadata_file is nil if no metadata actions found
+    ---@diagnostic disable-next-line: assign-type-mismatch
     pander.metadata_file = metadata_file
 end
 -- now that metadata file exists use pcall to trap errors and allow for
@@ -2728,6 +2754,7 @@ end -- }}}2
 
 -- process post_run tasks    {{{2
 do
+    ---@diagnostic disable-next-line: need-check-nil
     local ok, err = post_process(actions.post_run, pander.input_filename)
     if not ok then abort(err) end
 end
