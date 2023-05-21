@@ -31,6 +31,7 @@ details.
 -- ':r!./keyword-table actions'
 -- @local
 -- @table keyword_actions_data
+-- luacheck: push ignore 631
 local keyword_actions_data = {
     Include = {
         all = {
@@ -478,6 +479,7 @@ local keyword_actions_data = {
         }
     }
 }
+-- luacheck: pop
 
 -- keyword_conflict_data    {{{1
 
@@ -1249,7 +1251,7 @@ do
                     str, pos, nullval, objectmeta, arraymeta
                 )
                 if err then return nil, pos, err end
-                tbl[val1] = val2
+                tbl[val1] = val2 ---@diagnostic disable-line:need-check-nil
                 pos = scanwhite(str, pos)
                 if not pos then return unterminated(str, what, startpos) end
                 char = strsub(str, pos, pos)
@@ -2731,9 +2733,11 @@ if not options then abort(input_files) end
 -- extract details of input file and output format    {{{2
 -- assumes markdown input file is last argument on command line
 -- (this is enforced by vim's vim-pandoc plugin)
+---@diagnostic disable: need-check-nil
 pander.input_filename = input_files[#input_files]
----@diagnostic disable-next-line: need-check-nil
-pander.output_format = options['--to'] -- }}}2
+pander.output_format = options['--to']
+---@diagnostic enable: need-check-nil
+-- }}}2
 
 -- get metadata styles    {{{1
 
