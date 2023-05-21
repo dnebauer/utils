@@ -178,6 +178,78 @@ local keyword_actions_data = {
             }
         }
     },
+    NoFonts = {
+        all = {
+            extensions = {
+                "+footnotes",
+                "+inline_notes",
+                "+smart"
+            },
+            filters = {
+                "pandoc-fignos",
+                "pandoc-eqnos",
+                "pandoc-tablenos"
+            },
+            metadata = {
+                ["eqnos-cleveref"] = true,
+                ["eqnos-plus-name"] = "equation",
+                ["fignos-cleveref"] = true,
+                ["fignos-plus-name"] = "figure",
+                lang = "en-AU",
+                numbersections = false,
+                papersize = "a4",
+                ["secnos-cleveref"] = true,
+                ["tablenos-cleveref"] = true,
+                ["tablenos-warning-level"] = 1
+            },
+            options = {
+                ["--self-contained"] = true,
+                ["--standalone"] = true
+            }
+        },
+        context = {
+            metadata = {
+                ["header-includes"] = {
+                    "\\usepackage{xcolor}",
+                    "\\usepackage{fontspec}",
+                    "\\usepackage[CJK]{ucharclasses}"
+                },
+                linkcolor = "gray",
+                microtypeoptions = "babel",
+                papersize = "A4"
+            }
+        },
+        epub = {
+            metadata = {
+                ["cover-image"] = "::cover_image::"
+            },
+            post_run = {
+                "create_mobi"
+            }
+        },
+        html = {
+            metadata = {
+                css = "/home/david/.local/share/pandoc/templates/css/buttondown.css"
+            }
+        },
+        latex = {
+            metadata = {
+                citecolor = "gray",
+                filecolor = "gray",
+                ["header-includes"] = {
+                    "\\usepackage{xcolor}",
+                    "\\usepackage{fontspec}",
+                    "\\usepackage[CJK]{ucharclasses}",
+                    "\\usepackage{xcolor}"
+                },
+                linkcolor = "gray",
+                microtypeoptions = "babel",
+                papersize = "a4",
+                toccolor = "gray",
+                urlcolor = "gray"
+            }
+        }
+    },
     PageBreak = {
         all = {
             filters = {
@@ -312,7 +384,7 @@ local keyword_actions_data = {
                     "```{=latex}",
                     "\\usepackage[section]{placeins}",
                     "\\makeatletter",
-                    "\\AtBeginDocument{\\expandafter\\renewcommand\\expandafter\\subsection\\expandafter{\\expandafter\\@fb@secFB\\subsection}}", --luacheck: no max line length
+                    "\\AtBeginDocument{\\expandafter\\renewcommand\\expandafter\\subsection\\expandafter{\\expandafter\\@fb@secFB\\subsection}}",
                     "\\makeatother",
                     "```"
                 }
@@ -428,7 +500,7 @@ local keyword_conflict_data = {
         PageBreak = true, SectNewpage = true
     },
     theme = {
-        Letter = true, Standard = true, Tufte = true
+        Letter = true, NoFonts = true, Standard = true, Tufte = true
     }
 }
 
@@ -452,6 +524,7 @@ local keyword_describe_data = {
     Latex17pt = "set font size to 17 pt in latex output",
     Latex20pt = "set font size to 20 pt in latex output",
     Letter = "style theme for writing letters",
+    NoFonts = "standard but with no fonts defined",
     PageBreak = "process LaTeX \\newpage instructions",
     Pause = "pause before exiting script",
     SaveTrees = "compact format for printing",
@@ -483,7 +556,7 @@ local keyword_valid_data = {
     Latex8pt = true, Latex9pt = true, Latex10pt = true,
     Latex11pt = true, Latex12pt = true, Latex14pt = true,
     Latex17pt = true, Latex20pt = true,
-    Letter = true, PageBreak = true, Pause = true,
+    Letter = true, NoFonts = true, PageBreak = true, Pause = true,
     SaveTrees = true, SectFlush = true, SectNewpage = true,
     Standard = true, SubsectFlush = true, Tufte = true
 }

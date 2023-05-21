@@ -289,6 +289,91 @@ local keyword_data = {
         },
     },
 
+    -- NoFonts:     standard but without fonts defined    {{{2
+
+    NoFonts = {
+
+        -- the '--header-includes' is taken from Michael Franzl's blog at
+        -- https://michaelfranzl.com/2014/12/10/..
+        -- ..xelatex-unicode-font-fallback-unsupported-characters/
+
+        description = 'standard but with no fonts defined',
+        expand_groups = {},
+        conflict_groups = {'theme'},
+        actions = {
+            all = {
+                metadata = {
+                    lang = 'en-AU',
+                    numbersections = false,
+                    papersize = 'a4',
+                    ['eqnos-cleveref'] = true,
+                    ['eqnos-plus-name'] = 'equation',
+                    ['fignos-cleveref'] = true,
+                    ['fignos-plus-name'] = 'figure',
+                    ['secnos-cleveref'] = true,
+                    ['tablenos-cleveref'] = true,
+                    ['tablenos-warning-level'] = 1,
+                },
+                extensions = {
+                    '+footnotes',
+                    '+inline_notes',
+                    '+smart',
+                },
+                options = {
+                    ['--self-contained'] = true,
+                    ['--standalone'] = true,
+                },
+                filters = {
+                    'pandoc-fignos',
+                    'pandoc-eqnos',
+                    'pandoc-tablenos',
+                },
+            },
+            context = {
+                metadata = {
+                    linkcolor = 'gray',
+                    microtypeoptions = 'babel',
+                    papersize = 'A4',
+                    ['header-includes'] = {
+                        '\\usepackage{xcolor}',
+                        '\\usepackage{fontspec}',
+                        '\\usepackage[CJK]{ucharclasses}',
+                    },
+                },
+            },
+            epub = {
+                metadata = {
+                    ['cover-image'] = '::cover_image::',
+                },
+                post_run = {
+                    'create_mobi',
+                },
+            },
+            html = {
+                metadata = {
+                    css = datadir..'/templates/css/buttondown.css',
+                },
+            },
+            latex = {
+                metadata = {
+                    linkcolor = 'gray',
+                    filecolor = 'gray',
+                    citecolor = 'gray',
+                    toccolor = 'gray',
+                    urlcolor = 'gray',
+                    microtypeoptions = 'babel',
+                    papersize = 'a4',
+                    ['header-includes'] = {
+                        '\\usepackage{xcolor}',
+                        '\\usepackage{fontspec}',
+                        '\\usepackage[CJK]{ucharclasses}',
+                        '\\usepackage{xcolor}',
+                    },
+                },
+            },
+        },
+    },
+
     -- PageBreak:    process LaTeX \newpage instructions    {{{2
 
     PageBreak = {
