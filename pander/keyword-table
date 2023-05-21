@@ -16,6 +16,8 @@ local function path_exists(path)
     local result = pcall(
         function ()
             local fh = io.open(path, 'r')
+            -- nil-checking fails to remove 'need-check-nil' errors
+            ---@diagnostic disable:need-check-nil
             fh:close()
         end
     )
@@ -642,6 +644,10 @@ local sf = string.format
 --]]
 local serpent
 do
+    -- luacheck: push ignore 113 412 421 422 431 432 542
+    -- sumneko:
+    ---@diagnostic disable:deprecated, redefined-local, redundant-parameter
+    ---@diagnostic disable:unused-local, unused-vararg, undefined-global
     local n, v = "serpent", "0.303"
     local c, d = "Paul Kulchenko", "Lua serializer and pretty printer"
     local snum = {[tostring(1/0)]='1/0 --[[math.huge]]',
@@ -924,6 +930,10 @@ do
             )
         end
     }
+    -- luacheck: pop
+    -- sumneko:
+    ---@diagnostic enable:deprecated, redefined-local, redundant-parameter
+    ---@diagnostic enable:unused-local, unused-vararg, undefined-global
 end -- }}}2
 -- }}}1
 
@@ -1009,6 +1019,10 @@ function split(str, sep)
         table.insert(res, w)
     end
 
+    -- match on strings not containing separator ([^sep]+);
+    -- when third arg to string.gsub is a function, the function is called
+    -- for each match with the captured substring as an argument
+    ---@diagnostic disable-next-line:discard-returns
     string.gsub(str, '[^'..sep..']+', func)
     return res
 end
@@ -1153,6 +1167,9 @@ else abort('invalid table type: '..table_type)
 end -- }}}1
 
 -- manpage    {{{1
+-- cannot split @T{ directives across lines so need to
+-- ignore long line warnings
+-- luacheck: push ignore 631
 --[[
 
 create manpage with command:
@@ -1521,5 +1538,6 @@ You should have received a copy of the GNU General Public License
 along with Pander.  If not, see <https://www.gnu.org/licenses/>
 =cut
 --]] -- }}}1
+-- luacheck: pop
 
 -- vim:foldmethod=marker:
