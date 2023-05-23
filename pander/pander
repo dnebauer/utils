@@ -465,6 +465,13 @@ local keyword_actions_data = {
             }
         }
     },
+    TextColour = {
+        all = {
+            filters = {
+                "text-colour.lua"
+            }
+        }
+    },
     Tufte = {
         all = {
             extensions = {
@@ -609,6 +616,7 @@ local keyword_describe_data = {
     SectNewpage = "start each section on a new page",
     Standard = "default style theme",
     SubsectFlush = "flush all subsections before they end",
+    TextColour = "process color attribute",
     Tufte = "style theme based on Edward R. Tufte's designs"
 }
 
@@ -636,7 +644,7 @@ local keyword_valid_data = {
     Letter = true, Libertinus = true, NoFonts = true,
     PageBreak = true, Pause = true, SaveTrees = true,
     SectFlush = true, SectNewpage = true, Standard = true,
-    SubsectFlush = true, Tufte = true
+    SubsectFlush = true, TextColour = true, Tufte = true
 }
 -- }}}1
 

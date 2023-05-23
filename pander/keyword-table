@@ -289,7 +289,7 @@ local keyword_data = {
         },
     },
 
-    -- Libertinus:     standard but pdf font is libertinus    {{{2
+    -- Libertinus:   standard but pdf font is libertinus    {{{2
 
     Libertinus = {
 
@@ -371,7 +371,7 @@ local keyword_data = {
         },
     },
 
-    -- NoFonts:     standard but without fonts defined for pdf    {{{2
+    -- NoFonts:      standard but without fonts defined for pdf    {{{2
 
     NoFonts = {
 
@@ -676,6 +676,22 @@ local keyword_data = {
                         '\\makeatother',
                         '```',
                     },
+                },
+            },
+        },
+    },
+
+    -- TextColour:   process color attribute    {{{2
+
+    TextColour = {
+        description = 'process color attribute',
+        expand_groups = {},
+        conflict_groups = {},
+        actions = {
+            all = {
+                filters = {
+                    -- filter is from dotfiles/pander
+                    'text-colour.lua'
                 },
             },
         },
