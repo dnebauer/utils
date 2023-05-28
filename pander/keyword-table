@@ -53,6 +53,32 @@ end
 
 local keyword_data = {
 
+    -- A5:           latex a5 page size    {{{2
+
+    A5 = {
+
+        description = 'a5 latex page size',
+        expand_groups = {},
+        conflict_groups = {},
+        actions = {
+            all = {
+                metadata = {
+                    papersize = 'a5',
+                },
+            },
+            context = {
+                metadata = {
+                    papersize = 'A5',
+                },
+            },
+            latex = {
+                metadata = {
+                    papersize = 'a5',
+                },
+            },
+        },
+    },
+
     -- Include:      include other files    {{{2
 
     Include = {

@@ -33,6 +33,23 @@ details.
 -- @table keyword_actions_data
 -- luacheck: push ignore 631
 local keyword_actions_data = {
+    A5 = {
+        all = {
+            metadata = {
+                papersize = "a5"
+            }
+        },
+        context = {
+            metadata = {
+                papersize = "A5"
+            }
+        },
+        latex = {
+            metadata = {
+                papersize = "a5"
+            }
+        }
+    },
     Include = {
         all = {
             filters = {
@@ -547,6 +564,7 @@ local keyword_conflict_data = {
 -- @local
 -- @table keyword_describe_data
 local keyword_describe_data = {
+    A5 = "a5 latex page size",
     Include = "include other files",
     IncludeAuto = "include other files (shift headers automatically)",
     KeepData = "do not delete the metadata file",
@@ -589,7 +607,7 @@ local keyword_expand_data = {}
 -- @local
 -- @table keyword_valid_data
 local keyword_valid_data = {
-    Include = true, IncludeAuto = true, KeepData = true,
+    A5 = true, Include = true, IncludeAuto = true, KeepData = true,
     Latex8pt = true, Latex9pt = true, Latex10pt = true,
     Latex11pt = true, Latex12pt = true, Latex14pt = true,
     Latex17pt = true, Latex20pt = true,
