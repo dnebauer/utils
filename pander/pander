@@ -7,8 +7,6 @@
 -- @license GPL-3+
 -- @copyright David Nebauer
 
--- @todo do not replace old metadata value if new metadata value is identical
-
 --[[ Keyword tables ]]--
 
 -- role of tables    {{{1
@@ -1380,7 +1378,6 @@ do
 end
 
 -- localise standard library functions    {{{1
-local inspect = require 'inspect'
 local sf = string.format -- }}}1
 
 --[[ Forward declarations ]]--
@@ -2178,10 +2175,13 @@ function keyword_actions(doc_format, styles)
                     return nil, err
                 else
                     -- existing string (non-list), new string (non-list)
-                    local msg = sf("%sreplacing '%s' with '%s'",
-                        prefix, metadata[field], value)
-                    metadata[field] = value
-                    warn(msg)
+                    -- replace if new value is different
+                    if metadata[field] ~= value then
+                        local msg = sf("%sreplacing '%s' with '%s'",
+                            prefix, metadata[field], value)
+                        metadata[field] = value
+                        warn(msg)
+                    end
                 end
                 ::done_metadata_field::
             end
