@@ -7,6 +7,8 @@
 -- @license GPL-3+
 -- @copyright David Nebauer
 
+-- @todo do not replace old metadata value if new metadata value is identical
+
 --[[ Keyword tables ]]--
 
 -- role of tables    {{{1
@@ -1378,6 +1380,7 @@ do
 end
 
 -- localise standard library functions    {{{1
+local inspect = require 'inspect'
 local sf = string.format -- }}}1
 
 --[[ Forward declarations ]]--
@@ -2071,25 +2074,28 @@ function keyword_actions(doc_format, styles)
     For this reason, if a field value is a table we append to it rather
     than replace it.
     --]]
-    local doc_styles = {}
-    for _, v in ipairs(styles) do doc_styles[v] = true end
 
-    -- cycle through action styles to find matching styles
-    for keyword_style, keyword_data in pairs(keyword_actions_data) do
-        local keyword_formats = {}
-        local format_data_sets = {}
-        if doc_styles[keyword_style] then
+    -- extract style data for specified styles
+    local style_data = {}
+    for _, v in ipairs(styles) do
+        table.insert(style_data, {v, keyword_actions_data[v]})
+    end
 
-            -- cycle through style formats to find matching formats
-            for keyword_format, format_data in pairs(keyword_data) do
-                if keyword_format == doc_format then
-                    table.insert(keyword_formats, keyword_format)
-                    table.insert(format_data_sets, format_data)
-                elseif keyword_format == 'all' then
-                    -- ensure generic ('all') data is first
-                    table.insert(keyword_formats, 1, keyword_format)
-                    table.insert(format_data_sets, 1, format_data)
-                end
+    -- cycle through action styles
+    for _, style_datum in ipairs(style_data) do
+        local keyword_style; local keyword_data
+        keyword_style, keyword_data = table.unpack(style_datum)
+
+        -- cycle through style formats to find matching formats
+        local keyword_formats = {}; local format_data_sets = {}
+        for keyword_format, format_data in pairs(keyword_data) do
+            if keyword_format == doc_format then
+                table.insert(keyword_formats, keyword_format)
+                table.insert(format_data_sets, format_data)
+            elseif keyword_format == 'all' then
+                -- ensure generic ('all') data is first
+                table.insert(keyword_formats, 1, keyword_format)
+                table.insert(format_data_sets, 1, format_data)
             end
         end
 
