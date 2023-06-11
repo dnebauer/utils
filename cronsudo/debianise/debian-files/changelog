@@ -1,3 +1,9 @@
+dn-cronsudo (2.6-1) UNRELEASED; urgency=low
+
+  * sudo: add docker as sudo app
+
+ -- David Nebauer <david@nebauer.org>  Sun, 11 Jun 2023 13:02:16 +0930
+
 dn-cronsudo (2.5-1) UNRELEASED; urgency=low
 
   * cron: upstream fix of email cache command

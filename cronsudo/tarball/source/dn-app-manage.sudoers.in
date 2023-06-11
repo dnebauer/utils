@@ -1,0 +1,5 @@
+# sudoers file provided by package dn-cronsudo
+# do not edit directly but modify the package
+
+# package management tools
+david ALL= NOPASSWD: /usr/bin/docker

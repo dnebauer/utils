@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.71])
 AC_INIT([Cron tasks and sudoers files],
-        [2.5],
+        [2.6],
         [david@nebauer.org],
         [dn-cronsudo],
 )
@@ -129,6 +129,7 @@ AC_SUBST(man_dir)
 # Ouptut
 AC_CONFIG_FILES([
     Makefile
+    dn-app-manage.sudoers
     dn-cronsudo.1
     dn-edit.sudoers
     dn-filesys.sudoers
