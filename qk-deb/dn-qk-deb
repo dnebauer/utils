@@ -897,7 +897,7 @@ use version; our $VERSION = qv('0.1');    #                            }}}1
             q{# Install file},
             q{# Debian build system install file},
             q{# In final package is named 'PACKAGE.install'},
-            q{# Can be used in conjunction with 'extra' key},
+            q{# Can be used in conjunction with 'extra-path' key},
             q{# Optional. One only},
             q{#install-file },
             q{ },
