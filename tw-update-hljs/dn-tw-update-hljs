@@ -1,0 +1,266 @@
+#!/usr/bin/env bash
+
+# File: dn-tw-update-hljs
+# Author: David Nebauer (david at nebauer dot org)
+# Purpose: update the tiddlywiki highlight plugin
+# Created: 2023-06-10
+
+# ERROR HANDLING    {{{1
+
+# Exit on error. Append "|| true" if you expect an error.
+set -o errexit
+# Exit on error inside any functions or subshells.
+set -o errtrace
+# Do not allow use of undefined vars. Use ${VAR:-} to use an undefined VAR
+set -o nounset
+# Catch error in case mysqldump fails (but gzip succeeds) in `mysqldump |gzip`
+set -o pipefail
+# Turn on traces, useful while debugging but commented out by default
+# set -o xtrace
+
+# VARIABLES    {{{1
+
+self="$(basename "$0")"
+divider='--------------------------------'
+usage="Usage:"
+# shellcheck disable=SC2034
+parameters="[-n] [-e]"
+# required tools findable on system path
+required_system_tools=(
+    getopt
+    git
+)
+# required tools specified by full path
+required_local_tools=()
+node_root="$HOME/.local/lib/node_modules/tiddlywiki"
+node_exe='node'
+plugin_syntax_file=''
+package_syntax_file=''
+# }}}1
+
+# PROCEDURES
+
+# abort([@msgs])    {{{1
+#   intent: display messages and exit
+#   params: 1+ - messages
+#   prints: messages to stderr
+#   return: n/a, exits scipts
+function abort () {
+    while [[ $# -gt 0 ]] ; do
+        echo "error: $1" 1>&2
+        shift
+    done
+    echo "error: aborting..." 1>&2
+    exit 1
+}
+# checkArgs()    {{{1
+#   intent: check for required tools
+#   params: nil
+#   prints: error message if tool(s) missing
+#   return: n/a, aborts scipts on failure
+function checkArgs () {
+    # check that tw root dir exists
+    if ! test -d "$node_root" ; then
+        msgs=(
+            'unable to locate tiddlywiki node modules root:'
+            "  '$node_root'"
+        )
+        abort "${msgs[@]}"
+    fi
+    # check for plugin directory
+    local plugin_dir
+    plugin_dir="$node_root/plugins/tiddlywiki/highlight"
+    if ! test -d "$plugin_dir" ; then
+        msgs=(
+            'unable to locate tiddlywiki highlight plugin directory:'
+            "  '$plugin_dir'"
+            'is the highlight plugin installed in tiddlywiki?'
+        )
+        abort "${msgs[@]}"
+    fi
+    # check for highlight library file in plugin
+    plugin_syntax_file="$plugin_dir/files/highlight.min.js"
+    if ! test -f "$plugin_syntax_file" ; then
+        msgs=(
+            'unable to locate tiddlywiki highlight plugin syntax file:'
+            "  '$plugin_syntax_file'"
+        )
+        abort "${msgs[@]}"
+    fi
+    # check for node executable
+    command -v "$node_exe" &>/dev/null \
+        || abort "cannot locate executable: $node_exe"
+}
+# checkPrereqs()    {{{1
+#   intent: check for required tools
+#   params: nil
+#   prints: error message if tool(s) missing
+#   return: n/a, aborts scipts on failure
+function checkPrereqs () {
+    local missing tool
+    missing=()
+    # these tools can be found on the base system path
+    for tool in "${required_system_tools[@]}" ; do
+        command -v "$tool" &>/dev/null || missing+=("$tool")
+    done
+    # these tools are specified by absolute path
+    for tool in "${required_local_tools[@]}" ; do
+        [[ -x "$tool" ]] || missing+=("$tool")
+    done
+    if [[ ${#missing[@]} -ne 0 ]] ; then
+        local msg ; msg="Can't run without: $(joinBy ', ' "${missing[@]}")"
+        echo "$msg" >/dev/stderr
+    fi
+    unset required_system_tools required_local_tools
+}
+# displayUsage()    {{{1
+#   intent: display usage information
+#   params: nil
+#   prints: nil
+#   return: nil
+displayUsage () {
+cat << _USAGE
+${self}: update highlight plugin in Tiddlywiki
+
+The highlight plugin in Tiddlywiki uses the highlight.js
+project to provide syntax highlighting for code blocks. The
+default plugin is usually a few versions behind the current
+highlight.js project and covers only a subset of languages
+(those considered common by the plugin maintainer). This
+script updates the plugin to use the current version of the
+highlight.js project and covers all languages in the
+project.
+
+This script is designed for use with the node.js
+client-server configuration of Tiddlywiki and will not work
+for other configurations.
+
+${usage} ${self} ${parameters}
+       ${self} -h
+
+Options:
+-n OPT  = tiddlywiki node modules root directory
+          (default: \$HOME/.local/lib/node_modules/tiddlywiki)
+-e OPT  = node executable name (default: node)
+-v      = print input lines after command expansion
+          (equivalent to 'set -o verbose')
+-d      = print input lines as they are read
+          (equivalent to 'set -o xtrace')
+_USAGE
+}
+# processOptions([@options])    {{{1
+#   intent: process all command line options
+#   params: @options - all command line parameters
+#   prints: feedback
+#   return: nil
+#   note:   after execution variable @ARGS contains
+#           remaining command line args (after options removed)
+processOptions () {
+    # read the command line options
+    local OPTIONS="$(                                            \
+        getopt                                                   \
+            --options hvdn:e:                                    \
+            --long    tw_node_root:,node_exe:,help,verbose,debug \
+            --name    "${BASH_SOURCE[0]}"                        \
+            -- "${@}"                                            \
+    )"
+    [[ ${?} -eq 0 ]] || {
+        echo 'Invalid command line options' 1>&2
+        exit 1
+    }
+    eval set -- "${OPTIONS}"
+    while true ; do
+        case "${1}" in
+        -n | --tw_node_root ) node_root="${2}" ; shift 2 ;;
+        -e | --node_exe     ) node_exe="${2}"  ; shift 2 ;;
+        -h | --help         ) displayUsage     ; exit 0  ;;
+        -v | --verbose      ) set -o verbose   ; shift 1 ;;
+        -d | --debug        ) set -o xtrace    ; shift 1 ;;
+        --                  ) shift ; break ;;
+        *                   ) break ;;
+        esac
+    done
+    ARGS=("${@}")  # remaining arguments
+}
+# joinBy($delim, @items)    {{{1
+#   intent: join all items using delimiter
+#   params: delim - delimiter
+#           items - items to be joined
+#   prints: string containing joined items
+#   return: nil
+function joinBy () {
+    local delimiter first_item
+    delimiter="${1:-}"
+    shift
+    first_item="${1:-}"
+    shift
+    printf %b%s "$first_item" "${@/#/$delimiter}"
+}
+# }}}1
+
+# MAIN
+
+# check for required tools    {{{1
+checkPrereqs
+
+# process command line options    {{{1
+processOptions "${@}"  # leaves ${ARGS[@]} holding positional arguments
+
+# check arguments    {{{1
+checkArgs
+
+# create temp dir    {{{1
+tmpdir="$( mktemp -d )" || abort 'unable to make temporary directory'
+trap "[[ -f \"$tmpdir\" ]] && rm -rf \"$tmpdir\"" 1 3 11 15
+cd "$tmpdir" || abort "unable to cd to temporary directory: $tmpdir"
+
+# download highlight.hs project source into temp directory    {{{1
+echo "downloading highlight.js project source:"
+echo "$divider"
+if ! git clone https://github.com/highlightjs/highlight.js.git ./ ; then
+    echo "$divider"
+    abort 'unable to download highlight.js project source'
+fi
+# - requires clean-css module, but cannot access installed global version,
+#   so install in build tree
+if ! npm install clean-css ; then
+    echo "$divider"
+    abort 'unable to install clean-css module in build tree'
+fi
+echo "$divider"
+
+# construct a build command    {{{1
+cmd=(node tools/build.js)
+mapfile -t langs < <(dir -1 src/languages | grep -v "^lib$" | \
+    sed -e "s/\.js$//")
+cmd+=("${langs[@]}")
+
+# build the highlight.js package    {{{1
+echo "building highlight.js package:"
+echo "$divider"
+if ! "${cmd[@]}" ; then
+    echo "$divider"
+    abort 'unable to build highlight.js package'
+fi
+echo "$divider"
+package_syntax_file="$tmpdir/build/highlight.min.js"
+test -f "$package_syntax_file" \
+    || abort "cannot find built package syntax file: $package_syntax_file"
+
+# copy built highlight.min.js file to plugin    {{{1
+if ! cp -f "$package_syntax_file" "$plugin_syntax_file" ; then
+    msgs=(
+        "failed to copy build syntax file '$package_syntax_file'"
+        " over plugin syntax file '$plugin_syntax_file'"
+    )
+    abort "${msgs[@]}"
+fi
+echo "✔ successfully updated tiddlywiki highlight plugin syntax file"
+
+# delete the temporary directory    {{{1
+rm -fr "$tmpdir" || true
+test -d "$tmpdir" && abort "unable to remove temporary directory: $tmpdir"
+trap - 1 3 11 15
+# }}}1
+
+# vim:foldmethod=marker:

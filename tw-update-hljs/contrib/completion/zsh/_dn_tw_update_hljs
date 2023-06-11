@@ -1,0 +1,15 @@
+#compdef dn-tw-update-hljs
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+  - 'script_options' \
+    '(-n --tw-node-root)'{-n,--tw-node-root}'[Tiddlywiki node modules root directory (dirpath, required)]:tw-node-root:_files -/' \
+    '(-e --node-exe)'{-e,--node-exe}'[Node executable name (string, required)]:node-exe:' \
+    '(-v --verbose)'{-v,--verbose}'[Print input lines after command expansion (flag)]' \
+    '(-d --debug)'{-d,--debug}'[Print input lines as they are read (flag)]' \
+  && rc=0
+
+return rc
