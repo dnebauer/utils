@@ -92,18 +92,18 @@ use version; our $VERSION = qv('0.1');    #                            }}}1
     );
 
     method _build_postfilter () {
-            #   changes made to file after tidying
-            #   coderef
-            #   performs transformations:
-            #     1 - changes keyword "sub" back to "method"
-            #     2 - adds empty parentheses where they are missing
-         #     3 - removes spaces inside argument parens when only one argument
-         #     4 - removes spaces inside argument parens when no arguments
-         #     5 - ensures a space between method name and argument parentheses
-         #   cannot follow Perl Best Practice recommendations for s/// modifier:
-         #     's' results in failure
-         #     'x' results in two spaces between keyword 'method' and method
-         #         names in tidied file
+        # changes made to file after tidying
+        # coderef
+        # performs transformations:
+        #   1 - changes keyword "sub" back to "method"
+        #   2 - adds empty parentheses where they are missing
+        #   3 - removes spaces inside argument parens when only one argument
+        #   4 - removes spaces inside argument parens when no arguments
+        #   5 - ensures a space between method name and argument parentheses
+        # cannot follow Perl Best Practice recommendations for s/// modifier:
+        #   's' results in failure
+        #   'x' results in two spaces between keyword 'method' and method
+        #       names in tidied file
         sub {
             $_ = $_[0];
             s/^(\s*)sub (.*?)\s* \#__METHOD/$1method $2/gm;       # 1
