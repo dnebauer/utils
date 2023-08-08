@@ -21,7 +21,7 @@ package-name neovide
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.10.4
+version 0.11.0
 
 # Script and binary files
 # Executable files to be packaged.
@@ -30,7 +30,7 @@ version 0.10.4
 # Default value of 'sbin-file' in built deb package: /usr/sbin
 # Required (unless a library package). Multiple allowed
 bin-file neovide
-#sbin-file 
+#sbin-file
 
 # Manpages
 # Man pages to package.
@@ -42,7 +42,7 @@ man-file neovide.1
 # Data files to package.
 # Default location in built deb package: /usr/share/\$(PACKAGE).
 # Optional. Multiple allowed.
-#data-file 
+#data-file
 
 # Icon file
 # Icon file to package.
@@ -52,7 +52,7 @@ man-file neovide.1
 # Note icons are not put into an application subdirectory
 # -- be careful of filename clashes.
 # Optional. Multiple allowed.
-#icon-file 
+#icon-file
 
 # Desktop file
 # Desktop file to package.
@@ -62,74 +62,74 @@ man-file neovide.1
 # Note desktop files are not put into an application subdirectory
 # -- be careful of filename clashes.
 # Optional. Multiple allowed.
-#desktop-file 
+#desktop-file
 
 # Configuration files
 # Configuration files to package.
 # Default location in built deb package: /etc/\$(PACKAGE).
 # Optional. Multiple allowed.
-#conf-file 
+#conf-file
 
 # Executable library files
 # Executable programs run by other programs.
 # Default value in built deb package: /usr/libexec/\$(PACKAGE).
 # Optional. Multiple allowed.
-#libexec-file 
+#libexec-file
 
 # Library data files
 # Data files used by other programs.
 # Default value in built deb package: /usr/lib/\$(PACKAGE).
 # Optional. Multiple allowed.
-#libdata-file 
+#libdata-file
 
 # Debconf file
 # Debian build system debconf file
 # In final package is named 'PACKAGE.config'
 # Optional. One only
-#debconf-file 
+#debconf-file
 
 # Templates file
 # Debian build system templates file
 # In final package is named 'PACKAGE.templates'
 # Optional. One only
-#templates-file 
+#templates-file
 
 # Pre-install file
 # Debian build system pre-install file
 # In final package is named 'PACKAGE.preinst'
 # Optional. One only
-#preinstall-file 
+#preinstall-file
 
 # Post-install file
 # Debian build system post-install file
 # In final package is named 'PACKAGE.postint'
 # Optional. One only
-#postinstall-file 
+#postinstall-file
 
 # Pre-remove file
 # Debian build system pre-remove file
 # In final package is named 'PACKAGE.prerm'
 # Optional. One only
-#preremove-file 
+#preremove-file
 
 # Post-remove file
 # Debian build system post-remove file
 # In final package is named 'PACKAGE.postrm'
 # Optional. One only
-#postremove-file 
+#postremove-file
 
 # Bash completion file
 # Debian build system bash completion file
 # In final package is named 'PACKAGE.bash-completion'
 # Optional. One only
-#bash-completion-file 
+#bash-completion-file
 
 # Install file
 # Debian build system install file
 # In final package is named 'PACKAGE.install'
 # Can be used in conjunction with 'extra' key
 # Optional. One only
-#install-file 
+#install-file
 
 # Extra files and directories
 # Extra distribution files and directories
@@ -137,7 +137,7 @@ man-file neovide.1
 # Not added to deb package unless in combination
 # with an install file (see 'install-file' key)
 # Optional. Multiple allowed
-#extra-path 
+#extra-path
 
 # Control summary
 # One line summary of script for inclusion in the

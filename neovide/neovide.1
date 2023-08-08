@@ -129,15 +129,18 @@ terminal UI.
 .SH "ARGUMENTS"
 .TP
 .I <files>
-Files to open. Specified in a space-separated list. Optional.
+Files to open. Specified in a space-separated list. Plainly appended to neovim
+args. Optional.
 .TP
 .I <neovim_args>
-Arguments to pass to neovim. Precede with a double dash. Optional.
+Arguments to pass to neovim without interpreting. Precede with a double dash.
+Optional.
 .SH "OPTIONS"
 .TP
 .BI "--frame " "frame"
-Configure the window frame. NOTE: Window might not be resizable if setting is
+Which window decorations to use. The window might not be resizable if this is set to
 .IR "None" "."
+[env: NEOVIDE_FRAME=] [default: full] [possible values: full, none]
 .TP
 .BI "--geometry " "geometry"
 Specify the geometry of the window. Format is
@@ -148,72 +151,70 @@ in characters.
 Print help information.
 .TP
 .B "--log"
-Enables the log file for debugging purposes. This will write a file next to the
-executable containing trace events which may help debug an issue.
+Enables logging to a file in the current directory.
 .TP
 .B "--maximized"
-Maximize the window.
+Maximize the window on startup (not equivalent to fullscreen). [env:
+NEOVIDE_MAXIMIZED=]
 .TP
 .B "--multigrid"
-Enable neovim's multigrid functionality which will also enable floating window
-blurred backgrounds and window animations. For now this is disabled due to some
-mouse input bugs upstream and floating window transparency issues.
-
-This feature can also be switched on by declaring environmental variable
-.IR "NEOVIDE_MULTIGRID" "."
+Enable the Multigrid extension. Enables smooth scrolling and floating blur.
+[env: NEOVIDE_MULTIGRID=1]
 .TP
 .BI "--neovim-bin " "neovim_bin"
-Specify path to the neovim binary. If unset, neovide will try to find
-.I "nvim"
-on the
-.I "PATH"
-environment variable instead.
+Which NeoVim binary to invoke headlessly instead of
+.B "nvim"
+found on $PATH. [env: NEOVIM_BIN=]
 .TP
 .B "--nofork"
 Instead of spawning a child process and leaking it, be "blocking" and have the
 shell directly as parent process.
 .TP
 .B "--noidle"
-Render every frame. Takes more power and cpu time but possibly fixes animation
-issues.
+Render every frame. Takes more power and cpu time but possibly helps with frame
+timing issues.
 .TP
 .B "--nosrgb"
-Do not use standard color space to initialize the window. Swapping this
-variable sometimes fixes issues on startup.
+Do not request sRGB when initializing the window. May help with GPUs with weird pixel formats. Default on Linux and macOs.
 .TP
 .B "--notabs"
-Open multiple files in normal buffers \(em the default behaviour is to open
-them in multiple tabs.
+Open multiple files in normal buffers. (The default behaviour is to open
+them in multiple tabs.)
 .TP
-.BI "--remote-tcp " "remote_tcp"
-Connect to remote TCP.
+.B "--novsync"
+Do not try to request VSync on the window.
+.TP
+.BI "--server " "address"
+Connect to the named pipe or socket.
+.TP
+.BI "--size " "size"
+The size of the window in pixels.
+.TP
+.B "--srgb"
+Request sRGB when initializing the window. May help with GPUs with weird pixel formats. Default on Windows. [env: NEOVIDE_SRGB=]
 .TP
 .BR "-V" ", " "--version"
 Print version information.
 .TP
+.B "--vsync"
+Request VSync on the window. Default. [env: NEOVIDE_VSYNC=]
+.TP
 .BI "--wayland-app-id " "wayland_app_id"
-Specify an App ID for Wayland.
-
-This can also be set by an environment variable called
-.IR "NEOVIDE_APP_ID" "."
+The app ID to show to the compositor. Wayland only. Useful for setting WM
+rules. [env: NEOVIDE_APP_ID=] [default: neovide]
 .TP
 .B "--wsl"
 Run neovim from inside
 .URL "https://docs.microsoft.com/en-us/windows/wsl/" \
      "Windows Subsystem for Linux"
-rather than as a normal executable.
+rather than on the host. [env: NEOVIDE_WSL=]
 .TP
 .BI "--x11-wm-class " "x11_wm_class"
-Specify the class part of the X11 WM_CLASS property.
-
-This can also be set by an environment variable called
-.IR "NEOVIDE_WM_CLASS" "."
+Specify the class part of the X11 WM_CLASS property. X only. Useful for setting
+WM rules. [env: NEOVIDE_WM_CLASS=] [default: neovide]
 .TP
 .BI "--x11-wm-class-instance " "x11_wm_class_instance"
-Specify the instance part of the X11 WM_CLASS property.
-
-This can also be set by an environment variable called
-.IR "NEOVIDE_WM_CLASS_INSTANCE" "."
+Specify the instance part of the X11 WM_CLASS property. X only. Useful for setting WM rules. [env: NEOVIDE_WM_CLASS_INSTANCE=] [default: neovide]
 .SH "SEE ALSO"
 .BR "nvim " "(1)."
 .SH "AUTHOR"
