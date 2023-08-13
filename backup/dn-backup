@@ -1,0 +1,703 @@
+#!/usr/bin/perl
+
+# preamble    {{{1
+
+## no critic (ProhibitDuplicateLiteral)
+
+use strictures 2;
+use 5.006;
+use 5.022_001;
+use version; our $VERSION = qv('0.1');
+use autodie qw(open close);
+use Carp    qw(croak);
+use Config::Auto;
+use Const::Fast;
+use English qw(-no_match_vars);
+use File::Rsync;
+use Getopt::Long qw(GetOptions);
+use Path::Tiny;
+use Pod::Usage qw(pod2usage);
+use Term::ANSIColor;
+use Term::ProgressBar;
+use Time::Piece;
+use Time::Seconds;
+use experimental qw(switch);
+
+const my $TRUE  => 1;
+const my $FALSE => 0;
+const my $LAST  => -1;
+
+# variables    {{{1
+
+my $rsync = File::Rsync->new(
+    archive         => 1,
+    copy_links      => 1,
+    itemize_changes => 1,
+    quote_src       => 1,
+    quote_dst       => 1,
+    errfun          => \&rsync_output_handler,
+    outfun          => \&rsync_output_handler,
+);
+
+my @rsync_errors;
+my %conf_errors;
+
+my %target_dirs;     # display_label => Path::Tiny
+my @source_files;    # Path::Tiny
+my @source_dirs;     # Path::Tiny
+
+my $progress_bar;    # progress bar
+my $progress_max;    # total number of rsync operations
+my $progress_count;  # rsync operations counter
+
+my @times;           # start and end times for each destination backup
+
+# }}}1
+
+# subroutines
+
+# main()    {{{1
+#
+# does:   main subroutine
+# params: nil
+# prints: feedback
+# return: n/a, dies on failure
+sub main {
+
+    # check args
+    check_args();
+
+    # load config data
+    config_load();
+    check_paths();
+
+    # prepare progress bar
+    progress_bar_initialise();
+
+    # synchronise/backup
+    sync_paths();
+
+    # report backup times
+    report_backup_times();
+
+    say 'Backup complete' or croak;
+
+    return;
+}
+
+# check_args()    {{{1
+#
+# does:   check arguments
+# params: nil
+# prints: feedback
+# return: n/a, dies on failure
+sub check_args {
+
+    my %opt;
+    Getopt::Long::GetOptions( \%opt, 'help|?', 'man' )
+        || pod2usage( -verbose => 0 );
+
+    if ( $opt{'help'} ) { pod2usage( -verbose => 1 ); }
+    if ( $opt{'man'} )  { pod2usage( -verbose => 2 ); }
+
+    return;
+}
+
+# check_paths()    {{{1
+#
+# does:   checks source file/dir and target dir values
+# params: nil
+# prints: nil, except error messages
+# return: nil, dies on failure
+sub check_paths {
+
+    check_paths_defined();
+    check_paths_exist();
+
+    # check for duplicate target directories
+    # - during config load checked for duplicate source file and directories,
+    #   and for duplicate target labels
+    my %t_dirs;
+    for my $dir ( values %target_dirs ) {
+        if ( exists $t_dirs{$dir} ) {
+            my $msg = "target directory: duplicate: $dir";
+            $conf_errors{$msg} = $TRUE;
+        }
+        else { $t_dirs{$dir} = $TRUE; }
+    }
+
+    return;
+}
+
+# check_paths_defined()    {{{1
+#
+# does:   checks source file/dir and target dir values have been provided
+# params: nil
+# prints: nil, except error messages
+# return: nil, dies on failure
+sub check_paths_defined {
+
+    # need target dir(s) to write to
+
+    if ( not keys %target_dirs ) {
+        my $msg = 'target directory: none defined';
+        $conf_errors{$msg} = $TRUE;
+    }
+
+    # need source file(s) or dir(s) to copy
+
+    if (    ( not @source_files )
+        and ( not @source_dirs ) )
+    {
+        my $msg = "source file: none defined\nsource directory: none defined";
+        $conf_errors{$msg} = $TRUE;
+    }
+
+    return;
+}
+
+# check_paths_exist()    {{{1
+#
+# does:   checks source files/dirs and target dirs exist
+# params: nil
+# prints: nil, except error messages
+# return: nil, dies on failure
+sub check_paths_exist {
+
+    my ( $tardir, $srcfile, $srcdir )
+        = ( 'target directory', 'source file', 'source directory' );
+    my $notdir  = 'exists but is not a directory';
+    my $notfile = 'exists but is not a file';
+    my $nofind  = 'cannot locate';
+
+    # target directories
+    for my $label ( sort keys %target_dirs ) {
+        my $target = $target_dirs{$label};
+        if ( $target->exists ) {
+            if ( not $target->is_dir ) {
+                my $msg = "$tardir: $notdir: " . $target->stringify;
+                $conf_errors{$msg} = $TRUE;
+            }
+        }
+        else {
+            my $msg = "$tardir: $nofind: " . $target->stringify;
+            $conf_errors{$msg} = $TRUE;
+        }
+    }
+
+    # source files
+    for my $source (@source_files) {
+        if ( $source->exists ) {
+            if ( not $source->is_file ) {
+                my $msg = "$srcfile: $notfile: " . $source->stringify;
+                $conf_errors{$msg} = $TRUE;
+            }
+        }
+        else {
+            my $msg = "$srcfile: $nofind: " . $source->stringify;
+            $conf_errors{$msg} = $TRUE;
+        }
+    }
+
+    # source directories
+    for my $source (@source_dirs) {
+        if ( $source->exists ) {
+            if ( not $source->is_dir ) {
+                my $msg = "$srcdir: $notdir: " . $source->stringify;
+                $conf_errors{$msg} = $TRUE;
+            }
+        }
+        else {
+            my $msg = "$srcdir: $nofind: " . $source->stringify;
+            $conf_errors{$msg} = $TRUE;
+        }
+    }
+
+    # abort with error messages
+    if (%conf_errors) {
+        warn "Invalid backup data:\n";
+        for my $line ( sort keys %conf_errors ) { warn "- $line\n"; }
+        warn "Stopping\n";
+        exit 1;
+    }
+
+    return;
+}
+
+# config_load()    {{{1
+#
+# does:   loads source and target data from config file
+# params: nil
+# prints: nil, except error messages
+# return: nil, dies on failure
+## no critic (ProhibitExcessComplexity)
+sub config_load {
+
+    # find and parse config file
+    my $extra_conf_paths = ['/home/david/.config'];
+    my $config_auto      = Config::Auto->new( path => $extra_conf_paths )
+        or croak "Unable to locate config file: $OS_ERROR";
+    my $conf_hashref = $config_auto->parse
+        or croak "Unable to parse config file: $OS_ERROR";
+
+    # expect $conf to be a hashref
+    my $conf_ref = ref $conf_hashref;
+    if ( not $conf_ref ) {
+        croak 'Expected config parse result to be hashref, got a scalar';
+    }
+    if ( $conf_ref ne 'HASH' ) {
+        croak "Expected config parse result to be hashref, got a $conf_ref";
+    }
+
+    # process based on config hash keys
+    my %conf = %{$conf_hashref};
+    my ( %t_lbls, %t_dirs, %s_files, %s_dirs );
+    for my $key ( keys %conf ) {
+        if ( exists $conf{$key} ) {
+            my $conf_val = $conf{$key};
+            my @conf_data
+                = ( ref $conf_val ) ? @{$conf_val} : ($conf_val);
+            for ($key) {
+                when (/\Asource_file\Z/xsm) {
+                    for my $item (@conf_data) {
+                        if ( $item =~ /\A\s*\Z/xsm ) {
+                            my $msg = 'source file: no value';
+                            $conf_errors{$msg} = $TRUE;
+                        }
+                        elsif ( exists $s_files{$item} ) {
+                            my $msg = "source file: duplicate: $item";
+                            $conf_errors{$msg} = $TRUE;
+                        }
+                        else { $s_files{$item} = $TRUE; }
+                    }
+                }
+                when (/\Asource_dir\Z/xsm) {
+                    for my $item (@conf_data) {
+                        if ( $item =~ /\A\s*\Z/xsm ) {
+                            my $msg = 'source directory: no value';
+                            $conf_errors{$msg} = $TRUE;
+                        }
+                        elsif ( exists $s_dirs{$item} ) {
+                            my $msg = "source directory: duplicate: $item";
+                            $conf_errors{$msg} = $TRUE;
+                        }
+                        else { $s_dirs{$item} = $TRUE; }
+                    }
+                }
+                when (/\Atarget_dir\Z/xsm) {
+                    for my $item (@conf_data) {
+                        if ( $item =~ /\A\s*\Z/xsm ) {
+                            my $msg = 'source directory: no value';
+                            $conf_errors{$msg} = $TRUE;
+                            next;
+                        }
+                        my @elements = split /@@@/xsm, $item;
+                        my $count    = $#elements + 1;
+                        if ( $count != 2 ) {    # list size should be 2
+                            my $msg = 'target directory: expected 2 items, '
+                                . "got $count: $item";
+                            $conf_errors{$msg} = $TRUE;
+                            next;
+                        }
+                        my ( $label, $dir_path ) = @elements;
+                        if ( exists $t_dirs{$dir_path} ) {
+                            my $msg = 'target directory: duplicate: '
+                                . "$dir_path";
+                            $conf_errors{$msg} = $TRUE;
+                        }
+                        else { $t_dirs{$dir_path} = $TRUE; }
+                        if ( exists $t_lbls{$label} ) {
+                            my $msg = "target label: duplicate: $label";
+                            $conf_errors{$msg} = $TRUE;
+                        }
+                        else { $t_lbls{$label} = $TRUE; }
+                        $target_dirs{$label} = Path::Tiny::path($dir_path);
+                    }
+                }
+                default {
+                    my $msg = "config file: unknown key: $key";
+                    $conf_errors{$msg} = $TRUE;
+                }
+            }
+        }
+    }
+    push @source_files, map { Path::Tiny::path($_) } sort keys %s_files;
+    push @source_dirs,  map { Path::Tiny::path($_) } sort keys %s_dirs;
+
+    return;
+
+}
+## use critic
+## no critic (ProhibitDuplicateLiteral)
+
+# progress_bar_initialise()    {{{1
+#
+# does:   initialise progress bar
+# params: nil
+# prints: nil, except error messages
+# return: nil, dies on failure
+sub progress_bar_initialise {
+
+    # get loop count
+    my $dest_count = scalar keys %target_dirs;
+    ## no critic (ProhibitUnnecessaryScalarKeyword)
+    my $src_count = scalar @source_files + scalar @source_dirs;
+    ## use critic
+    $progress_max = $dest_count * $src_count;
+
+    # initialise progress bar
+    $progress_bar = Term::ProgressBar->new(
+        {   name   => 'Backup',
+            count  => $progress_max,
+            remove => $TRUE,
+        },
+    );
+
+    return;
+}
+
+# report_backup_times()    {{{1
+#
+# does:   report backup times for each destination directory
+# params: nil
+# prints: nil, except error messages
+# return: nil, dies on failure
+sub report_backup_times {
+
+    my $msg;
+
+    # report total time if multiple destination directories
+    $msg = 'Backup time:';
+    if ( scalar @times > 1 ) {
+        push @times,
+            [ 'total', @{ $times[0] }[1], @{ $times[$LAST] }[$LAST] ];
+        $msg = substr( $msg, 0, $LAST ) . 's' . substr $msg, $LAST;
+    }
+    say $msg or croak;
+
+    # loop through times getting max label width and elapsed times
+    my $width = 0;
+    my @output;
+    for my $element (@times) {
+        my ( $label, $start, $end ) = @{$element};
+
+        # get maximum label size
+        my $label_size = length $label;
+        $width = ( $label_size > $width ) ? $label_size : $width;
+
+        # get elapsed time
+        my $elapsed = $end - $start;
+        push @output, [ $label, $elapsed->pretty ];
+    }
+
+    # output elapsed time (right-justify label names)
+    for my $element (@output) {
+        my ( $label, $elapsed ) = @{$element};
+        $msg = '  ' . sprintf( "%${width}s", $label ) . ': ' . $elapsed;
+        say $msg or croak;
+    }
+
+    return;
+}
+
+# rsync_output_handler($msg, $type)    {{{1
+#
+# does:   handle stdout and stderr from rsync commands
+# params: $msg  - line of rsync output
+#         $type - whether stdout or stderr {out,err}
+# prints: nil, except error messages
+# return: nil, dies on failure
+# note:   params provided by File::Rsync, as per that class's
+#         'outfun' and 'errfun' initialisation params
+sub rsync_output_handler {
+
+    my ( $msg, $type ) = @_;
+
+    for ($type) {
+        when (/\Aout\Z/xsm) { $progress_bar->message($msg); }
+        when (/\Aerr\Z/xsm) { push @rsync_errors, $msg; }
+        default { croak "Programming error: bad handler type: $type"; }
+    }
+
+    return;
+}
+
+# sync_params($is_dir, $source, $target)    {{{1
+#
+# does:   derives the 'src' and 'dest' params for an rsync command
+# params: is_dir - whether source is a dir (or file) [boolean]
+#         source - source path [File::Rsync object)
+#         target - target path [File::Rsync object)
+# prints: nil, except error messages
+# return: list of scalars: (src, dest)
+sub sync_params {
+
+    my ( $is_dir, $source, $target ) = @_;
+
+    # file: append source to target
+    #       stringify source and target
+
+    # dir:  append source to target
+    #       stringify source and target
+    #       append slash to source and target strings
+
+    # append source to target and stringify target
+    my $dest = $target->child($source)->stringify;
+
+    # stringify source
+    my $src = $source->stringify;
+
+    # append directory slash if dealing with directories
+    if ($is_dir) {
+        $src  = $src . q{/};
+        $dest = $dest . q{/};
+    }
+
+    # return results
+    return $src, $dest;
+
+}
+
+# sync_paths()    {{{1
+#
+# does:   syncronises all source files and dirs with all target dirs
+# params: nil
+# prints: nil, except error messages
+# return: nil, exits on error
+sub sync_paths {
+
+    # inform user about target dirs
+    say 'Synchronising to:' or croak;
+    for my $label ( sort keys %target_dirs ) {
+        my $target = $target_dirs{$label};
+        say "- $target ($label)" or croak;
+    }
+
+    # synchronise source files/dirs with target dirs
+    for my $label ( sort keys %target_dirs ) {
+        my $start  = localtime;
+        my $target = $target_dirs{$label};
+        for my $source ( sort @source_files ) {
+            sync_path( $label, $target, $source );
+        }
+        for my $source ( sort @source_dirs ) {
+            sync_path( $label, $target, $source );
+        }
+        my $end = localtime;
+        push @times, [ $label, $start, $end ];
+    }
+
+    # tidy up progress bar
+    if ( $progress_max > $progress_count ) {
+        $progress_bar->update($progress_max);
+    }
+
+    # report any errors
+    if (@rsync_errors) {
+        warn "Errors occurred:\n";
+        chomp @rsync_errors;
+        for my $err (@rsync_errors) { warn "- $err\n"; }
+    }
+
+    return;
+}
+
+# sync_path($label, $source, $target)    {{{1
+#
+# does:   syncronise source file/dir with target dir
+# params: $label -  destination label
+#         $target - destination directory path
+#         $source - source file or directory path
+# prints: nil, except error messages
+# return: nil, exits on error
+sub sync_path {
+
+    # function parameters
+    my ( $label, $target, $source ) = @_;
+
+    # display message about this sync operation
+    my $label_color = ['bright_red'];
+    my $src_color   = ['bright_blue'];
+    my $msg = Term::ANSIColor::colored( $label_color, $label ) . ' => '
+        . Term::ANSIColor::colored( $src_color, $source );
+    $progress_bar->message($msg);
+
+    # perform sync operation
+    my ( $src, $dest ) = sync_params( $FALSE, $source, $target );
+    $rsync->exec( source => $src, destination => $dest );
+
+    # update progress bar
+    $progress_count++;
+    $progress_bar->update($progress_count);
+
+    return;
+}    # }}}1
+
+main();
+
+1;
+
+# POD    {{{1
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+dn-backup - backs up local files and directories to specified locations
+
+=head1 USAGE
+
+B<dn-backup>
+
+=head1 REQUIRED ARGUMENTS
+
+None.
+
+=head1 REQUIRED OPTIONS
+
+None.
+
+=head1 OPTIONS
+
+=over
+
+=item B<-h> B<--help>
+
+Display help and exit.
+
+=item B<-m> B<--man>
+
+Display script manual and exit.
+
+=back
+
+=head1 DESCRIPTION
+
+Local source files and directories to back up are specified in a configuration
+file. Backup (destination) directories are specified in the same configuration
+file. (Check the L</Configuration> section for details about configuration file
+location and format.) All specified source files and directories are
+recursively copied to each of the specified backup directories.
+
+The copying algorithm is simple: the source file and directory are used without
+alteration. The destination directory is the target directory with the source
+path appended.
+
+The recursive copying is done by C<rsync>.
+
+=head1 DIAGNOSTICS
+
+=head2 Unable to locate config file: S<< <ERROR> >>
+
+=head2 Unable to parse config file: S<< <ERROR> >>
+
+=head2 Expected config parse result to be hashref, got a scalar
+
+=head2 Expected config parse result to be hashref, got a S<< <DATA_TYPE> >>
+
+These errors indicate a problem with extracting source and destination data
+from the configuration file. Check the L</Configuration> section for details
+about configuration file location and format.
+
+=head2 Programming error: bad handler type: S<< <TYPE> >>
+
+This error should not occur. Please assemble a minimal working example (MWE)
+and send it to the package maintainer.
+
+=head2 Expected config parse result to be hashref, got a scalar
+
+=head2 config file: unknown key: S<< <KEY> >>
+
+=head2 source directory: cannot locate
+
+=head2 source directory: duplicate: S<< <DIR> >>
+
+=head2 source directory: exists but is not a directory
+
+=head2 source directory: exists but is not a file
+
+=head2 source directory: no value
+
+=head2 source directory: none defined
+
+=head2 source file: cannot locate
+
+=head2 source file: duplicate: S<< <FILE> >>
+
+=head2 source file: exists but is not a directory
+
+=head2 source file: exists but is not a file
+
+=head2 source file: no value
+
+=head2 source file: none defined
+
+=head2 target directory: cannot locate
+
+=head2 target directory: duplicate: S<< <DIR> >>
+
+=head2 target directory: exists but is not a directory
+
+=head2 target directory: exists but is not a file
+
+=head2 target directory: expected 2 items, got S<< <NUM> >>: S<< <DIR> >>
+
+=head2 target directory: none defined
+
+=head2 target label: duplicate: S<< <LABEL> >>
+
+These are possible errors arising from an incorrectly formatted configuration
+file. Check the L</Configuration> section for details about configuration file
+location and format.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+autodie, Carp, Config::Auto, Const::Fast, English, experimental, File::Rsync,
+Getopt::Long, Path::Tiny, Pod::Usage, strictures, Term::ANSIColor,
+Term::ProgressBar, version.
+
+=head1 CONFIGURATION
+
+Configuration is done via a configuration file. The script looks for
+configuration files according to the heuristic described in L<Config::Auto/"HOW
+IT WORKS">, with the addition that it also looks in F<<~/.config>>.
+
+The following configuration example shows the 3 available configuration keys:
+
+    target_dir: mylabel@@@/mnt/backups/device1
+    source_file: /home/user/my/file.txt
+    source_dir: /home/user/my/dir
+
+Note that "target_dir" values must contain a label and directory path separated
+by the token "@@@". The label is used in display progress and should be short.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 EXIT STATUS
+
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly the
+error code is that given by the system.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 AUTHOR
+
+David Nebauer (david at nebauer dot org)
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2023 David Nebauer (david at nebauer dot org)
+
+This script is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
+# vim:foldmethod=marker:
