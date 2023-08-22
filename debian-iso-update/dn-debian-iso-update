@@ -258,7 +258,7 @@ for iso_num in $(seq ${iso_min_num} ${iso_max_num}) ; do
         wget --no-directories --directory-prefix="${dir_files}" "${url}" \
             || abort "Unable to download '${url}' to '${dir_files}'"
     done
-exit
+
     # Rename existing iso image    {{{1
     iso_fname="${file_base}${iso_num}.iso"
     iso_old_fname="${file_base}${iso_num}-old.iso"
