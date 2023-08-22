@@ -54,10 +54,10 @@ _USAGE
 #   return: nil
 #   notes:  set variables [file_base, dir_files, url_base, mnt_base]
 processConfigFiles () {
-	# set variables
-	local name val conf
+   # set variables
+   local name val conf
     conf="$( dnNormalisePath "${1}" )"
-	# process config files
+   # process config files
     if [[ -r "${conf}" ]] ; then
         while read name val ; do
             if [[ -n "${val}" ]] ; then
@@ -81,7 +81,7 @@ processConfigFiles () {
 #   note:   after execution variable ARGS contains
 #           remaining command line args (after options removed)
 processCommandLine () {
-	# read the command line options
+   # read the command line options
     local OPTIONS="$(                    \
         getopt                           \
             --options hl:u:              \
@@ -91,16 +91,16 @@ processCommandLine () {
     )"
     eval set -- "${OPTIONS}"
     dnOpFail ${?} && abort 'Unable to parse command line options'
-	while true ; do
-		case "${1}" in
+   while true ; do
+      case "${1}" in
         -h | --help  ) displayUsage ; exit 0  ;;
         -l | --lower ) lower="${2}" ; shift 2 ;;
         -u | --upper ) upper="${2}" ; shift 2 ;;
         -- ) shift ; break ;;
         *  ) break ;;
-		esac
-	done
-	ARGS="${@}"  # remaining arguments
+      esac
+   done
+   ARGS="${@}"  # remaining arguments
 }
 # Write message to system log    {{{1
 #   params: 1 - prefix [required]
