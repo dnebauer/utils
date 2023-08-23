@@ -13,7 +13,7 @@ source '@libexec_dir@/libdncommon-bash/liball'  # supplies functions
 system_conf='@pkgconf_dir@/@pkg@.rc'
 usage='Usage:'
 usage_indent="$(tr "${usage}" '[ *]' <<< "${usage}")"
-parameters='[ -l int ] [ -r int ]'
+parameters='[ -l int ] [ -u int ]'
 # configurable variables
 file_base=    # common stem of jigdo/template/iso file names
 dir_files=    # directory containing jigdo/template/iso files
