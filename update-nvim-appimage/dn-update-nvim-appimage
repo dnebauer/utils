@@ -27,6 +27,8 @@ required_system_tools=(
 )
 # required tools specified by full path
 required_local_tools=()
+# both release urls below are equivalent and both work at time of writing
+#release_url='https://github.com/neovim/neovim/releases/download/stable/nvim.appimage'
 release_url='https://github.com/neovim/neovim/releases/latest/download/nvim.appimage'
 dest_dir='/usr/local/bin'
 dest_file='nvim.appimage'
