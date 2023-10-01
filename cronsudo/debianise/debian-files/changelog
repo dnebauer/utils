@@ -1,3 +1,9 @@
+dn-cronsudo (2.7-1) UNRELEASED; urgency=low
+
+  * add editor and nvim.appimage as sudo editor apps
+
+ -- David Nebauer <david@nebauer.org>  Sun, 1 Oct 2023 17:08:08 +0930
+
 dn-cronsudo (2.6-1) UNRELEASED; urgency=low
 
   * sudo: add docker as sudo app

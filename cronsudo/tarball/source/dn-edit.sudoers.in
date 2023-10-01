@@ -2,7 +2,10 @@
 # do not edit directly but modify the package
 
 # editors
+david ALL= NOPASSWD: /usr/bin/editor
 david ALL= NOPASSWD: /usr/bin/vim
 david ALL= NOPASSWD: /usr/bin/gvim
 david ALL= NOPASSWD: /usr/bin/nvim
 david ALL= NOPASSWD: /usr/bin/nvim-qt
+david ALL= NOPASSWD: /usr/bin/neovide
+david ALL= NOPASSWD: /usr/local/bin/nvim.appimage
