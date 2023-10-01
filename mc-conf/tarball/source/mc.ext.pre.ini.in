@@ -154,16 +154,6 @@ Shell=.planner
 ShellIgnoreCase=true
 Open=(planner %f > /dev/null 2>&1 &)
 
-[dn_azw-by-type]
-Type=^Mobipocket\ E-book
-TypeIgnoreCase=true
-Include=dn_azwbook
-
-[dn_azw-by-extension]
-Shell=.azw
-ShellIgnoreCase=true
-Include=dn_azwbook
-
 [dn_epub-by-type]
 Type=(EPUB\ ebook\ data|EPUB\ document)
 TypeIgnoreCase=true
@@ -171,11 +161,6 @@ Include=dn_ebook
 
 [dn_epub-by-extension]
 Shell=.epub
-ShellIgnoreCase=true
-Include=dn_ebook
-
-[dn_mobi]
-Shell=.mobi
 ShellIgnoreCase=true
 Include=dn_ebook
 
@@ -233,7 +218,7 @@ Include=dn_scribus
 [dn_markdown]
 Shell=.md
 ShellIgnoreCase=true
-Open=(nvim-qt %f >/dev/null 2>&1 &)
+Open=(editor %f >/dev/null 2>&1 &)
 
 # plain text
 

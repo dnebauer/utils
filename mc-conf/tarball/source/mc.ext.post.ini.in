@@ -24,13 +24,9 @@ Open=(okular %f >/dev/null 2>&1 &)
 
 ### Documents ###
 
-[Include/dn_azwbook]
-Open=(ebook-viewer %f >/dev/null 2>&1 &)
-View=(sensible-editor %f >/dev/null 2>&1 &)
-
 [Include/dn_ebook]
 Open=(ebook-viewer %f >/dev/null 2>&1 &)
-View=(sensible-editor %f >/dev/null 2>&1 &)
+View=(sigil %f >/dev/null 2>&1 &)
 
 # LibreOffice (only those extensions missed by default mechanism)
 
@@ -45,7 +41,7 @@ Open=(scribus %f >/dev/null 2>&1 &)
 # markdown
 
 [Include/dn_plaintext]
-Open=sensible-editor %f
+Open=editor %f
 
 ### End of entries appended by dn-mc-conf ###
 
