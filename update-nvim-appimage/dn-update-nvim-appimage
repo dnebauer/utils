@@ -1,0 +1,224 @@
+#!/usr/bin/env bash
+
+# File: dn-update-nvim-appimage
+# Author: David Nebauer
+# Purpose: update nvim-appimage
+# Created: 1 October 2023
+
+# ERROR HANDLING    {{{1
+
+# Exit on error. Append "|| true" if you expect an error.
+set -o errexit
+# Exit on error inside any functions or subshells.
+set -o errtrace
+# Do not allow use of undefined vars. Use ${VAR:-} to use an undefined VAR
+set -o nounset
+# Catch error in case mysqldump fails (but gzip succeeds) in `mysqldump |gzip`
+set -o pipefail
+# Turn on traces, useful while debugging but commented out by default
+# set -o xtrace
+
+# VARIABLES    {{{1
+
+self="$(basename $0)"
+required_system_tools=(
+	curl
+	dir
+)
+# required tools specified by full path
+required_local_tools=()
+release_url='https://github.com/neovim/neovim/releases/latest/download/nvim.appimage'
+dest_dir='/usr/local/bin'
+dest_file='nvim.appimage'
+dest_fp="${dest_dir}/${dest_file}"
+divider='---------------------------------------------'
+# }}}1
+
+# PROCEDURES
+
+# abort()    {{{1
+#   intent: exit script displaying error message and with error status
+#   params: msg - message
+#   prints: error message
+#   return: n/a, exits script
+function abort() {
+	while [[ $# -gt 0 ]]; do
+		echo "${self}: $1" >/dev/stderr
+		shift
+	done
+	exit 1
+}
+# checkPrereqs()    {{{1
+#   intent: check for required tools
+#   params: nil
+#   prints: error message if tool(s) missing
+#   return: n/a, aborts scipts on failure
+function checkPrereqs() {
+	local missing tool
+	missing=()
+	# these tools can be found on the base system path
+	for tool in "${required_system_tools[@]}"; do
+		command -v "$tool" &>/dev/null || missing+=("$tool")
+	done
+	# these tools are specified by absolute path
+	for tool in "${required_local_tools[@]}"; do
+		[[ -x "$tool" ]] || missing+=("$tool")
+	done
+	if [[ ${#missing[@]} -ne 0 ]]; then
+		local msg
+		msg="Can't run without: $(joinBy ', ' "${missing[@]}")"
+		echo "$msg" >/dev/stderr
+		exit 1
+	fi
+	unset required_system_tools required_local_tools
+}
+# displayUsage()    {{{1
+#   intent: display usage information
+#   params: nil
+#   prints: nil
+#   return: nil
+displayUsage() {
+	cat <<_USAGE
+${self}: update nvim.appimage
+
+Downloads the current release of nvim.appimage from the
+neovim github repository and copies it to /usr/local/bin/,
+overwriting any existing file. The script must be run with
+superuser privileges or the final copy step to
+/usr/local/bin/ fails.
+
+Usage: ${self}
+
+Options: -h = display help and exit
+         -v = print input lines as they are read
+              (equivalent to 'set -o verbose')
+         -d = print input lines after command expansion
+              (equivalent to 'set -o xtrace')
+_USAGE
+}
+# processOptions([@options])    {{{1
+#   intent: process all command line options
+#   params: @options - all command line parameters
+#   prints: feedback
+#   return: nil
+#   note:   after execution variable @ARGS contains
+#           remaining command line args (after options removed)
+processOptions() {
+	# read the command line options
+	local OPTIONS="$(
+		getopt \
+			--options hvd \
+			--long help,verbose,debug \
+			--name "${BASH_SOURCE[0]}" \
+			-- "${@}"
+	)"
+	[[ ${?} -eq 0 ]] || {
+		echo 'Invalid command line options' 1>&2
+		exit 1
+	}
+	eval set -- "${OPTIONS}"
+	while true; do
+		case "${1}" in
+		-h | --help)
+			displayUsage
+			exit 0
+			;;
+		-v | --verbose)
+			set -o verbose
+			shift 1
+			;;
+		-d | --debug)
+			set -o xtrace
+			shift 1
+			;;
+		--)
+			shift
+			break
+			;;
+		*) break ;;
+		esac
+	done
+	ARGS=("${@}") # remaining arguments
+}
+# joinBy($delim, @items)    {{{1
+#   intent: join all items using delimiter
+#   params: delim - delimiter
+#           items - items to be joined
+#   prints: string containing joined items
+#   return: nil
+function joinBy() {
+	local delimiter first_item
+	delimiter="${1:-}"
+	shift
+	first_item="${1:-}"
+	shift
+	printf %b%s "$first_item" "${@/#/$delimiter}"
+}
+# showVersion()    {{{1
+#   intent: display current version of nvim.appimage
+#   params: nil
+#   prints: output of 'nvim.appimage -v'
+#   return: nil
+showVersion() {
+	if [[ -e "$dest_fp" ]]; then
+		echo "Current version:"
+		echo "$divider"
+		"$dest_fp" -v
+		echo "$divider"
+	fi
+}
+# }}}1
+
+# MAIN
+
+# check for required tools    {{{1
+checkPrereqs
+
+# process command line options    {{{1
+processOptions "${@}" # leaves ${ARGS[@]} holding positional arguments
+
+# show version before update    {{{1
+showVersion
+
+# create temporary directory    {{{1
+tmpdir="$(mktemp --directory)" ||
+	abort 'unable to create a temporary directory'
+trap "[[ -f \"$tmpdir\" ]] && rm -rf \"$tmpdir\"" EXIT
+
+# download current release    {{{1
+cd $tmpdir || abort "unable to cd to tempdir: $tmpdir"
+echo 'Downloading current release:'
+echo "$divider"
+curl -LO "$release_url"
+exit_status=$?
+echo "$divider"
+[[ $exit_status -eq 0 ]] || abort 'unable to download current release'
+file_count=$(
+	shopt -s nullglob
+	files=(*)
+	echo ${#files[@]}
+)
+[[ $file_count -lt 1 ]] && abort 'unable to download current release'
+[[ $file_count -gt 1 ]] && abort "expected 1 file download, got $file_count"
+filename="$(dir -1)"
+[[ "$filename" = "$dest_file" ]] ||
+	abort "expected file '$dest_file', got: $filename"
+chmod u+x "$dest_file" ||
+	abort 'unable to change access privileges for nvim.appimage'
+
+# move to /usr/local/bin    {{{1
+cp --force "$dest_file" "$dest_dir" ||
+	abort "unable to copy to $dest_dir"
+echo "Successfully copied current release to $dest_dir"
+
+# show version after update    {{{1
+showVersion
+
+# cleanup    {{{1
+rm -f $tmpdir/$dest_file ||
+	abort "unable to delete file: $tmpdir/$dest_file"
+rmdir $tmpdir || abort "unable to delete directory: $tmpdir"
+trap - EXIT
+# }}}1
+
+# vim:foldmethod=marker:
