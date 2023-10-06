@@ -1,0 +1,159 @@
+#!/usr/bin/env bash
+
+# File: dn-neovide
+# Author: David Nebauer
+# Purpose: Wrapper for neovide that sets NEOVIM_BIN to use /usr/local/bin/nvim.appimage
+# Created: 2023-10-06
+
+# ERROR HANDLING    {{{1
+
+# Exit on error. Append "|| true" if you expect an error.
+set -o errexit
+# Exit on error inside any functions or subshells.
+set -o errtrace
+# Do not allow use of undefined vars. Use ${VAR:-} to use an undefined VAR
+set -o nounset
+# Catch error in case mysqldump fails (but gzip succeeds) in `mysqldump |gzip`
+set -o pipefail
+# Turn on traces, useful while debugging but commented out by default
+# set -o xtrace
+
+# VARIABLES    {{{1
+
+self="$(basename $0)"
+required_system_tools=(getopt neovide)
+appimage='/usr/local/bin/nvim.appimage'
+# }}}1
+
+# PROCEDURES
+
+# checkPrereqs()    {{{1
+#   intent: check for required tools
+#   params: nil
+#   prints: error message if tool(s) missing
+#   return: n/a, aborts scipts on failure
+function checkPrereqs() {
+	local missing tool
+	missing=()
+	# these tools can be found on the base system path
+	for tool in "${required_system_tools[@]}"; do
+		command -v "$tool" &>/dev/null || missing+=("$tool")
+	done
+	# these tools are specified by absolute path
+	for tool in "${required_local_tools[@]}"; do
+		[[ -x "$tool" ]] || missing+=("$tool")
+	done
+	if [[ ${#missing[@]} -ne 0 ]]; then
+		local msg
+		msg="Can't run without: $(joinBy ', ' "${missing[@]}")"
+		echo "$msg" >/dev/stderr
+		# cannot use 'log' function here:
+		# - options have not yet been processed
+		logger --priority "user.err" --tag "$dn_self" "$msg"
+		exit 1
+	fi
+	unset required_system_tools required_local_tools
+}
+# displayUsage()    {{{1
+#   intent: display usage information
+#   params: nil
+#   prints: nil
+#   return: nil
+displayUsage() {
+	cat <<_USAGE
+$self: neovide wrapper
+
+Sets NEOVIM_BIN to $appimage if it exists and then run
+neovide. Since neovide honours this variable it forces use
+of that nvim.
+
+Usage: $self
+       $self -h
+
+Options: -v      = print input lines after command expansion
+                   (equivalent to 'set -o verbose')
+         -d      = print input lines as they are read
+                   (equivalent to 'set -o xtrace')
+_USAGE
+}
+# processOptions([@options])    {{{1
+#   intent: process all command line options
+#   params: @options - all command line parameters
+#   prints: feedback
+#   return: nil
+#   note:   after execution variable @ARGS contains
+#           remaining command line args (after options removed)
+processOptions() {
+	# read the command line options
+	local OPTIONS="$(
+		getopt \
+			--options hvdx: \
+			--long xoption:,help,verbose,debug \
+			--name "${BASH_SOURCE[0]}" \
+			-- "${@}"
+	)"
+	[[ ${?} -eq 0 ]] || {
+		echo 'Invalid command line options' 1>&2
+		exit 1
+	}
+	eval set -- "${OPTIONS}"
+	while true; do
+		case "${1}" in
+		-x | --xoption)
+			varx="${2}"
+			shift 2
+			;;
+		-h | --help)
+			displayUsage
+			exit 0
+			;;
+		-v | --verbose)
+			set -o verbose
+			shift 1
+			;;
+		-d | --debug)
+			set -o xtrace
+			shift 1
+			;;
+		--)
+			shift
+			break
+			;;
+		*) break ;;
+		esac
+	done
+	ARGS=("${@}") # remaining arguments
+}
+# joinBy($delim, @items)    {{{1
+#   intent: join all items using delimiter
+#   params: delim - delimiter
+#           items - items to be joined
+#   prints: string containing joined items
+#   return: nil
+function joinBy() {
+	local delimiter first_item
+	delimiter="${1:-}"
+	shift
+	first_item="${1:-}"
+	shift
+	printf %b%s "$first_item" "${@/#/$delimiter}"
+}
+# }}}1
+
+# MAIN
+
+# check for required tools    {{{1
+checkPrereqs
+
+# process command line options    {{{1
+processOptions "${@}" # leaves ${ARGS[@]} holding positional arguments
+
+# run neovide    {{{1
+if [[ -e "$appimage" ]]; then
+	NEOVIM_BIN="$appimage" neovide
+else
+	neovide
+fi
+# }}}1
+
+# vim:foldmethod=marker:
