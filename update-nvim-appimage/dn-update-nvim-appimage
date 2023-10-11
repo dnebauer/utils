@@ -205,7 +205,7 @@ file_count=$(
 filename="$(dir -1)"
 [[ "$filename" = "$dest_file" ]] ||
 	abort "expected file '$dest_file', got: $filename"
-chmod u+x "$dest_file" ||
+chmod a+x "$dest_file" ||
 	abort 'unable to change access privileges for nvim.appimage'
 
 # move to /usr/local/bin    {{{1
