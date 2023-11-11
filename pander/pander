@@ -7,7 +7,8 @@
 -- @license GPL-3+
 -- @copyright David Nebauer
 
---[[ Keyword tables ]]--
+--[[ Keyword tables ]]
+--
 
 -- role of tables    {{{1
 --[[
@@ -33,497 +34,504 @@ details.
 -- @table keyword_actions_data
 -- luacheck: push ignore 631
 local keyword_actions_data = {
-    A5 = {
-        all = {
-            metadata = {
-                papersize = "a5"
-            }
-        },
-        context = {
-            metadata = {
-                papersize = "A5"
-            }
-        },
-        latex = {
-            metadata = {
-                papersize = "a5"
-            }
-        }
-    },
-    Include = {
-        all = {
-            filters = {
-                {
-                    "include-files.lua",
-                    10,
-                    true
-                },
-                {
-                    "include-code-files.lua",
-                    10,
-                    true
-                }
-            }
-        }
-    },
-    IncludeAuto = {
-        all = {
-            filters = {
-                {
-                    "include-files.lua",
-                    10,
-                    true
-                },
-                {
-                    "include-code-files.lua",
-                    10,
-                    true
-                }
-            },
-            metadata = {
-                ["include-auto"] = true
-            }
-        }
-    },
-    KeepData = {
-        all = {
-            post_run = {
-                "keep-data"
-            }
-        }
-    },
-    Latex8pt = {
-        latex = {
-            metadata = {
-                documentclass = "extarticle",
-                fontsize = "8pt"
-            }
-        }
-    },
-    Latex9pt = {
-        latex = {
-            metadata = {
-                documentclass = "extarticle",
-                fontsize = "9pt"
-            }
-        }
-    },
-    Latex10pt = {
-        latex = {
-            metadata = {
-                fontsize = "10pt"
-            }
-        }
-    },
-    Latex11pt = {
-        latex = {
-            metadata = {
-                fontsize = "11pt"
-            }
-        }
-    },
-    Latex12pt = {
-        latex = {
-            metadata = {
-                fontsize = "12pt"
-            }
-        }
-    },
-    Latex14pt = {
-        latex = {
-            metadata = {
-                documentclass = "extarticle",
-                fontsize = "14pt"
-            }
-        }
-    },
-    Latex17pt = {
-        latex = {
-            metadata = {
-                documentclass = "extarticle",
-                fontsize = "17pt"
-            }
-        }
-    },
-    Latex20pt = {
-        latex = {
-            metadata = {
-                documentclass = "extarticle",
-                fontsize = "20pt"
-            }
-        }
-    },
-    Letter = {
-        all = {
-            latex = {
-                filters = {
-                    "heading2bold.py"
-                },
-                metadata = {
-                    classoption = {
-                        "LFCS"
-                    },
-                    documentclass = "infletr",
-                    fontfamily = "txfonts",
-                    fontsize = "11pt",
-                    graphics = true
-                },
-                template = "UoE-letter.latex"
-            },
-            metadata = {
-                cc = false,
-                closing = "Yours sincerely,",
-                incl = false,
-                letterhead = {
-                    address = {
-                        "Royal Darwin Hospital",
-                        "105 Rocklands Drive",
-                        "Tiwi NT 0810"
-                    },
-                    affiliation = "Government and Consumer Relations Unit",
-                    email = "david.nebauer@nt.gov.au",
-                    image = "/home/david/.local/share/pandoc/template/img/eulogo.pdf",
-                    name = "Mr David Nebauer",
-                    phone = "+61 (0)8 8922 8631",
-                    position = "Senior Complaints Officer",
-                    website = "www.health.nt.gov.au"
-                },
-                opening = false,
-                ps = false,
-                signature = "/home/david/.local/share/pandoc/resources/signature.png",
-                signed = true,
-                ["tablenos-warning-level"] = 1
-            }
-        }
-    },
-    Libertinus = {
-        context = {
-            metadata = {
-                ["header-includes"] = {
-                    "\\usepackage{xcolor}",
-                    "\\usepackage{fontspec}",
-                    "\\usepackage[proportional]{libertinus-otf}",
-                    "\\usepackage{xeCJK}"
-                }
-            }
-        },
-        latex = {
-            metadata = {
-                ["header-includes"] = {
-                    "\\usepackage{xcolor}",
-                    "\\usepackage{fontspec}",
-                    "\\usepackage[proportional]{libertinus-otf}",
-                    "\\usepackage{xeCJK}"
-                }
-            }
-        }
-    },
-    NoFonts = {
-        all = {
-            extensions = {
-                "+footnotes",
-                "+inline_notes",
-                "+smart"
-            },
-            filters = {
-                "pandoc-fignos",
-                "pandoc-eqnos",
-                "pandoc-tablenos"
-            },
-            metadata = {
-                ["eqnos-cleveref"] = true,
-                ["eqnos-plus-name"] = "equation",
-                ["fignos-cleveref"] = true,
-                ["fignos-plus-name"] = "figure",
-                lang = "en-AU",
-                numbersections = false,
-                papersize = "a4",
-                ["secnos-cleveref"] = true,
-                ["tablenos-cleveref"] = true,
-                ["tablenos-warning-level"] = 1
-            },
-            options = {
-                ["--self-contained"] = true,
-                ["--standalone"] = true
-            }
-        },
-        context = {
-            metadata = {
-                ["header-includes"] = {
-                    "\\usepackage{xcolor}",
-                    "\\usepackage{fontspec}",
-                    "\\usepackage[CJK]{ucharclasses}"
-                },
-                linkcolor = "gray",
-                microtypeoptions = "babel",
-                papersize = "A4"
-            }
-        },
-        epub = {
-            metadata = {
-                ["cover-image"] = "::cover_image::"
-            },
-            post_run = {
-                "create_mobi"
-            }
-        },
-        html = {
-            metadata = {
-                css = "/home/david/.local/share/pandoc/templates/css/buttondown.css"
-            }
-        },
-        latex = {
-            metadata = {
-                citecolor = "gray",
-                filecolor = "gray",
-                ["header-includes"] = {
-                    "\\usepackage{xcolor}",
-                    "\\usepackage{fontspec}",
-                    "\\usepackage[CJK]{ucharclasses}",
-                    "\\usepackage{xcolor}"
-                },
-                linkcolor = "gray",
-                microtypeoptions = "babel",
-                papersize = "a4",
-                toccolor = "gray",
-                urlcolor = "gray"
-            }
-        }
-    },
-    PageBreak = {
-        all = {
-            filters = {
-                "pagebreak.lua"
-            }
-        }
-    },
-    Pause = {
-        all = {
-            post_run = {
-                "pause"
-            }
-        }
-    },
-    SaveTrees = {
-        latex = {
-            metadata = {
-                ["compact-headings"] = "true",
-                fontsize = "10pt",
-                geometry = {
-                    "top=1.5cm",
-                    "bottom=1.5cm"
-                }
-            }
-        }
-    },
-    SectFlush = {
-        latex = {
-            metadata = {
-                ["header-includes"] = {
-                    "\\usepackage[section]{placeins}"
-                }
-            }
-        }
-    },
-    SectNewpage = {
-        html = {
-            filters = {
-                "paginatesects.py"
-            }
-        },
-        latex = {
-            filters = {
-                "paginatesects.py"
-            }
-        }
-    },
-    Standard = {
-        all = {
-            extensions = {
-                "+footnotes",
-                "+inline_notes",
-                "+smart"
-            },
-            filters = {
-                "pandoc-fignos",
-                "pandoc-eqnos",
-                "pandoc-tablenos"
-            },
-            metadata = {
-                ["eqnos-cleveref"] = true,
-                ["eqnos-plus-name"] = "equation",
-                ["fignos-cleveref"] = true,
-                ["fignos-plus-name"] = "figure",
-                lang = "en-AU",
-                numbersections = false,
-                papersize = "a4",
-                ["secnos-cleveref"] = true,
-                ["tablenos-cleveref"] = true,
-                ["tablenos-warning-level"] = 1
-            },
-            options = {
-                ["--self-contained"] = true,
-                ["--standalone"] = true
-            }
-        },
-        context = {
-            metadata = {
-                ["header-includes"] = {
-                    "\\usepackage{xcolor}",
-                    "\\usepackage{fontspec}",
-                    "\\setmainfont{Junicode}",
-                    "\\newfontfamily\\myregularfont{Junicode}",
-                    "\\newfontfamily\\mychinesefont{IPAexMincho}",
-                    "\\usepackage[CJK]{ucharclasses}",
-                    "\\setTransitionsForCJK{\\mychinesefont}{\\myregularfont}"
-                },
-                linkcolor = "gray",
-                microtypeoptions = "babel",
-                papersize = "A4"
-            }
-        },
-        epub = {
-            metadata = {
-                ["cover-image"] = "::cover_image::"
-            },
-            post_run = {
-                "create_mobi"
-            }
-        },
-        html = {
-            metadata = {
-                css = "/home/david/.local/share/pandoc/templates/css/buttondown.css"
-            }
-        },
-        latex = {
-            metadata = {
-                citecolor = "gray",
-                filecolor = "gray",
-                ["header-includes"] = {
-                    "\\usepackage{xcolor}",
-                    "\\usepackage{fontspec}",
-                    "\\setmainfont{Junicode}",
-                    "\\newfontfamily\\myregularfont{Junicode}",
-                    "\\newfontfamily\\mychinesefont{IPAexMincho}",
-                    "\\usepackage[CJK]{ucharclasses}",
-                    "\\setTransitionsForCJK{\\mychinesefont}{\\myregularfont}",
-                    "\\usepackage{xcolor}"
-                },
-                linkcolor = "gray",
-                microtypeoptions = "babel",
-                papersize = "a4",
-                toccolor = "gray",
-                urlcolor = "gray"
-            }
-        }
-    },
-    SubsectFlush = {
-        latex = {
-            metadata = {
-                ["header-includes"] = {
-                    "```{=latex}",
-                    "\\usepackage[section]{placeins}",
-                    "\\makeatletter",
-                    "\\AtBeginDocument{\\expandafter\\renewcommand\\expandafter\\subsection\\expandafter{\\expandafter\\@fb@secFB\\subsection}}",
-                    "\\makeatother",
-                    "```"
-                }
-            }
-        }
-    },
-    TextColour = {
-        all = {
-            filters = {
-                "text-colour.lua"
-            }
-        }
-    },
-    Tufte = {
-        all = {
-            extensions = {
-                "+footnotes",
-                "+inline_notes",
-                "+smart"
-            },
-            filters = {
-                "pandoc-fignos",
-                "pandoc-eqnos",
-                "pandoc-tablenos"
-            },
-            metadata = {
-                ["eqnos-cleveref"] = true,
-                ["eqnos-plus-name"] = "equation",
-                ["fignos-cleveref"] = true,
-                ["fignos-plus-name"] = "figure",
-                lang = "en-AU",
-                numbersections = false,
-                papersize = "A4",
-                ["secnos-cleveref"] = true,
-                ["tablenos-cleveref"] = true,
-                ["tablenos-warning-level"] = 1
-            },
-            options = {
-                ["--self-contained"] = true,
-                ["--standalone"] = true
-            }
-        },
-        context = {
-            metadata = {
-                ["header-includes"] = {
-                    "\\usepackage{xcolor}",
-                    "\\usepackage{fontspec}",
-                    "\\setmainfont{Junicode}",
-                    "\\newfontfamily\\myregularfont{Junicode}",
-                    "\\newfontfamily\\mychinesefont{IPAexMincho}",
-                    "\\usepackage[CJK]{ucharclasses}",
-                    "\\setTransitionsForCJK{\\mychinesefont}{\\myregularfont}"
-                },
-                linkcolor = "gray",
-                microtypeoptions = "babel",
-                papersize = "A4"
-            }
-        },
-        epub = {
-            metadata = {
-                ["cover-image"] = "::cover_image::"
-            },
-            post_run = {
-                "create_mobi"
-            }
-        },
-        html = {
-            metadata = {
-                css = "/home/david/.local/share/pandoc/templates/css/tufte-otsaloma.css"
-            }
-        },
-        latex = {
-            metadata = {
-                citecolor = "RoyalBlue",
-                documentclass = "tufte-handout",
-                filecolor = "RoyalBlue",
-                fontsize = "12pt",
-                ["header-includes"] = {
-                    "\\usepackage{xcolor}",
-                    "\\usepackage{fontspec}"
-                },
-                linkcolor = "RoyalBlue",
-                mainfont = "Linux Libertine O",
-                microtypeoptions = "babel",
-                monofont = "Inconsolata Nerd Font Mono",
-                newtxmathoptions = {
-                    "cmintegrals",
-                    "cmbraces"
-                },
-                papersize = "a4",
-                sansfont = "Linux Biolinum O",
-                toccolor = "RoyalBlue",
-                urlcolor = "RoyalBlue"
-            },
-            options = {
-                ["--template"] = "tufte-jez.latex"
-            }
-        }
-    }
+	A5 = {
+		all = {
+			metadata = {
+				papersize = "a5",
+			},
+		},
+		context = {
+			metadata = {
+				papersize = "A5",
+			},
+		},
+		latex = {
+			metadata = {
+				papersize = "a5",
+			},
+		},
+	},
+	Include = {
+		all = {
+			filters = {
+				{
+					"include-files.lua",
+					10,
+					true,
+				},
+				{
+					"include-code-files.lua",
+					10,
+					true,
+				},
+			},
+		},
+	},
+	IncludeAuto = {
+		all = {
+			filters = {
+				{
+					"include-files.lua",
+					10,
+					true,
+				},
+				{
+					"include-code-files.lua",
+					10,
+					true,
+				},
+			},
+			metadata = {
+				["include-auto"] = true,
+			},
+		},
+	},
+	KeepData = {
+		all = {
+			post_run = {
+				"keep-data",
+			},
+		},
+	},
+	KeyboardFont = {
+		all = {
+			filters = {
+				"keyboard-font.lua",
+			},
+		},
+	},
+	Latex8pt = {
+		latex = {
+			metadata = {
+				documentclass = "extarticle",
+				fontsize = "8pt",
+			},
+		},
+	},
+	Latex9pt = {
+		latex = {
+			metadata = {
+				documentclass = "extarticle",
+				fontsize = "9pt",
+			},
+		},
+	},
+	Latex10pt = {
+		latex = {
+			metadata = {
+				fontsize = "10pt",
+			},
+		},
+	},
+	Latex11pt = {
+		latex = {
+			metadata = {
+				fontsize = "11pt",
+			},
+		},
+	},
+	Latex12pt = {
+		latex = {
+			metadata = {
+				fontsize = "12pt",
+			},
+		},
+	},
+	Latex14pt = {
+		latex = {
+			metadata = {
+				documentclass = "extarticle",
+				fontsize = "14pt",
+			},
+		},
+	},
+	Latex17pt = {
+		latex = {
+			metadata = {
+				documentclass = "extarticle",
+				fontsize = "17pt",
+			},
+		},
+	},
+	Latex20pt = {
+		latex = {
+			metadata = {
+				documentclass = "extarticle",
+				fontsize = "20pt",
+			},
+		},
+	},
+	Letter = {
+		all = {
+			latex = {
+				filters = {
+					"heading2bold.py",
+				},
+				metadata = {
+					classoption = {
+						"LFCS",
+					},
+					documentclass = "infletr",
+					fontfamily = "txfonts",
+					fontsize = "11pt",
+					graphics = true,
+				},
+				template = "UoE-letter.latex",
+			},
+			metadata = {
+				cc = false,
+				closing = "Yours sincerely,",
+				incl = false,
+				letterhead = {
+					address = {
+						"Royal Darwin Hospital",
+						"105 Rocklands Drive",
+						"Tiwi NT 0810",
+					},
+					affiliation = "Government and Consumer Relations Unit",
+					email = "david.nebauer@nt.gov.au",
+					image = "/home/david/.local/share/pandoc/template/img/eulogo.pdf",
+					name = "Mr David Nebauer",
+					phone = "+61 (0)8 8922 8631",
+					position = "Senior Complaints Officer",
+					website = "www.health.nt.gov.au",
+				},
+				opening = false,
+				ps = false,
+				signature = "/home/david/.local/share/pandoc/resources/signature.png",
+				signed = true,
+				["tablenos-warning-level"] = 1,
+			},
+		},
+	},
+	Libertinus = {
+		context = {
+			metadata = {
+				["header-includes"] = {
+					"\\usepackage{xcolor}",
+					"\\usepackage{fontspec}",
+					"\\usepackage[proportional]{libertinus-otf}",
+					"\\usepackage{xeCJK}",
+				},
+			},
+		},
+		latex = {
+			metadata = {
+				["header-includes"] = {
+					"\\usepackage{xcolor}",
+					"\\usepackage{fontspec}",
+					"\\usepackage[proportional]{libertinus-otf}",
+					"\\usepackage{xeCJK}",
+				},
+			},
+		},
+	},
+	NoFonts = {
+		all = {
+			extensions = {
+				"+footnotes",
+				"+inline_notes",
+				"+smart",
+			},
+			filters = {
+				"pandoc-fignos",
+				"pandoc-eqnos",
+				"pandoc-tablenos",
+			},
+			metadata = {
+				["eqnos-cleveref"] = true,
+				["eqnos-plus-name"] = "equation",
+				["fignos-cleveref"] = true,
+				["fignos-plus-name"] = "figure",
+				lang = "en-AU",
+				numbersections = false,
+				papersize = "a4",
+				["secnos-cleveref"] = true,
+				["tablenos-cleveref"] = true,
+				["tablenos-warning-level"] = 1,
+			},
+			options = {
+				["--self-contained"] = true,
+				["--standalone"] = true,
+			},
+		},
+		context = {
+			metadata = {
+				["header-includes"] = {
+					"\\usepackage{xcolor}",
+					"\\usepackage{fontspec}",
+					"\\usepackage[CJK]{ucharclasses}",
+				},
+				linkcolor = "gray",
+				microtypeoptions = "babel",
+				papersize = "A4",
+			},
+		},
+		epub = {
+			metadata = {
+				["cover-image"] = "::cover_image::",
+			},
+			post_run = {
+				"create_mobi",
+			},
+		},
+		html = {
+			metadata = {
+				css = "/home/david/.local/share/pandoc/templates/css/buttondown.css",
+			},
+		},
+		latex = {
+			metadata = {
+				citecolor = "gray",
+				filecolor = "gray",
+				["header-includes"] = {
+					"\\usepackage{xcolor}",
+					"\\usepackage{fontspec}",
+					"\\usepackage[CJK]{ucharclasses}",
+					"\\usepackage{xcolor}",
+				},
+				linkcolor = "gray",
+				microtypeoptions = "babel",
+				papersize = "a4",
+				toccolor = "gray",
+				urlcolor = "gray",
+			},
+		},
+	},
+	PageBreak = {
+		all = {
+			filters = {
+				"pagebreak.lua",
+			},
+		},
+	},
+	Pause = {
+		all = {
+			post_run = {
+				"pause",
+			},
+		},
+	},
+	SaveTrees = {
+		latex = {
+			metadata = {
+				["compact-headings"] = "true",
+				fontsize = "10pt",
+				geometry = {
+					"top=1.5cm",
+					"bottom=1.5cm",
+				},
+			},
+		},
+	},
+	SectFlush = {
+		latex = {
+			metadata = {
+				["header-includes"] = {
+					"\\usepackage[section]{placeins}",
+				},
+			},
+		},
+	},
+	SectNewpage = {
+		html = {
+			filters = {
+				"paginatesects.py",
+			},
+		},
+		latex = {
+			filters = {
+				"paginatesects.py",
+			},
+		},
+	},
+	Standard = {
+		all = {
+			extensions = {
+				"+footnotes",
+				"+inline_notes",
+				"+smart",
+			},
+			filters = {
+				"pandoc-fignos",
+				"pandoc-eqnos",
+				"pandoc-tablenos",
+			},
+			metadata = {
+				["eqnos-cleveref"] = true,
+				["eqnos-plus-name"] = "equation",
+				["fignos-cleveref"] = true,
+				["fignos-plus-name"] = "figure",
+				lang = "en-AU",
+				numbersections = false,
+				papersize = "a4",
+				["secnos-cleveref"] = true,
+				["tablenos-cleveref"] = true,
+				["tablenos-warning-level"] = 1,
+			},
+			options = {
+				["--self-contained"] = true,
+				["--standalone"] = true,
+			},
+		},
+		context = {
+			metadata = {
+				["header-includes"] = {
+					"\\usepackage{xcolor}",
+					"\\usepackage{fontspec}",
+					"\\setmainfont{Junicode}",
+					"\\newfontfamily\\myregularfont{Junicode}",
+					"\\newfontfamily\\mychinesefont{IPAexMincho}",
+					"\\usepackage[CJK]{ucharclasses}",
+					"\\setTransitionsForCJK{\\mychinesefont}{\\myregularfont}",
+				},
+				linkcolor = "gray",
+				microtypeoptions = "babel",
+				papersize = "A4",
+			},
+		},
+		epub = {
+			metadata = {
+				["cover-image"] = "::cover_image::",
+			},
+			post_run = {
+				"create_mobi",
+			},
+		},
+		html = {
+			metadata = {
+				css = "/home/david/.local/share/pandoc/templates/css/buttondown.css",
+			},
+		},
+		latex = {
+			metadata = {
+				citecolor = "gray",
+				filecolor = "gray",
+				["header-includes"] = {
+					"\\usepackage{xcolor}",
+					"\\usepackage{fontspec}",
+					"\\setmainfont{Junicode}",
+					"\\newfontfamily\\myregularfont{Junicode}",
+					"\\newfontfamily\\mychinesefont{IPAexMincho}",
+					"\\usepackage[CJK]{ucharclasses}",
+					"\\setTransitionsForCJK{\\mychinesefont}{\\myregularfont}",
+					"\\usepackage{xcolor}",
+				},
+				linkcolor = "gray",
+				microtypeoptions = "babel",
+				papersize = "a4",
+				toccolor = "gray",
+				urlcolor = "gray",
+			},
+		},
+	},
+	SubsectFlush = {
+		latex = {
+			metadata = {
+				["header-includes"] = {
+					"```{=latex}",
+					"\\usepackage[section]{placeins}",
+					"\\makeatletter",
+					"\\AtBeginDocument{\\expandafter\\renewcommand\\expandafter\\subsection\\expandafter{\\expandafter\\@fb@secFB\\subsection}}",
+					"\\makeatother",
+					"```",
+				},
+			},
+		},
+	},
+	TextColour = {
+		all = {
+			filters = {
+				"text-colour.lua",
+			},
+		},
+	},
+	Tufte = {
+		all = {
+			extensions = {
+				"+footnotes",
+				"+inline_notes",
+				"+smart",
+			},
+			filters = {
+				"pandoc-fignos",
+				"pandoc-eqnos",
+				"pandoc-tablenos",
+			},
+			metadata = {
+				["eqnos-cleveref"] = true,
+				["eqnos-plus-name"] = "equation",
+				["fignos-cleveref"] = true,
+				["fignos-plus-name"] = "figure",
+				lang = "en-AU",
+				numbersections = false,
+				papersize = "A4",
+				["secnos-cleveref"] = true,
+				["tablenos-cleveref"] = true,
+				["tablenos-warning-level"] = 1,
+			},
+			options = {
+				["--self-contained"] = true,
+				["--standalone"] = true,
+			},
+		},
+		context = {
+			metadata = {
+				["header-includes"] = {
+					"\\usepackage{xcolor}",
+					"\\usepackage{fontspec}",
+					"\\setmainfont{Junicode}",
+					"\\newfontfamily\\myregularfont{Junicode}",
+					"\\newfontfamily\\mychinesefont{IPAexMincho}",
+					"\\usepackage[CJK]{ucharclasses}",
+					"\\setTransitionsForCJK{\\mychinesefont}{\\myregularfont}",
+				},
+				linkcolor = "gray",
+				microtypeoptions = "babel",
+				papersize = "A4",
+			},
+		},
+		epub = {
+			metadata = {
+				["cover-image"] = "::cover_image::",
+			},
+			post_run = {
+				"create_mobi",
+			},
+		},
+		html = {
+			metadata = {
+				css = "/home/david/.local/share/pandoc/templates/css/tufte-otsaloma.css",
+			},
+		},
+		latex = {
+			metadata = {
+				citecolor = "RoyalBlue",
+				documentclass = "tufte-handout",
+				filecolor = "RoyalBlue",
+				fontsize = "12pt",
+				["header-includes"] = {
+					"\\usepackage{xcolor}",
+					"\\usepackage{fontspec}",
+				},
+				linkcolor = "RoyalBlue",
+				mainfont = "Linux Libertine O",
+				microtypeoptions = "babel",
+				monofont = "Inconsolata Nerd Font Mono",
+				newtxmathoptions = {
+					"cmintegrals",
+					"cmbraces",
+				},
+				papersize = "a4",
+				sansfont = "Linux Biolinum O",
+				toccolor = "RoyalBlue",
+				urlcolor = "RoyalBlue",
+			},
+			options = {
+				["--template"] = "tufte-jez.latex",
+			},
+		},
+	},
 }
 -- luacheck: pop
 
@@ -535,25 +543,41 @@ local keyword_actions_data = {
 -- @local
 -- @table keyword_conflict_data
 local keyword_conflict_data = {
-    documentclass = {
-        Latex8pt = true, Latex9pt = true, Latex14pt = true,
-        Latex17pt = true, Latex20pt = true,
-        Letter = true, Tufte = true
-    },
-    ["font-size"] = {
-        Latex8pt = true, Latex9pt = true, Latex10pt = true,
-        Latex11pt = true, Latex12pt = true, Latex14pt = true,
-        Latex17pt = true, Latex20pt = true
-    },
-    fonts = {
-        Letter = true, Libertinus = true, Standard = true, Tufte = true
-    },
-    paginate = {
-        PageBreak = true, SectNewpage = true
-    },
-    theme = {
-        Letter = true, NoFonts = true, Standard = true, Tufte = true
-    }
+	documentclass = {
+		Latex8pt = true,
+		Latex9pt = true,
+		Latex14pt = true,
+		Latex17pt = true,
+		Latex20pt = true,
+		Letter = true,
+		Tufte = true,
+	},
+	["font-size"] = {
+		Latex8pt = true,
+		Latex9pt = true,
+		Latex10pt = true,
+		Latex11pt = true,
+		Latex12pt = true,
+		Latex14pt = true,
+		Latex17pt = true,
+		Latex20pt = true,
+	},
+	fonts = {
+		Letter = true,
+		Libertinus = true,
+		Standard = true,
+		Tufte = true,
+	},
+	paginate = {
+		PageBreak = true,
+		SectNewpage = true,
+	},
+	theme = {
+		Letter = true,
+		NoFonts = true,
+		Standard = true,
+		Tufte = true,
+	},
 }
 
 -- keyword_describe_data    {{{1
@@ -564,30 +588,31 @@ local keyword_conflict_data = {
 -- @local
 -- @table keyword_describe_data
 local keyword_describe_data = {
-    A5 = "a5 latex page size",
-    Include = "include other files",
-    IncludeAuto = "include other files (shift headers automatically)",
-    KeepData = "do not delete the metadata file",
-    Latex8pt = "set font size to 8 pt in latex output",
-    Latex9pt = "set font size to 9 pt in latex output",
-    Latex10pt = "set font size to 10 pt in latex output",
-    Latex11pt = "set font size to 11 pt in latex output",
-    Latex12pt = "set font size to 12 pt in latex output",
-    Latex14pt = "set font size to 14 pt in latex output",
-    Latex17pt = "set font size to 17 pt in latex output",
-    Latex20pt = "set font size to 20 pt in latex output",
-    Letter = "style theme for writing letters",
-    Libertinus = "use libertinus/xecjk latex font packages",
-    NoFonts = "standard but with no fonts defined for pdf",
-    PageBreak = "process LaTeX \\newpage instructions",
-    Pause = "pause before exiting script",
-    SaveTrees = "compact format for printing",
-    SectFlush = "flush all sections before they end",
-    SectNewpage = "start each section on a new page",
-    Standard = "default style theme",
-    SubsectFlush = "flush all subsections before they end",
-    TextColour = "process color attribute",
-    Tufte = "style theme based on Edward R. Tufte's designs"
+	A5 = "a5 latex page size",
+	Include = "include other files",
+	IncludeAuto = "include other files (shift headers automatically)",
+	KeepData = "do not delete the metadata file",
+	KeyboardFont = "process font attribute 'kbd'",
+	Latex8pt = "set font size to 8 pt in latex output",
+	Latex9pt = "set font size to 9 pt in latex output",
+	Latex10pt = "set font size to 10 pt in latex output",
+	Latex11pt = "set font size to 11 pt in latex output",
+	Latex12pt = "set font size to 12 pt in latex output",
+	Latex14pt = "set font size to 14 pt in latex output",
+	Latex17pt = "set font size to 17 pt in latex output",
+	Latex20pt = "set font size to 20 pt in latex output",
+	Letter = "style theme for writing letters",
+	Libertinus = "use libertinus/xecjk latex font packages",
+	NoFonts = "standard but with no fonts defined for pdf",
+	PageBreak = "process LaTeX \\newpage instructions",
+	Pause = "pause before exiting script",
+	SaveTrees = "compact format for printing",
+	SectFlush = "flush all sections before they end",
+	SectNewpage = "start each section on a new page",
+	Standard = "default style theme",
+	SubsectFlush = "flush all subsections before they end",
+	TextColour = "process color attribute",
+	Tufte = "style theme based on Edward R. Tufte's designs",
 }
 
 -- keyword_expand_data    {{{1
@@ -607,110 +632,142 @@ local keyword_expand_data = {}
 -- @local
 -- @table keyword_valid_data
 local keyword_valid_data = {
-    A5 = true, Include = true, IncludeAuto = true, KeepData = true,
-    Latex8pt = true, Latex9pt = true, Latex10pt = true,
-    Latex11pt = true, Latex12pt = true, Latex14pt = true,
-    Latex17pt = true, Latex20pt = true,
-    Letter = true, Libertinus = true, NoFonts = true,
-    PageBreak = true, Pause = true, SaveTrees = true,
-    SectFlush = true, SectNewpage = true, Standard = true,
-    SubsectFlush = true, TextColour = true, Tufte = true
+	A5 = true,
+	Include = true,
+	IncludeAuto = true,
+	KeepData = true,
+	KeyboardFont = true,
+	Latex8pt = true,
+	Latex9pt = true,
+	Latex10pt = true,
+	Latex11pt = true,
+	Latex12pt = true,
+	Latex14pt = true,
+	Latex17pt = true,
+	Latex20pt = true,
+	Letter = true,
+	Libertinus = true,
+	NoFonts = true,
+	PageBreak = true,
+	Pause = true,
+	SaveTrees = true,
+	SectFlush = true,
+	SectNewpage = true,
+	Standard = true,
+	SubsectFlush = true,
+	TextColour = true,
+	Tufte = true,
 }
 -- }}}1
 
---[[ Modules ]]--
+--[[ Modules ]]
+--
 
 -- color    {{{1
 local color
 do
-    -- Available from https://github.com/randrews/color
-    --
-    -- Copyright (C) 2012 Ross Andrews
-    --
-    -- This program is free software: you can redistribute it and/or modify it
-    -- under the terms of the GNU Lesser General Public License as published by
-    -- the Free Software Foundation, either version 3 of the License, or (at
-    -- your option) any later version.
-    --
-    -- This program is distributed in the hope that it will be useful, but
-    -- WITHOUT ANY WARRANTY; without even the implied warranty of
-    -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    -- General Public License for more details.
-    --
-    -- You should have received a copy of the GNU Lesser General Public License
-    -- along with this program.  If not, see
-    -- <http://www.gnu.org/licenses/lgpl.txt>.
+	-- Available from https://github.com/randrews/color
+	--
+	-- Copyright (C) 2012 Ross Andrews
+	--
+	-- This program is free software: you can redistribute it and/or modify it
+	-- under the terms of the GNU Lesser General Public License as published by
+	-- the Free Software Foundation, either version 3 of the License, or (at
+	-- your option) any later version.
+	--
+	-- This program is distributed in the hope that it will be useful, but
+	-- WITHOUT ANY WARRANTY; without even the implied warranty of
+	-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	-- General Public License for more details.
+	--
+	-- You should have received a copy of the GNU Lesser General Public License
+	-- along with this program.  If not, see
+	-- <http://www.gnu.org/licenses/lgpl.txt>.
 
-    -- A note about licensing:
-    --
-    -- The LGPL isn't really intended to be used with non-compiled libraries.
-    -- The way I interpret derivative works of this library is this: if you
-    -- don't modify this file, and the program it's embedded in doesn't modify
-    -- the Lua table it defines, then you can distribute it with a program
-    -- under any license. If you do either of those things, then you've created
-    -- a derivative work of this library and you have to release the
-    -- modifications you made under this same license.
+	-- A note about licensing:
+	--
+	-- The LGPL isn't really intended to be used with non-compiled libraries.
+	-- The way I interpret derivative works of this library is this: if you
+	-- don't modify this file, and the program it's embedded in doesn't modify
+	-- the Lua table it defines, then you can distribute it with a program
+	-- under any license. If you do either of those things, then you've created
+	-- a derivative work of this library and you have to release the
+	-- modifications you made under this same license.
 
-    color = { _NAME = 'color' }
-    local _M = color
+	color = { _NAME = "color" }
+	local _M = color
 
-    local esc = string.char(27, 91)
+	local esc = string.char(27, 91)
 
-    local names = {
-        'black', 'red', 'green', 'yellow', 'blue', 'pink', 'cyan', 'white'
-    }
-    local hi_names = {
-        'BLACK', 'RED', 'GREEN', 'YELLOW', 'BLUE', 'PINK', 'CYAN', 'WHITE'
-    }
+	local names = {
+		"black",
+		"red",
+		"green",
+		"yellow",
+		"blue",
+		"pink",
+		"cyan",
+		"white",
+	}
+	local hi_names = {
+		"BLACK",
+		"RED",
+		"GREEN",
+		"YELLOW",
+		"BLUE",
+		"PINK",
+		"CYAN",
+		"WHITE",
+	}
 
-    color.fg, color.bg = {}, {}
+	color.fg, color.bg = {}, {}
 
-    for i, name in ipairs(names) do
-       color.fg[name] = esc .. tostring(30+i-1) .. 'm'
-       _M[name] = color.fg[name]
-       color.bg[name] = esc .. tostring(40+i-1) .. 'm'
-    end
+	for i, name in ipairs(names) do
+		color.fg[name] = esc .. tostring(30 + i - 1) .. "m"
+		_M[name] = color.fg[name]
+		color.bg[name] = esc .. tostring(40 + i - 1) .. "m"
+	end
 
-    for i, name in ipairs(hi_names) do
-       color.fg[name] = esc .. tostring(90+i-1) .. 'm'
-       _M[name] = color.fg[name]
-       color.bg[name] = esc .. tostring(100+i-1) .. 'm'
-    end
+	for i, name in ipairs(hi_names) do
+		color.fg[name] = esc .. tostring(90 + i - 1) .. "m"
+		_M[name] = color.fg[name]
+		color.bg[name] = esc .. tostring(100 + i - 1) .. "m"
+	end
 
-    local function fg256(_,n)
-       return esc .. '38;5;' .. n .. 'm'
-    end
+	local function fg256(_, n)
+		return esc .. "38;5;" .. n .. "m"
+	end
 
-    local function bg256(_,n)
-       return esc .. '48;5;' .. n .. 'm'
-    end
+	local function bg256(_, n)
+		return esc .. "48;5;" .. n .. "m"
+	end
 
-    setmetatable(color.fg, {__call = fg256})
-    setmetatable(color.bg, {__call = bg256})
+	setmetatable(color.fg, { __call = fg256 })
+	setmetatable(color.bg, { __call = bg256 })
 
-    color.reset = esc .. '0m'
-    color.clear = esc .. '2J'
+	color.reset = esc .. "0m"
+	color.clear = esc .. "2J"
 
-    color.bold = esc .. '1m'
-    color.faint = esc .. '2m'
-    color.normal = esc .. '22m'
-    color.invert = esc .. '7m'
-    color.underline = esc .. '4m'
+	color.bold = esc .. "1m"
+	color.faint = esc .. "2m"
+	color.normal = esc .. "22m"
+	color.invert = esc .. "7m"
+	color.underline = esc .. "4m"
 
-    color.hide = esc .. '?25l'
-    color.show = esc .. '?25h'
+	color.hide = esc .. "?25l"
+	color.show = esc .. "?25h"
 
-    function color.move(x, y)
-       return esc .. y .. ';' .. x .. 'H'
-    end
+	function color.move(x, y)
+		return esc .. y .. ";" .. x .. "H"
+	end
 
-    color.home = color.move(1, 1)
+	color.home = color.move(1, 1)
 end
 
 -- dkjson    {{{1
 local json = {}
 do
-    --[==[
+	--[==[
 
     David Kolf's JSON module for Lua 5.1 - 5.4
 
@@ -748,639 +805,632 @@ do
 
     --]==]
 
-    -- global dependencies:
-    local pairs, type, tostring, tonumber =
-          pairs, type, tostring, tonumber
-    local getmetatable, setmetatable = getmetatable, setmetatable
-    local error, require, pcall, select = error, require, pcall, select
-    local floor, huge = math.floor, math.huge
-    local strrep, gsub, strsub, strbyte, strchar =
-          string.rep, string.gsub, string.sub, string.byte, string.char
-    local strfind, strlen, strformat = string.find, string.len, string.format
-    local strmatch = string.match
-    local concat = table.concat
+	-- global dependencies:
+	local pairs, type, tostring, tonumber = pairs, type, tostring, tonumber
+	local getmetatable, setmetatable = getmetatable, setmetatable
+	local error, require, pcall, select = error, require, pcall, select
+	local floor, huge = math.floor, math.huge
+	local strrep, gsub, strsub, strbyte, strchar = string.rep, string.gsub, string.sub, string.byte, string.char
+	local strfind, strlen, strformat = string.find, string.len, string.format
+	local strmatch = string.match
+	local concat = table.concat
 
-    json['version'] = "dkjson 2.6"
+	json["version"] = "dkjson 2.6"
 
-    pcall(function()
-        -- Enable access to blocked metatables.
-        -- Don't worry, this module doesn't change anything in them.
-        local debmeta = require 'debug'.getmetatable
-        if debmeta then getmetatable = debmeta end
-    end)
+	pcall(function()
+		-- Enable access to blocked metatables.
+		-- Don't worry, this module doesn't change anything in them.
+		local debmeta = require("debug").getmetatable
+		if debmeta then
+			getmetatable = debmeta
+		end
+	end)
 
-    json.null = setmetatable({}, {
-        __tojson = function () return 'null' end
-    })
+	json.null = setmetatable({}, {
+		__tojson = function()
+			return "null"
+		end,
+	})
 
-    local function isarray(tbl)
-        local max, n, arraylen = 0, 0, 0
-        for k,v in pairs(tbl) do
-            if k == 'n' and type(v) == 'number' then
-                arraylen = v
-                if v > max then
-                    max = v
-                end
-            else
-                if type(k) ~= 'number' or k < 1 or floor(k) ~= k then
-                    return false
-                end
-                if k > max then
-                    max = k
-                end
-                n = n + 1
-            end
-        end
-        if max > 10 and max > arraylen and max > n * 2 then
-            return false -- don't create an array with too many holes
-        end
-        return true, max
-    end
+	local function isarray(tbl)
+		local max, n, arraylen = 0, 0, 0
+		for k, v in pairs(tbl) do
+			if k == "n" and type(v) == "number" then
+				arraylen = v
+				if v > max then
+					max = v
+				end
+			else
+				if type(k) ~= "number" or k < 1 or floor(k) ~= k then
+					return false
+				end
+				if k > max then
+					max = k
+				end
+				n = n + 1
+			end
+		end
+		if max > 10 and max > arraylen and max > n * 2 then
+			return false -- don't create an array with too many holes
+		end
+		return true, max
+	end
 
-    local escapecodes = {
-        ["\""] = "\\\"", ["\\"] = "\\\\", ["\b"] = "\\b", ["\f"] = "\\f",
-        ["\n"] = "\\n",  ["\r"] = "\\r",  ["\t"] = "\\t"
-    }
+	local escapecodes = {
+		['"'] = '\\"',
+		["\\"] = "\\\\",
+		["\b"] = "\\b",
+		["\f"] = "\\f",
+		["\n"] = "\\n",
+		["\r"] = "\\r",
+		["\t"] = "\\t",
+	}
 
-    local function escapeutf8(uchar)
-        ---@diagnostic disable:cast-local-type
-        local value = escapecodes[uchar]
-        if value then
-            return value
-        end
-        local a, b, c, d = strbyte(uchar, 1, 4)
-        a, b, c, d = a or 0, b or 0, c or 0, d or 0
-        if a <= 0x7f then
-            value = a
-        elseif 0xc0 <= a and a <= 0xdf and b >= 0x80 then
-            value = (a - 0xc0) * 0x40 + b - 0x80
-        elseif 0xe0 <= a and a <= 0xef and b >= 0x80 and c >= 0x80 then
-            value = ((a - 0xe0) * 0x40 + b - 0x80) * 0x40 + c - 0x80
-        elseif 0xf0 <= a and a <= 0xf7 and b >= 0x80 and c >= 0x80
-                and d >= 0x80 then
-            value = (((a - 0xf0) * 0x40 + b - 0x80) * 0x40 + c - 0x80)
-                * 0x40 + d - 0x80
-        else
-            return ''
-        end
-        if value <= 0xffff then
-            return strformat('\\u%.4x', value)
-        elseif value <= 0x10ffff then
-            -- encode as UTF-16 surrogate pair
-            value = value - 0x10000
-            local highsur = 0xD800 + floor(value/0x400)
-            local lowsur = 0xDC00 + (value % 0x400)
-            return strformat('\\u%.4x\\u%.4x', highsur, lowsur)
-        else
-            return ''
-        end
-        ---@diagnostic disable:cast-local-type
-    end
+	local function escapeutf8(uchar)
+		---@diagnostic disable:cast-local-type
+		local value = escapecodes[uchar]
+		if value then
+			return value
+		end
+		local a, b, c, d = strbyte(uchar, 1, 4)
+		a, b, c, d = a or 0, b or 0, c or 0, d or 0
+		if a <= 0x7f then
+			value = a
+		elseif 0xc0 <= a and a <= 0xdf and b >= 0x80 then
+			value = (a - 0xc0) * 0x40 + b - 0x80
+		elseif 0xe0 <= a and a <= 0xef and b >= 0x80 and c >= 0x80 then
+			value = ((a - 0xe0) * 0x40 + b - 0x80) * 0x40 + c - 0x80
+		elseif 0xf0 <= a and a <= 0xf7 and b >= 0x80 and c >= 0x80 and d >= 0x80 then
+			value = (((a - 0xf0) * 0x40 + b - 0x80) * 0x40 + c - 0x80) * 0x40 + d - 0x80
+		else
+			return ""
+		end
+		if value <= 0xffff then
+			return strformat("\\u%.4x", value)
+		elseif value <= 0x10ffff then
+			-- encode as UTF-16 surrogate pair
+			value = value - 0x10000
+			local highsur = 0xD800 + floor(value / 0x400)
+			local lowsur = 0xDC00 + (value % 0x400)
+			return strformat("\\u%.4x\\u%.4x", highsur, lowsur)
+		else
+			return ""
+		end
+		---@diagnostic disable:cast-local-type
+	end
 
-    local function fsub(str, pattern, repl)
-        -- gsub always builds a new string in a buffer, even when no match
-        -- exists. First using find should be more efficient when most strings
-        -- don't contain the pattern.
-        if strfind(str, pattern) then
-            return gsub(str, pattern, repl)
-        else
-            return str
-        end
-    end
+	local function fsub(str, pattern, repl)
+		-- gsub always builds a new string in a buffer, even when no match
+		-- exists. First using find should be more efficient when most strings
+		-- don't contain the pattern.
+		if strfind(str, pattern) then
+			return gsub(str, pattern, repl)
+		else
+			return str
+		end
+	end
 
-    local function quotestring(value)
-        -- based on the regexp "escapable" in
-        -- https://github.com/douglascrockford/JSON-js
-        value = fsub(value, '[%z\1-\31\"\\\127]', escapeutf8)
-        if strfind(value, '[\194\216\220\225\226\239]') then
-            value = fsub(value, '\194[\128-\159\173]', escapeutf8)
-            value = fsub(value, '\216[\128-\132]', escapeutf8)
-            value = fsub(value, '\220\143', escapeutf8)
-            value = fsub(value, '\225\158[\180\181]', escapeutf8)
-            value = fsub(value, '\226\128[\140-\143\168-\175]', escapeutf8)
-            value = fsub(value, '\226\129[\160-\175]', escapeutf8)
-            value = fsub(value, '\239\187\191', escapeutf8)
-            value = fsub(value, '\239\191[\176-\191]', escapeutf8)
-        end
-        return "\"" .. value .. "\""
-    end
-    json.quotestring = quotestring
+	local function quotestring(value)
+		-- based on the regexp "escapable" in
+		-- https://github.com/douglascrockford/JSON-js
+		value = fsub(value, '[%z\1-\31"\\\127]', escapeutf8)
+		if strfind(value, "[\194\216\220\225\226\239]") then
+			value = fsub(value, "\194[\128-\159\173]", escapeutf8)
+			value = fsub(value, "\216[\128-\132]", escapeutf8)
+			value = fsub(value, "\220\143", escapeutf8)
+			value = fsub(value, "\225\158[\180\181]", escapeutf8)
+			value = fsub(value, "\226\128[\140-\143\168-\175]", escapeutf8)
+			value = fsub(value, "\226\129[\160-\175]", escapeutf8)
+			value = fsub(value, "\239\187\191", escapeutf8)
+			value = fsub(value, "\239\191[\176-\191]", escapeutf8)
+		end
+		return '"' .. value .. '"'
+	end
+	json.quotestring = quotestring
 
-    local function replace(str, o, n)
-        local i, j = strfind(str, o, 1, true)
-        if i then
-            return strsub(str, 1, i-1) .. n .. strsub(str, j+1, -1)
-        else
-            return str
-        end
-    end
+	local function replace(str, o, n)
+		local i, j = strfind(str, o, 1, true)
+		if i then
+			return strsub(str, 1, i - 1) .. n .. strsub(str, j + 1, -1)
+		else
+			return str
+		end
+	end
 
-    -- locale independent num2str and str2num functions
-    local decpoint, numfilter
+	-- locale independent num2str and str2num functions
+	local decpoint, numfilter
 
-    local function updatedecpoint()
-        decpoint = strmatch(tostring(0.5), '([^05+])')
-        -- build a filter that can be used to remove group separators
-        numfilter = '[^0-9%-%+eE'
-            .. gsub(decpoint, '[%^%$%(%)%%%.%[%]%*%+%-%?]', '%%%0') .. ']+'
-    end
+	local function updatedecpoint()
+		decpoint = strmatch(tostring(0.5), "([^05+])")
+		-- build a filter that can be used to remove group separators
+		numfilter = "[^0-9%-%+eE" .. gsub(decpoint, "[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0") .. "]+"
+	end
 
-    updatedecpoint()
+	updatedecpoint()
 
-    local function num2str(num)
-        return replace(fsub(tostring(num), numfilter, ''), decpoint, '.')
-    end
+	local function num2str(num)
+		return replace(fsub(tostring(num), numfilter, ""), decpoint, ".")
+	end
 
-    local function str2num(str)
-        local num = tonumber(replace(str, '.', decpoint))
-        if not num then
-            updatedecpoint()
-            num = tonumber(replace(str, '.', decpoint))
-        end
-        return num
-    end
+	local function str2num(str)
+		local num = tonumber(replace(str, ".", decpoint))
+		if not num then
+			updatedecpoint()
+			num = tonumber(replace(str, ".", decpoint))
+		end
+		return num
+	end
 
-    local function addnewline2(level, buffer, buflen)
-        buffer[buflen+1] = '\n'
-        buffer[buflen+2] = strrep('  ', level)
-        buflen = buflen + 2
-        return buflen
-    end
+	local function addnewline2(level, buffer, buflen)
+		buffer[buflen + 1] = "\n"
+		buffer[buflen + 2] = strrep("  ", level)
+		buflen = buflen + 2
+		return buflen
+	end
 
-    function json.addnewline(state)
-        if state.indent then
-            state.bufferlen = addnewline2(
-                state.level or 0,
-                state.buffer,
-                state.bufferlen or #(state.buffer))
-        end
-    end
+	function json.addnewline(state)
+		if state.indent then
+			state.bufferlen = addnewline2(state.level or 0, state.buffer, state.bufferlen or #state.buffer)
+		end
+	end
 
-    local encode2 -- forward declaration
+	local encode2 -- forward declaration
 
-    local function addpair(key, value, prev, indent, level,
-            buffer, buflen, tables, globalorder, state)
-        local kt = type(key)
-        if kt ~= 'string' and kt ~= 'number' then
-            return nil, "type '" .. kt
-                .. "' is not supported as a key by JSON."
-        end
-        if prev then
-            buflen = buflen + 1
-            buffer[buflen] = ','
-        end
-        if indent then
-            buflen = addnewline2(level, buffer, buflen)
-        end
-        buffer[buflen+1] = quotestring(key)
-        buffer[buflen+2] = ':'
-        return encode2(
-            value, indent, level, buffer, buflen + 2,
-            tables, globalorder, state
-        )
-    end
+	local function addpair(key, value, prev, indent, level, buffer, buflen, tables, globalorder, state)
+		local kt = type(key)
+		if kt ~= "string" and kt ~= "number" then
+			return nil, "type '" .. kt .. "' is not supported as a key by JSON."
+		end
+		if prev then
+			buflen = buflen + 1
+			buffer[buflen] = ","
+		end
+		if indent then
+			buflen = addnewline2(level, buffer, buflen)
+		end
+		buffer[buflen + 1] = quotestring(key)
+		buffer[buflen + 2] = ":"
+		return encode2(value, indent, level, buffer, buflen + 2, tables, globalorder, state)
+	end
 
-    local function appendcustom(res, buffer, state)
-        local buflen = state.bufferlen
-        if type(res) == 'string' then
-            buflen = buflen + 1
-            buffer[buflen] = res
-        end
-        return buflen
-    end
+	local function appendcustom(res, buffer, state)
+		local buflen = state.bufferlen
+		if type(res) == "string" then
+			buflen = buflen + 1
+			buffer[buflen] = res
+		end
+		return buflen
+	end
 
-    local function exception(reason, value, state,
-            buffer, buflen, defaultmessage)
-        defaultmessage = defaultmessage or reason
-        local handler = state.exception
-        if not handler then
-            return nil, defaultmessage
-        else
-            state.bufferlen = buflen
-            local ret, msg = handler(reason, value, state, defaultmessage)
-            if not ret then return nil, msg or defaultmessage end
-            return appendcustom(ret, buffer, state)
-        end
-    end
+	local function exception(reason, value, state, buffer, buflen, defaultmessage)
+		defaultmessage = defaultmessage or reason
+		local handler = state.exception
+		if not handler then
+			return nil, defaultmessage
+		else
+			state.bufferlen = buflen
+			local ret, msg = handler(reason, value, state, defaultmessage)
+			if not ret then
+				return nil, msg or defaultmessage
+			end
+			return appendcustom(ret, buffer, state)
+		end
+	end
 
-    function json.encodeexception(...)
-        -- args are: reason, value, state, defaultmessage
-        -- only use: defaultmessage
-        return quotestring('<' .. select(4, ...) .. '>')
-    end
+	function json.encodeexception(...)
+		-- args are: reason, value, state, defaultmessage
+		-- only use: defaultmessage
+		return quotestring("<" .. select(4, ...) .. ">")
+	end
 
-    encode2 = function(value, indent, level, buffer,
-            buflen, tables, globalorder, state)
-        local valtype = type(value)
-        local valmeta = getmetatable(value)
-        ---@diagnostic disable-next-line:cast-local-type
-        valmeta = type(valmeta) == 'table' and valmeta -- only tables
-        local valtojson = valmeta and valmeta.__tojson
-        if valtojson then
-            if tables[value] then
-                return exception(
-                    'reference cycle', value, state, buffer, buflen
-                )
-            end
-            tables[value] = true
-            state.bufferlen = buflen
-            local ret, msg = valtojson(value, state)
-            if not ret then
-                return exception(
-                    'custom encoder failed', value, state, buffer, buflen, msg
-                )
-            end
-            tables[value] = nil
-            buflen = appendcustom(ret, buffer, state)
-        elseif value == nil then
-            buflen = buflen + 1
-            buffer[buflen] = 'null'
-        elseif valtype == 'number' then
-            local s
-            if value ~= value or value >= huge or -value >= huge then
-                -- This is the behaviour of the original JSON implementation.
-                s = 'null'
-            else
-                s = num2str(value)
-            end
-            buflen = buflen + 1
-            buffer[buflen] = s
-        elseif valtype == 'boolean' then
-            buflen = buflen + 1
-            buffer[buflen] = value and 'true' or 'false'
-        elseif valtype == 'string' then
-            buflen = buflen + 1
-            buffer[buflen] = quotestring(value)
-        elseif valtype == 'table' then
-            if tables[value] then
-                return exception(
-                    'reference cycle', value, state, buffer, buflen
-                )
-            end
-            tables[value] = true
-            level = level + 1
-            local isa, n = isarray(value)
-            if n == 0 and valmeta and valmeta.__jsontype == 'object' then
-                isa = false
-            end
-            local msg
-            if isa then -- JSON array
-                buflen = buflen + 1
-                buffer[buflen] = '['
-                for i = 1, n do
-                    buflen, msg = encode2(
-                        value[i], indent, level, buffer,
-                        buflen, tables, globalorder, state
-                    )
-                    if not buflen then return nil, msg end
-                    if i < n then
-                        buflen = buflen + 1
-                        buffer[buflen] = ','
-                    end
-                end
-                buflen = buflen + 1
-                buffer[buflen] = ']'
-            else -- JSON object
-                local prev = false
-                buflen = buflen + 1
-                buffer[buflen] = '{'
-                local order = valmeta and valmeta.__jsonorder or globalorder
-                if order then
-                    local used = {}
-                    n = #order
-                    for i = 1, n do
-                        local k = order[i]
-                        local v = value[k]
-                        if v ~= nil then
-                            used[k] = true
-                            buflen = addpair(
-                                k, v, prev, indent, level, buffer,
-                                buflen, tables, globalorder, state
-                            )
-                            -- add a seperator before the next element
-                            prev = true
-                        end
-                    end
-                    for k,v in pairs(value) do
-                        if not used[k] then
-                            buflen, msg = addpair(
-                                k, v, prev, indent, level, buffer,
-                                buflen, tables, globalorder, state
-                            )
-                            if not buflen then return nil, msg end
-                            -- add a seperator before the next element
-                            prev = true
-                        end
-                    end
-                else -- unordered
-                    for k,v in pairs(value) do
-                        buflen, msg = addpair(
-                            k, v, prev, indent, level, buffer,
-                            buflen, tables, globalorder, state
-                        )
-                        if not buflen then return nil, msg end
-                        -- add a seperator before the next element
-                        prev = true
-                    end
-                end
-                if indent then
-                    buflen = addnewline2(level - 1, buffer, buflen)
-                end
-                buflen = buflen + 1
-                buffer[buflen] = '}'
-            end
-            tables[value] = nil
-        else
-            return exception(
-                'unsupported type', value, state, buffer, buflen,
-                "type '" .. valtype .. "' is not supported by JSON."
-            )
-        end
-        return buflen
-    end
+	encode2 = function(value, indent, level, buffer, buflen, tables, globalorder, state)
+		local valtype = type(value)
+		local valmeta = getmetatable(value)
+		---@diagnostic disable-next-line:cast-local-type
+		valmeta = type(valmeta) == "table" and valmeta -- only tables
+		local valtojson = valmeta and valmeta.__tojson
+		if valtojson then
+			if tables[value] then
+				return exception("reference cycle", value, state, buffer, buflen)
+			end
+			tables[value] = true
+			state.bufferlen = buflen
+			local ret, msg = valtojson(value, state)
+			if not ret then
+				return exception("custom encoder failed", value, state, buffer, buflen, msg)
+			end
+			tables[value] = nil
+			buflen = appendcustom(ret, buffer, state)
+		elseif value == nil then
+			buflen = buflen + 1
+			buffer[buflen] = "null"
+		elseif valtype == "number" then
+			local s
+			if value ~= value or value >= huge or -value >= huge then
+				-- This is the behaviour of the original JSON implementation.
+				s = "null"
+			else
+				s = num2str(value)
+			end
+			buflen = buflen + 1
+			buffer[buflen] = s
+		elseif valtype == "boolean" then
+			buflen = buflen + 1
+			buffer[buflen] = value and "true" or "false"
+		elseif valtype == "string" then
+			buflen = buflen + 1
+			buffer[buflen] = quotestring(value)
+		elseif valtype == "table" then
+			if tables[value] then
+				return exception("reference cycle", value, state, buffer, buflen)
+			end
+			tables[value] = true
+			level = level + 1
+			local isa, n = isarray(value)
+			if n == 0 and valmeta and valmeta.__jsontype == "object" then
+				isa = false
+			end
+			local msg
+			if isa then -- JSON array
+				buflen = buflen + 1
+				buffer[buflen] = "["
+				for i = 1, n do
+					buflen, msg = encode2(value[i], indent, level, buffer, buflen, tables, globalorder, state)
+					if not buflen then
+						return nil, msg
+					end
+					if i < n then
+						buflen = buflen + 1
+						buffer[buflen] = ","
+					end
+				end
+				buflen = buflen + 1
+				buffer[buflen] = "]"
+			else -- JSON object
+				local prev = false
+				buflen = buflen + 1
+				buffer[buflen] = "{"
+				local order = valmeta and valmeta.__jsonorder or globalorder
+				if order then
+					local used = {}
+					n = #order
+					for i = 1, n do
+						local k = order[i]
+						local v = value[k]
+						if v ~= nil then
+							used[k] = true
+							buflen = addpair(k, v, prev, indent, level, buffer, buflen, tables, globalorder, state)
+							-- add a seperator before the next element
+							prev = true
+						end
+					end
+					for k, v in pairs(value) do
+						if not used[k] then
+							buflen, msg = addpair(k, v, prev, indent, level, buffer, buflen, tables, globalorder, state)
+							if not buflen then
+								return nil, msg
+							end
+							-- add a seperator before the next element
+							prev = true
+						end
+					end
+				else -- unordered
+					for k, v in pairs(value) do
+						buflen, msg = addpair(k, v, prev, indent, level, buffer, buflen, tables, globalorder, state)
+						if not buflen then
+							return nil, msg
+						end
+						-- add a seperator before the next element
+						prev = true
+					end
+				end
+				if indent then
+					buflen = addnewline2(level - 1, buffer, buflen)
+				end
+				buflen = buflen + 1
+				buffer[buflen] = "}"
+			end
+			tables[value] = nil
+		else
+			return exception(
+				"unsupported type",
+				value,
+				state,
+				buffer,
+				buflen,
+				"type '" .. valtype .. "' is not supported by JSON."
+			)
+		end
+		return buflen
+	end
 
-    function json.encode(value, state)
-        state = state or {}
-        local oldbuffer = state.buffer
-        local buffer = oldbuffer or {}
-        state.buffer = buffer
-        updatedecpoint()
-        local ret, msg = encode2(
-            value, state.indent, state.level or 0, buffer,
-            state.bufferlen or 0, state.tables or {}, state.keyorder, state
-        )
-        if not ret then
-            error(msg, 2)
-        elseif oldbuffer == buffer then
-            state.bufferlen = ret
-            return true
-        else
-            state.bufferlen = nil
-            state.buffer = nil
-            return concat(buffer)
-        end
-    end
+	function json.encode(value, state)
+		state = state or {}
+		local oldbuffer = state.buffer
+		local buffer = oldbuffer or {}
+		state.buffer = buffer
+		updatedecpoint()
+		local ret, msg = encode2(
+			value,
+			state.indent,
+			state.level or 0,
+			buffer,
+			state.bufferlen or 0,
+			state.tables or {},
+			state.keyorder,
+			state
+		)
+		if not ret then
+			error(msg, 2)
+		elseif oldbuffer == buffer then
+			state.bufferlen = ret
+			return true
+		else
+			state.bufferlen = nil
+			state.buffer = nil
+			return concat(buffer)
+		end
+	end
 
-    local function loc(str, where)
-        local line, pos, linepos = 1, 1, 0
-        while true do
-            pos = strfind(str, '\n', pos, true)
-            if pos and pos < where then
-                line = line + 1
-                linepos = pos
-                pos = pos + 1
-            else
-                break
-            end
-        end
-        return 'line ' .. line .. ', column ' .. (where - linepos)
-    end
+	local function loc(str, where)
+		local line, pos, linepos = 1, 1, 0
+		while true do
+			pos = strfind(str, "\n", pos, true)
+			if pos and pos < where then
+				line = line + 1
+				linepos = pos
+				pos = pos + 1
+			else
+				break
+			end
+		end
+		return "line " .. line .. ", column " .. (where - linepos)
+	end
 
-    local function unterminated(str, what, where)
-        return nil, strlen (str) + 1,
-            'unterminated ' .. what .. ' at ' .. loc(str, where)
-    end
+	local function unterminated(str, what, where)
+		return nil, strlen(str) + 1, "unterminated " .. what .. " at " .. loc(str, where)
+	end
 
-    local function scanwhite(str, pos)
-        while true do
-            pos = strfind(str, '%S', pos)
-            if not pos then return nil end
-            local sub2 = strsub(str, pos, pos + 1)
-            if sub2 == '\239\187'
-                    and strsub(str, pos + 2, pos + 2) == '\191' then
-                -- UTF-8 Byte Order Mark
-                pos = pos + 3
-            elseif sub2 == '//' then
-                pos = strfind(str, '[\n\r]', pos + 2)
-                if not pos then return nil end
-            elseif sub2 == '/*' then
-                pos = strfind(str, '*/', pos + 2)
-                if not pos then return nil end
-                pos = pos + 2
-            else
-                return pos
-            end
-        end
-    end
+	local function scanwhite(str, pos)
+		while true do
+			pos = strfind(str, "%S", pos)
+			if not pos then
+				return nil
+			end
+			local sub2 = strsub(str, pos, pos + 1)
+			if sub2 == "\239\187" and strsub(str, pos + 2, pos + 2) == "\191" then
+				-- UTF-8 Byte Order Mark
+				pos = pos + 3
+			elseif sub2 == "//" then
+				pos = strfind(str, "[\n\r]", pos + 2)
+				if not pos then
+					return nil
+				end
+			elseif sub2 == "/*" then
+				pos = strfind(str, "*/", pos + 2)
+				if not pos then
+					return nil
+				end
+				pos = pos + 2
+			else
+				return pos
+			end
+		end
+	end
 
-    local escapechars = {
-        ["\""] = "\"", ["\\"] = "\\", ["/"] = "/", ["b"] = "\b", ["f"] = "\f",
-        ["n"] = "\n", ["r"] = "\r", ["t"] = "\t"
-    }
+	local escapechars = {
+		['"'] = '"',
+		["\\"] = "\\",
+		["/"] = "/",
+		["b"] = "\b",
+		["f"] = "\f",
+		["n"] = "\n",
+		["r"] = "\r",
+		["t"] = "\t",
+	}
 
-    local function unichar(value)
-        if value < 0 then
-            return nil
-        elseif value <= 0x007f then
-            return strchar(value)
-        elseif value <= 0x07ff then
-            return strchar(
-                0xc0 + floor(value/0x40), 0x80 + (floor(value) % 0x40)
-            )
-        elseif value <= 0xffff then
-            return strchar(
-                0xe0 + floor(value/0x1000),
-                0x80 + (floor(value/0x40) % 0x40),
-                0x80 + (floor(value) % 0x40)
-            )
-        elseif value <= 0x10ffff then
-            return strchar(
-                0xf0 + floor(value/0x40000),
-                0x80 + (floor(value/0x1000) % 0x40),
-                0x80 + (floor(value/0x40) % 0x40),
-                0x80 + (floor(value) % 0x40)
-            )
-        else
-            return nil
-        end
-    end
+	local function unichar(value)
+		if value < 0 then
+			return nil
+		elseif value <= 0x007f then
+			return strchar(value)
+		elseif value <= 0x07ff then
+			return strchar(0xc0 + floor(value / 0x40), 0x80 + (floor(value) % 0x40))
+		elseif value <= 0xffff then
+			return strchar(
+				0xe0 + floor(value / 0x1000),
+				0x80 + (floor(value / 0x40) % 0x40),
+				0x80 + (floor(value) % 0x40)
+			)
+		elseif value <= 0x10ffff then
+			return strchar(
+				0xf0 + floor(value / 0x40000),
+				0x80 + (floor(value / 0x1000) % 0x40),
+				0x80 + (floor(value / 0x40) % 0x40),
+				0x80 + (floor(value) % 0x40)
+			)
+		else
+			return nil
+		end
+	end
 
-    local function scanstring(str, pos)
-        local lastpos = pos + 1
-        local buffer, n = {}, 0
-        while true do
-            local nextpos = strfind(str, "[\"\\]", lastpos)
-            if not nextpos then
-                return unterminated(str, 'string', pos)
-            end
-            if nextpos > lastpos then
-                n = n + 1
-                buffer[n] = strsub(str, lastpos, nextpos - 1)
-            end
-            if strsub(str, nextpos, nextpos) == "\"" then
-                lastpos = nextpos + 1
-                break
-            else
-                local escchar = strsub(str, nextpos + 1, nextpos + 1)
-                local value
-                if escchar == 'u' then
-                    value = tonumber(
-                        strsub (str, nextpos + 2, nextpos + 5), 16
-                    )
-                    if value then
-                        local value2
-                        if 0xD800 <= value and value <= 0xDBff then
-                            -- we have the high surrogate of UTF-16.
-                            -- Check if there is a low surrogate
-                            -- escaped nearby to combine them.
-                            if strsub(
-                                str, nextpos + 6, nextpos + 7
-                            ) == '\\u' then
-                                value2 = tonumber(
-                                    strsub(str, nextpos + 8, nextpos + 11), 16
-                                )
-                                if value2 and 0xDC00 <= value2
-                                        and value2 <= 0xDFFF then
-                                    value = (value - 0xD800) * 0x400
-                                        + (value2 - 0xDC00) + 0x10000
-                                else
-                                    -- in case it was out of range
-                                    -- for a low surrogate
-                                    value2 = nil
-                                end
-                            end
-                        end
-                        value = value and unichar(value)
-                        if value then
-                            if value2 then
-                                lastpos = nextpos + 12
-                            else
-                                lastpos = nextpos + 6
-                            end
-                        end
-                    end
-                end
-                if not value then
-                    value = escapechars[escchar] or escchar
-                    lastpos = nextpos + 2
-                end
-                n = n + 1
-                buffer[n] = value
-            end
-        end
-        if n == 1 then
-            return buffer[1], lastpos
-        elseif n > 1 then
-            return concat(buffer), lastpos
-        else
-            return '', lastpos
-        end
-    end
+	local function scanstring(str, pos)
+		local lastpos = pos + 1
+		local buffer, n = {}, 0
+		while true do
+			local nextpos = strfind(str, '["\\]', lastpos)
+			if not nextpos then
+				return unterminated(str, "string", pos)
+			end
+			if nextpos > lastpos then
+				n = n + 1
+				buffer[n] = strsub(str, lastpos, nextpos - 1)
+			end
+			if strsub(str, nextpos, nextpos) == '"' then
+				lastpos = nextpos + 1
+				break
+			else
+				local escchar = strsub(str, nextpos + 1, nextpos + 1)
+				local value
+				if escchar == "u" then
+					value = tonumber(strsub(str, nextpos + 2, nextpos + 5), 16)
+					if value then
+						local value2
+						if 0xD800 <= value and value <= 0xDBff then
+							-- we have the high surrogate of UTF-16.
+							-- Check if there is a low surrogate
+							-- escaped nearby to combine them.
+							if strsub(str, nextpos + 6, nextpos + 7) == "\\u" then
+								value2 = tonumber(strsub(str, nextpos + 8, nextpos + 11), 16)
+								if value2 and 0xDC00 <= value2 and value2 <= 0xDFFF then
+									value = (value - 0xD800) * 0x400 + (value2 - 0xDC00) + 0x10000
+								else
+									-- in case it was out of range
+									-- for a low surrogate
+									value2 = nil
+								end
+							end
+						end
+						value = value and unichar(value)
+						if value then
+							if value2 then
+								lastpos = nextpos + 12
+							else
+								lastpos = nextpos + 6
+							end
+						end
+					end
+				end
+				if not value then
+					value = escapechars[escchar] or escchar
+					lastpos = nextpos + 2
+				end
+				n = n + 1
+				buffer[n] = value
+			end
+		end
+		if n == 1 then
+			return buffer[1], lastpos
+		elseif n > 1 then
+			return concat(buffer), lastpos
+		else
+			return "", lastpos
+		end
+	end
 
-    local scanvalue -- forward declaration
+	local scanvalue -- forward declaration
 
-    local function scantable(what, closechar, str, startpos,
-            nullval, objectmeta, arraymeta)
-        local tbl, n = {}, 0
-        local pos = startpos + 1
-        if what == 'object' then
-            setmetatable(tbl, objectmeta)
-        else
-            setmetatable(tbl, arraymeta)
-        end
-        while true do
-            pos = scanwhite(str, pos)
-            if not pos then return unterminated(str, what, startpos) end
-            local char = strsub(str, pos, pos)
-            if char == closechar then
-                return tbl, pos + 1
-            end
-            local val1, err
-            val1, pos, err = scanvalue(
-                str, pos, nullval, objectmeta, arraymeta
-            )
-            if err then return nil, pos, err end
-            pos = scanwhite(str, pos)
-            if not pos then return unterminated(str, what, startpos) end
-            char = strsub(str, pos, pos)
-            if char == ':' then
-                if val1 == nil then
-                    return nil, pos, 'cannot use nil as table index (at '
-                        .. loc(str, pos) .. ')'
-                end
-                pos = scanwhite(str, pos + 1)
-                if not pos then return unterminated(str, what, startpos) end
-                local val2
-                val2, pos, err = scanvalue(
-                    str, pos, nullval, objectmeta, arraymeta
-                )
-                if err then return nil, pos, err end
-                tbl[val1] = val2 ---@diagnostic disable-line:need-check-nil
-                pos = scanwhite(str, pos)
-                if not pos then return unterminated(str, what, startpos) end
-                char = strsub(str, pos, pos)
-            else
-                n = n + 1
-                tbl[n] = val1
-            end
-            if char == ',' then
-                pos = pos + 1
-            end
-        end
-    end
+	local function scantable(what, closechar, str, startpos, nullval, objectmeta, arraymeta)
+		local tbl, n = {}, 0
+		local pos = startpos + 1
+		if what == "object" then
+			setmetatable(tbl, objectmeta)
+		else
+			setmetatable(tbl, arraymeta)
+		end
+		while true do
+			pos = scanwhite(str, pos)
+			if not pos then
+				return unterminated(str, what, startpos)
+			end
+			local char = strsub(str, pos, pos)
+			if char == closechar then
+				return tbl, pos + 1
+			end
+			local val1, err
+			val1, pos, err = scanvalue(str, pos, nullval, objectmeta, arraymeta)
+			if err then
+				return nil, pos, err
+			end
+			pos = scanwhite(str, pos)
+			if not pos then
+				return unterminated(str, what, startpos)
+			end
+			char = strsub(str, pos, pos)
+			if char == ":" then
+				if val1 == nil then
+					return nil, pos, "cannot use nil as table index (at " .. loc(str, pos) .. ")"
+				end
+				pos = scanwhite(str, pos + 1)
+				if not pos then
+					return unterminated(str, what, startpos)
+				end
+				local val2
+				val2, pos, err = scanvalue(str, pos, nullval, objectmeta, arraymeta)
+				if err then
+					return nil, pos, err
+				end
+				tbl[val1] = val2 ---@diagnostic disable-line:need-check-nil
+				pos = scanwhite(str, pos)
+				if not pos then
+					return unterminated(str, what, startpos)
+				end
+				char = strsub(str, pos, pos)
+			else
+				n = n + 1
+				tbl[n] = val1
+			end
+			if char == "," then
+				pos = pos + 1
+			end
+		end
+	end
 
-    scanvalue = function(str, pos, nullval, objectmeta, arraymeta)
-        pos = pos or 1
-        pos = scanwhite(str, pos)
-        if not pos then
-            return nil, strlen(str) + 1,
-                'no valid JSON value (reached the end)'
-        end
-        local char = strsub(str, pos, pos)
-        if char == '{' then
-            return scantable(
-                'object', '}', str, pos, nullval, objectmeta, arraymeta
-            )
-        elseif char == '[' then
-            return scantable(
-                'array', ']', str, pos, nullval, objectmeta, arraymeta
-            )
-        elseif char == "\"" then
-            return scanstring(str, pos)
-        else
-            local pstart, pend = strfind(
-                str, '^%-?[%d%.]+[eE]?[%+%-]?%d*', pos
-            )
-            if pstart then
-                local number = str2num(strsub(str, pstart, pend))
-                if number then
-                    return number, pend + 1
-                end
-            end
-            pstart, pend = strfind(str, '^%a%w*', pos)
-            if pstart then
-                local name = strsub(str, pstart, pend)
-                if name == 'true' then
-                    return true, pend + 1
-                elseif name == 'false' then
-                    return false, pend + 1
-                elseif name == 'null' then
-                    return nullval, pend + 1
-                end
-            end
-            return nil, pos, 'no valid JSON value at ' .. loc(str, pos)
-        end
-    end
+	scanvalue = function(str, pos, nullval, objectmeta, arraymeta)
+		pos = pos or 1
+		pos = scanwhite(str, pos)
+		if not pos then
+			return nil, strlen(str) + 1, "no valid JSON value (reached the end)"
+		end
+		local char = strsub(str, pos, pos)
+		if char == "{" then
+			return scantable("object", "}", str, pos, nullval, objectmeta, arraymeta)
+		elseif char == "[" then
+			return scantable("array", "]", str, pos, nullval, objectmeta, arraymeta)
+		elseif char == '"' then
+			return scanstring(str, pos)
+		else
+			local pstart, pend = strfind(str, "^%-?[%d%.]+[eE]?[%+%-]?%d*", pos)
+			if pstart then
+				local number = str2num(strsub(str, pstart, pend))
+				if number then
+					return number, pend + 1
+				end
+			end
+			pstart, pend = strfind(str, "^%a%w*", pos)
+			if pstart then
+				local name = strsub(str, pstart, pend)
+				if name == "true" then
+					return true, pend + 1
+				elseif name == "false" then
+					return false, pend + 1
+				elseif name == "null" then
+					return nullval, pend + 1
+				end
+			end
+			return nil, pos, "no valid JSON value at " .. loc(str, pos)
+		end
+	end
 
-    local function optionalmetatables(...)
-        if select('#', ...) > 0 then
-            return ...
-        else
-            return {__jsontype = 'object'}, {__jsontype = 'array'}
-        end
-    end
+	local function optionalmetatables(...)
+		if select("#", ...) > 0 then
+			return ...
+		else
+			return { __jsontype = "object" }, { __jsontype = "array" }
+		end
+	end
 
-    function json.decode(str, pos, nullval, ...)
-        local objectmeta, arraymeta = optionalmetatables(...)
-        return scanvalue(str, pos, nullval, objectmeta, arraymeta)
-    end
-
+	function json.decode(str, pos, nullval, ...)
+		local objectmeta, arraymeta = optionalmetatables(...)
+		return scanvalue(str, pos, nullval, objectmeta, arraymeta)
+	end
 end
 
 -- localise standard library functions    {{{1
 local sf = string.format -- }}}1
 
---[[ Forward declarations ]]--
+--[[ Forward declarations ]]
+--
 
 -- variables    {{{1
 local pander = {}
@@ -1414,7 +1464,8 @@ local truthify
 local valid_keywords
 local warn -- }}}1
 
---[[ Classes]]--
+--[[ Classes]]
+--
 
 -- class Filter    {{{1
 
@@ -1462,15 +1513,14 @@ local Filter = {}
 -- @raise * filter <name\>: expected boolean lua_type, got <type\>
 -- @function _check_lua_type
 function Filter._check_lua_type(name, lua_type)
-    if lua_type ~= nil and type(lua_type) ~= 'boolean' then
-        error(sf('filter %s: expected boolean lua_type, got %s: %s',
-            name, type(lua_type), tostring(lua_type)), 2)
-    end
-    if lua_type == nil then  -- derive from filter name
-        local file_extension = name:match('%.(.-)$')
-        lua_type = (file_extension == 'lua')
-    end
-    return lua_type
+	if lua_type ~= nil and type(lua_type) ~= "boolean" then
+		error(sf("filter %s: expected boolean lua_type, got %s: %s", name, type(lua_type), tostring(lua_type)), 2)
+	end
+	if lua_type == nil then -- derive from filter name
+		local file_extension = name:match("%.(.-)$")
+		lua_type = (file_extension == "lua")
+	end
+	return lua_type
 end
 
 -- Filter._check_name(name)    {{{2
@@ -1483,11 +1533,15 @@ end
 -- @raise * no filter name provided
 -- @function _check_name
 function Filter._check_name(name)
-    local no_name = 'no filter name provided'
-    if name == nil then error(no_name, 2) end
-    name = tostring(name)
-    if name == '' then error(no_name, 2) end
-    return name
+	local no_name = "no filter name provided"
+	if name == nil then
+		error(no_name, 2)
+	end
+	name = tostring(name)
+	if name == "" then
+		error(no_name, 2)
+	end
+	return name
 end
 
 -- Filter._check_weighting(name, weighting)    {{{2
@@ -1503,17 +1557,17 @@ end
 -- * filter <name\>: expected weighting 1-100, got <value\>
 -- @function _check_weighting
 function Filter._check_weighting(name, weighting)
-    if weighting == nil then weighting = 0 end
-    if type(weighting) ~= 'number' then
-        error(sf('filter %s: expected numeric weighting, got %s',
-            name, type(weighting)), 2)
-    end
-    weighting = math.modf(weighting)
-    if weighting ~=0 and (weighting < 0 or weighting > 100) then
-        error(sf('filter %s: expected weighting 1-100, got %s',
-            name, tostring(weighting)), 2)
-    end
-    return weighting
+	if weighting == nil then
+		weighting = 0
+	end
+	if type(weighting) ~= "number" then
+		error(sf("filter %s: expected numeric weighting, got %s", name, type(weighting)), 2)
+	end
+	weighting = math.modf(weighting)
+	if weighting ~= 0 and (weighting < 0 or weighting > 100) then
+		error(sf("filter %s: expected weighting 1-100, got %s", name, tostring(weighting)), 2)
+	end
+	return weighting
 end
 
 -- Filter:class()    {{{2
@@ -1522,7 +1576,7 @@ end
 -- @treturn string object class name
 -- @function class
 function Filter:class()
-    return 'Filter'
+	return "Filter"
 end
 
 -- Filter:cmd()    {{{2
@@ -1533,9 +1587,9 @@ end
 -- @treturn string pandoc command fragment
 -- @function cmd
 function Filter:cmd()
-    local option = self._lua_type and '--lua-filter' or '--filter'
-    option = sf('%s="%s"', option, self._name)
-    return option
+	local option = self._lua_type and "--lua-filter" or "--filter"
+	option = sf('%s="%s"', option, self._name)
+	return option
 end
 
 -- Filter:lua_type([lua_type])    {{{2
@@ -1546,11 +1600,11 @@ end
 -- @treturn[2] boolean whether lua type filter (getter)
 -- @function lua_type
 function Filter:lua_type(lua_type)
-    if lua_type then
-        self._lua_type = lua_type
-    else
-        return self._lua_type
-    end
+	if lua_type then
+		self._lua_type = lua_type
+	else
+		return self._lua_type
+	end
 end
 
 -- Filter:new(var)    {{{2
@@ -1560,30 +1614,30 @@ end
 -- @treturn Filter instantiated object
 -- @function new
 function Filter:new(var)
-    -- get provided values
-    local name, weighting, lua_type
-    if type(var) == 'table' then
-        name = var[1]
-        weighting = var[2]
-        lua_type = var[3]
-    else
-        name = var
-    end
-    -- check value validity and assign defaults if necessary
-    name = Filter._check_name(name)
-    weighting = Filter._check_weighting(name, weighting)
-    lua_type = Filter._check_lua_type(name, lua_type)
-    -- construct attribute table
-    var = {
-        _name = name,
-        _weighting = weighting,
-        _lua_type = lua_type,
-    }
-    -- object/class serves as its own prototype
-    self.__index = self
-    setmetatable(var, self)
-    -- return object
-    return var
+	-- get provided values
+	local name, weighting, lua_type
+	if type(var) == "table" then
+		name = var[1]
+		weighting = var[2]
+		lua_type = var[3]
+	else
+		name = var
+	end
+	-- check value validity and assign defaults if necessary
+	name = Filter._check_name(name)
+	weighting = Filter._check_weighting(name, weighting)
+	lua_type = Filter._check_lua_type(name, lua_type)
+	-- construct attribute table
+	var = {
+		_name = name,
+		_weighting = weighting,
+		_lua_type = lua_type,
+	}
+	-- object/class serves as its own prototype
+	self.__index = self
+	setmetatable(var, self)
+	-- return object
+	return var
 end
 
 -- Filter:weighting([weighting])    {{{2
@@ -1594,11 +1648,11 @@ end
 -- @treturn[2] number weighting (getter)
 -- @function weighting
 function Filter:weighting(weighting)
-    if weighting then
-        self._weighting = weighting
-    else
-        return self._weighting
-    end
+	if weighting then
+		self._weighting = weighting
+	else
+		return self._weighting
+	end
 end -- }}}2
 
 -- class Filters    {{{1
@@ -1646,37 +1700,41 @@ local Filters = {}
 -- * object is not a Filters object
 -- @function _assign_weightings
 function Filters._assign_weightings(filters)
-    -- check parameter
-    do
-        local ok, err = is_object_of_class(filters, 'Filters')
-        if not ok then error(err) end
-    end
-    -- assign weighting = 50 where no weighting assigned, i.e., is zero
-    for _, filter in ipairs(filters) do
-        if filter:weighting() == 0 then filter:weighting(50) end
-    end
-    -- get maximum existing fractional weightings for each
-    -- unique integer weighting
-    local max_fraction = {}
-    for _,filter in ipairs(filters) do
-        local integer, fraction = math.modf(filter:weighting())
-        if max_fraction[integer] == nil then
-            max_fraction[integer] = 0.0
-        end
-        if fraction > max_fraction[integer] then
-            max_fraction[integer] = fraction
-        end
-    end
-    -- add incremental fractional values to integer weightings
-    -- to preserve current order
-    for _,filter in ipairs(filters) do
-        local integer, fraction = math.modf(filter:weighting())
-        if fraction == 0.0 then
-            max_fraction[integer] = max_fraction[integer] + 0.01
-            filter:weighting(integer + max_fraction[integer])
-        end
-    end
-    return filters
+	-- check parameter
+	do
+		local ok, err = is_object_of_class(filters, "Filters")
+		if not ok then
+			error(err)
+		end
+	end
+	-- assign weighting = 50 where no weighting assigned, i.e., is zero
+	for _, filter in ipairs(filters) do
+		if filter:weighting() == 0 then
+			filter:weighting(50)
+		end
+	end
+	-- get maximum existing fractional weightings for each
+	-- unique integer weighting
+	local max_fraction = {}
+	for _, filter in ipairs(filters) do
+		local integer, fraction = math.modf(filter:weighting())
+		if max_fraction[integer] == nil then
+			max_fraction[integer] = 0.0
+		end
+		if fraction > max_fraction[integer] then
+			max_fraction[integer] = fraction
+		end
+	end
+	-- add incremental fractional values to integer weightings
+	-- to preserve current order
+	for _, filter in ipairs(filters) do
+		local integer, fraction = math.modf(filter:weighting())
+		if fraction == 0.0 then
+			max_fraction[integer] = max_fraction[integer] + 0.01
+			filter:weighting(integer + max_fraction[integer])
+		end
+	end
+	return filters
 end
 
 -- Filters._sort(filters)    {{{2
@@ -1695,18 +1753,21 @@ end
 -- * object is not a Filters object
 -- @function _sort
 function Filters._sort(filters)
-    -- check parameter
-    do
-        local ok, err = is_object_of_class(filters, 'Filters')
-        if not ok then error(err) end
-    end
-    -- assign weightings
-    filters = Filters._assign_weightings(filters)
-    -- sort filters
-    table.sort(filters,
-        function (a, b) return a:weighting() < b:weighting() end)
-    -- return results
-    return filters
+	-- check parameter
+	do
+		local ok, err = is_object_of_class(filters, "Filters")
+		if not ok then
+			error(err)
+		end
+	end
+	-- assign weightings
+	filters = Filters._assign_weightings(filters)
+	-- sort filters
+	table.sort(filters, function(a, b)
+		return a:weighting() < b:weighting()
+	end)
+	-- return results
+	return filters
 end
 
 -- Filters:add(Filter)    {{{2
@@ -1720,13 +1781,15 @@ end
 -- * object is not a Filter object
 -- @function add
 function Filters:add(filter)
-    -- check parameter
-    do
-        local ok, err = is_object_of_class(filter, 'Filter')
-        if not ok then error(err) end
-    end
-    -- add filter to sequence
-    table.insert(self, filter)
+	-- check parameter
+	do
+		local ok, err = is_object_of_class(filter, "Filter")
+		if not ok then
+			error(err)
+		end
+	end
+	-- add filter to sequence
+	table.insert(self, filter)
 end
 
 -- Filters:class()    {{{2
@@ -1735,7 +1798,7 @@ end
 -- @treturn string object class name
 -- @function class
 function Filters:class()
-    return 'Filters'
+	return "Filters"
 end
 
 -- Filters:cmd()    {{{2
@@ -1746,13 +1809,15 @@ end
 -- @treturn string pandoc command elements
 -- @function cmd
 function Filters:cmd()
-    self = Filters._sort(self)
-    local options = ''
-    for _, filter in ipairs(self) do
-        if options ~= '' then options = options..' ' end
-        options = options..filter:cmd()
-    end
-    return options
+	self = Filters._sort(self)
+	local options = ""
+	for _, filter in ipairs(self) do
+		if options ~= "" then
+			options = options .. " "
+		end
+		options = options .. filter:cmd()
+	end
+	return options
 end
 
 -- Filters:new()    {{{2
@@ -1761,17 +1826,18 @@ end
 -- @treturn Filters instantiated object
 -- @function new
 function Filters:new()
-    local tbl = {}
-    -- object/class serves as its own prototype
-    self.__index = self
-    setmetatable(tbl, self)
-    -- return object
-    return tbl
+	local tbl = {}
+	-- object/class serves as its own prototype
+	self.__index = self
+	setmetatable(tbl, self)
+	-- return object
+	return tbl
 end --}}}2
 
 -- }}}1
 
---[[ Functions ]]--
+--[[ Functions ]]
+--
 
 -- abort(err)    {{{1
 
@@ -1781,16 +1847,15 @@ end --}}}2
 -- @local
 -- @function abort
 function abort(err)
-    -- remove metadata file if present
-    local ok, rm_err = remove_metadata_file()
-    if not ok then
-        io.stderr:write(sf('%s: unable to delete metadata file %s: %s\n',
-            pander.script, pander.metadata_file, rm_err))
-    end
-    -- display error message
-    io.stderr:write(sf('%s: %s', pander.script, err))
-    -- exit with error status
-    os.exit(-1)
+	-- remove metadata file if present
+	local ok, rm_err = remove_metadata_file()
+	if not ok then
+		io.stderr:write(sf("%s: unable to delete metadata file %s: %s\n", pander.script, pander.metadata_file, rm_err))
+	end
+	-- display error message
+	io.stderr:write(sf("%s: %s", pander.script, err))
+	-- exit with error status
+	os.exit(-1)
 end
 
 -- capture(cmd, raw)    {{{1
@@ -1807,24 +1872,26 @@ end
 -- @raise * operating system error
 -- @function capture
 function capture(cmd, raw)
-    -- io.popen returns filehandle even if command fails,
-    -- so there is no error to capture with assert();
-    -- error token method based on https://stackoverflow.com/a/24227576
-    local err_token = '::ERROR::'
-    local handle = io.popen(cmd .. ' 2>&1 || echo ' .. err_token, 'r')
-    -- nil-checking fails to remove 'need-check-nil' errors
-    ---@diagnostic disable:need-check-nil
-    local output = handle:read('*a')
-    handle:close()
-    ---@diagnostic enable:need-check-nil
-    if output:find(err_token) then
-        error(output:match('^(.-)%s*'..err_token), 2)
-    end
-    if raw then return output end
-    output = string.gsub(output, '^%s+', '')
-    output = string.gsub(output, '%s+$', '')
-    output = string.gsub(output, '[\n\r]+', ' ')
-    return output
+	-- io.popen returns filehandle even if command fails,
+	-- so there is no error to capture with assert();
+	-- error token method based on https://stackoverflow.com/a/24227576
+	local err_token = "::ERROR::"
+	local handle = io.popen(cmd .. " 2>&1 || echo " .. err_token, "r")
+	-- nil-checking fails to remove 'need-check-nil' errors
+	---@diagnostic disable:need-check-nil
+	local output = handle:read("*a")
+	handle:close()
+	---@diagnostic enable:need-check-nil
+	if output:find(err_token) then
+		error(output:match("^(.-)%s*" .. err_token), 2)
+	end
+	if raw then
+		return output
+	end
+	output = string.gsub(output, "^%s+", "")
+	output = string.gsub(output, "%s+$", "")
+	output = string.gsub(output, "[\n\r]+", " ")
+	return output
 end
 
 -- cover_image(fname)    {{{1
@@ -1839,13 +1906,15 @@ end
 -- @local
 -- @function cover_image
 function cover_image(fname)
-    local base = fname:match('^(.*)%..-$')
-    local file_extensions = {'png', 'gif', 'jpg'}
-    for _, file_extension in ipairs(file_extensions) do
-        local candidate = sf('%s.%s', base, file_extension)
-        if path_exists(candidate) then return candidate end
-    end
-    return nil
+	local base = fname:match("^(.*)%..-$")
+	local file_extensions = { "png", "gif", "jpg" }
+	for _, file_extension in ipairs(file_extensions) do
+		local candidate = sf("%s.%s", base, file_extension)
+		if path_exists(candidate) then
+			return candidate
+		end
+	end
+	return nil
 end
 
 -- create_mobi(fname)    {{{1
@@ -1866,42 +1935,42 @@ end
 -- @local
 -- @function create_mobi
 function create_mobi(fname)
-    -- check that 'ebook-convert' is available    {{{2
-    local conv = 'ebook-convert'
-    do
-        local cmd = conv..' --version'
-        local ok, err = pcall(capture, cmd)
-        if not ok then
-            return nil, sf("cannot find epub converter '%s': %s", conv, err)
-        end
-    end
-    -- derive filenames    {{{2
-    local base = fname:match('^(.*)%..-$')
-    local epub = base..'.epub'
-    local mobi = base..'.mobi'
-    -- confirm epub file is present    {{{2
-    if not path_exists(epub) then
-        return nil, sf("can't find epub file '%s' to convert", epub)
-    end
-    -- check for cover image    {{{2
-    local cover = cover_image(fname)
-    -- build conversion command    {{{2
-    local cmd = sf('%s %s %s', conv, epub, mobi)
-    if cover then
-        cmd = sf('%s --remove-first-image --cover %s', cmd, cover)
-    end
+	-- check that 'ebook-convert' is available    {{{2
+	local conv = "ebook-convert"
+	do
+		local cmd = conv .. " --version"
+		local ok, err = pcall(capture, cmd)
+		if not ok then
+			return nil, sf("cannot find epub converter '%s': %s", conv, err)
+		end
+	end
+	-- derive filenames    {{{2
+	local base = fname:match("^(.*)%..-$")
+	local epub = base .. ".epub"
+	local mobi = base .. ".mobi"
+	-- confirm epub file is present    {{{2
+	if not path_exists(epub) then
+		return nil, sf("can't find epub file '%s' to convert", epub)
+	end
+	-- check for cover image    {{{2
+	local cover = cover_image(fname)
+	-- build conversion command    {{{2
+	local cmd = sf("%s %s %s", conv, epub, mobi)
+	if cover then
+		cmd = sf("%s --remove-first-image --cover %s", cmd, cover)
+	end
 
-    -- display pandoc command to execute    {{{2
-    show_cmd('Generate mobi: ', cmd)
+	-- display pandoc command to execute    {{{2
+	show_cmd("Generate mobi: ", cmd)
 
-    --execute conversion command    {{{2
-    do
-        local ok, err = pcall(capture, cmd)
-        if not ok then
-            return nil, sf('epub conversion failed: %s', err)
-        end
-    end
-    return true -- }}}2
+	--execute conversion command    {{{2
+	do
+		local ok, err = pcall(capture, cmd)
+		if not ok then
+			return nil, sf("epub conversion failed: %s", err)
+		end
+	end
+	return true -- }}}2
 end
 
 -- empty(tbl)    {{{1
@@ -1912,10 +1981,14 @@ end
 -- @raise * not a table
 -- @function empty
 function empty(tbl)
-    -- has to be a table
-    assert(type(tbl) == 'table', sf('expected table, got %s', type(tbl)))
-    -- if no value found, is empty
-    if next(tbl) == nil then return true else return false end
+	-- has to be a table
+	assert(type(tbl) == "table", sf("expected table, got %s", type(tbl)))
+	-- if no value found, is empty
+	if next(tbl) == nil then
+		return true
+	else
+		return false
+	end
 end
 
 -- escape(args)    {{{1
@@ -1926,23 +1999,25 @@ end
 -- @treturn string shell-escaped argument(s)
 -- @function escape
 function escape(args)
-    -- convert args into table
-    local items = {}
-    if type(args) == 'table' then
-        for k, v in pairs(args) do items[k] = v end
-    else
-        items = {tostring(args)}
-    end
-    -- escape args
+	-- convert args into table
+	local items = {}
+	if type(args) == "table" then
+		for k, v in pairs(args) do
+			items[k] = v
+		end
+	else
+		items = { tostring(args) }
+	end
+	-- escape args
 	local retval = {}
 	for _, arg in pairs(items) do
 		local str = tostring(arg)
-		if str:match('[^A-Za-z0-9_/:=-]') then
-			str = "'"..str:gsub("'", "'\\''").."'"
+		if str:match("[^A-Za-z0-9_/:=-]") then
+			str = "'" .. str:gsub("'", "'\\''") .. "'"
 		end
 		table.insert(retval, str)
 	end
-	return table.concat(retval, ' ')
+	return table.concat(retval, " ")
 end
 
 -- expand_keywords(styles)    {{{1
@@ -1954,18 +2029,18 @@ end
 -- @return[2] error message
 -- @function expand_keywords
 function expand_keywords(styles)
-    local expanded_styles = {}
-    for _, style in ipairs(styles) do
-        if keyword_expand_data[style] then  -- expandable keyword
-            local extra_styles = keyword_expand_data[style]
-            for _, extra_style in ipairs(extra_styles) do
-                table.insert(expanded_styles, extra_style)
-            end
-        else  -- regular keyword
-            table.insert(expanded_styles, style)
-        end
-    end
-    return expanded_styles
+	local expanded_styles = {}
+	for _, style in ipairs(styles) do
+		if keyword_expand_data[style] then -- expandable keyword
+			local extra_styles = keyword_expand_data[style]
+			for _, extra_style in ipairs(extra_styles) do
+				table.insert(expanded_styles, extra_style)
+			end
+		else -- regular keyword
+			table.insert(expanded_styles, style)
+		end
+	end
+	return expanded_styles
 end
 
 -- extract_styles(output)    {{{1
@@ -1977,35 +2052,38 @@ end
 -- @return[2] error message
 -- @function extract_styles
 function extract_styles(output)
-    local err
-    -- pandoc warnings may be captured in output, so trim outside curly braces
-    local json_output = string.match(output, '^.-(%{.*%}).-$')
+	local err
+	-- pandoc warnings may be captured in output, so trim outside curly braces
+	local json_output = string.match(output, "^.-(%{.*%}).-$")
 
-    -- decode output
-    local metadata, err_pos, err_msg = json.decode(json_output, 1, nil)
-    if err_msg ~= nil then
-        err = sf('metadata "%s" error at position %s: %s',
-            output, err_pos, err_msg)
-        return nil, err
-    end
-    if type(metadata) ~= 'table' then
-        err = sf('expected metadata as table, got: %s', type(metadata))
-        return nil, err
-    end
+	-- decode output
+	local metadata, err_pos, err_msg = json.decode(json_output, 1, nil)
+	if err_msg ~= nil then
+		err = sf('metadata "%s" error at position %s: %s', output, err_pos, err_msg)
+		return nil, err
+	end
+	if type(metadata) ~= "table" then
+		err = sf("expected metadata as table, got: %s", type(metadata))
+		return nil, err
+	end
 
-    -- deal with edge cases for 'style' value
-    local styles_val = metadata.style
-    local styles_type = type(styles_val)
-    local styles = {}
-    if styles_type == 'table' then
-        for _, v in ipairs(styles_val) do table.insert(styles, v) end
-    elseif styles_type ~= 'nil' then
-        table.insert(styles, tostring(styles_val))
-    end
-    if #styles == 1 and styles[1] == '' then table.remove(styles) end
+	-- deal with edge cases for 'style' value
+	local styles_val = metadata.style
+	local styles_type = type(styles_val)
+	local styles = {}
+	if styles_type == "table" then
+		for _, v in ipairs(styles_val) do
+			table.insert(styles, v)
+		end
+	elseif styles_type ~= "nil" then
+		table.insert(styles, tostring(styles_val))
+	end
+	if #styles == 1 and styles[1] == "" then
+		table.remove(styles)
+	end
 
-    -- presume success
-    return styles
+	-- presume success
+	return styles
 end
 
 -- info(msg)    {{{1
@@ -2018,7 +2096,7 @@ end
 -- @local
 -- @function info
 function info(msg)
-    io.stdout:write(msg..'\n')
+	io.stdout:write(msg .. "\n")
 end
 
 -- is_object_of_class(object, class)    {{{1
@@ -2032,19 +2110,19 @@ end
 -- @local
 -- @function is_object_of_class
 function is_object_of_class(object, class)
-    if object == nil then
-        return nil, 'no parameter provided'
-    end
-    if type(object) ~= 'table' then
-        return nil, 'parameter is not a table'
-    end
-    if type(object.class) ~= 'function' then
-        return nil, sf('table is not a %s object', class)
-    end
-    if object:class() ~= class then
-        return nil, sf('object is not a %s object', class)
-    end
-    return true
+	if object == nil then
+		return nil, "no parameter provided"
+	end
+	if type(object) ~= "table" then
+		return nil, "parameter is not a table"
+	end
+	if type(object.class) ~= "function" then
+		return nil, sf("table is not a %s object", class)
+	end
+	if object:class() ~= class then
+		return nil, sf("object is not a %s object", class)
+	end
+	return true
 end
 
 -- keyword_actions(format, styles)    {{{1
@@ -2057,51 +2135,53 @@ end
 -- @return[2] error message
 -- @function keyword_actions
 function keyword_actions(doc_format, styles)
-    --[[
+	--[[
     Style data is indexed by type. Here are the types with the
     associated data type:
     metadata (table), extensions (sequence), options (table),
     filters (sequence), post_run (sequence).
     --]]
-    local metadata, extensions, options = {}, {}, {}
-    local filters, post_run = Filters:new(), {}
-    --[[
+	local metadata, extensions, options = {}, {}, {}
+	local filters, post_run = Filters:new(), {}
+	--[[
     If metadata contains the same field multiple times, the last 'wins'
     (see https://github.com/jgm/pandoc/issues/6092#issuecomment-579549414).
     For this reason, if a field value is a table we append to it rather
     than replace it.
     --]]
 
-    -- extract style data for specified styles
-    local style_data = {}
-    for _, v in ipairs(styles) do
-        table.insert(style_data, {v, keyword_actions_data[v]})
-    end
+	-- extract style data for specified styles
+	local style_data = {}
+	for _, v in ipairs(styles) do
+		table.insert(style_data, { v, keyword_actions_data[v] })
+	end
 
-    -- cycle through action styles
-    for _, style_datum in ipairs(style_data) do
-        local keyword_style; local keyword_data
-        keyword_style, keyword_data = table.unpack(style_datum)
+	-- cycle through action styles
+	for _, style_datum in ipairs(style_data) do
+		local keyword_style
+		local keyword_data
+		keyword_style, keyword_data = table.unpack(style_datum)
 
-        -- cycle through style formats to find matching formats
-        local keyword_formats = {}; local format_data_sets = {}
-        for keyword_format, format_data in pairs(keyword_data) do
-            if keyword_format == doc_format then
-                table.insert(keyword_formats, keyword_format)
-                table.insert(format_data_sets, format_data)
-            elseif keyword_format == 'all' then
-                -- ensure generic ('all') data is first
-                table.insert(keyword_formats, 1, keyword_format)
-                table.insert(format_data_sets, 1, format_data)
-            end
-        end
+		-- cycle through style formats to find matching formats
+		local keyword_formats = {}
+		local format_data_sets = {}
+		for keyword_format, format_data in pairs(keyword_data) do
+			if keyword_format == doc_format then
+				table.insert(keyword_formats, keyword_format)
+				table.insert(format_data_sets, format_data)
+			elseif keyword_format == "all" then
+				-- ensure generic ('all') data is first
+				table.insert(keyword_formats, 1, keyword_format)
+				table.insert(format_data_sets, 1, format_data)
+			end
+		end
 
-        -- process found format_data
-        for idx, _ in ipairs(keyword_formats) do
-            local keyword_format = keyword_formats[idx]
-            local format_data = format_data_sets[idx]
+		-- process found format_data
+		for idx, _ in ipairs(keyword_formats) do
+			local keyword_format = keyword_formats[idx]
+			local format_data = format_data_sets[idx]
 
-            --[[
+			--[[
             Here is a matrix for handling 'metadata' and 'options' action
             types, which have a table ('key = value') data type. (The other
             action types have sequence data types.) The matrix compares what
@@ -2138,133 +2218,129 @@ function keyword_actions(doc_format, styles)
                 end
             --]]
 
-            -- process << metadata >> if any defined for style format
-            -- * note: because format-specific data are processed after
-            --   generic ('all') data, format-specific metadata are processed
-            --   after generic metadata
-            if not format_data.metadata then goto skip_metadata end
-            for field, value in pairs(format_data.metadata) do
-                local prefix = sf('%s %s metadata %s: ',
-                    keyword_style, keyword_format, field)
-                if not metadata[field] then
-                    -- existing nil, new list or string (non-list)
-                    metadata[field] = value
-                    goto done_metadata_field
-                end
-                local existing_value_type = type(metadata[field])
-                local new_value_type = type(value)
-                if existing_value_type == 'table' then
-                    if new_value_type == 'table' then
-                        -- existing list, new list
-                        for _, v in ipairs(value) do
-                            table.insert(metadata[field], v)
-                        end
-                    else
-                        -- existing list, new string (non-list)
-                        local err = sf('%sadding string (%s) to list',
-                            prefix, value)
-                        return nil, err
-                    end
-                    goto done_metadata_field
-                end
-                -- existing value *must* be string (non-list)
-                if new_value_type == 'table' then
-                    -- existing string (non-list), new list
-                    local err = sf('%sadding list (%s) to string',
-                        prefix, tostring(value))
-                    return nil, err
-                else
-                    -- existing string (non-list), new string (non-list)
-                    -- replace if new value is different
-                    if metadata[field] ~= value then
-                        local msg = sf("%sreplacing '%s' with '%s'",
-                            prefix, metadata[field], value)
-                        metadata[field] = value
-                        warn(msg)
-                    end
-                end
-                ::done_metadata_field::
-            end
-            ::skip_metadata::
+			-- process << metadata >> if any defined for style format
+			-- * note: because format-specific data are processed after
+			--   generic ('all') data, format-specific metadata are processed
+			--   after generic metadata
+			if not format_data.metadata then
+				goto skip_metadata
+			end
+			for field, value in pairs(format_data.metadata) do
+				local prefix = sf("%s %s metadata %s: ", keyword_style, keyword_format, field)
+				if not metadata[field] then
+					-- existing nil, new list or string (non-list)
+					metadata[field] = value
+					goto done_metadata_field
+				end
+				local existing_value_type = type(metadata[field])
+				local new_value_type = type(value)
+				if existing_value_type == "table" then
+					if new_value_type == "table" then
+						-- existing list, new list
+						for _, v in ipairs(value) do
+							table.insert(metadata[field], v)
+						end
+					else
+						-- existing list, new string (non-list)
+						local err = sf("%sadding string (%s) to list", prefix, value)
+						return nil, err
+					end
+					goto done_metadata_field
+				end
+				-- existing value *must* be string (non-list)
+				if new_value_type == "table" then
+					-- existing string (non-list), new list
+					local err = sf("%sadding list (%s) to string", prefix, tostring(value))
+					return nil, err
+				else
+					-- existing string (non-list), new string (non-list)
+					-- replace if new value is different
+					if metadata[field] ~= value then
+						local msg = sf("%sreplacing '%s' with '%s'", prefix, metadata[field], value)
+						metadata[field] = value
+						warn(msg)
+					end
+				end
+				::done_metadata_field::
+			end
+			::skip_metadata::
 
-            -- process << extensions >> if any defined for style format
-            if format_data.extensions then
-                for _, extension in pairs(format_data.extensions) do
-                    extensions[extension] = true
-                end
-            end
+			-- process << extensions >> if any defined for style format
+			if format_data.extensions then
+				for _, extension in pairs(format_data.extensions) do
+					extensions[extension] = true
+				end
+			end
 
-            -- process << options >> if any defined for style format
-            -- * note: because format-specific data are processed after
-            --   generic ('all') data, format-specific options are processed
-            --   after generic options
-            if not format_data.options then goto skip_options end
-            for field, value in pairs(format_data.options) do
-                local prefix = sf('%s %s options %s: ',
-                    keyword_style, keyword_format, field)
-                if not options[field] then
-                    -- existing nil, new list or string (non-list)
-                    options[field] = value
-                    goto done_options_field
-                end
-                local existing_value_type = type(options[field])
-                local new_value_type = type(value)
-                if existing_value_type == 'table' then
-                    if new_value_type == 'table' then
-                        -- existing list, new list
-                        for _, v in ipairs(value) do
-                            table.insert(options[field], v)
-                        end
-                    else
-                        -- existing list, new string (non-list)
-                        local err = sf('%sadding string (%s) to list',
-                            prefix, value)
-                        return nil, err
-                    end
-                    goto done_options_field
-                end
-                -- existing value *must* be string (non-list)
-                if new_value_type == 'table' then
-                    -- existing string (non-list), new list
-                    local err = sf('%sadding list (%s) to string',
-                        prefix, tostring(value))
-                    return nil, err
-                else
-                    -- existing string (non-list), new string (non-list)
-                    local msg = sf("%sreplacing '%s' with '%s'\n",
-                        prefix, options[field], value)
-                    options[field] = value
-                    warn(msg)
-                end
-                ::done_options_field::
-            end
-            ::skip_options::
+			-- process << options >> if any defined for style format
+			-- * note: because format-specific data are processed after
+			--   generic ('all') data, format-specific options are processed
+			--   after generic options
+			if not format_data.options then
+				goto skip_options
+			end
+			for field, value in pairs(format_data.options) do
+				local prefix = sf("%s %s options %s: ", keyword_style, keyword_format, field)
+				if not options[field] then
+					-- existing nil, new list or string (non-list)
+					options[field] = value
+					goto done_options_field
+				end
+				local existing_value_type = type(options[field])
+				local new_value_type = type(value)
+				if existing_value_type == "table" then
+					if new_value_type == "table" then
+						-- existing list, new list
+						for _, v in ipairs(value) do
+							table.insert(options[field], v)
+						end
+					else
+						-- existing list, new string (non-list)
+						local err = sf("%sadding string (%s) to list", prefix, value)
+						return nil, err
+					end
+					goto done_options_field
+				end
+				-- existing value *must* be string (non-list)
+				if new_value_type == "table" then
+					-- existing string (non-list), new list
+					local err = sf("%sadding list (%s) to string", prefix, tostring(value))
+					return nil, err
+				else
+					-- existing string (non-list), new string (non-list)
+					local msg = sf("%sreplacing '%s' with '%s'\n", prefix, options[field], value)
+					options[field] = value
+					warn(msg)
+				end
+				::done_options_field::
+			end
+			::skip_options::
 
-            -- process << filters >> if any defined for style format
-            if format_data.filters then
-                for _, filter in ipairs(format_data.filters) do
-                    filters:add(Filter:new(filter))
-                end
-            end
+			-- process << filters >> if any defined for style format
+			if format_data.filters then
+				for _, filter in ipairs(format_data.filters) do
+					filters:add(Filter:new(filter))
+				end
+			end
 
-            -- process << post_run >> if any defined for style format
-            if format_data.post_run then
-                for _, task in pairs(format_data.post_run) do
-                    post_run[task] = true
-                end
-            end
-        end
-    end
+			-- process << post_run >> if any defined for style format
+			if format_data.post_run then
+				for _, task in pairs(format_data.post_run) do
+					post_run[task] = true
+				end
+			end
+		end
+	end
 
-    -- return actions
-    local actions = {
-        metadata = metadata,
-        extensions = extensions,
-        options = options,
-        filters = filters,
-        post_run = post_run,
-    }
-    return actions
+	-- return actions
+	local actions = {
+		metadata = metadata,
+		extensions = extensions,
+		options = options,
+		filters = filters,
+		post_run = post_run,
+	}
+	return actions
 end
 
 -- metadata_token(token, fname)    {{{1
@@ -2279,19 +2355,19 @@ end
 -- @local
 -- @function metadata_token
 function metadata_token(token, fname)
-    if token == '::cover_image::' then
-        -- no error if cannot find cover image
-        -- returning nil as field value means metadata field is not set
-        local image = cover_image(fname)
-        if image then
-            return true, image
-        else
-            warn('No cover image located')
-            return true, nil
-        end
-    else
-        return nil, sf("invalid metadata field token '%s'", token)
-    end
+	if token == "::cover_image::" then
+		-- no error if cannot find cover image
+		-- returning nil as field value means metadata field is not set
+		local image = cover_image(fname)
+		if image then
+			return true, image
+		else
+			warn("No cover image located")
+			return true, nil
+		end
+	else
+		return nil, sf("invalid metadata field token '%s'", token)
+	end
 end
 
 -- pander_args(arg)    {{{1
@@ -2311,73 +2387,85 @@ end
 -- @return[2] nil
 -- @function pander_args
 function pander_args(arg)
-    -- define script options
-    -- * 'script_option_groups' defines script option groups
-    -- * 'script' records which options groups are detected:
-    --    keys are group names and values are boolean
-    local script_option_groups_skeleton = {
-        help={['-h']='',['--help']='',['---help']='',['---h']=''},
-        version={['-v']='',['--version']='',['---version']='',['---v']=''},
-        list={['---list-keywords']=''},
-        quiet={['---quiet']=''}
-    }
-    local script_option_groups
-    do
-        local err
-        script_option_groups, err = truthify(script_option_groups_skeleton)
-        if not script_option_groups then return nil, err end
-    end
-    local script = {}
-    for k, _ in pairs(script_option_groups) do script[k]=false end
-    -- extract options and arguments
-    -- 'pandoc.args' preserves argument order for non-script-related args
-    local pandoc = {options={}, input_files={}, args={}}
-    do
-        for _, argument in ipairs(arg) do
-            -- check whether arg is a script-related option
-            local is_script_option = false
-            for option_group, _ in pairs(script_option_groups) do
-                if script_option_groups[option_group][argument] then
-                    script[option_group] = true
-                    is_script_option = true
-                end
-            end
-            if not is_script_option then
-                -- is a pandoc-related argument
-                table.insert(pandoc.args, argument)
-                local option, value = argument:match('^(%-[^%=]-)%=(.*)$')
-                if option and value then
-                    pandoc.options[option] = value
-                else
-                    table.insert(pandoc.input_files, argument)
-                end
-            end
-        end
-    end
-    -- handle script (i.e., non-pandoc) options
-    -- . help, version, and list-keywords take precedence (in order)
-    if script.help then pander_help() end
-    if script.version then pander_version() end
-    if script.list then pander_list_keywords() end
-    if script.quiet then pander.quiet = true end
-    -- check pandoc (i.e., non-script) options and input files
-    if pandoc.options['--to'] == nil then
-        return nil, 'no --to option found'
-    end
-    do
-        local opt_type = type(pandoc.options['--to'])
-        if opt_type ~= 'string' then
-            return nil, 'expected string output format, got '..opt_type
-        end
-    end
-    if pandoc.options['--to'] == '' then
-        return nil, 'no --to option value'
-    end
-    if #pandoc.input_files < 1 then
-        return nil, 'no input file provided'
-    end
-    -- return processed options
-    return pandoc.options, pandoc.input_files, pandoc.args
+	-- define script options
+	-- * 'script_option_groups' defines script option groups
+	-- * 'script' records which options groups are detected:
+	--    keys are group names and values are boolean
+	local script_option_groups_skeleton = {
+		help = { ["-h"] = "", ["--help"] = "", ["---help"] = "", ["---h"] = "" },
+		version = { ["-v"] = "", ["--version"] = "", ["---version"] = "", ["---v"] = "" },
+		list = { ["---list-keywords"] = "" },
+		quiet = { ["---quiet"] = "" },
+	}
+	local script_option_groups
+	do
+		local err
+		script_option_groups, err = truthify(script_option_groups_skeleton)
+		if not script_option_groups then
+			return nil, err
+		end
+	end
+	local script = {}
+	for k, _ in pairs(script_option_groups) do
+		script[k] = false
+	end
+	-- extract options and arguments
+	-- 'pandoc.args' preserves argument order for non-script-related args
+	local pandoc = { options = {}, input_files = {}, args = {} }
+	do
+		for _, argument in ipairs(arg) do
+			-- check whether arg is a script-related option
+			local is_script_option = false
+			for option_group, _ in pairs(script_option_groups) do
+				if script_option_groups[option_group][argument] then
+					script[option_group] = true
+					is_script_option = true
+				end
+			end
+			if not is_script_option then
+				-- is a pandoc-related argument
+				table.insert(pandoc.args, argument)
+				local option, value = argument:match("^(%-[^%=]-)%=(.*)$")
+				if option and value then
+					pandoc.options[option] = value
+				else
+					table.insert(pandoc.input_files, argument)
+				end
+			end
+		end
+	end
+	-- handle script (i.e., non-pandoc) options
+	-- . help, version, and list-keywords take precedence (in order)
+	if script.help then
+		pander_help()
+	end
+	if script.version then
+		pander_version()
+	end
+	if script.list then
+		pander_list_keywords()
+	end
+	if script.quiet then
+		pander.quiet = true
+	end
+	-- check pandoc (i.e., non-script) options and input files
+	if pandoc.options["--to"] == nil then
+		return nil, "no --to option found"
+	end
+	do
+		local opt_type = type(pandoc.options["--to"])
+		if opt_type ~= "string" then
+			return nil, "expected string output format, got " .. opt_type
+		end
+	end
+	if pandoc.options["--to"] == "" then
+		return nil, "no --to option value"
+	end
+	if #pandoc.input_files < 1 then
+		return nil, "no input file provided"
+	end
+	-- return processed options
+	return pandoc.options, pandoc.input_files, pandoc.args
 end
 
 -- pander_help()    {{{1
@@ -2386,7 +2474,7 @@ end
 -- @return nil
 -- @function pander_help
 function pander_help()
-    local usage = [[
+	local usage = [[
 Wrapper script for pandoc
 
 This script is designed to be called within vim by the
@@ -2412,8 +2500,8 @@ Optional arguments:
   ---list-keywords    show style keywords and exit
   ---quiet            only print errors and warnings]]
 
-    info(usage)
-    os.exit()
+	info(usage)
+	os.exit()
 end
 
 -- pander_list_keywords()    {{{1
@@ -2422,40 +2510,42 @@ end
 -- @return nil
 -- @function pander_list_keywords
 function pander_list_keywords()
-    -- assemble keyword and descriptions
-    local keywords_sorted = {}
-    local descriptions = {}
-    for keyword, description in pairs(keyword_describe_data) do
-        table.insert(keywords_sorted, keyword)
-        descriptions[keyword] = description
-    end
-    local compare_keywords = function (a, b)
-        local match = '^Latex%d%d?pt$'
-        if a:match(match) and b:match(match) then
-            local pts = '^Latex(%d+)pt$'
-            local a_pts = math.tointeger(a:match(pts))
-            local b_pts = math.tointeger(b:match(pts))
-            return (a_pts < b_pts)
-        else
-            return (a < b)
-        end
-    end
-    table.sort(keywords_sorted, compare_keywords)
-    -- format for output
-    local max_length = 0
-    for _, keyword in ipairs(keywords_sorted) do
-        max_length = (#keyword > max_length) and #keyword or max_length
-    end
-    local output = {}
-    for _, keyword in ipairs(keywords_sorted) do
-        local indent_size = max_length - #keyword
-        local indent = string.rep(' ', indent_size)
-        local line = sf('%s%s: %s\n', indent, keyword, descriptions[keyword])
-        table.insert(output, line)
-    end
-    -- display output
-    for _, line in ipairs(output) do io.stdout:write(line) end
-    os.exit()
+	-- assemble keyword and descriptions
+	local keywords_sorted = {}
+	local descriptions = {}
+	for keyword, description in pairs(keyword_describe_data) do
+		table.insert(keywords_sorted, keyword)
+		descriptions[keyword] = description
+	end
+	local compare_keywords = function(a, b)
+		local match = "^Latex%d%d?pt$"
+		if a:match(match) and b:match(match) then
+			local pts = "^Latex(%d+)pt$"
+			local a_pts = math.tointeger(a:match(pts))
+			local b_pts = math.tointeger(b:match(pts))
+			return (a_pts < b_pts)
+		else
+			return (a < b)
+		end
+	end
+	table.sort(keywords_sorted, compare_keywords)
+	-- format for output
+	local max_length = 0
+	for _, keyword in ipairs(keywords_sorted) do
+		max_length = (#keyword > max_length) and #keyword or max_length
+	end
+	local output = {}
+	for _, keyword in ipairs(keywords_sorted) do
+		local indent_size = max_length - #keyword
+		local indent = string.rep(" ", indent_size)
+		local line = sf("%s%s: %s\n", indent, keyword, descriptions[keyword])
+		table.insert(output, line)
+	end
+	-- display output
+	for _, line in ipairs(output) do
+		io.stdout:write(line)
+	end
+	os.exit()
 end
 
 -- pander_version()    {{{1
@@ -2464,9 +2554,9 @@ end
 -- @return nil
 -- @function pander_version
 function pander_version()
-    local version = 'pander 1.7'
-    info(version)
-    os.exit()
+	local version = "pander 1.7"
+	info(version)
+	os.exit()
 end
 
 -- pandoc_cmd_caller_args(args)    {{{1
@@ -2477,15 +2567,15 @@ end
 -- @treturn string shell-escaped caller arguments
 -- @function pandoc_cmd_caller_args
 function pandoc_cmd_caller_args(args)
-    -- able to rely on vim's vim-pandoc plugin to present all arguments
-    -- in '--OPT=VAL' format, excepting only input file(s)
-    local esc_args = {}
-    for _, arg in ipairs(args) do
-        local opt, val = arg:match('^(%-%-[^%=]-)%=(.*)$')
-        local esc_arg = (opt) and opt..'='..escape(val) or escape(arg)
-        table.insert(esc_args, esc_arg)
-    end
-    return table.concat(esc_args, ' ')
+	-- able to rely on vim's vim-pandoc plugin to present all arguments
+	-- in '--OPT=VAL' format, excepting only input file(s)
+	local esc_args = {}
+	for _, arg in ipairs(args) do
+		local opt, val = arg:match("^(%-%-[^%=]-)%=(.*)$")
+		local esc_arg = opt and opt .. "=" .. escape(val) or escape(arg)
+		table.insert(esc_args, esc_arg)
+	end
+	return table.concat(esc_args, " ")
 end
 
 -- pandoc_cmd_style_actions(cmd, actions, filename)    {{{1
@@ -2504,98 +2594,115 @@ end
 -- @return[2] error message
 -- @function pandoc_cmd_style_actions
 function pandoc_cmd_style_actions(cmd, actions, fname)
-    if not cmd then cmd = '' end
-    if not actions then actions = {} end
-    local metadata_file
+	if not cmd then
+		cmd = ""
+	end
+	if not actions then
+		actions = {}
+	end
+	local metadata_file
 
-    -- extensions
-    if actions.extensions and not empty(actions.extensions) then
-        do
-            local exts = {'markdown'}
-            local prefix = {['+'] = true, ['-'] = true}
-            for k, _ in pairs(actions.extensions) do
-                local first_char = k:sub(1, 1)
-                if not prefix[first_char] then k = '+'..k end
-                table.insert(exts, k)
-            end
-            local from = table.concat(exts)
-            cmd = cmd..sf(' --from="%s"', from)
-        end
-    end
+	-- extensions
+	if actions.extensions and not empty(actions.extensions) then
+		do
+			local exts = { "markdown" }
+			local prefix = { ["+"] = true, ["-"] = true }
+			for k, _ in pairs(actions.extensions) do
+				local first_char = k:sub(1, 1)
+				if not prefix[first_char] then
+					k = "+" .. k
+				end
+				table.insert(exts, k)
+			end
+			local from = table.concat(exts)
+			cmd = cmd .. sf(' --from="%s"', from)
+		end
+	end
 
-    -- options
-    if actions.options and not empty(actions.options) then
-        for k, v in pairs(actions.options) do
-            if v == true then cmd = cmd..' '..k
-            elseif v == false then
-                local mask = "option '%s' is false: no rule for false options"
-                return nil, sf(mask, k)
-            else cmd = cmd..' '..sf('%s="%s"', k, v)
-            end
-        end
-    end
+	-- options
+	if actions.options and not empty(actions.options) then
+		for k, v in pairs(actions.options) do
+			if v == true then
+				cmd = cmd .. " " .. k
+			elseif v == false then
+				local mask = "option '%s' is false: no rule for false options"
+				return nil, sf(mask, k)
+			else
+				cmd = cmd .. " " .. sf('%s="%s"', k, v)
+			end
+		end
+	end
 
-    -- filters
-    do
-        local filter_options = actions.filters:cmd()
-        if filter_options ~= '' then cmd = cmd..' '..filter_options end
-    end
+	-- filters
+	do
+		local filter_options = actions.filters:cmd()
+		if filter_options ~= "" then
+			cmd = cmd .. " " .. filter_options
+		end
+	end
 
-    -- metadata
-    if actions.metadata and not empty(actions.metadata) then
-        -- process any special tokens ('::token::')
-        for field, value in pairs(actions.metadata) do
-            if type(value) == 'string' and value:match('^::.-::$') then
-                do
-                    local ok, new_value = metadata_token(value, fname)
-                    if not ok then return nil, new_value end
-                    -- new_value may be nil, which deletes metadata field
-                    actions.metadata[field] = new_value
-                end
-            end
-        end
-        -- create json metadata string
-        local metadata
-        do
-            local err
-            metadata, err = json.encode(actions.metadata,
-                {indent = true, exception = json.encodeexception})
-            if not metadata then return nil, err end
-        end
-        -- write metadata to file
-        do
-            local ok, fh, err
-            ok, metadata_file = pcall(os.tmpname)
-            -- in linux this causes file to be created,
-            -- so from now on must delete file when aborting
-            if not ok then
-                return nil, sf("can't get tmpfile name: %s", metadata_file)
-            end
-            ok, fh = pcall(io.open, metadata_file, 'w')
-            if not ok then
-                os.remove(metadata_file)
-                return nil, sf("can't open %s: %s", metadata_file, fh)
-            end
-            ---@diagnostic disable:need-check-nil,param-type-mismatch
-            ok, err = pcall(function () fh:write(metadata) end)
-            ---@diagnostic enable:need-check-nil,param-type-mismatch
-            if not ok then
-                os.remove(metadata_file)
-                return nil, sf("can't write to %s: %s", metadata_file, err)
-            end
-            ---@diagnostic disable-next-line:need-check-nil
-            ok, err = pcall(function () fh:close() end)
-            if not ok then
-                os.remove(metadata_file)
-                return nil, sf("can't close %s: %s", metadata_file, err)
-            end
-        end
+	-- metadata
+	if actions.metadata and not empty(actions.metadata) then
+		-- process any special tokens ('::token::')
+		for field, value in pairs(actions.metadata) do
+			if type(value) == "string" and value:match("^::.-::$") then
+				do
+					local ok, new_value = metadata_token(value, fname)
+					if not ok then
+						return nil, new_value
+					end
+					-- new_value may be nil, which deletes metadata field
+					actions.metadata[field] = new_value
+				end
+			end
+		end
+		-- create json metadata string
+		local metadata
+		do
+			local err
+			metadata, err = json.encode(actions.metadata, { indent = true, exception = json.encodeexception })
+			if not metadata then
+				return nil, err
+			end
+		end
+		-- write metadata to file
+		do
+			local ok, fh, err
+			ok, metadata_file = pcall(os.tmpname)
+			-- in linux this causes file to be created,
+			-- so from now on must delete file when aborting
+			if not ok then
+				return nil, sf("can't get tmpfile name: %s", metadata_file)
+			end
+			ok, fh = pcall(io.open, metadata_file, "w")
+			if not ok then
+				os.remove(metadata_file)
+				return nil, sf("can't open %s: %s", metadata_file, fh)
+			end
+			---@diagnostic disable:need-check-nil,param-type-mismatch
+			ok, err = pcall(function()
+				fh:write(metadata)
+			end)
+			---@diagnostic enable:need-check-nil,param-type-mismatch
+			if not ok then
+				os.remove(metadata_file)
+				return nil, sf("can't write to %s: %s", metadata_file, err)
+			end
+			---@diagnostic disable-next-line:need-check-nil
+			ok, err = pcall(function()
+				fh:close()
+			end)
+			if not ok then
+				os.remove(metadata_file)
+				return nil, sf("can't close %s: %s", metadata_file, err)
+			end
+		end
 
-        -- add option to pandoc command
-        cmd = cmd..sf(' --metadata-file="%s"', metadata_file)
-    end
+		-- add option to pandoc command
+		cmd = cmd .. sf(' --metadata-file="%s"', metadata_file)
+	end
 
-    return cmd, metadata_file
+	return cmd, metadata_file
 end
 
 -- path_exists(path)    {{{1
@@ -2606,13 +2713,11 @@ end
 -- @local
 -- @function path_exists
 function path_exists(path)
-    local result = pcall(
-        function ()
-            local fh = io.open(path, 'r')
-            fh:close() ---@diagnostic disable-line: need-check-nil
-        end
-    )
-    return result
+	local result = pcall(function()
+		local fh = io.open(path, "r")
+		fh:close() ---@diagnostic disable-line: need-check-nil
+	end)
+	return result
 end
 
 -- pause_on_exit()    {{{1
@@ -2621,10 +2726,10 @@ end
 -- @return nil
 -- @function pause_on_exit
 function pause_on_exit()
-    if pander.pause_on_exit then
-        info('Press Enter key to continue...')
-        io.read()
-    end
+	if pander.pause_on_exit then
+		info("Press Enter key to continue...")
+		io.read()
+	end
 end
 
 -- post_process(tasks, fname)    {{{1
@@ -2637,19 +2742,21 @@ end
 -- @return[2] error message
 -- @function post_process
 function post_process(tasks, fname)
-    for task, _ in pairs(tasks) do
-        if task == 'create_mobi' then
-            local ok, err = create_mobi(fname)
-            if not ok then return nil, err end
-        elseif task == 'pause' then
-            pander.pause_on_exit = true
-        elseif task == 'keep-data' then
-            pander.keep_data = true
-        else
-            return nil, sf("invalid post-processing task '%s'", task)
-        end
-    end
-    return true
+	for task, _ in pairs(tasks) do
+		if task == "create_mobi" then
+			local ok, err = create_mobi(fname)
+			if not ok then
+				return nil, err
+			end
+		elseif task == "pause" then
+			pander.pause_on_exit = true
+		elseif task == "keep-data" then
+			pander.keep_data = true
+		else
+			return nil, sf("invalid post-processing task '%s'", task)
+		end
+	end
+	return true
 end
 
 -- remove_metadata_file()    {{{1
@@ -2659,12 +2766,12 @@ end
 -- @local
 -- @function remove_metadata_file
 function remove_metadata_file()
-    -- remove metadata_file if it exists
-    if pander.keep_data and pander.metadata_file then
-        local ok, err = os.remove(pander.metadata_file)
-        return ok and true or nil, err
-    end
-    return true
+	-- remove metadata_file if it exists
+	if pander.keep_data and pander.metadata_file then
+		local ok, err = os.remove(pander.metadata_file)
+		return ok and true or nil, err
+	end
+	return true
 end
 
 -- show_cmd(prefix, cmd)    {{{1
@@ -2676,11 +2783,13 @@ end
 -- @local
 -- @function show_cmd
 function show_cmd(prefix, cmd)
-    -- valid colours:
-    -- - black, red, green, yellow, blue, pink, cyan, white
-    -- - BLACK, RED, GREEN, YELLOW, BLUE, PINK, CYAN, WHITE
-    if pander.quiet then return end
-    io.stdout:write(color.fg.GREEN .. prefix .. color.reset .. cmd ..'\n')
+	-- valid colours:
+	-- - black, red, green, yellow, blue, pink, cyan, white
+	-- - BLACK, RED, GREEN, YELLOW, BLUE, PINK, CYAN, WHITE
+	if pander.quiet then
+		return
+	end
+	io.stdout:write(color.fg.GREEN .. prefix .. color.reset .. cmd .. "\n")
 end
 
 -- style_conflicts(styles)    {{{1
@@ -2692,19 +2801,20 @@ end
 -- @return[2] error message
 -- @function style_conflicts
 function style_conflicts(styles)
-    for group, _ in pairs(keyword_conflict_data) do
-        local group_styles = keyword_conflict_data[group]
-        local matches = {}
-        for _, style in ipairs(styles) do
-            if group_styles[style] then table.insert(matches, style) end
-        end
-        if #matches > 1 then  -- conflicting styles
-            local err = sf('conflicting %s style keywords: %s',
-                group, table.concat(matches, ', '))
-            return nil, err
-        end
-    end
-    return true
+	for group, _ in pairs(keyword_conflict_data) do
+		local group_styles = keyword_conflict_data[group]
+		local matches = {}
+		for _, style in ipairs(styles) do
+			if group_styles[style] then
+				table.insert(matches, style)
+			end
+		end
+		if #matches > 1 then -- conflicting styles
+			local err = sf("conflicting %s style keywords: %s", group, table.concat(matches, ", "))
+			return nil, err
+		end
+	end
+	return true
 end
 
 -- truthify(tbl)    {{{1
@@ -2716,22 +2826,26 @@ end
 -- @return[2] error message
 -- @function truthify
 function truthify(tbl)
-    -- check argument
-    local vtype = type(tbl)
-    if vtype ~= 'table' then return nil, 'expected table, got '..vtype end
-    -- process table
-    local retval = {}
-    for k, v in pairs(tbl) do
-        local newval = true
-        if type(v) == 'table' then
-            local err
-            newval, err = truthify(v)
-            if not newval then return nil, err end
-        end
-        retval[k] = newval
-    end
-    -- return modified table
-    return retval
+	-- check argument
+	local vtype = type(tbl)
+	if vtype ~= "table" then
+		return nil, "expected table, got " .. vtype
+	end
+	-- process table
+	local retval = {}
+	for k, v in pairs(tbl) do
+		local newval = true
+		if type(v) == "table" then
+			local err
+			newval, err = truthify(v)
+			if not newval then
+				return nil, err
+			end
+		end
+		retval[k] = newval
+	end
+	-- return modified table
+	return retval
 end
 
 -- valid_keywords(keywords)    {{{1
@@ -2743,17 +2857,19 @@ end
 -- @return[2] error message
 -- @function valid_keywords
 function valid_keywords(keywords)
-    local invalid = {}
-    for _, v in ipairs(keywords) do
-        if not keyword_valid_data[v] then table.insert(invalid, v) end
-    end
-    if empty(invalid) then  -- all valid
-        return true
-    else
-        local frag = (#invalid == 1) and 'style' or 'styles'
-        local err = sf('Invalid %s: %s', frag, table.concat(invalid, ', '))
-        return nil, err
-    end
+	local invalid = {}
+	for _, v in ipairs(keywords) do
+		if not keyword_valid_data[v] then
+			table.insert(invalid, v)
+		end
+	end
+	if empty(invalid) then -- all valid
+		return true
+	else
+		local frag = (#invalid == 1) and "style" or "styles"
+		local err = sf("Invalid %s: %s", frag, table.concat(invalid, ", "))
+		return nil, err
+	end
 end
 
 -- warn(msg)    {{{1
@@ -2764,22 +2880,23 @@ end
 -- @local
 -- @function warn
 function warn(msg)
-    io.stdout:write(color.fg.RED .. msg .. color.reset .. '\n')
+	io.stdout:write(color.fg.RED .. msg .. color.reset .. "\n")
 end -- }}}1
 
---[[ Main ]]--
+--[[ Main ]]
+--
 
 -- set variables    {{{1
 pander = {
-    script = arg[0]:match('^.*%/(.-)$'),  -- name of this script
-    template = 'metajson.tpl',            -- metajson template file name
-    input_filename = false,               -- markdown input file
-    output_format = false,                -- output format
-    metadata_file = false,                -- path to temporary metadata file
-    pause_on_exit = false,                -- whether pause before exiting
-    keep_data = false,                    -- whether to keep metadata file
-                                          -- instead of deleting it
-    quiet = false,                        -- whether to suppress feedback
+	script = arg[0]:match("^.*%/(.-)$"), -- name of this script
+	template = "metajson.tpl", -- metajson template file name
+	input_filename = false, -- markdown input file
+	output_format = false, -- output format
+	metadata_file = false, -- path to temporary metadata file
+	pause_on_exit = false, -- whether pause before exiting
+	keep_data = false, -- whether to keep metadata file
+	-- instead of deleting it
+	quiet = false, -- whether to suppress feedback
 }
 
 -- process script arguments    {{{1
@@ -2789,13 +2906,15 @@ pander = {
 -- also handles local script options
 -- args used later instead of options+input_files ∵ it preserves arg order
 local options, input_files, args = pander_args(arg)
-if not options then abort(input_files) end
+if not options then
+	abort(input_files)
+end
 -- extract details of input file and output format    {{{2
 -- assumes markdown input file is last argument on command line
 -- (this is enforced by vim's vim-pandoc plugin)
 ---@diagnostic disable: need-check-nil
 pander.input_filename = input_files[#input_files]
-pander.output_format = options['--to']
+pander.output_format = options["--to"]
 ---@diagnostic enable: need-check-nil
 -- }}}2
 
@@ -2804,96 +2923,113 @@ pander.output_format = options['--to']
 -- run pandoc command    {{{2
 local styles
 do
-    ---@diagnostic disable: param-type-mismatch
-    local cmd = sf('pandoc --template="%s" "%s"',
-        pander.template, table.concat(input_files, '" "'))
-    ---@diagnostic enable: param-type-mismatch
-    show_cmd('Extract metadata: ', cmd)
-    local ok, output = pcall(capture, cmd)
-    if not ok then abort('metadata retrieval failed:\n'..output) end
+	---@diagnostic disable: param-type-mismatch
+	local cmd = sf('pandoc --template="%s" "%s"', pander.template, table.concat(input_files, '" "'))
+	---@diagnostic enable: param-type-mismatch
+	show_cmd("Extract metadata: ", cmd)
+	local ok, output = pcall(capture, cmd)
+	if not ok then
+		abort("metadata retrieval failed:\n" .. output)
+	end
 
--- extract style keywords from pandoc output    {{{2
-    local err
-    styles, err = extract_styles(output)
-    if not styles then abort(err) end
+	-- extract style keywords from pandoc output    {{{2
+	local err
+	styles, err = extract_styles(output)
+	if not styles then
+		abort(err)
+	end
 end -- }}}2
 
 -- process style keywords to get actions    {{{1
 
 -- check keywords are valid    {{{2
 do
-    local result, err = valid_keywords(styles)
-    if not result then abort(err) end
+	local result, err = valid_keywords(styles)
+	if not result then
+		abort(err)
+	end
 end
 
 -- expand keywords    {{{2
 do
-    local err
-    styles, err = expand_keywords(styles)
-    if not styles then abort(err) end
+	local err
+	styles, err = expand_keywords(styles)
+	if not styles then
+		abort(err)
+	end
 end
 
 -- check for conflicting keywords    {{{2
 do
-    local ok, err = style_conflicts(styles)
-    if not ok then abort(err) end
+	local ok, err = style_conflicts(styles)
+	if not ok then
+		abort(err)
+	end
 end
 
 -- get keyword actions    {{{2
 local actions
 do
-    local err
-    actions, err = keyword_actions(pander.output_format, styles)
-    if not actions then abort(err) end
+	local err
+	actions, err = keyword_actions(pander.output_format, styles)
+	if not actions then
+		abort(err)
+	end
 end -- }}}2
 
 -- build pandoc command    {{{1
 
 -- add style actions to pandoc command    {{{2
-local cmd = 'pandoc'
+local cmd = "pandoc"
 do
-    local metadata_file
-    -- metadata filepath returned so it can be properly deleted in time
-    ---@diagnostic disable-next-line: cast-local-type
-    cmd, metadata_file = pandoc_cmd_style_actions(
-        cmd, actions, pander.input_filename
-    )
-    if not cmd then abort(metadata_file) end
-    -- metadata_file is nil if no metadata actions found
-    ---@diagnostic disable-next-line: assign-type-mismatch
-    pander.metadata_file = metadata_file
+	local metadata_file
+	-- metadata filepath returned so it can be properly deleted in time
+	---@diagnostic disable-next-line: cast-local-type
+	cmd, metadata_file = pandoc_cmd_style_actions(cmd, actions, pander.input_filename)
+	if not cmd then
+		abort(metadata_file)
+	end
+	-- metadata_file is nil if no metadata actions found
+	---@diagnostic disable-next-line: assign-type-mismatch
+	pander.metadata_file = metadata_file
 end
 -- now that metadata file exists use pcall to trap errors and allow for
 -- orderly cleanup on abort
 
 -- add arguments provided by caller    {{{2
-cmd = cmd..' '..pandoc_cmd_caller_args(args) -- }}}2
+cmd = cmd .. " " .. pandoc_cmd_caller_args(args) -- }}}2
 
 -- execute pandoc command    {{{1
 
 -- display pandoc command to execute    {{{2
-show_cmd(sf('Generate %s: ', pander.output_format), cmd)
+show_cmd(sf("Generate %s: ", pander.output_format), cmd)
 
 -- execute command    {{{2
 do
-    local ok, output = pcall(capture, cmd)
-    if not ok then abort('pandoc conversion failed:\n'..output) end
+	local ok, output = pcall(capture, cmd)
+	if not ok then
+		abort("pandoc conversion failed:\n" .. output)
+	end
 end
 
 -- delete metadata file    {{{2
 do
-    local ok, err = remove_metadata_file()
-    if not ok then abort(err) end
-    pander.metadata_file = nil
+	local ok, err = remove_metadata_file()
+	if not ok then
+		abort(err)
+	end
+	pander.metadata_file = nil
 end -- }}}2
 
 -- perform post-conversion tasks    {{{1
 
 -- process post_run tasks    {{{2
 do
-    ---@diagnostic disable-next-line: need-check-nil
-    local ok, err = post_process(actions.post_run, pander.input_filename)
-    if not ok then abort(err) end
+	---@diagnostic disable-next-line: need-check-nil
+	local ok, err = post_process(actions.post_run, pander.input_filename)
+	if not ok then
+		abort(err)
+	end
 end
 
 -- pause before exiting if requested in style    {{{2
@@ -3165,6 +3301,10 @@ Linux Biolinum O
 
 =item *
 
+Linux Biolinum Keyboard O
+
+=item *
+
 Linux Libertine O
 
 =back
@@ -3196,6 +3336,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Pander.  If not, see <https://www.gnu.org/licenses/>
 =cut
---]] -- }}}1
+--]]
+-- }}}1
 
 -- vim:foldmethod=marker:

@@ -6,45 +6,48 @@
 -- @license GPL-3+
 -- @copyright David Nebauer
 
---[[ Variables ]]--
+--[[ Variables ]]
+--
 
 -- script    {{{1
-local script = arg[0]:match('[^%/]-$')
+local script = arg[0]:match("[^%/]-$")
 
 -- datadir    {{{1
 local function path_exists(path)
-    local result = pcall(
-        function ()
-            local fh = io.open(path, 'r')
-            -- nil-checking fails to remove 'need-check-nil' errors
-            ---@diagnostic disable:need-check-nil
-            fh:close()
-        end
-    )
-    return result
+	local result = pcall(function()
+		local fh = io.open(path, "r")
+		-- nil-checking fails to remove 'need-check-nil' errors
+		---@diagnostic disable:need-check-nil
+		fh:close()
+	end)
+	return result
 end
 local function dir_exists(dir)
-    return path_exists(dir..'/')
+	return path_exists(dir .. "/")
 end
 local datadir
 do
-    local dir, home
-    -- preference 1 = $XDG_DATA_HOME/pandoc
-    local xdg_data_home = os.getenv('XDG_DATA_HOME')
-    if xdg_data_home then
-        dir = xdg_data_home..'/pandoc'
-        if dir_exists(dir) then datadir = dir end
-    end
-    -- preference 2 = ~/.local/share/pandoc
-    if not datadir then
-        home = os.getenv('HOME')
-        dir = home..'/.local/share/pandoc'
-        if dir_exists(dir) then datadir = dir end
-    end
-    -- preference 3 = ~/.pandoc
-    if not datadir then
-        datadir = home..'/.pandoc'
-    end
+	local dir, home
+	-- preference 1 = $XDG_DATA_HOME/pandoc
+	local xdg_data_home = os.getenv("XDG_DATA_HOME")
+	if xdg_data_home then
+		dir = xdg_data_home .. "/pandoc"
+		if dir_exists(dir) then
+			datadir = dir
+		end
+	end
+	-- preference 2 = ~/.local/share/pandoc
+	if not datadir then
+		home = os.getenv("HOME")
+		dir = home .. "/.local/share/pandoc"
+		if dir_exists(dir) then
+			datadir = dir
+		end
+	end
+	-- preference 3 = ~/.pandoc
+	if not datadir then
+		datadir = home .. "/.pandoc"
+	end
 end
 
 -- style keyword master table    {{{1
@@ -53,587 +56,601 @@ end
 
 local keyword_data = {
 
-    -- A5:           latex a5 page size    {{{2
+	-- A5:           latex a5 page size    {{{2
 
-    A5 = {
+	A5 = {
 
-        description = 'a5 latex page size',
-        expand_groups = {},
-        conflict_groups = {},
-        actions = {
-            all = {
-                metadata = {
-                    papersize = 'a5',
-                },
-            },
-            context = {
-                metadata = {
-                    papersize = 'A5',
-                },
-            },
-            latex = {
-                metadata = {
-                    papersize = 'a5',
-                },
-            },
-        },
-    },
+		description = "a5 latex page size",
+		expand_groups = {},
+		conflict_groups = {},
+		actions = {
+			all = {
+				metadata = {
+					papersize = "a5",
+				},
+			},
+			context = {
+				metadata = {
+					papersize = "A5",
+				},
+			},
+			latex = {
+				metadata = {
+					papersize = "a5",
+				},
+			},
+		},
+	},
 
-    -- Include:      include other files    {{{2
+	-- Include:      include other files    {{{2
 
-    Include = {
-        description = 'include other files',
-        expand_groups = {},
-        conflict_groups = {},
-        actions = {
-            all = {
-                filters = {
-                    -- filters are from github pandoc/lua-filters repo
-                    {'include-files.lua', 10, true},
-                    {'include-code-files.lua', 10, true},
-                },
-            },
-        },
-    },
+	Include = {
+		description = "include other files",
+		expand_groups = {},
+		conflict_groups = {},
+		actions = {
+			all = {
+				filters = {
+					-- filters are from github pandoc/lua-filters repo
+					{ "include-files.lua", 10, true },
+					{ "include-code-files.lua", 10, true },
+				},
+			},
+		},
+	},
 
-    -- IncludeAuto:  include other files (shift headers automatically)    {{{2
+	-- IncludeAuto:  include other files (shift headers automatically)    {{{2
 
-    IncludeAuto = {
-        description = 'include other files (shift headers automatically)',
-        expand_groups = {},
-        conflict_groups = {},
-        actions = {
-            all = {
-                metadata = {
-                    ['include-auto'] = true,
-                },
-                filters = {
-                    -- filters are from github pandoc/lua-filters repo
-                    {'include-files.lua', 10, true},
-                    {'include-code-files.lua', 10, true},
-                },
-            },
-        },
-    },
+	IncludeAuto = {
+		description = "include other files (shift headers automatically)",
+		expand_groups = {},
+		conflict_groups = {},
+		actions = {
+			all = {
+				metadata = {
+					["include-auto"] = true,
+				},
+				filters = {
+					-- filters are from github pandoc/lua-filters repo
+					{ "include-files.lua", 10, true },
+					{ "include-code-files.lua", 10, true },
+				},
+			},
+		},
+	},
 
-    -- KeepData:     pause before exiting script    {{{2
+	-- KeepData:     pause before exiting script    {{{2
 
-    KeepData = {
-        description = 'do not delete the metadata file',
-        expand_groups = {},
-        conflict_groups = {},
-        actions = {
-            all = {
-                post_run = {
-                    'keep-data',
-                },
-            },
-        },
-    },
+	KeepData = {
+		description = "do not delete the metadata file",
+		expand_groups = {},
+		conflict_groups = {},
+		actions = {
+			all = {
+				post_run = {
+					"keep-data",
+				},
+			},
+		},
+	},
 
-    -- Latex8pt:     set font size to 8 pt in latex output    {{{2
+	-- KeyboardFont: process font attribute 'kbd'   {{{2
 
-    Latex8pt = {
-        description = 'set font size to 8 pt in latex output',
-        expand_groups = {},
-        conflict_groups = {'documentclass', 'font-size'},
-        actions = {
-            latex = {
-                metadata = {
-                    documentclass = 'extarticle',
-                    fontsize = '8pt',
-                },
-            },
-        },
-    },
+	KeyboardFont = {
+		description = "process font attribute 'kbd'",
+		expand_groups = {},
+		conflict_groups = {},
+		actions = {
+			all = {
+				filters = {
+					-- filter is from dotfiles/pander
+					"keyboard-font.lua",
+				},
+			},
+		},
+	},
 
-    -- Latex9pt:     set font size to 9 pt in latex output    {{{2
+	-- Latex8pt:     set font size to 8 pt in latex output    {{{2
 
-    Latex9pt = {
-        description = 'set font size to 9 pt in latex output',
-        expand_groups = {},
-        conflict_groups = {'documentclass', 'font-size'},
-        actions = {
-            latex = {
-                metadata = {
-                    documentclass = 'extarticle',
-                    fontsize = '9pt',
-                },
-            },
-        },
-    },
+	Latex8pt = {
+		description = "set font size to 8 pt in latex output",
+		expand_groups = {},
+		conflict_groups = { "documentclass", "font-size" },
+		actions = {
+			latex = {
+				metadata = {
+					documentclass = "extarticle",
+					fontsize = "8pt",
+				},
+			},
+		},
+	},
 
-    -- Latex10pt:    set font size to 10 pt in latex output    {{{2
+	-- Latex9pt:     set font size to 9 pt in latex output    {{{2
 
-    Latex10pt = {
-        description = 'set font size to 10 pt in latex output',
-        expand_groups = {},
-        conflict_groups = {'font-size'},
-        actions = {
-            latex = {
-                metadata = {
-                    fontsize = '10pt',
-                },
-            },
-        },
-    },
+	Latex9pt = {
+		description = "set font size to 9 pt in latex output",
+		expand_groups = {},
+		conflict_groups = { "documentclass", "font-size" },
+		actions = {
+			latex = {
+				metadata = {
+					documentclass = "extarticle",
+					fontsize = "9pt",
+				},
+			},
+		},
+	},
 
-    -- Latex11pt:    set font size to 11 pt in latex output    {{{2
+	-- Latex10pt:    set font size to 10 pt in latex output    {{{2
 
-    Latex11pt = {
-        description = 'set font size to 11 pt in latex output',
-        expand_groups = {},
-        conflict_groups = {'font-size'},
-        actions = {
-            latex = {
-                metadata = {
-                    fontsize = '11pt',
-                },
-            },
-        },
-    },
+	Latex10pt = {
+		description = "set font size to 10 pt in latex output",
+		expand_groups = {},
+		conflict_groups = { "font-size" },
+		actions = {
+			latex = {
+				metadata = {
+					fontsize = "10pt",
+				},
+			},
+		},
+	},
 
-    -- Latex12pt:    set font size to 12 pt in latex output    {{{2
+	-- Latex11pt:    set font size to 11 pt in latex output    {{{2
 
-    Latex12pt = {
-        description = 'set font size to 12 pt in latex output',
-        expand_groups = {},
-        conflict_groups = {'font-size'},
-        actions = {
-            latex = {
-                metadata = {
-                    fontsize = '12pt',
-                },
-            },
-        },
-    },
+	Latex11pt = {
+		description = "set font size to 11 pt in latex output",
+		expand_groups = {},
+		conflict_groups = { "font-size" },
+		actions = {
+			latex = {
+				metadata = {
+					fontsize = "11pt",
+				},
+			},
+		},
+	},
 
-    -- Latex14pt:    set font size to 14 pt in latex output    {{{2
+	-- Latex12pt:    set font size to 12 pt in latex output    {{{2
 
-    Latex14pt = {
-        description = 'set font size to 14 pt in latex output',
-        expand_groups = {},
-        conflict_groups = {'documentclass', 'font-size'},
-        actions = {
-            latex = {
-                metadata = {
-                    documentclass = 'extarticle',
-                    fontsize = '14pt',
-                },
-            },
-        },
-    },
+	Latex12pt = {
+		description = "set font size to 12 pt in latex output",
+		expand_groups = {},
+		conflict_groups = { "font-size" },
+		actions = {
+			latex = {
+				metadata = {
+					fontsize = "12pt",
+				},
+			},
+		},
+	},
 
-    -- Latex17pt:    set font size to 17 pt in latex output    {{{2
+	-- Latex14pt:    set font size to 14 pt in latex output    {{{2
 
-    Latex17pt = {
-        description = 'set font size to 17 pt in latex output',
-        expand_groups = {},
-        conflict_groups = {'documentclass', 'font-size'},
-        actions = {
-            latex = {
-                metadata = {
-                    documentclass = 'extarticle',
-                    fontsize = '17pt',
-                },
-            },
-        },
-    },
+	Latex14pt = {
+		description = "set font size to 14 pt in latex output",
+		expand_groups = {},
+		conflict_groups = { "documentclass", "font-size" },
+		actions = {
+			latex = {
+				metadata = {
+					documentclass = "extarticle",
+					fontsize = "14pt",
+				},
+			},
+		},
+	},
 
-    -- Latex20pt:    set font size to 20 pt in latex output    {{{2
+	-- Latex17pt:    set font size to 17 pt in latex output    {{{2
 
-    Latex20pt = {
-        description = 'set font size to 20 pt in latex output',
-        expand_groups = {},
-        conflict_groups = {'documentclass', 'font-size'},
-        actions = {
-            latex = {
-                metadata = {
-                    documentclass = 'extarticle',
-                    fontsize = '20pt',
-                },
-            },
-        },
-    },
+	Latex17pt = {
+		description = "set font size to 17 pt in latex output",
+		expand_groups = {},
+		conflict_groups = { "documentclass", "font-size" },
+		actions = {
+			latex = {
+				metadata = {
+					documentclass = "extarticle",
+					fontsize = "17pt",
+				},
+			},
+		},
+	},
 
-    -- Letter:       style theme for writing letters    {{{2
+	-- Latex20pt:    set font size to 20 pt in latex output    {{{2
 
-    Letter = {
+	Latex20pt = {
+		description = "set font size to 20 pt in latex output",
+		expand_groups = {},
+		conflict_groups = { "documentclass", "font-size" },
+		actions = {
+			latex = {
+				metadata = {
+					documentclass = "extarticle",
+					fontsize = "20pt",
+				},
+			},
+		},
+	},
 
-        -- only half-adapted from the 'Letter' style defined in github repo
-        -- msprev/dot-panzer
+	-- Letter:       style theme for writing letters    {{{2
 
-        description = 'style theme for writing letters',
-        expand_groups = {},
-        conflict_groups = {'documentclass', 'fonts', 'theme'},
-        actions = {
-            all = {
-                metadata = {
-                    --[[
+	Letter = {
+
+		-- only half-adapted from the 'Letter' style defined in github repo
+		-- msprev/dot-panzer
+
+		description = "style theme for writing letters",
+		expand_groups = {},
+		conflict_groups = { "documentclass", "fonts", "theme" },
+		actions = {
+			all = {
+				metadata = {
+					--[[
                     In the panzer original all non-boolean metadata
                     fields were wrapped in double quotes.
                     --]]
-                    opening = false,
-                    closing = 'Yours sincerely,',
-                    letterhead = {
-                        image = datadir..'/template/img/eulogo.pdf',
-                        name = 'Mr David Nebauer',
-                        position = 'Senior Complaints Officer',
-                        affiliation = 'Government and Consumer Relations Unit',
-                        address = {
-                            'Royal Darwin Hospital',
-                            '105 Rocklands Drive',
-                            'Tiwi NT 0810',
-                        },
-                        phone = '+61 (0)8 8922 8631',
-                        email = 'david.nebauer@nt.gov.au',
-                        website = 'www.health.nt.gov.au',
-                    },
-                    cc = false,
-                    ps = false,
-                    incl = false,
-                    signed = true,  -- sign using image below
-                    signature = datadir..'/resources/signature.png',
-                    ['tablenos-warning-level'] = 1,
-                },
-                latex = {
-                    template = 'UoE-letter.latex',
-                    metadata = {
-                        fontsize = '11pt',
-                        documentclass = 'infletr',
-                        classoption = {
-                            'LFCS',
-                        },
-                        fontfamily = 'txfonts',
-                        graphics = true,
-                    },
-                    filters = {
-                        'heading2bold.py',
-                    },
-                },
-            },
-        },
-    },
+					opening = false,
+					closing = "Yours sincerely,",
+					letterhead = {
+						image = datadir .. "/template/img/eulogo.pdf",
+						name = "Mr David Nebauer",
+						position = "Senior Complaints Officer",
+						affiliation = "Government and Consumer Relations Unit",
+						address = {
+							"Royal Darwin Hospital",
+							"105 Rocklands Drive",
+							"Tiwi NT 0810",
+						},
+						phone = "+61 (0)8 8922 8631",
+						email = "david.nebauer@nt.gov.au",
+						website = "www.health.nt.gov.au",
+					},
+					cc = false,
+					ps = false,
+					incl = false,
+					signed = true, -- sign using image below
+					signature = datadir .. "/resources/signature.png",
+					["tablenos-warning-level"] = 1,
+				},
+				latex = {
+					template = "UoE-letter.latex",
+					metadata = {
+						fontsize = "11pt",
+						documentclass = "infletr",
+						classoption = {
+							"LFCS",
+						},
+						fontfamily = "txfonts",
+						graphics = true,
+					},
+					filters = {
+						"heading2bold.py",
+					},
+				},
+			},
+		},
+	},
 
-    -- Libertinus:   use libertinus/xecjk latex font packages    {{{2
+	-- Libertinus:   use libertinus/xecjk latex font packages    {{{2
 
-    Libertinus = {
+	Libertinus = {
 
-        description = 'use libertinus/xecjk latex font packages',
-        expand_groups = {},
-        conflict_groups = {'fonts'},
-        actions = {
-            context = {
-                metadata = {
-                    ['header-includes'] = {
-                        '\\usepackage{xcolor}',
-                        '\\usepackage{fontspec}',
-                        '\\usepackage[proportional]{libertinus-otf}',
-                        '\\usepackage{xeCJK}',
-                    },
-                },
-            },
-            latex = {
-                metadata = {
-                    ['header-includes'] = {
-                        '\\usepackage{xcolor}',
-                        '\\usepackage{fontspec}',
-                        '\\usepackage[proportional]{libertinus-otf}',
-                        '\\usepackage{xeCJK}',
-                    },
-                },
-            },
-        },
-    },
+		description = "use libertinus/xecjk latex font packages",
+		expand_groups = {},
+		conflict_groups = { "fonts" },
+		actions = {
+			context = {
+				metadata = {
+					["header-includes"] = {
+						"\\usepackage{xcolor}",
+						"\\usepackage{fontspec}",
+						"\\usepackage[proportional]{libertinus-otf}",
+						"\\usepackage{xeCJK}",
+					},
+				},
+			},
+			latex = {
+				metadata = {
+					["header-includes"] = {
+						"\\usepackage{xcolor}",
+						"\\usepackage{fontspec}",
+						"\\usepackage[proportional]{libertinus-otf}",
+						"\\usepackage{xeCJK}",
+					},
+				},
+			},
+		},
+	},
 
-    -- NoFonts:      standard but without fonts defined for pdf    {{{2
+	-- NoFonts:      standard but without fonts defined for pdf    {{{2
 
-    NoFonts = {
+	NoFonts = {
 
-        -- the '--header-includes' is taken from Michael Franzl's blog at
-        -- https://michaelfranzl.com/2014/12/10/..
-        -- ..xelatex-unicode-font-fallback-unsupported-characters/
+		-- the '--header-includes' is taken from Michael Franzl's blog at
+		-- https://michaelfranzl.com/2014/12/10/..
+		-- ..xelatex-unicode-font-fallback-unsupported-characters/
 
-        description = 'standard but with no fonts defined for pdf',
-        expand_groups = {},
-        conflict_groups = {'theme'},
-        actions = {
-            all = {
-                metadata = {
-                    lang = 'en-AU',
-                    numbersections = false,
-                    papersize = 'a4',
-                    ['eqnos-cleveref'] = true,
-                    ['eqnos-plus-name'] = 'equation',
-                    ['fignos-cleveref'] = true,
-                    ['fignos-plus-name'] = 'figure',
-                    ['secnos-cleveref'] = true,
-                    ['tablenos-cleveref'] = true,
-                    ['tablenos-warning-level'] = 1,
-                },
-                extensions = {
-                    '+footnotes',
-                    '+inline_notes',
-                    '+smart',
-                },
-                options = {
-                    ['--self-contained'] = true,
-                    ['--standalone'] = true,
-                },
-                filters = {
-                    'pandoc-fignos',
-                    'pandoc-eqnos',
-                    'pandoc-tablenos',
-                },
-            },
-            context = {
-                metadata = {
-                    linkcolor = 'gray',
-                    microtypeoptions = 'babel',
-                    papersize = 'A4',
-                    ['header-includes'] = {
-                        '\\usepackage{xcolor}',
-                        '\\usepackage{fontspec}',
-                        '\\usepackage[CJK]{ucharclasses}',
-                    },
-                },
-            },
-            epub = {
-                metadata = {
-                    ['cover-image'] = '::cover_image::',
-                },
-                post_run = {
-                    'create_mobi',
-                },
-            },
-            html = {
-                metadata = {
-                    css = datadir..'/templates/css/buttondown.css',
-                },
-            },
-            latex = {
-                metadata = {
-                    linkcolor = 'gray',
-                    filecolor = 'gray',
-                    citecolor = 'gray',
-                    toccolor = 'gray',
-                    urlcolor = 'gray',
-                    microtypeoptions = 'babel',
-                    papersize = 'a4',
-                    ['header-includes'] = {
-                        '\\usepackage{xcolor}',
-                        '\\usepackage{fontspec}',
-                        '\\usepackage[CJK]{ucharclasses}',
-                        '\\usepackage{xcolor}',
-                    },
-                },
-            },
-        },
-    },
+		description = "standard but with no fonts defined for pdf",
+		expand_groups = {},
+		conflict_groups = { "theme" },
+		actions = {
+			all = {
+				metadata = {
+					lang = "en-AU",
+					numbersections = false,
+					papersize = "a4",
+					["eqnos-cleveref"] = true,
+					["eqnos-plus-name"] = "equation",
+					["fignos-cleveref"] = true,
+					["fignos-plus-name"] = "figure",
+					["secnos-cleveref"] = true,
+					["tablenos-cleveref"] = true,
+					["tablenos-warning-level"] = 1,
+				},
+				extensions = {
+					"+footnotes",
+					"+inline_notes",
+					"+smart",
+				},
+				options = {
+					["--self-contained"] = true,
+					["--standalone"] = true,
+				},
+				filters = {
+					"pandoc-fignos",
+					"pandoc-eqnos",
+					"pandoc-tablenos",
+				},
+			},
+			context = {
+				metadata = {
+					linkcolor = "gray",
+					microtypeoptions = "babel",
+					papersize = "A4",
+					["header-includes"] = {
+						"\\usepackage{xcolor}",
+						"\\usepackage{fontspec}",
+						"\\usepackage[CJK]{ucharclasses}",
+					},
+				},
+			},
+			epub = {
+				metadata = {
+					["cover-image"] = "::cover_image::",
+				},
+				post_run = {
+					"create_mobi",
+				},
+			},
+			html = {
+				metadata = {
+					css = datadir .. "/templates/css/buttondown.css",
+				},
+			},
+			latex = {
+				metadata = {
+					linkcolor = "gray",
+					filecolor = "gray",
+					citecolor = "gray",
+					toccolor = "gray",
+					urlcolor = "gray",
+					microtypeoptions = "babel",
+					papersize = "a4",
+					["header-includes"] = {
+						"\\usepackage{xcolor}",
+						"\\usepackage{fontspec}",
+						"\\usepackage[CJK]{ucharclasses}",
+						"\\usepackage{xcolor}",
+					},
+				},
+			},
+		},
+	},
 
-    -- PageBreak:    process LaTeX \newpage instructions    {{{2
+	-- PageBreak:    process LaTeX \newpage instructions    {{{2
 
-    PageBreak = {
-        description = 'process LaTeX \\newpage instructions',
-        expand_groups = {},
-        conflict_groups = {'paginate'},
-        actions = {
-            all = {
-                filters = {
-                    -- filter is from github pandoc/lua-filters repo
-                    'pagebreak.lua'
-                },
-            },
-        },
-    },
+	PageBreak = {
+		description = "process LaTeX \\newpage instructions",
+		expand_groups = {},
+		conflict_groups = { "paginate" },
+		actions = {
+			all = {
+				filters = {
+					-- filter is from github pandoc/lua-filters repo
+					"pagebreak.lua",
+				},
+			},
+		},
+	},
 
-    -- Pause:        pause before exiting script    {{{2
+	-- Pause:        pause before exiting script    {{{2
 
-    Pause = {
-        description = 'pause before exiting script',
-        expand_groups = {},
-        conflict_groups = {},
-        actions = {
-            all = {
-                post_run = {
-                    'pause',
-                },
-            },
-        },
-    },
+	Pause = {
+		description = "pause before exiting script",
+		expand_groups = {},
+		conflict_groups = {},
+		actions = {
+			all = {
+				post_run = {
+					"pause",
+				},
+			},
+		},
+	},
 
-    -- SaveTrees:    compact format for printing    {{{2
+	-- SaveTrees:    compact format for printing    {{{2
 
-    SaveTrees = {
-        description = 'compact format for printing',
-        expand_groups = {},
-        conflict_groups = {},
-        actions = {
-            latex = {
-                metadata = {
-                    fontsize = '10pt',
-                    ['compact-headings'] = 'true',
-                    geometry = {
-                        'top=1.5cm',
-                        'bottom=1.5cm',
-                    },
-                },
-            },
-        },
-    },
+	SaveTrees = {
+		description = "compact format for printing",
+		expand_groups = {},
+		conflict_groups = {},
+		actions = {
+			latex = {
+				metadata = {
+					fontsize = "10pt",
+					["compact-headings"] = "true",
+					geometry = {
+						"top=1.5cm",
+						"bottom=1.5cm",
+					},
+				},
+			},
+		},
+	},
 
-    -- SectFlush:    flush all sections before they end    {{{2
+	-- SectFlush:    flush all sections before they end    {{{2
 
-    SectFlush = {
+	SectFlush = {
 
-        --  from a StackExchange question at
-        --  https://tex.stackexchange.com/a/118667)
+		--  from a StackExchange question at
+		--  https://tex.stackexchange.com/a/118667)
 
-        description = 'flush all sections before they end',
-        expand_groups = {},
-        conflict_groups = {},
-        actions = {
-            latex = {
-                metadata = {
-                    ['header-includes'] = {
-                        '\\usepackage[section]{placeins}',
-                    },
-                },
-            },
-        },
-    },
+		description = "flush all sections before they end",
+		expand_groups = {},
+		conflict_groups = {},
+		actions = {
+			latex = {
+				metadata = {
+					["header-includes"] = {
+						"\\usepackage[section]{placeins}",
+					},
+				},
+			},
+		},
+	},
 
-    -- SectNewpage:  start each section on a new page    {{{2
+	-- SectNewpage:  start each section on a new page    {{{2
 
-    SectNewpage = {
-        description = 'start each section on a new page',
-        expand_groups = {},
-        conflict_groups = {'paginate'},
-        actions = {
-            html = {
-                filters = {
-                    'paginatesects.py',
-                },
-            },
-            latex = {
-                filters = {
-                    'paginatesects.py',
-                },
-            },
-        },
-    },
+	SectNewpage = {
+		description = "start each section on a new page",
+		expand_groups = {},
+		conflict_groups = { "paginate" },
+		actions = {
+			html = {
+				filters = {
+					"paginatesects.py",
+				},
+			},
+			latex = {
+				filters = {
+					"paginatesects.py",
+				},
+			},
+		},
+	},
 
-    -- Standard:     default style theme    {{{2
+	-- Standard:     default style theme    {{{2
 
-    Standard = {
+	Standard = {
 
-        -- the '--header-includes' is taken from Michael Franzl's blog at
-        -- https://michaelfranzl.com/2014/12/10/..
-        -- ..xelatex-unicode-font-fallback-unsupported-characters/
+		-- the '--header-includes' is taken from Michael Franzl's blog at
+		-- https://michaelfranzl.com/2014/12/10/..
+		-- ..xelatex-unicode-font-fallback-unsupported-characters/
 
-        -- IPAexMincho font provided in debian by package `texlive-lang-cjk`
+		-- IPAexMincho font provided in debian by package `texlive-lang-cjk`
 
-        description = 'default style theme',
-        expand_groups = {},
-        conflict_groups = {'fonts', 'theme'},
-        actions = {
-            all = {
-                metadata = {
-                    lang = 'en-AU',
-                    numbersections = false,
-                    papersize = 'a4',
-                    ['eqnos-cleveref'] = true,
-                    ['eqnos-plus-name'] = 'equation',
-                    ['fignos-cleveref'] = true,
-                    ['fignos-plus-name'] = 'figure',
-                    ['secnos-cleveref'] = true,
-                    ['tablenos-cleveref'] = true,
-                    ['tablenos-warning-level'] = 1,
-                },
-                extensions = {
-                    '+footnotes',
-                    '+inline_notes',
-                    '+smart',
-                },
-                options = {
-                    ['--self-contained'] = true,
-                    ['--standalone'] = true,
-                },
-                filters = {
-                    'pandoc-fignos',
-                    'pandoc-eqnos',
-                    'pandoc-tablenos',
-                },
-            },
-            context = {
-                metadata = {
-                    linkcolor = 'gray',
-                    microtypeoptions = 'babel',
-                    papersize = 'A4',
-                    ['header-includes'] = {
-                        '\\usepackage{xcolor}',
-                        '\\usepackage{fontspec}',
-                        '\\setmainfont{Junicode Two Beta}',
-                        '\\newfontfamily\\myregularfont{Junicode Two Beta}',
-                        '\\newfontfamily\\mychinesefont{IPAexMincho}',
-                        '\\usepackage[CJK]{ucharclasses}',
-                        '\\setTransitionsForCJK{\\mychinesefont}'
-                        ..'{\\myregularfont}',
-                    },
-                },
-            },
-            epub = {
-                metadata = {
-                    ['cover-image'] = '::cover_image::',
-                },
-                post_run = {
-                    'create_mobi',
-                },
-            },
-            html = {
-                metadata = {
-                    css = datadir..'/templates/css/buttondown.css',
-                },
-            },
-            latex = {
-                metadata = {
-                    linkcolor = 'gray',
-                    filecolor = 'gray',
-                    citecolor = 'gray',
-                    toccolor = 'gray',
-                    urlcolor = 'gray',
-                    microtypeoptions = 'babel',
-                    papersize = 'a4',
-                    ['header-includes'] = {
-                        '\\usepackage{xcolor}',
-                        '\\usepackage{fontspec}',
-                        '\\setmainfont{Junicode Two Beta}',
-                        '\\newfontfamily\\myregularfont{Junicode Two Beta}',
-                        '\\newfontfamily\\mychinesefont{IPAexMincho}',
-                        '\\usepackage[CJK]{ucharclasses}',
-                        '\\setTransitionsForCJK{\\mychinesefont}'
-                        ..'{\\myregularfont}',
-                        '\\usepackage{xcolor}',
-                    },
-                },
-            },
-        },
-    },
+		description = "default style theme",
+		expand_groups = {},
+		conflict_groups = { "fonts", "theme" },
+		actions = {
+			all = {
+				metadata = {
+					lang = "en-AU",
+					numbersections = false,
+					papersize = "a4",
+					["eqnos-cleveref"] = true,
+					["eqnos-plus-name"] = "equation",
+					["fignos-cleveref"] = true,
+					["fignos-plus-name"] = "figure",
+					["secnos-cleveref"] = true,
+					["tablenos-cleveref"] = true,
+					["tablenos-warning-level"] = 1,
+				},
+				extensions = {
+					"+footnotes",
+					"+inline_notes",
+					"+smart",
+				},
+				options = {
+					["--self-contained"] = true,
+					["--standalone"] = true,
+				},
+				filters = {
+					"pandoc-fignos",
+					"pandoc-eqnos",
+					"pandoc-tablenos",
+				},
+			},
+			context = {
+				metadata = {
+					linkcolor = "gray",
+					microtypeoptions = "babel",
+					papersize = "A4",
+					["header-includes"] = {
+						"\\usepackage{xcolor}",
+						"\\usepackage{fontspec}",
+						"\\setmainfont{Junicode}",
+						"\\newfontfamily\\myregularfont{Junicode}",
+						"\\newfontfamily\\mychinesefont{IPAexMincho}",
+						"\\usepackage[CJK]{ucharclasses}",
+						"\\setTransitionsForCJK{\\mychinesefont}" .. "{\\myregularfont}",
+					},
+				},
+			},
+			epub = {
+				metadata = {
+					["cover-image"] = "::cover_image::",
+				},
+				post_run = {
+					"create_mobi",
+				},
+			},
+			html = {
+				metadata = {
+					css = datadir .. "/templates/css/buttondown.css",
+				},
+			},
+			latex = {
+				metadata = {
+					linkcolor = "gray",
+					filecolor = "gray",
+					citecolor = "gray",
+					toccolor = "gray",
+					urlcolor = "gray",
+					microtypeoptions = "babel",
+					papersize = "a4",
+					["header-includes"] = {
+						"\\usepackage{xcolor}",
+						"\\usepackage{fontspec}",
+						"\\setmainfont{Junicode}",
+						"\\newfontfamily\\myregularfont{Junicode}",
+						"\\newfontfamily\\mychinesefont{IPAexMincho}",
+						"\\usepackage[CJK]{ucharclasses}",
+						"\\setTransitionsForCJK{\\mychinesefont}" .. "{\\myregularfont}",
+						"\\usepackage{xcolor}",
+					},
+				},
+			},
+		},
+	},
 
-    -- SubsectFlush: flush all subsections before they end    {{{2
+	-- SubsectFlush: flush all subsections before they end    {{{2
 
-    SubsectFlush = {
+	SubsectFlush = {
 
-        --  from a StackExchange question at
-        --  https://tex.stackexchange.com/a/118667)
+		--  from a StackExchange question at
+		--  https://tex.stackexchange.com/a/118667)
 
-        description = 'flush all subsections before they end',
-        expand_groups = {},
-        conflict_groups = {},
-        actions = {
-            latex = {
-                metadata = {
-                    --[[
+		description = "flush all subsections before they end",
+		expand_groups = {},
+		conflict_groups = {},
+		actions = {
+			latex = {
+				metadata = {
+					--[[
                     Not sure if need to make last three lines into
                     raw latex, i.e., precede with '```{=latex}' line
                     and follow with '```' line.
@@ -641,104 +658,103 @@ local keyword_data = {
                     '\expandafter' command because one was consumed
                     during metadata extraction.
                     --]]
-                    ['header-includes'] = {
-                        '```{=latex}',
-                        '\\usepackage[section]{placeins}',
-                        '\\makeatletter',
-                        '\\AtBeginDocument{\\expandafter\\renewcommand'
-                        ..'\\expandafter\\subsection\\expandafter'
-                        ..'{\\expandafter\\@fb@secFB\\subsection}}',
-                        '\\makeatother',
-                        '```',
-                    },
-                },
-            },
-        },
-    },
+					["header-includes"] = {
+						"```{=latex}",
+						"\\usepackage[section]{placeins}",
+						"\\makeatletter",
+						"\\AtBeginDocument{\\expandafter\\renewcommand"
+							.. "\\expandafter\\subsection\\expandafter"
+							.. "{\\expandafter\\@fb@secFB\\subsection}}",
+						"\\makeatother",
+						"```",
+					},
+				},
+			},
+		},
+	},
 
-    -- TextColour:   process color attribute    {{{2
+	-- TextColour:   process color attribute    {{{2
 
-    TextColour = {
-        description = 'process color attribute',
-        expand_groups = {},
-        conflict_groups = {},
-        actions = {
-            all = {
-                filters = {
-                    -- filter is from dotfiles/pander
-                    'text-colour.lua'
-                },
-            },
-        },
-    },
+	TextColour = {
+		description = "process color attribute",
+		expand_groups = {},
+		conflict_groups = {},
+		actions = {
+			all = {
+				filters = {
+					-- filter is from dotfiles/pander
+					"text-colour.lua",
+				},
+			},
+		},
+	},
 
-    -- Tufte:        style theme based on Edward R. Tufte's designs    {{{2
+	-- Tufte:        style theme based on Edward R. Tufte's designs    {{{2
 
-    Tufte = {
-        description = "style theme based on Edward R. Tufte's designs",
-        expand_groups = {},
-        conflict_groups = {'documentclass', 'fonts', 'theme'},
-        actions = {
-            all = {
-                metadata = {
-                    lang = 'en-AU',
-                    numbersections = false,
-                    papersize = 'A4',
-                    ['eqnos-cleveref'] = true,
-                    ['eqnos-plus-name'] = 'equation',
-                    ['fignos-cleveref'] = true,
-                    ['fignos-plus-name'] = 'figure',
-                    ['secnos-cleveref'] = true,
-                    ['tablenos-cleveref'] = true,
-                    ['tablenos-warning-level'] = 1,
-                },
-                extensions = {
-                    '+footnotes',
-                    '+inline_notes',
-                    '+smart',
-                },
-                options = {
-                    ['--self-contained'] = true,
-                    ['--standalone'] = true,
-                },
-                filters = {
-                    'pandoc-fignos',
-                    'pandoc-eqnos',
-                    'pandoc-tablenos',
-                },
-            },
-            context = {
-                metadata = {
-                    linkcolor = 'gray',
-                    microtypeoptions = 'babel',
-                    papersize = 'A4',
-                    ['header-includes'] = {
-                        '\\usepackage{xcolor}',
-                        '\\usepackage{fontspec}',
-                        '\\setmainfont{Junicode Two Beta}',
-                        '\\newfontfamily\\myregularfont{Junicode Two Beta}',
-                        '\\newfontfamily\\mychinesefont{IPAexMincho}',
-                        '\\usepackage[CJK]{ucharclasses}',
-                        '\\setTransitionsForCJK{\\mychinesefont}'
-                        ..'{\\myregularfont}',
-                    },
-                },
-            },
-            epub = {
-                metadata = {
-                    ['cover-image'] = '::cover_image::',
-                },
-                post_run = {
-                    'create_mobi',
-                },
-            },
-            html = {
-                metadata = {
-                    css = datadir..'/templates/css/tufte-otsaloma.css',
-                },
-            },
-            latex = {
-                --[[
+	Tufte = {
+		description = "style theme based on Edward R. Tufte's designs",
+		expand_groups = {},
+		conflict_groups = { "documentclass", "fonts", "theme" },
+		actions = {
+			all = {
+				metadata = {
+					lang = "en-AU",
+					numbersections = false,
+					papersize = "A4",
+					["eqnos-cleveref"] = true,
+					["eqnos-plus-name"] = "equation",
+					["fignos-cleveref"] = true,
+					["fignos-plus-name"] = "figure",
+					["secnos-cleveref"] = true,
+					["tablenos-cleveref"] = true,
+					["tablenos-warning-level"] = 1,
+				},
+				extensions = {
+					"+footnotes",
+					"+inline_notes",
+					"+smart",
+				},
+				options = {
+					["--self-contained"] = true,
+					["--standalone"] = true,
+				},
+				filters = {
+					"pandoc-fignos",
+					"pandoc-eqnos",
+					"pandoc-tablenos",
+				},
+			},
+			context = {
+				metadata = {
+					linkcolor = "gray",
+					microtypeoptions = "babel",
+					papersize = "A4",
+					["header-includes"] = {
+						"\\usepackage{xcolor}",
+						"\\usepackage{fontspec}",
+						"\\setmainfont{Junicode}",
+						"\\newfontfamily\\myregularfont{Junicode}",
+						"\\newfontfamily\\mychinesefont{IPAexMincho}",
+						"\\usepackage[CJK]{ucharclasses}",
+						"\\setTransitionsForCJK{\\mychinesefont}" .. "{\\myregularfont}",
+					},
+				},
+			},
+			epub = {
+				metadata = {
+					["cover-image"] = "::cover_image::",
+				},
+				post_run = {
+					"create_mobi",
+				},
+			},
+			html = {
+				metadata = {
+					css = datadir .. "/templates/css/tufte-otsaloma.css",
+				},
+			},
+			latex = {
+				--[[
                 Based on sample markdown file and tex template in github
                 repo jez/pandoc-starter: see directory
                 <https://github.com/jez/pandoc-starter/tree/master/..
@@ -747,39 +763,39 @@ local keyword_data = {
                 <https://github.com/Tufte-LaTeX/tufte-latex/issues/..
                 ..107#issuecomment-183679016>.
                 --]]
-                metadata = {
-                    documentclass = 'tufte-handout',
-                    fontsize = '12pt',
-                    mainfont = 'Linux Libertine O',
-                    monofont = 'Inconsolata Nerd Font Mono',
-                    sansfont = 'Linux Biolinum O',
-                    -- mathfont = 'TeX Gyre Pagella Math',
-                    newtxmathoptions = {
-                        'cmintegrals',
-                        'cmbraces',
-                    },
-                    linkcolor = 'RoyalBlue',
-                    filecolor = 'RoyalBlue',
-                    citecolor = 'RoyalBlue',
-                    toccolor = 'RoyalBlue',
-                    urlcolor = 'RoyalBlue',
-                    microtypeoptions = 'babel',
-                    papersize = 'a4',
-                    ['header-includes'] = {
-                        '\\usepackage{xcolor}',
-                        '\\usepackage{fontspec}',
-                    },
-                },
-                options = {
-                    ['--template'] = 'tufte-jez.latex',
-                },
-            },
-        },
-    }, -- }}}2
-
+				metadata = {
+					documentclass = "tufte-handout",
+					fontsize = "12pt",
+					mainfont = "Linux Libertine O",
+					monofont = "Inconsolata Nerd Font Mono",
+					sansfont = "Linux Biolinum O",
+					-- mathfont = 'TeX Gyre Pagella Math',
+					newtxmathoptions = {
+						"cmintegrals",
+						"cmbraces",
+					},
+					linkcolor = "RoyalBlue",
+					filecolor = "RoyalBlue",
+					citecolor = "RoyalBlue",
+					toccolor = "RoyalBlue",
+					urlcolor = "RoyalBlue",
+					microtypeoptions = "babel",
+					papersize = "a4",
+					["header-includes"] = {
+						"\\usepackage{xcolor}",
+						"\\usepackage{fontspec}",
+					},
+				},
+				options = {
+					["--template"] = "tufte-jez.latex",
+				},
+			},
+		},
+	}, -- }}}2
 } -- }}}1
 
---[[ External requirements ]]--
+--[[ External requirements ]]
+--
 
 -- localise specific functions    {{{1
 local sf = string.format
@@ -802,300 +818,323 @@ local sf = string.format
 --]]
 local serpent
 do
-    -- luacheck: push ignore 113 412 421 422 431 432 542
-    -- sumneko:
-    ---@diagnostic disable:deprecated, redefined-local, redundant-parameter
-    ---@diagnostic disable:unused-local, unused-vararg, undefined-global
-    local n, v = "serpent", "0.303"
-    local c, d = "Paul Kulchenko", "Lua serializer and pretty printer"
-    local snum = {[tostring(1/0)]='1/0 --[[math.huge]]',
-            [tostring(-1/0)]='-1/0 --[[-math.huge]]',[tostring(0/0)]='0/0'}
-    local badtype = {thread = true, userdata = true, cdata = true}
-    local getmetatable = debug and debug.getmetatable or getmetatable
-    -- avoid using __pairs in Lua 5.2+
-    local pairs = function(t) return next, t end
-    local keyword, globals, G = {}, {}, (_G or _ENV)
-    for _,k in ipairs({'and', 'break', 'do', 'else', 'elseif', 'end', 'false',
-        'for', 'function', 'goto', 'if', 'in', 'local', 'nil', 'not', 'or',
-        'repeat', 'return', 'then', 'true', 'until', 'while'
-    }) do
-        keyword[k] = true
-    end
-    -- build func to name mapping
-    for k,v in pairs(G) do globals[v] = k end
-    for _,g in ipairs({
-        'coroutine', 'debug', 'io', 'math', 'string', 'table', 'os'
-    }) do
-        for k,v in pairs(type(G[g]) == 'table' and G[g] or {}) do
-            globals[v] = g..'.'..k
-        end
-    end
+	-- luacheck: push ignore 113 412 421 422 431 432 542
+	-- sumneko:
+	---@diagnostic disable:deprecated, redefined-local, redundant-parameter
+	---@diagnostic disable:unused-local, unused-vararg, undefined-global
+	local n, v = "serpent", "0.303"
+	local c, d = "Paul Kulchenko", "Lua serializer and pretty printer"
+	local snum = {
+		[tostring(1 / 0)] = "1/0 --[[math.huge]]",
+		[tostring(-1 / 0)] = "-1/0 --[[-math.huge]]",
+		[tostring(0 / 0)] = "0/0",
+	}
+	local badtype = { thread = true, userdata = true, cdata = true }
+	local getmetatable = debug and debug.getmetatable or getmetatable
+	-- avoid using __pairs in Lua 5.2+
+	local pairs = function(t)
+		return next, t
+	end
+	local keyword, globals, G = {}, {}, (_G or _ENV)
+	for _, k in ipairs({
+		"and",
+		"break",
+		"do",
+		"else",
+		"elseif",
+		"end",
+		"false",
+		"for",
+		"function",
+		"goto",
+		"if",
+		"in",
+		"local",
+		"nil",
+		"not",
+		"or",
+		"repeat",
+		"return",
+		"then",
+		"true",
+		"until",
+		"while",
+	}) do
+		keyword[k] = true
+	end
+	-- build func to name mapping
+	for k, v in pairs(G) do
+		globals[v] = k
+	end
+	for _, g in ipairs({
+		"coroutine",
+		"debug",
+		"io",
+		"math",
+		"string",
+		"table",
+		"os",
+	}) do
+		for k, v in pairs(type(G[g]) == "table" and G[g] or {}) do
+			globals[v] = g .. "." .. k
+		end
+	end
 
-    local function s(t, opts)
-        local name, indent, fatal, maxnum
-                = opts.name, opts.indent, opts.fatal, opts.maxnum
-        local sparse, custom, huge = opts.sparse, opts.custom, not opts.nohuge
-        local space, maxl = (opts.compact and '' or ' '),
-                (opts.maxlevel or math.huge)
-        local maxlen, metatostring
-                = tonumber(opts.maxlength), opts.metatostring
-        local iname, comm =
-                '_'..(name or ''),
-                opts.comment and (tonumber(opts.comment) or math.huge)
-        local numformat = opts.numformat or "%.17g"
-        local seen, sref, syms, symn = {}, {'local '..iname..'={}'}, {}, 0
-        local function gensym(val)
-            -- tostring(val) is needed because __tostring
-            -- may return a non-string value
-            return '_'..(
-                tostring(tostring(val)):gsub("[^%w]","")
-                        :gsub("(%d%w+)", function(s)
-                    if not syms[s] then symn = symn+1; syms[s] = symn end
-                    return tostring(syms[s])
-                end)
-            )
-        end
-        local function safestr(s)
-            return type(s) == "number"
-            and (huge and snum[tostring(s)] or numformat:format(s))
-            or type(s) ~= "string" and tostring(s)
-            -- escape NEWLINE/010 and EOF/026
-            or ("%q"):format(s):gsub("\010","n"):gsub("\026","\\026")
-        end
-        -- handle radix changes in some locales
-        if opts.fixradix and (".1f"):format(1.2) ~= "1.2" then
-            local origsafestr = safestr
-            safestr = function(s)
-                return
-                type(s) == "number"
-                and (
-                    nohuge and snum[tostring(s)]
-                    or numformat:format(s):gsub(",",".")
-                )
-                or origsafestr(s)
-            end
-        end
-        local function comment(s,l)
-            return
-            comm
-            and (l or 0) < comm
-            and ' --[['..select(2, pcall(tostring, s))..']]'
-            or ''
-        end
-        local function globerr(s,l)
-            return
-            globals[s]
-            and globals[s]..comment(s,l)
-            or not fatal
-            and safestr(select(2, pcall(tostring, s)))
-            or error("Can't serialize "..tostring(s))
-        end
-        local function safename(path, name)
-            -- generates foo.bar, foo[3], or foo['b a r']
-            local n = name == nil and '' or name
-            local plain = type(n) == "string" and n:match("^[%l%u_][%w_]*$")
-                    and not keyword[n]
-            local safe = plain and n or '['..safestr(n)..']'
-            return (path or '')..(plain and path and '.' or '')..safe, safe
-        end
-        local alphanumsort = type(opts.sortkeys) == 'function'
-        and opts.sortkeys
-        or function(k, o, n)
-            -- k=keys, o=originaltable, n=padding
-            local maxn, to = tonumber(n) or 12, {number = 'a', string = 'b'}
-            local function padnum(d)
-                return ("%0"..tostring(maxn).."d"):format(tonumber(d))
-            end
-            table.sort( k, function(a,b)
-                -- sort numeric keys first:
-                -- k[key] is not nil for numerical keys
-                return (k[a] ~= nil and 0 or to[type(a)] or 'z')
-                ..(tostring(a):gsub("%d+",padnum))
-                < (k[b] ~= nil and 0 or to[type(b)] or 'z')
-                ..(tostring(b):gsub("%d+",padnum))
-            end)
-        end
-        local function val2str(t, name, indent, insref, path,
-                plainindex, level)
-            local ttype, level, mt = type(t), (level or 0), getmetatable(t)
-            local spath, sname = safename(path, name)
-            local tag = plainindex and
-            ((type(name) == "number") and '' or name..space..'='..space) or
-            (name ~= nil and sname..space..'='..space or '')
-            if seen[t] then -- already seen this element
-                sref[#sref+1] = spath..space..'='..space..seen[t]
-                return tag..'nil'..comment('ref', level)
-            end
-            -- protect from those cases where __tostring may fail
-            if type(mt) == 'table' and metatostring ~= false then
-                local to, tr = pcall(function() return mt.__tostring(t) end)
-                local so, sr = pcall(function() return mt.__serialize(t) end)
-                if (to or so) then -- knows how to serialize itself
-                    seen[t] = insref or spath
-                    t = so and sr or tr
-                    ttype = type(t)
-                end -- new value falls through to be serialized
-            end
-            if ttype == "table" then
-                if level >= maxl then
-                    return tag..'{}'..comment('maxlvl', level)
-                end
-                seen[t] = insref or spath
-                if next(t) == nil then
-                    return tag..'{}'..comment(t, level)
-                end -- table empty
-                if maxlen and maxlen < 0 then
-                    return tag..'{}'..comment('maxlen', level)
-                end
-                local maxn, o, out = math.min(#t, maxnum or #t), {}, {}
-                for key = 1, maxn do o[key] = key end
-                if not maxnum or #o < maxnum then
-                    -- n = n + 1;
-                    -- o[n] is much faster than o[#o+1] on large tables
-                    local n = #o
-                    for key in pairs(t) do
-                        if o[key] ~= key then n = n + 1; o[n] = key end
-                    end
-                end
-                if maxnum and #o > maxnum then o[maxnum+1] = nil end
-                if opts.sortkeys and #o > maxn then
-                    alphanumsort(o, t, opts.sortkeys)
-                end
-                -- disable sparsness if only numeric keys (shorter output)
-                local sparse = sparse and #o > maxn
-                for n, key in ipairs(o) do
-                    local value, ktype, plainindex
-                            = t[key], type(key), n <= maxn and not sparse
-                    if opts.valignore
-                            and opts.valignore[value]
-                            -- skip ignored values; do nothing
-                            or opts.keyallow and not opts.keyallow[key]
-                            or opts.keyignore and opts.keyignore[key]
-                            or opts.valtypeignore
-                            and opts.valtypeignore[type(value)]
-                            -- skipping ignored value types
-                            or sparse and value == nil
-                            -- skipping nils; do nothing
-                            then
-                    elseif ktype == 'table'
-                            or ktype == 'function' or badtype[ktype]
-                            then
-                        if not seen[key] and not globals[key] then
-                            sref[#sref+1] = 'placeholder'
-                            -- iname is table for local variables
-                            local sname = safename(iname, gensym(key))
-                            sref[#sref] = val2str(
-                                key,sname,indent,sname,iname,true
-                            )
-                        end
-                        sref[#sref+1] = 'placeholder'
-                        local path = seen[t]..'['..tostring(seen[key]
-                                or globals[key] or gensym(key))..']'
-                        sref[#sref] =
-                                path..space..'='..space..tostring(seen[value]
-                                or val2str(value,nil,indent,path))
-                    else
-                        out[#out+1] = val2str(
-                          value,key,indent,nil,seen[t],plainindex,level+1
-                        )
-                        if maxlen then
-                          maxlen = maxlen - #out[#out]
-                          if maxlen < 0 then break end
-                        end
-                    end
-                end
-                local prefix = string.rep(indent or '', level)
-                local head = indent and '{\n'..prefix..indent or '{'
-                local body = table.concat(
-                    out, ','..(indent and '\n'..prefix..indent or space)
-                )
-                local tail = indent and "\n"..prefix..'}' or '}'
-                return (
-                    custom
-                    and custom(tag,head,body,tail,level)
-                    or tag..head..body..tail
-                )..comment(t, level)
-            elseif badtype[ttype] then
-                seen[t] = insref or spath
-                return tag..globerr(t, level)
-            elseif ttype == 'function' then
-                seen[t] = insref or spath
-                if opts.nocode then
-                    return tag.."function() --[[..skipped..]] end"
-                            ..comment(t, level)
-                end
-                local ok, res = pcall(string.dump, t)
-                local func = ok
-                        and "((loadstring or load)("..safestr(res)
-                            ..",'@serialized'))"..comment(t, level)
-                return tag..(func or globerr(t, level))
-            else
-                -- handle all other types
-                return tag..safestr(t)
-            end
-        end
-        local sepr = indent and "\n" or ";"..space
-        local body = val2str(t, name, indent) -- this call also populates sref
-        local tail = #sref>1 and table.concat(sref, sepr)..sepr or ''
-        local warn = opts.comment and #sref>1 and space
-                .."--[[incomplete output with shared/self-references skipped]]"
-                or ''
-        return not name and body..warn
-                or "do local "..body..sepr..tail.."return "..name..sepr.."end"
-    end
+	local function s(t, opts)
+		local name, indent, fatal, maxnum = opts.name, opts.indent, opts.fatal, opts.maxnum
+		local sparse, custom, huge = opts.sparse, opts.custom, not opts.nohuge
+		local space, maxl = (opts.compact and "" or " "), (opts.maxlevel or math.huge)
+		local maxlen, metatostring = tonumber(opts.maxlength), opts.metatostring
+		local iname, comm = "_" .. (name or ""), opts.comment and (tonumber(opts.comment) or math.huge)
+		local numformat = opts.numformat or "%.17g"
+		local seen, sref, syms, symn = {}, { "local " .. iname .. "={}" }, {}, 0
+		local function gensym(val)
+			-- tostring(val) is needed because __tostring
+			-- may return a non-string value
+			return "_"
+				.. (
+					tostring(tostring(val)):gsub("[^%w]", ""):gsub("(%d%w+)", function(s)
+						if not syms[s] then
+							symn = symn + 1
+							syms[s] = symn
+						end
+						return tostring(syms[s])
+					end)
+				)
+		end
+		local function safestr(s)
+			return type(s) == "number" and (huge and snum[tostring(s)] or numformat:format(s))
+				or type(s) ~= "string" and tostring(s)
+				-- escape NEWLINE/010 and EOF/026
+				or ("%q"):format(s):gsub("\010", "n"):gsub("\026", "\\026")
+		end
+		-- handle radix changes in some locales
+		if opts.fixradix and (".1f"):format(1.2) ~= "1.2" then
+			local origsafestr = safestr
+			safestr = function(s)
+				return type(s) == "number" and (nohuge and snum[tostring(s)] or numformat:format(s):gsub(",", "."))
+					or origsafestr(s)
+			end
+		end
+		local function comment(s, l)
+			return comm and (l or 0) < comm and " --[[" .. select(2, pcall(tostring, s)) .. "]]" or ""
+		end
+		local function globerr(s, l)
+			return globals[s] and globals[s] .. comment(s, l)
+				or not fatal and safestr(select(2, pcall(tostring, s)))
+				or error("Can't serialize " .. tostring(s))
+		end
+		local function safename(path, name)
+			-- generates foo.bar, foo[3], or foo['b a r']
+			local n = name == nil and "" or name
+			local plain = type(n) == "string" and n:match("^[%l%u_][%w_]*$") and not keyword[n]
+			local safe = plain and n or "[" .. safestr(n) .. "]"
+			return (path or "") .. (plain and path and "." or "") .. safe, safe
+		end
+		local alphanumsort = type(opts.sortkeys) == "function" and opts.sortkeys
+			or function(k, o, n)
+				-- k=keys, o=originaltable, n=padding
+				local maxn, to = tonumber(n) or 12, { number = "a", string = "b" }
+				local function padnum(d)
+					return ("%0" .. tostring(maxn) .. "d"):format(tonumber(d))
+				end
+				table.sort(k, function(a, b)
+					-- sort numeric keys first:
+					-- k[key] is not nil for numerical keys
+					return (k[a] ~= nil and 0 or to[type(a)] or "z") .. (tostring(a):gsub("%d+", padnum))
+						< (k[b] ~= nil and 0 or to[type(b)] or "z") .. (tostring(b):gsub("%d+", padnum))
+				end)
+			end
+		local function val2str(t, name, indent, insref, path, plainindex, level)
+			local ttype, level, mt = type(t), (level or 0), getmetatable(t)
+			local spath, sname = safename(path, name)
+			local tag = plainindex and ((type(name) == "number") and "" or name .. space .. "=" .. space)
+				or (name ~= nil and sname .. space .. "=" .. space or "")
+			if seen[t] then -- already seen this element
+				sref[#sref + 1] = spath .. space .. "=" .. space .. seen[t]
+				return tag .. "nil" .. comment("ref", level)
+			end
+			-- protect from those cases where __tostring may fail
+			if type(mt) == "table" and metatostring ~= false then
+				local to, tr = pcall(function()
+					return mt.__tostring(t)
+				end)
+				local so, sr = pcall(function()
+					return mt.__serialize(t)
+				end)
+				if to or so then -- knows how to serialize itself
+					seen[t] = insref or spath
+					t = so and sr or tr
+					ttype = type(t)
+				end -- new value falls through to be serialized
+			end
+			if ttype == "table" then
+				if level >= maxl then
+					return tag .. "{}" .. comment("maxlvl", level)
+				end
+				seen[t] = insref or spath
+				if next(t) == nil then
+					return tag .. "{}" .. comment(t, level)
+				end -- table empty
+				if maxlen and maxlen < 0 then
+					return tag .. "{}" .. comment("maxlen", level)
+				end
+				local maxn, o, out = math.min(#t, maxnum or #t), {}, {}
+				for key = 1, maxn do
+					o[key] = key
+				end
+				if not maxnum or #o < maxnum then
+					-- n = n + 1;
+					-- o[n] is much faster than o[#o+1] on large tables
+					local n = #o
+					for key in pairs(t) do
+						if o[key] ~= key then
+							n = n + 1
+							o[n] = key
+						end
+					end
+				end
+				if maxnum and #o > maxnum then
+					o[maxnum + 1] = nil
+				end
+				if opts.sortkeys and #o > maxn then
+					alphanumsort(o, t, opts.sortkeys)
+				end
+				-- disable sparsness if only numeric keys (shorter output)
+				local sparse = sparse and #o > maxn
+				for n, key in ipairs(o) do
+					local value, ktype, plainindex = t[key], type(key), n <= maxn and not sparse
+					if
+						opts.valignore and opts.valignore[value]
+						-- skip ignored values; do nothing
+						or opts.keyallow and not opts.keyallow[key]
+						or opts.keyignore and opts.keyignore[key]
+						or opts.valtypeignore and opts.valtypeignore[type(value)]
+						-- skipping ignored value types
+						or sparse and value == nil
+						-- skipping nils; do nothing
+					then
+					elseif ktype == "table" or ktype == "function" or badtype[ktype] then
+						if not seen[key] and not globals[key] then
+							sref[#sref + 1] = "placeholder"
+							-- iname is table for local variables
+							local sname = safename(iname, gensym(key))
+							sref[#sref] = val2str(key, sname, indent, sname, iname, true)
+						end
+						sref[#sref + 1] = "placeholder"
+						local path = seen[t] .. "[" .. tostring(seen[key] or globals[key] or gensym(key)) .. "]"
+						sref[#sref] = path
+							.. space
+							.. "="
+							.. space
+							.. tostring(seen[value] or val2str(value, nil, indent, path))
+					else
+						out[#out + 1] = val2str(value, key, indent, nil, seen[t], plainindex, level + 1)
+						if maxlen then
+							maxlen = maxlen - #out[#out]
+							if maxlen < 0 then
+								break
+							end
+						end
+					end
+				end
+				local prefix = string.rep(indent or "", level)
+				local head = indent and "{\n" .. prefix .. indent or "{"
+				local body = table.concat(out, "," .. (indent and "\n" .. prefix .. indent or space))
+				local tail = indent and "\n" .. prefix .. "}" or "}"
+				return (custom and custom(tag, head, body, tail, level) or tag .. head .. body .. tail)
+					.. comment(t, level)
+			elseif badtype[ttype] then
+				seen[t] = insref or spath
+				return tag .. globerr(t, level)
+			elseif ttype == "function" then
+				seen[t] = insref or spath
+				if opts.nocode then
+					return tag .. "function() --[[..skipped..]] end" .. comment(t, level)
+				end
+				local ok, res = pcall(string.dump, t)
+				local func = ok and "((loadstring or load)(" .. safestr(res) .. ",'@serialized'))" .. comment(t, level)
+				return tag .. (func or globerr(t, level))
+			else
+				-- handle all other types
+				return tag .. safestr(t)
+			end
+		end
+		local sepr = indent and "\n" or ";" .. space
+		local body = val2str(t, name, indent) -- this call also populates sref
+		local tail = #sref > 1 and table.concat(sref, sepr) .. sepr or ""
+		local warn = opts.comment
+				and #sref > 1
+				and space .. "--[[incomplete output with shared/self-references skipped]]"
+			or ""
+		return not name and body .. warn or "do local " .. body .. sepr .. tail .. "return " .. name .. sepr .. "end"
+	end
 
-    local function deserialize(data, opts)
-        local env = (opts and opts.safe == false) and G
-                or setmetatable({}, {
-            __index = function(t,k) return t end,
-          __call = function(t,...) error("cannot call functions") end
-        })
-        local f, res = (loadstring or load)('return '..data, nil, nil, env)
-        if not f then f, res = (loadstring or load)(data, nil, nil, env) end
-        if not f then return f, res end
-        if setfenv then setfenv(f, env) end
-        return pcall(f)
-    end
+	local function deserialize(data, opts)
+		local env = (opts and opts.safe == false) and G
+			or setmetatable({}, {
+				__index = function(t, k)
+					return t
+				end,
+				__call = function(t, ...)
+					error("cannot call functions")
+				end,
+			})
+		local f, res = (loadstring or load)("return " .. data, nil, nil, env)
+		if not f then
+			f, res = (loadstring or load)(data, nil, nil, env)
+		end
+		if not f then
+			return f, res
+		end
+		if setfenv then
+			setfenv(f, env)
+		end
+		return pcall(f)
+	end
 
-    local function merge(a, b)
-        if b then
-            for k,v in pairs(b) do
-                a[k] = v
-            end
-        end
-        return a
-    end
+	local function merge(a, b)
+		if b then
+			for k, v in pairs(b) do
+				a[k] = v
+			end
+		end
+		return a
+	end
 
-    serpent = {
-        _NAME = n,
-        _COPYRIGHT = c,
-        _DESCRIPTION = d,
-        _VERSION = v,
-        serialize = s,
-        load = deserialize,
-        dump = function(a, opts)
-            return s(a, merge({
-                name = '_', compact = true, sparse = true}, opts
-            ))
-        end,
-        line = function(a, opts)
-            return s(a, merge({sortkeys = true, comment = true}, opts))
-        end,
-        block = function(a, opts)
-            return s(
-                a,
-                merge({indent = '  ', sortkeys = true, comment = true}, opts)
-            )
-        end
-    }
-    -- luacheck: pop
-    -- sumneko:
-    ---@diagnostic enable:deprecated, redefined-local, redundant-parameter
-    ---@diagnostic enable:unused-local, unused-vararg, undefined-global
+	serpent = {
+		_NAME = n,
+		_COPYRIGHT = c,
+		_DESCRIPTION = d,
+		_VERSION = v,
+		serialize = s,
+		load = deserialize,
+		dump = function(a, opts)
+			return s(
+				a,
+				merge({
+					name = "_",
+					compact = true,
+					sparse = true,
+				}, opts)
+			)
+		end,
+		line = function(a, opts)
+			return s(a, merge({ sortkeys = true, comment = true }, opts))
+		end,
+		block = function(a, opts)
+			return s(a, merge({ indent = "  ", sortkeys = true, comment = true }, opts))
+		end,
+	}
+	-- luacheck: pop
+	-- sumneko:
+	---@diagnostic enable:deprecated, redefined-local, redundant-parameter
+	---@diagnostic enable:unused-local, unused-vararg, undefined-global
 end -- }}}2
 -- }}}1
 
---[[ Functions ]]--
+--[[ Functions ]]
+--
 
 -- forward declarations    {{{1
 local abort
@@ -1111,8 +1150,8 @@ local serialise
 -- @local
 -- @function abort
 function abort(err)
-    io.stderr:write(sf('%s: %s', script, err))
-    os.exit(-1)
+	io.stderr:write(sf("%s: %s", script, err))
+	os.exit(-1)
 end
 
 -- list_keywords()    {{{1
@@ -1122,40 +1161,42 @@ end
 -- @local
 -- @function list_keywords
 function list_keywords()
-    -- assemble keyword and descriptions
-    local keywords_sorted = {}
-    local descriptions = {}
-    for keyword, data in pairs(keyword_data) do
-        local description = data.description
-        table.insert(keywords_sorted, keyword)
-        descriptions[keyword] = description
-    end
-    local compare_keywords = function (a, b)
-        local match = '^Latex%d%d?pt$'
-        if a:match(match) and b:match(match) then
-            local pts = '^Latex(%d+)pt$'
-            local a_pts = math.tointeger(a:match(pts))
-            local b_pts = math.tointeger(b:match(pts))
-            return (a_pts < b_pts)
-        else
-            return (a < b)
-        end
-    end
-    table.sort(keywords_sorted, compare_keywords)
-    -- format for output
-    local max_length = 0
-    for _, keyword in ipairs(keywords_sorted) do
-        max_length = (#keyword > max_length) and #keyword or max_length
-    end
-    local output = {}
-    for _, keyword in ipairs(keywords_sorted) do
-        local indent_size = max_length - #keyword
-        local indent = string.rep(' ', indent_size)
-        local line = sf('%s%s: %s\n', indent, keyword, descriptions[keyword])
-        table.insert(output, line)
-    end
-    -- display output
-    for _, line in ipairs(output) do io.stdout:write(line) end
+	-- assemble keyword and descriptions
+	local keywords_sorted = {}
+	local descriptions = {}
+	for keyword, data in pairs(keyword_data) do
+		local description = data.description
+		table.insert(keywords_sorted, keyword)
+		descriptions[keyword] = description
+	end
+	local compare_keywords = function(a, b)
+		local match = "^Latex%d%d?pt$"
+		if a:match(match) and b:match(match) then
+			local pts = "^Latex(%d+)pt$"
+			local a_pts = math.tointeger(a:match(pts))
+			local b_pts = math.tointeger(b:match(pts))
+			return (a_pts < b_pts)
+		else
+			return (a < b)
+		end
+	end
+	table.sort(keywords_sorted, compare_keywords)
+	-- format for output
+	local max_length = 0
+	for _, keyword in ipairs(keywords_sorted) do
+		max_length = (#keyword > max_length) and #keyword or max_length
+	end
+	local output = {}
+	for _, keyword in ipairs(keywords_sorted) do
+		local indent_size = max_length - #keyword
+		local indent = string.rep(" ", indent_size)
+		local line = sf("%s%s: %s\n", indent, keyword, descriptions[keyword])
+		table.insert(output, line)
+	end
+	-- display output
+	for _, line in ipairs(output) do
+		io.stdout:write(line)
+	end
 end
 
 -- split(str, sep)    {{{1
@@ -1168,21 +1209,21 @@ end
 -- @local
 -- @function split
 function split(str, sep)
-    if sep == nil then
-        sep = '\n'
-    end
+	if sep == nil then
+		sep = "\n"
+	end
 
-    local res = {}
-    local func = function(w)
-        table.insert(res, w)
-    end
+	local res = {}
+	local func = function(w)
+		table.insert(res, w)
+	end
 
-    -- match on strings not containing separator ([^sep]+);
-    -- when third arg to string.gsub is a function, the function is called
-    -- for each match with the captured substring as an argument
-    ---@diagnostic disable-next-line:discard-returns
-    string.gsub(str, '[^'..sep..']+', func)
-    return res
+	-- match on strings not containing separator ([^sep]+);
+	-- when third arg to string.gsub is a function, the function is called
+	-- for each match with the captured substring as an argument
+	---@diagnostic disable-next-line:discard-returns
+	string.gsub(str, "[^" .. sep .. "]+", func)
+	return res
 end
 
 -- serialise(name, tbl)    {{{1
@@ -1192,38 +1233,39 @@ end
 -- @tparam string name name of table
 -- @tparam table tbl table to write contructor for
 function serialise(name, tbl)
-    -- check arg types
-    if type(name) ~= 'string' then
-        error('expected string, got '..type(name))
-    end
-    if type(tbl) ~= 'table' then
-        error('expected table, got '..type(tbl))
-    end
-    -- serialise table
-    -- use 'serpent.block' for multi-line, human-readable
-    -- use 'serpent.line' for compact single-line
-    local output = serpent.block(tbl)
-    -- remove meaningless table identifiers from output
-    output = output:gsub(' %-%-%[%[table: .-%]%]', '')
-    output = 'local ' .. name .. ' = ' .. output .. '\n'
-    -- adjust indent from two spaces to four spaces
-    local lines = split(output)
-    local constructor = {}
-    for _, line in ipairs(lines) do
-        local indent = line:match('^(%s*)')
-        table.insert(constructor, indent..line)
-    end
-    table.insert(constructor, '')  -- to force final newline
-    output = table.concat(constructor, '\n')
-    -- output result
-    io.stdout:write(output)
+	-- check arg types
+	if type(name) ~= "string" then
+		error("expected string, got " .. type(name))
+	end
+	if type(tbl) ~= "table" then
+		error("expected table, got " .. type(tbl))
+	end
+	-- serialise table
+	-- use 'serpent.block' for multi-line, human-readable
+	-- use 'serpent.line' for compact single-line
+	local output = serpent.block(tbl)
+	-- remove meaningless table identifiers from output
+	output = output:gsub(" %-%-%[%[table: .-%]%]", "")
+	output = "local " .. name .. " = " .. output .. "\n"
+	-- adjust indent from two spaces to four spaces
+	local lines = split(output)
+	local constructor = {}
+	for _, line in ipairs(lines) do
+		local indent = line:match("^(%s*)")
+		table.insert(constructor, indent .. line)
+	end
+	table.insert(constructor, "") -- to force final newline
+	output = table.concat(constructor, "\n")
+	-- output result
+	io.stdout:write(output)
 end -- }}}1
 
---[[ Process script arguments ]]--
+--[[ Process script arguments ]]
+--
 
 -- handle calls for help    {{{1
 do
-    local help = [[
+	local help = [[
 Generate lua construction code for these types of pander keyword data tables:
 actions, conflict, describe, expand, valid.
 
@@ -1233,95 +1275,93 @@ keyword-table [-l] <table_type>
     table_type             'actions'|'conflict'|'describe'|'expand'|'valid'
 
 ]]
-    for _, v in ipairs(arg) do
-        if v == '-h' or v == '--help' then
-            io.stdout:write(help)
-            os.exit(0)
-        elseif v == '-l' or v == '--list-keywords' then
-            list_keywords()
-            os.exit(0)
-        end
-    end
+	for _, v in ipairs(arg) do
+		if v == "-h" or v == "--help" then
+			io.stdout:write(help)
+			os.exit(0)
+		elseif v == "-l" or v == "--list-keywords" then
+			list_keywords()
+			os.exit(0)
+		end
+	end
 end
 
 -- process args    {{{1
 local table_type
 do
-    if #arg ~= 1 then
-        io.stderr:write(sf(
-            '%s: expected 1 argument, got %d\n', script, #arg
-        ))
-        os.exit(1)
-    end
-    local table_types = {
-        actions = true, conflict = true, describe = true,
-        expand = true, valid = true
-    }
-    table_type = arg[1]
-    if not table_types[table_type] then
-        io.stderr:write(sf(
-            "%s: invalid table type: '%s'\n", script, table_type
-        ))
-        os.exit(1)
-    end
+	if #arg ~= 1 then
+		io.stderr:write(sf("%s: expected 1 argument, got %d\n", script, #arg))
+		os.exit(1)
+	end
+	local table_types = {
+		actions = true,
+		conflict = true,
+		describe = true,
+		expand = true,
+		valid = true,
+	}
+	table_type = arg[1]
+	if not table_types[table_type] then
+		io.stderr:write(sf("%s: invalid table type: '%s'\n", script, table_type))
+		os.exit(1)
+	end
 end -- }}}1
 
---[[ Output constructors ]]--
+--[[ Output constructors ]]
+--
 
 -- output actions    {{{1
 
-if table_type == 'actions' then
-    local keyword_actions_data = {}
-    for keyword, data in pairs(keyword_data) do
-        keyword_actions_data[keyword] = data.actions
-    end
-    serialise('keyword_actions_data', keyword_actions_data)
+if table_type == "actions" then
+	local keyword_actions_data = {}
+	for keyword, data in pairs(keyword_data) do
+		keyword_actions_data[keyword] = data.actions
+	end
+	serialise("keyword_actions_data", keyword_actions_data)
 
 -- output conflict    {{{1
-
-elseif table_type == 'conflict' then
-    local keyword_conflict_data = {}
-    for keyword, data in pairs(keyword_data) do
-        for _, group in ipairs(data.conflict_groups) do
-            if not keyword_conflict_data[group] then
-                keyword_conflict_data[group] = {}
-            end
-            keyword_conflict_data[group][keyword] = true
-        end
-    end
-    serialise('keyword_conflict_data', keyword_conflict_data)
+elseif table_type == "conflict" then
+	local keyword_conflict_data = {}
+	for keyword, data in pairs(keyword_data) do
+		for _, group in ipairs(data.conflict_groups) do
+			if not keyword_conflict_data[group] then
+				keyword_conflict_data[group] = {}
+			end
+			keyword_conflict_data[group][keyword] = true
+		end
+	end
+	serialise("keyword_conflict_data", keyword_conflict_data)
 
 -- output describe    {{{1
-
-elseif table_type == 'describe' then
-    local keyword_describe_data = {}
-    for keyword, data in pairs(keyword_data) do
-        keyword_describe_data[keyword] = data.description
-    end
-    serialise('keyword_describe_data', keyword_describe_data)
+elseif table_type == "describe" then
+	local keyword_describe_data = {}
+	for keyword, data in pairs(keyword_data) do
+		keyword_describe_data[keyword] = data.description
+	end
+	serialise("keyword_describe_data", keyword_describe_data)
 
 -- output expand    {{{1
-
-elseif table_type == 'expand' then
-    local keyword_expand_data = {}
-    for keyword, data in pairs(keyword_data) do
-        for _, group in ipairs(data.expand_groups) do
-            if not keyword_expand_data[group] then
-                keyword_expand_data[group] = {}
-            end
-            table.insert(keyword_expand_data[group], keyword)
-        end
-    end
-    serialise('keyword_expand_data', keyword_expand_data)
+elseif table_type == "expand" then
+	local keyword_expand_data = {}
+	for keyword, data in pairs(keyword_data) do
+		for _, group in ipairs(data.expand_groups) do
+			if not keyword_expand_data[group] then
+				keyword_expand_data[group] = {}
+			end
+			table.insert(keyword_expand_data[group], keyword)
+		end
+	end
+	serialise("keyword_expand_data", keyword_expand_data)
 
 -- output valid    {{{1
-
-elseif table_type == 'valid' then
-    local keyword_valid_data = {}
-    for k, _ in pairs(keyword_data) do keyword_valid_data[k] = true end
-    serialise('keyword_valid_data', keyword_valid_data)
-
-else abort('invalid table type: '..table_type)
+elseif table_type == "valid" then
+	local keyword_valid_data = {}
+	for k, _ in pairs(keyword_data) do
+		keyword_valid_data[k] = true
+	end
+	serialise("keyword_valid_data", keyword_valid_data)
+else
+	abort("invalid table type: " .. table_type)
 end -- }}}1
 
 -- manpage    {{{1
@@ -1695,7 +1735,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Pander.  If not, see <https://www.gnu.org/licenses/>
 =cut
---]] -- }}}1
+--]]
+-- }}}1
 -- luacheck: pop
 
 -- vim:foldmethod=marker:
