@@ -12,31 +12,29 @@ import tkinter as tk
 from tkinter import ttk
 
 
-class MenuSelect(object):    # {{{1
-
+class MenuSelect(object):  # {{{1
     # class docstring    {{{2
-    """ select option(s) from gui menu
+    """select option(s) from gui menu
 
     uses tkinter for a modern appearance
     """
 
-    def __init__(self):    # {{{2
+    def __init__(self):  # {{{2
+        """initialise variables"""
 
-        """ initialise variables """
-
-        ''' these menu parameters can be changed by command line arguments '''
+        """ these menu parameters can be changed by command line arguments """
 
         # menu title
-        self.__title = 'Menu'
+        self.__title = "Menu"
 
         # menu prompt
-        self.__prompt = 'Select an option:'
+        self.__prompt = "Select an option:"
 
         # split items
         self.__split_items = False
 
         # item delimiter
-        self.__item_delimiter = None    # all whitespace
+        self.__item_delimiter = None  # all whitespace
 
         # menu items
         self.__items = []
@@ -45,54 +43,56 @@ class MenuSelect(object):    # {{{1
         self.__multiselect = False
 
         # selections delimiter
-        self.__selections_delimiter = ' '
+        self.__selections_delimiter = " "
 
-        ''' values determining help output '''
+        """ values determining help output """
 
         # argument parser formatter class (includes arg help text in output)
         self.__formatter = argparse.ArgumentDefaultsHelpFormatter
 
         # help description
-        self.__description = 'Select item(s) from a GUI menu'
+        self.__description = "Select item(s) from a GUI menu"
 
         # help epilog
-        self.__epilog = 'Note: default -j value is a space'
+        self.__epilog = "Note: default -j value is a space"
 
-        ''' output value '''
+        """ output value """
 
         self.__selections = []
 
-    def process_args(self):    # {{{2
-
-        """ process command line arguments """
+    def process_args(self):  # {{{2
+        """process command line arguments"""
 
         # define arguments    {{{3
-        parser = argparse.ArgumentParser(description=self.__description,
-                                         epilog=self.__epilog,
-                                         formatter_class=self.__formatter)
-        parser.add_argument('-t', '--title',
-                            default=self.__title,
-                            help='menu title')
-        parser.add_argument('-p', '--prompt',
-                            default=self.__prompt,
-                            help='menu prompt')
-        parser.add_argument('-s', '--split_items',
-                            action='store_true',
-                            help='split each item')
-        parser.add_argument('-i', '--item_delimiter',
-                            default=self.__item_delimiter,
-                            help='delimiter on which to split items'
-                            + ' (None means all whitespace)')
-        parser.add_argument('items',
-                            nargs='+',
-                            metavar='item',
-                            help='menu item')
-        parser.add_argument('-m', '--multiselect',
-                            action='store_true',
-                            help='select multiple menu items')
-        parser.add_argument('-j', '--selections_delimiter',
-                            default=self.__selections_delimiter,
-                            help='delimiter joining selected items')
+        parser = argparse.ArgumentParser(
+            description=self.__description,
+            epilog=self.__epilog,
+            formatter_class=self.__formatter,
+        )
+        parser.add_argument("-t", "--title", default=self.__title, help="menu title")
+        parser.add_argument("-p", "--prompt", default=self.__prompt, help="menu prompt")
+        parser.add_argument(
+            "-s", "--split_items", action="store_true", help="split each item"
+        )
+        parser.add_argument(
+            "-i",
+            "--item_delimiter",
+            default=self.__item_delimiter,
+            help="delimiter on which to split items" + " (None means all whitespace)",
+        )
+        parser.add_argument("items", nargs="+", metavar="item", help="menu item")
+        parser.add_argument(
+            "-m",
+            "--multiselect",
+            action="store_true",
+            help="select multiple menu items",
+        )
+        parser.add_argument(
+            "-j",
+            "--selections_delimiter",
+            default=self.__selections_delimiter,
+            help="delimiter joining selected items",
+        )
 
         # parse arguments    {{{3
         args = parser.parse_args()
@@ -117,9 +117,8 @@ class MenuSelect(object):    # {{{1
         if self.__selections_delimiter != args.selections_delimiter:
             self.__selections_delimiter = args.selections_delimiter
 
-    def display_menu(self):    # {{{2
-
-        """ display gui menu and select option """
+    def display_menu(self):  # {{{2
+        """display gui menu and select option"""
 
         # event handlers    {{{3
 
@@ -131,7 +130,7 @@ class MenuSelect(object):    # {{{1
 
         def _on_return_keypress(event):  # pylint: disable=unused-argument
             # if Cancel button has focus then cancel, otherwise accept picks
-            if 'focus' in (cancel_button.state()):
+            if "focus" in (cancel_button.state()):
                 _abort_selection()
             else:
                 _accept_selections()
@@ -160,7 +159,7 @@ class MenuSelect(object):    # {{{1
         # - should be available on all systems: {clam,alt,default,classic}
         style = ttk.Style(root)
         try:
-            style.theme_use('clam')
+            style.theme_use("clam")
         except tk.TclError:
             pass
 
@@ -177,21 +176,21 @@ class MenuSelect(object):    # {{{1
         prompt_label.grid(column=1, row=1, sticky=(tk.W))
 
         # add menu    {{{3
-        select_mode = 'extended' if self.__multiselect else 'browse'
-        tree = ttk.Treeview(mainframe, selectmode=select_mode, show=['tree'])
+        select_mode = "extended" if self.__multiselect else "browse"
+        tree = ttk.Treeview(mainframe, selectmode=select_mode, show=["tree"])
         tree.grid(column=1, row=2, sticky=(tk.W))
         menu_items = {}
         first_id = None
         for item in self.__items:
-            item_id = tree.insert('', 'end', text=item)
+            item_id = tree.insert("", "end", text=item)
             menu_items[item_id] = item
             if not first_id:
                 first_id = item_id
 
         # add OK and Cancel buttons    {{{3
-        okay_button = ttk.Button(mainframe, text='OK')
+        okay_button = ttk.Button(mainframe, text="OK")
         okay_button.grid(column=1, row=3, sticky=(tk.E))
-        cancel_button = ttk.Button(mainframe, text='Cancel')
+        cancel_button = ttk.Button(mainframe, text="Cancel")
         cancel_button.grid(column=1, row=4, sticky=(tk.E))
 
         # add padding to all widgets    {{{3
@@ -206,27 +205,26 @@ class MenuSelect(object):    # {{{1
         # event handling    {{{3
         okay_button.config(command=_accept_selections)
         cancel_button.config(command=_abort_selection)
-        tree.bind('<<TreeviewSelect>>', _on_item_selection)
-        tree.bind('<Double-Button-1>', _on_tree_double_click)
-        root.bind('<Return>', _on_return_keypress)
-        root.bind('<Escape>', _on_escape_keypress)
+        tree.bind("<<TreeviewSelect>>", _on_item_selection)
+        tree.bind("<Double-Button-1>", _on_tree_double_click)
+        root.bind("<Return>", _on_return_keypress)
+        root.bind("<Escape>", _on_escape_keypress)
 
         # display mainwindow    {{{3
         root.mainloop()
 
-    def result(self):    # {{{2
-
-        """ return menu selection(s) """
+    def result(self):  # {{{2
+        """return menu selection(s)"""
 
         if self.__selections:
             return_value = self.__selections_delimiter.join(self.__selections)
-            print(return_value)
-            return return_value
+            vim.command(
+                "let g:dn_util_menu_selection = '{val}'".format(val=return_value)
+            )
 
 
-def main():    # {{{1
-
-    """ script execution starts here """
+def main():  # {{{1
+    """script execution starts here"""
 
     menu = MenuSelect()
     menu.process_args()
@@ -234,7 +232,7 @@ def main():    # {{{1
     menu.result()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 
 # vim:fdm=marker:
