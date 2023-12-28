@@ -396,7 +396,7 @@ local keyword_data = {
 					"+smart",
 				},
 				options = {
-					["--self-contained"] = true,
+					["--embed-resources"] = true,
 					["--standalone"] = true,
 				},
 				filters = {
@@ -575,7 +575,7 @@ local keyword_data = {
 					"+smart",
 				},
 				options = {
-					["--self-contained"] = true,
+					["--embed-resources"] = true,
 					["--standalone"] = true,
 				},
 				filters = {
@@ -715,7 +715,7 @@ local keyword_data = {
 					"+smart",
 				},
 				options = {
-					["--self-contained"] = true,
+					["--embed-resources"] = true,
 					["--standalone"] = true,
 				},
 				filters = {
