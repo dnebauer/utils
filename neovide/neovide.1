@@ -137,15 +137,24 @@ Arguments to pass to neovim without interpreting. Precede with a double dash.
 Optional.
 .SH "OPTIONS"
 .TP
+.B "fork"
+Spawn a child process and leak it. Default. [env: NEOVIDE_FORK=]
+.TP
 .BI "--frame " "frame"
-Which window decorations to use. The window might not be resizable if this is set to
-.IR "None" "."
+Which window decorations to use. The window might not be resizable if this is
+set to
+.IR "none" "."
 [env: NEOVIDE_FRAME=] [default: full] [possible values: full, none]
 .TP
 .BI "--geometry " "geometry"
 Specify the geometry of the window. Format is
 .I <width>x<height>
 in characters.
+.TP
+.BI "--grid " "grid"
+The initial grid size of the window [<columns>x<lines>]. Defaults to columns/
+lines from init.vim/lua if no value is given. If --grid is not set then it's
+inferred from the window size.
 .TP
 .BR "-h" ", " "--help"
 Print help information.
@@ -164,24 +173,29 @@ Enable the Multigrid extension. Enables smooth scrolling and floating blur.
 .BI "--neovim-bin " "neovim_bin"
 Which NeoVim binary to invoke headlessly instead of
 .B "nvim"
-found on $PATH. [env: NEOVIM_BIN=]
+found on $PATH. [env: NEOVIM_BIN=/usr/local/bin/nvim.appimage]
 .TP
-.B "--nofork"
+.B "--no-fork"
 Instead of spawning a child process and leaking it, be "blocking" and have the
 shell directly as parent process.
 .TP
-.B "--noidle"
+.B "--no-idle"
 Render every frame. Takes more power and cpu time but possibly helps with frame
 timing issues.
 .TP
-.B "--nosrgb"
-Do not request sRGB when initializing the window. May help with GPUs with weird pixel formats. Default on Linux and macOs.
+.B "--no-multigrid"
+Disable the Multigrid extension (disables smooth scrolling, window animations,
+and floating blur) [env: NEOVIDE_NO_MULTIGRID=]
 .TP
-.B "--notabs"
+.B "--no-srgb"
+Do not request sRGB when initializing the window. May help with GPUs with weird
+pixel formats. Default on Linux and macOS.
+.TP
+.B "--no-tabs"
 Open multiple files in normal buffers. (The default behaviour is to open
 them in multiple tabs.)
 .TP
-.B "--novsync"
+.B "--no-vsync"
 Do not try to request VSync on the window.
 .TP
 .BI "--server " "address"
@@ -191,7 +205,8 @@ Connect to the named pipe or socket.
 The size of the window in pixels.
 .TP
 .B "--srgb"
-Request sRGB when initializing the window. May help with GPUs with weird pixel formats. Default on Windows. [env: NEOVIDE_SRGB=]
+Request sRGB when initializing the window. May help with GPUs with weird pixel
+formats. Default on Windows. [env: NEOVIDE_SRGB=]
 .TP
 .BR "-V" ", " "--version"
 Print version information.
@@ -214,7 +229,8 @@ Specify the class part of the X11 WM_CLASS property. X only. Useful for setting
 WM rules. [env: NEOVIDE_WM_CLASS=] [default: neovide]
 .TP
 .BI "--x11-wm-class-instance " "x11_wm_class_instance"
-Specify the instance part of the X11 WM_CLASS property. X only. Useful for setting WM rules. [env: NEOVIDE_WM_CLASS_INSTANCE=] [default: neovide]
+Specify the instance part of the X11 WM_CLASS property. X only. Useful for
+setting WM rules. [env: NEOVIDE_WM_CLASS_INSTANCE=] [default: neovide]
 .SH "SEE ALSO"
 .BR "nvim " "(1)."
 .SH "AUTHOR"
