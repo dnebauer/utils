@@ -1955,9 +1955,9 @@ function create_mobi(fname)
 	-- check for cover image    {{{2
 	local cover = cover_image(fname)
 	-- build conversion command    {{{2
-	local cmd = sf("%s %s %s", conv, epub, mobi)
+	local cmd = sf("%s '%s' '%s'", conv, epub, mobi)
 	if cover then
-		cmd = sf("%s --remove-first-image --cover %s", cmd, cover)
+		cmd = sf("%s --remove-first-image --cover '%s'", cmd, cover)
 	end
 
 	-- display pandoc command to execute    {{{2
