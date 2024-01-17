@@ -35,6 +35,7 @@ my $rsync = File::Rsync->new(
     itemize_changes => 1,
     quote_src       => 1,
     quote_dst       => 1,
+    include         => '.*',
     errfun          => \&rsync_output_handler,
     outfun          => \&rsync_output_handler,
 );
