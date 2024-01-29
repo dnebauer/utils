@@ -29,13 +29,15 @@ const my $LAST  => -1;
 
 # variables    {{{1
 
+# - explicitly include hidden files
+my $includes = ['.*', '*/', '*'];
 my $rsync = File::Rsync->new(
     archive         => 1,
     copy_links      => 1,
     itemize_changes => 1,
     quote_src       => 1,
     quote_dst       => 1,
-    include         => '.*',
+    include         => $includes,
     errfun          => \&rsync_output_handler,
     outfun          => \&rsync_output_handler,
 );
