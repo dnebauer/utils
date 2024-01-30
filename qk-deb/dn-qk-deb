@@ -1120,73 +1120,74 @@ use version; our $VERSION = qv('0.1');    #                            }}}1
                 warn "This may result in a fatal error\n";
             }
             for ($key) {
-                when (/^author\z/xsm) { $self->_add_author($value); }
-                when (/^bash-completion-file\z/xsm) {
+                ## no critic (ProhibitCascadingIfElse)
+                if    ($_ =~ /^author\z/xsm) { $self->_add_author($value); }
+                elsif ($_ =~ /^bash-completion-file\z/xsm) {
                     $self->_qkpath( $value, 'bashcomp' );
                 }
-                when (/^bin-file\z/xsm) { $self->_qkpath( $value, 'bin' ); }
-                when (/^conf-file\z/xsm) {
+                elsif ($_ =~ /^bin-file\z/xsm) { $self->_qkpath( $value, 'bin' ); }
+                elsif ($_ =~ /^conf-file\z/xsm) {
                     $self->_qkpath( $value, 'conf' );
                 }
-                when (/^control-description\z/xsm) {
+                elsif ($_ =~ /^control-description\z/xsm) {
                     $self->_add_description_line($value);
                 }
-                when (/^control-summary\z/xsm) {
+                elsif ($_ =~ /^control-summary\z/xsm) {
                     $self->_summary($value);
                 }
-                when (/^data-file\z/xsm) {
+                elsif ($_ =~ /^data-file\z/xsm) {
                     $self->_qkpath( $value, 'data' );
                 }
-                when (/^debconf-file\z/xsm) {
+                elsif ($_ =~ /^debconf-file\z/xsm) {
                     $self->_qkpath( $value, 'debconf' );
                 }
-                when (/^desktop-file\z/xsm) {
+                elsif ($_ =~ /^desktop-file\z/xsm) {
                     $self->_qkpath( $value, 'desktop' );
                 }
-                when (/^depends-on\z/xsm) {
+                elsif ($_ =~ /^depends-on\z/xsm) {
                     $self->_add_depends_pkg($value);
                 }
-                when (/^email\z/xsm) { $self->_email($value); }
-                when (/^extra-path\z/xsm) {
+                elsif ($_ =~ /^email\z/xsm) { $self->_email($value); }
+                elsif ($_ =~ /^extra-path\z/xsm) {
                     $self->_qkpath( $value, 'extra' );
                 }
-                when (/^icon-file\z/xsm) {
+                elsif ($_ =~ /^icon-file\z/xsm) {
                     $self->_qkpath( $value, 'icon' );
                 }
-                when (/^install-file\z/xsm) {
+                elsif ($_ =~ /^install-file\z/xsm) {
                     $self->_qkpath( $value, 'install' );
                 }
-                when (/^libdata-file\z/xsm) {
+                elsif ($_ =~ /^libdata-file\z/xsm) {
                     $self->_qkpath( $value, 'libdata' );
                 }
-                when (/^libexec-file\z/xsm) {
+                elsif ($_ =~ /^libexec-file\z/xsm) {
                     $self->_qkpath( $value, 'libexec' );
                 }
-                when (/^man-file\z/xsm) { $self->_qkpath( $value, 'man' ); }
-                when (/^package-name\z/xsm) { $self->_name($value); }
-                when (/^postinstall-file\z/xsm) {
+                elsif ($_ =~ /^man-file\z/xsm) { $self->_qkpath( $value, 'man' ); }
+                elsif ($_ =~ /^package-name\z/xsm) { $self->_name($value); }
+                elsif ($_ =~ /^postinstall-file\z/xsm) {
                     $self->_qkpath( $value, 'postinst' );
                 }
-                when (/^postremove-file\z/xsm) {
+                elsif ($_ =~ /^postremove-file\z/xsm) {
                     $self->_qkpath( $value, 'postrm' );
                 }
-                when (/^preinstall-file\z/xsm) {
+                elsif ($_ =~ /^preinstall-file\z/xsm) {
                     $self->_qkpath( $value, 'preinst' );
                 }
-                when (/^preremove-file\z/xsm) {
+                elsif ($_ =~ /^preremove-file\z/xsm) {
                     $self->_qkpath( $value, 'prerm' );
                 }
-                when (/^sbin-file\z/xsm) {
+                elsif ($_ =~ /^sbin-file\z/xsm) {
                     $self->_qkpath( $value, 'sbin' );
                 }
-                when (/^templates-file\z/xsm) {
+                elsif ($_ =~ /^templates-file\z/xsm) {
                     $self->_qkpath( $value, 'templates' );
                 }
-                when (/^version\z/xsm) {
+                elsif ($_ =~ /^version\z/xsm) {
                     $self->_version( Dpkg::Version->new($value) );
                 }
-                when (/^year\z/xsm) { $self->_copyright($value); }
-                default {
+                elsif ($_ =~ /^year\z/xsm) { $self->_copyright($value); }
+                else {
                     my $line_num = $index + 1;
                     my @err      = (
                         "Error processing resources file '$resource'\n",
@@ -1194,6 +1195,7 @@ use version; our $VERSION = qv('0.1');    #                            }}}1
                     );
                     die @err;
                 }
+                ## use critic
             }
         }
         $self->_check_resources();
@@ -1218,85 +1220,87 @@ use version; our $VERSION = qv('0.1');    #                            }}}1
         if ( not $type ) { confess 'No path type provided'; }
         if ( not $path ) { confess 'No path provided'; }
         for ($type) {
-            when (/^bashcomp\z/) {
+            ## no critic (ProhibitCascadingIfElse)
+            if    ($_ =~ /^bashcomp\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_bashcomp($qkdeb);
             }
-            when (/^bin\z/) {
+            elsif ($_ =~ /^bin\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_add_bin_file($qkdeb);
             }
-            when (/^conf\z/) {
+            elsif ($_ =~ /^conf\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_add_conf_file($qkdeb);
             }
-            when (/^data\z/) {
+            elsif ($_ =~ /^data\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_add_data_file($qkdeb);
             }
-            when (/^debconf\z/) {
+            elsif ($_ =~ /^debconf\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_debconf($qkdeb);
             }
-            when (/^desktop\z/) {
+            elsif ($_ =~ /^desktop\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_add_desktop_file($qkdeb);
             }
-            when (/^distro\z/) {
+            elsif ($_ =~ /^distro\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_distribution_filepath($qkdeb);
             }
-            when (/^extra\z/) {
+            elsif ($_ =~ /^extra\z/) {
                 my $qkdeb = Dn::QkDeb::Path->new( path => $path );
                 $self->_add_extra_path($qkdeb);
             }
-            when (/^icon\z/) {
+            elsif ($_ =~ /^icon\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_add_icon_file($qkdeb);
             }
-            when (/^install\z/) {
+            elsif ($_ =~ /^install\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_install($qkdeb);
             }
-            when (/^libdata\z/) {
+            elsif ($_ =~ /^libdata\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_add_libdata_file($qkdeb);
             }
-            when (/^libexec\z/) {
+            elsif ($_ =~ /^libexec\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_add_libexec_file($qkdeb);
             }
-            when (/^man\z/) {
+            elsif ($_ =~ /^man\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_add_man_file($qkdeb);
             }
-            when (/^postinst\z/) {
+            elsif ($_ =~ /^postinst\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_postinst($qkdeb);
             }
-            when (/^postrm\z/) {
+            elsif ($_ =~ /^postrm\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_postrm($qkdeb);
             }
-            when (/^preinst\z/) {
+            elsif ($_ =~ /^preinst\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_preinst($qkdeb);
             }
-            when (/^prerm\z/) {
+            elsif ($_ =~ /^prerm\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_prerm($qkdeb);
             }
-            when (/^sbin\z/) {
+            elsif ($_ =~ /^sbin\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_add_sbin_file($qkdeb);
             }
-            when (/^templates\z/) {
+            elsif ($_ =~ /^templates\z/) {
                 my $qkdeb = Dn::QkDeb::File->new( file => $path );
                 $self->_templates($qkdeb);
             }
-            default {
+            else {
                 confess "Invalid path type '$type'";
             }
+            ## use critic
         }
     }
 
@@ -1599,16 +1603,16 @@ use version; our $VERSION = qv('0.1');    #                            }}}1
             my $source = $truepath;
             my $destination;
             for ($source) {
-                when (-f) {
+                if    (-f $_) {
                     $destination
                         = $cp->dir_add_file( $File::chdir::CWD, $basename );
                 }
-                when (-d) {
+                elsif (-d $_) {
                     $destination
                         = $cp->dir_add_dir( $File::chdir::CWD, $basename );
                 }
-                when ( !-e ) { die "Cannot find extra path '$source'\n"; }
-                default { confess "Error processing extra path '$source'"; }
+                elsif ( !-e $_ ) { die "Cannot find extra path '$source'\n"; }
+                else { confess "Error processing extra path '$source'"; }
             }
             $cp->do_copy( $source, $destination )
                 or confess "Copy failed: $OS_ERROR";
