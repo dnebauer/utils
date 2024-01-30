@@ -1,4 +1,4 @@
-#!/usr/bin/perl 
+#!/usr/bin/perl
 
 use Moo;    #                                                          {{{1
 use strictures 2;
@@ -865,24 +865,24 @@ use namespace::clean;    #                                             }}}1
             # dispatch
             last if not $option;
             for ($option) {
-                when (/^ Add \s events \z/xsm)    { $self->_add_events(); }
-                when (/^ Delete \s events \z/xsm) { $self->_delete_events(); }
-                when (/^ Edit \s events \z/xsm)   { $self->_edit_events(); }
-                when (/^ List \s events \z/xsm) {
+                if    ($_ =~ /^ Add \s events \z/xsm)    { $self->_add_events(); }
+                elsif ($_ =~ /^ Delete \s events \z/xsm) { $self->_delete_events(); }
+                elsif ($_ =~ /^ Edit \s events \z/xsm)   { $self->_edit_events(); }
+                elsif ($_ =~ /^ List \s events \z/xsm) {
                     $self->_list_events( prompt => $TRUE );
                 }
-                when (/^ Rename \s events \z/xsm) { $self->_rename_events(); }
-                when (/^ Rename \s locations \z/xsm) {
+                elsif ($_ =~ /^ Rename \s events \z/xsm) { $self->_rename_events(); }
+                elsif ($_ =~ /^ Rename \s locations \z/xsm) {
                     $self->_rename_locations();
                 }
-                when (/^ Save \z/xsm) { $self->_save_data(); }
-                when (/^ Change \s festival \s name \z/xsm) {
+                elsif ($_ =~ /^ Save \z/xsm) { $self->_save_data(); }
+                elsif ($_ =~ /^ Change \s festival \s name \z/xsm) {
                     $self->_set_title();
                 }
-                when (/^ Write \s output \s files \z/xsm) {
+                elsif ($_ =~ /^ Write \s output \s files \z/xsm) {
                     $self->_write_output();
                 }
-                default { say "Unrecognised option '$option'"; }
+                else { say "Unrecognised option '$option'"; }
             }
         }
         $self->_using_menu($FALSE);
@@ -925,14 +925,14 @@ use namespace::clean;    #                                             }}}1
         # select item to return
         my $item_count = scalar @{$items};
         for ($item_count) {
-            when ( $_ == 0 ) { return; }
-            when ( $_ == 1 ) {
+            if    ( $_ == 0 ) { return; }
+            elsif ( $_ == 1 ) {
                 my $item = @{$items}[0];
                 return ( $cp->input_confirm("Is '$item' correct?") )
                     ? $item
                     : undef;
             }
-            when ( $_ > 1 ) {
+            elsif ( $_ > 1 ) {
                 my $option = Dn::Menu->new(
                     type      => 'term',
                     header    => 'Event Planner',
@@ -943,7 +943,7 @@ use namespace::clean;    #                                             }}}1
                 if ($option) { say "Selected '$option'"; }
                 return $option;
             }
-            default { confess "Invalid item count '$_'"; }
+            else { confess "Invalid item count '$_'"; }
         }
     }
 
