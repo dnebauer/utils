@@ -1,3 +1,9 @@
+mail-dir-monitor (0.2-2) unstable; urgency=medium
+
+  * Replace when() (deprecated)
+
+ -- David Nebauer <david@nebauer.org>  Tue, 30 Jan 2024 23:27:38 +0930
+
 mail-dir-monitor (0.1-2) unstable; urgency=medium
 
   * Change build files to be compatible with dn-build-deb v3.0

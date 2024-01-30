@@ -58,9 +58,9 @@ local $OUTPUT_AUTOFLUSH = $TRUE;    # }}}1
         $type =~ s/(.*)/\L$1/gxsm;    # lowercase
 
         for ($type) {
-            when (/^info\z/xsm) { Logger::Syslog::notice($message) }
-            when (/^warn\z/xsm) { Logger::Syslog::warning($message) }
-            default             { confess "Invalid type '$type'" }
+            if    ($_ =~ /^info\z/xsm) { Logger::Syslog::notice($message) }
+            elsif ($_ =~ /^warn\z/xsm) { Logger::Syslog::warning($message) }
+            else                       { confess "Invalid type '$type'" }
         }
 
         return;
@@ -644,16 +644,16 @@ local $OUTPUT_AUTOFLUSH = $TRUE;    # }}}1
             my ( $mail, $write ) = ( $FALSE, $FALSE );
             for my $key ( keys %{$file_confs} ) {
                 for ($key) {
-                    when (/\Adir\Z/xsm)   { $dir   = $file_confs->{'dir'}; }
-                    when (/\Aname\Z/xsm)  { $name  = $file_confs->{'name'}; }
-                    when (/\Amail\Z/xsm)  { $mail  = $file_confs->{'mail'}; }
-                    when (/\Auser\Z/xsm)  { $user  = $file_confs->{'user'}; }
-                    when (/\Awrite\Z/xsm) { $write = $file_confs->{'write'}; }
-                    when (/\Amask\Z/xsm) {
+                    if    ($_ =~ /\Adir\Z/xsm)   { $dir   = $file_confs->{'dir'}; }
+                    elsif ($_ =~ /\Aname\Z/xsm)  { $name  = $file_confs->{'name'}; }
+                    elsif ($_ =~ /\Amail\Z/xsm)  { $mail  = $file_confs->{'mail'}; }
+                    elsif ($_ =~ /\Auser\Z/xsm)  { $user  = $file_confs->{'user'}; }
+                    elsif ($_ =~ /\Awrite\Z/xsm) { $write = $file_confs->{'write'}; }
+                    elsif ($_ =~ /\Amask\Z/xsm) {
                         my $mask_str = $file_confs->{'mask'};
                         $mask = qr/$mask_str/xsm;
                     }
-                    default {
+                    else {
                         $msg = "Ignoring key '$key' in config file $file";
                         $self->log( $msg, 'info' );
                     }
@@ -765,7 +765,7 @@ mail-dir-monitor - daemon to monitor mail queue directories
 
 =head1 USAGE
 
-B<mail-dir-monitor> [B<-c>] [B<-d>] 
+B<mail-dir-monitor> [B<-c>] [B<-d>]
 
 B<mail-dir-monitor> B<-h>
 
@@ -912,7 +912,7 @@ Boolean. Optional. Default: FALSE.
 
 Whether to notify user of blocked email messages by sending a message directly
 to their terminal using the C<write> utility that is standard on *nix systems.
-Will have no effect if no C<write> executable is available. 
+Will have no effect if no C<write> executable is available.
 
 Individual users can configure their terminals to not receive C<write>
 messages, though on most system the default for users is to allow display of
@@ -936,7 +936,7 @@ messages sent by write will disrupt the editor display.
 
 Users who routinely use multiple terminals and/or terminal multiplexers, as the
 message will be sent to only one terminal and that terminal may not be visible
-to the user at the time the message is sent. 
+to the user at the time the message is sent.
 
 =back
 
