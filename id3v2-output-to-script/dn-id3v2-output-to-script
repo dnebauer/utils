@@ -388,12 +388,12 @@ use namespace::clean;    # }}}1
             if ( not $self->_valid_tag($frame) ) { next; }
             my $tag = $self->_tag_properties($frame)->preferred_frame;
             for ($tag) {
-                when (/\AAPIC\Z/xsm) {
+                if    ($_ =~ /\AAPIC\Z/xsm) {
                     if ( my $image_fp = $self->_extract_image($fp) ) {
                         $file_properties->set_tag( APIC => $image_fp );
                     }
                 }
-                when (/\ACOMM\Z/xsm) {
+                elsif ($_ =~ /\ACOMM\Z/xsm) {
                     my $len_now = 0;
                     my $comment_now
                         = ( $file_properties->has_tag('COMM') )
@@ -410,7 +410,7 @@ use namespace::clean;    # }}}1
                         $file_properties->set_tag( COMM => $comment_new );
                     }
                 }
-                default {
+                else {
                     # must be valid tag other than APIC or COMM
                     # - i.e., "simple" tags
                     my $re = $self->_tag_properties($tag)->value_regex;
@@ -454,16 +454,16 @@ use namespace::clean;    # }}}1
         for ($source) {
 
             # file
-            when (/\Afile\Z/xsm) {
+            if    ($_ =~ /\Afile\Z/xsm) {
                 push @input, Path::Tiny::path($file)->lines_utf8;
             }
 
             # stdin
-            when (/\Astdin\Z/xsm) {
+            elsif ($_ =~ /\Astdin\Z/xsm) {
                 while ( defined( my $line = <> ) ) { push @input, $line; }
             }
 
-            default { croak "Invalid source '$source'"; }
+            else { croak "Invalid source '$source'"; }
         }
         chomp @input;
 
@@ -626,7 +626,7 @@ use namespace::clean;    # }}}1
         for ($dest) {
 
             # file
-            when (/\Afile\Z/xsm) {
+            if    ($_ =~ /\Afile\Z/xsm) {
                 Path::Tiny::path($file)->spew_utf8( map {"$_\n"} @output );
                 my $changed = chmod $EXECUTABLE, $file;
                 if ( $changed < 1 ) {
@@ -635,11 +635,11 @@ use namespace::clean;    # }}}1
             }
 
             # stdin
-            when (/\Astdin\Z/xsm) {
+            elsif ($_ =~ /\Astdin\Z/xsm) {
                 for (@output) { say or croak; }
             }
 
-            default { croak "Invalid destination '$dest'"; }
+            else { croak "Invalid destination '$dest'"; }
         }
 
         return;
