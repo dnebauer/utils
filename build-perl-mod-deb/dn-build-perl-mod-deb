@@ -706,12 +706,12 @@ use namespace::clean;    # }}}1
 
         # success if only one matching distribution file found    {{{2
         for ( scalar @results ) {
-            when ( $_ == 0 ) {    # error
+            if ( $_ == 0 ) {    # error
                 my $msg = 'Unable to extract module name and version ';
                 $msg .= 'from distribution file';
                 confess $msg;
             }
-            when ( $_ > 1 ) {     # error
+            elsif ( $_ > 1 ) {     # error
                 my @msg = "Multiple distribution files detected:\n";
                 foreach my $result (@results) {
                     my $file = $result->name;
@@ -719,7 +719,7 @@ use namespace::clean;    # }}}1
                 }
                 confess @msg;
             }
-            default {             # success
+            else {             # success
                 my $result = $results[0];
                 $self->_distro_file_name( $result->name );
                 $self->_distro_name_ver( $result->module_ver );
