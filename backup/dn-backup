@@ -261,7 +261,7 @@ sub config_load {
             my @conf_data
                 = ( ref $conf_val ) ? @{$conf_val} : ($conf_val);
             for ($key) {
-                when (/\Asource_file\Z/xsm) {
+                if ($_ =~ /\Asource_file\Z/xsm) {
                     for my $item (@conf_data) {
                         if ( $item =~ /\A\s*\Z/xsm ) {
                             my $msg = 'source file: no value';
@@ -274,7 +274,7 @@ sub config_load {
                         else { $s_files{$item} = $TRUE; }
                     }
                 }
-                when (/\Asource_dir\Z/xsm) {
+                elsif ($_ =~ /\Asource_dir\Z/xsm) {
                     for my $item (@conf_data) {
                         if ( $item =~ /\A\s*\Z/xsm ) {
                             my $msg = 'source directory: no value';
@@ -287,7 +287,7 @@ sub config_load {
                         else { $s_dirs{$item} = $TRUE; }
                     }
                 }
-                when (/\Atarget_dir\Z/xsm) {
+                elsif ($_ =~ /\Atarget_dir\Z/xsm) {
                     for my $item (@conf_data) {
                         if ( $item =~ /\A\s*\Z/xsm ) {
                             my $msg = 'source directory: no value';
@@ -317,7 +317,7 @@ sub config_load {
                         $target_dirs{$label} = Path::Tiny::path($dir_path);
                     }
                 }
-                default {
+                else {
                     my $msg = "config file: unknown key: $key";
                     $conf_errors{$msg} = $TRUE;
                 }
@@ -417,9 +417,9 @@ sub rsync_output_handler {
     my ( $msg, $type ) = @_;
 
     for ($type) {
-        when (/\Aout\Z/xsm) { $progress_bar->message($msg); }
-        when (/\Aerr\Z/xsm) { push @rsync_errors, $msg; }
-        default { croak "Programming error: bad handler type: $type"; }
+        if    ($_ =~ /\Aout\Z/xsm) { $progress_bar->message($msg); }
+        elsif ($_ =~ /\Aerr\Z/xsm) { push @rsync_errors, $msg; }
+        else  { croak "Programming error: bad handler type: $type"; }
     }
 
     return;
