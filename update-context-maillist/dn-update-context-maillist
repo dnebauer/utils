@@ -1,4 +1,4 @@
-#!/usr/bin/perl 
+#!/usr/bin/perl
 
 use Moo;    #                                                          {{{1
 use strictures 2;
@@ -431,9 +431,9 @@ use namespace::clean;    #                                             }}}1
         my $written = $after - $before;
         my $msg;
         for ($written) {
-            when ( $_ == 0 ) { $msg = 'No new message files to write'; }
-            when ( $_ == 1 ) { $msg = 'Wrote one new message file'; }
-            when ( $_ >= 2 ) { $msg = "Wrote $written new message files"; }
+            if    ( $_ == 0 ) { $msg = 'No new message files to write'; }
+            elsif ( $_ == 1 ) { $msg = 'Wrote one new message file'; }
+            elsif ( $_ >= 2 ) { $msg = "Wrote $written new message files"; }
         }
         if ( $written > 0 ) { $io->say($msg); }    # module reports if no files
         $self->_log( $msg, 'INFO' );
@@ -553,7 +553,7 @@ F<~/data/computing/text-processing/context/mail-list/> an mbox file for every
 email message which is not already captured in the directory.
 
 Displays feedback on screen unless the C<-l> option is used, in which case the
-result (and any errors or warnings) are written to the system log. 
+result (and any errors or warnings) are written to the system log.
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
