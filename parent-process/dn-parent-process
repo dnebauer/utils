@@ -1,11 +1,11 @@
 #!/usr/bin/perl
 
-use Moo;    #                                                          {{{1
+use Moo;    # {{{1
 use strictures 2;
 use 5.014_002;
 use version; our $VERSION = qv('0.1');
 
-# package Dn::Internal::Pair                                           {{{1
+# package Dn::Internal::Pair {{{1
 {
 
     package Dn::Internal::Pair;
@@ -13,13 +13,13 @@ use version; our $VERSION = qv('0.1');
     use Moo;
     use strictures 2;
     use namespace::clean;
-    use Readonly;
+    use Const::Fast;
     use Text::Table;
-    use Text::Wrap      qw(wrap);
+    use Text::Wrap;
     use Types::Standard qw(Int Str);
 
-    Readonly my $TRUE  => 1;
-    Readonly my $FALSE => 0;
+    const my $TRUE  => 1;
+    const my $FALSE => 0;
 
     has 'parent' => (
         is            => 'ro',
@@ -42,13 +42,13 @@ use version; our $VERSION = qv('0.1');
         documentation => 'Child process command',
     );
 
-}    #                                                                 }}}1
+}    # }}}1
 
 {
 
     package Dn::Internal;
 
-    use Moo;    #                                                      {{{1
+    use Moo;    # {{{1
     use strictures 2;
     use MooX::HandlesVia;
     use namespace::clean -except => [ '_options_data', '_options_config', ];
@@ -58,19 +58,19 @@ use version; our $VERSION = qv('0.1');
     use English qw(-no_match_vars);
     use Function::Parameters;
     use Getopt::Long::Descriptive;
-    use List::Util qw(uniq);
-    use Readonly;
-    use Types::Standard qw(ArrayRef InstanceOf Int);
+    use List::Util;
+    use Const::Fast;
+    use Types::Standard qw(Int);
     use autodie         qw(open close);
     use experimental 'switch';
     my $cp = Dn::Common->new();
 
-    Readonly my $TRUE  => 1;
-    Readonly my $FALSE => 0;    #                                      }}}1
+    const my $TRUE  => 1;
+    const my $FALSE => 0;    # }}}1
 
     # attributes
 
-    # _pid                                                             {{{1
+    # _pid {{{1
     has '_pid' => (
         is  => 'lazy',
         isa => Types::Standard::Int,
@@ -93,11 +93,11 @@ use version; our $VERSION = qv('0.1');
         return $args[0];
     }
 
-    # _data                                                            {{{1
+    # _data {{{1
     has '_data' => (
         is  => 'rw',
         isa => Types::Standard::ArrayRef [
-            Types::Standard::InstanceOf ['Dn::Internal::Pair']
+            Types::Standard::InstanceOf ['Dn::Internal::Pair'],
         ],
         required    => $TRUE,
         default     => sub { [] },
@@ -112,11 +112,11 @@ use version; our $VERSION = qv('0.1');
         #   [ parent, child ],
         #   ... ,
         # ]
-    );    #                                                            }}}1
+    );    # }}}1
 
     # methods
 
-    #   main()                                                         {{{1
+    #   main() {{{1
     #
     #   does:   main method
     #   params: nil
@@ -128,7 +128,7 @@ use version; our $VERSION = qv('0.1');
         $self->_print_data();
     }
 
-    # _usage()                                                         {{{1
+    # _usage() {{{1
     #
     # does:   print usage message if requested
     # params: nil
@@ -142,18 +142,18 @@ use version; our $VERSION = qv('0.1');
             [],
             [   'help|h',
                 'print usage message and exit',
-                { shortcircuit => 1 }
+                { shortcircuit => 1 },
             ],
         );
         if ( $opt->help ) {
-            print $usage->text;
+            print $usage->text or croak;
             exit;
         }
 
         return;
     }
 
-    # _get_process_data()                                              {{{1
+    # _get_process_data() {{{1
     #
     # does:   get data on process parentage
     # params: nil
@@ -174,7 +174,7 @@ use version; our $VERSION = qv('0.1');
         }
     }
 
-    # _print_data()                                                    {{{1
+    # _print_data() {{{1
     #
     # does:   print process data in pretty table
     # params: nil
@@ -189,13 +189,15 @@ use version; our $VERSION = qv('0.1');
 
         # get width of last column
         # - localise package variable as per Perl Best Practice (pp. 77-79)
-        my $term_width = $cp->term_size->width;
-        my $width      = $term_width - 18;
-        if ( $width < 15 ) {
-            die "Terminal is to narrow for display\n";
+        const my $LAST_COL_MIN_WIDTH => 15;
+        const my $OTHER_COLS_WIDTH   => 18;
+        my $term_width     = $cp->term_size->width;
+        my $last_col_width = $term_width - $OTHER_COLS_WIDTH;
+        if ( $last_col_width < $LAST_COL_MIN_WIDTH ) {
+            die "Terminal is too narrow for display\n";
         }
         local $Text::Wrap::columns = $Text::Wrap::columns;
-        $Text::Wrap::columns = $width;
+        $Text::Wrap::columns = $last_col_width;
 
         # add data rows (wrapping long commands)
         for my $pair ( reverse $self->_pairs ) {
@@ -217,8 +219,8 @@ use version; our $VERSION = qv('0.1');
             push @output, $line;
         }
         foreach my $line (@output) { $line = q{ } . $line; }   # prepend space
-        foreach my $line (@output) { print $line; }
-    }    #                                                             }}}1
+        foreach my $line (@output) { print $line or croak; }
+    };    # }}}1
 
 }
 
@@ -226,7 +228,7 @@ my $p = Dn::Internal->new->main;
 
 1;
 
-# POD                                                                  {{{1
+# POD {{{1
 
 __END__
 
@@ -269,10 +271,10 @@ tabular format.
 
 =head2 Perl modules
 
-autodie, Carp, Dn::Common, English, experimental, Function::Parameters,
-Getopt::Long::Descriptive, List::Util, Moo, MooX::HandlesVia, namespace::clean,
-Readonly, strictures, Text::Table, Text::Wrap, Types::Dn, Types::Standard,
-version.
+autodie, Carp, Const::Fast, Dn::Common, English, experimental,
+Function::Parameters, Getopt::Long::Descriptive, List::Util, Moo,
+MooX::HandlesVia, namespace::clean, strictures, Text::Table, Text::Wrap,
+Types::Dn, Types::Standard, version.
 
 =head2 Executables
 
