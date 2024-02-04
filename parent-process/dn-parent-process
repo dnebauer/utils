@@ -1,4 +1,4 @@
-#!/usr/bin/perl 
+#!/usr/bin/perl
 
 use Moo;    #                                                          {{{1
 use strictures 2;
@@ -15,7 +15,7 @@ use version; our $VERSION = qv('0.1');
     use namespace::clean;
     use Readonly;
     use Text::Table;
-    use Text::Wrap qw(wrap);
+    use Text::Wrap      qw(wrap);
     use Types::Standard qw(Int Str);
 
     Readonly my $TRUE  => 1;
@@ -61,7 +61,7 @@ use version; our $VERSION = qv('0.1');
     use List::Util qw(uniq);
     use Readonly;
     use Types::Standard qw(ArrayRef InstanceOf Int);
-    use autodie qw(open close);
+    use autodie         qw(open close);
     use experimental 'switch';
     my $cp = Dn::Common->new();
 
@@ -87,7 +87,7 @@ use version; our $VERSION = qv('0.1');
         }
 
         # must have one argument only
-        die "No argument provided\n" if not @args;
+        die "No argument provided\n"               if not @args;
         die "Too many arguments (need one only)\n" if scalar @args > 1;
 
         return $args[0];
@@ -285,7 +285,7 @@ ps.
 Underlying library L</"Dn::Common"> uses module L</"Proc::ProcessTable"> to
 determine process parentage. At the time of writing this module worked on
 darwin, nonstop-ux, Cygwin on Windows, linux, solaris, aix, hpux, freebsd,
-irix, dec_osf, bsdi, netbsd, unixware 7.x, SunOS and openbsd. 
+irix, dec_osf, bsdi, netbsd, unixware 7.x, SunOS and openbsd.
 
 Note that it does not work on Windows natively, but on Cygwin on Windows. See
 the module's current README for updated information.
