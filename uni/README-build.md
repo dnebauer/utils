@@ -1,7 +1,7 @@
 ---
 title:  "Building App::Uni"
 author: "David Nebauer"
-date:   "20 November 2018"
+date:   "11 February 2024"
 style:  [Standard, Latex10pt]
         # Latex8-12|14|17|20pt; PaginateSections; IncludeFiles
 ---
@@ -9,7 +9,7 @@ style:  [Standard, Latex10pt]
 Follow the instructions in `man dn-build-perl-mod-deb` with the following
 exceptions.
 
-# Remove `dist.ini` #
+## Remove `dist.ini` ##
 
 This is to prevent a milla-based build. Using `milla` is problematic because it
 requires the `Dist::Zilla::PluginBundle::RJBS` bundle, and even with it
@@ -20,7 +20,7 @@ Remove references to `dist.ini` in the `META.json`, `META.yml` and `MANIFEST` fi
 When editing `META.json` make sure not to leave a trailing comma on final list
 items.
 
-# Rename debian package #
+## Rename debian package ##
 
 Default package name is `libapp-uni-perl` but this causes a build-time
 `libapp-perl-package-name` lintian error. This error occurs when the upstream
@@ -32,27 +32,58 @@ Edit the required file `control` to change the "Source" and "Package" fields
 from `libapp-uni-perl` to `uni`. Edit the required file `changelog` to change
 the package name on the first line from `libapp-uni-perl` to `uni`.
 
-# Edit required files to prevent lintian errors #
+## Edit required files to prevent lintian errors ##
 
 During the build process set `changelog` to something like:
 
 ```
-uni (9.003-1) unstable; urgency=low
+uni (9.006-1) unstable; urgency=low
 
   * Local package
   * Initial release
-  * Closes: 500001
+  * Closes: 1000005
 
- -- David Nebauer <david@hezmana.cogito.loc>  Tue, 20 Nov 2018 19:11:17 +0930
+ -- David Nebauer <david@nebauer.org>  Sun, 11 Feb 2024 15:12:21 +0930
 ```
 
-During the build process edit `changelog` so the module files are under the
-CC0 license:
+During the build process edit `control` to something like:
+
+```
+Source: uni
+Maintainer: David Nebauer <david@nebauer.org>
+Section: perl
+Priority: optional
+Build-Depends: debhelper-compat (= 13)
+Build-Depends-Indep: libencode-perl <!nocheck>,
+                     libscalar-list-utils-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libunicode-linebreak-perl <!nocheck>,
+                     perl
+Standards-Version: 4.6.2
+Homepage: https://metacpan.org/release/App-Uni
+Rules-Requires-Root: no
+
+Package: uni
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         libencode-perl,
+         libscalar-list-utils-perl,
+         libunicode-linebreak-perl
+Description: command-line utility to find or display Unicode characters
+ App::Uni installs a simple program, uni, that helps grepping through the
+ Unicode database included in the current Perl 5 installation.
+ .
+ For information on how to use uni consult the uni documentation.
+```
+
+During the build process edit `changelog` so all files are under the CC0
+license:
 
 ```
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Source: https://metacpan.org/release/App-Uni
-Upstream-Contact: Ricardo Signes <rjbs@cpan.org>
+Upstream-Contact: Ricardo Signes <cpan@semiotic.systems>
 Upstream-Name: App-Uni
 
 Files: *
@@ -60,15 +91,8 @@ Copyright: Ricardo Signes <rjbs@cpan.org>
 License: CC0_1_0
 
 Files: debian/*
-Copyright: 2018, David Nebauer <david@hezmana.cogito.loc>
-License: Artistic or GPL-1+
-
-License: Artistic
- This program is free software; you can redistribute it and/or modify
- it under the terms of the Artistic License, which comes with Perl.
- .
- On Debian systems, the complete text of the Artistic License can be
- found in `/usr/share/common-licenses/Artistic'.
+Copyright: 2024, David Nebauer <david@nebauer.org>
+License: CC0_1_0
 
 License: CC0_1_0
  CC0 1.0 Universal
