@@ -5,82 +5,81 @@
 
 export LOCALE=C
 
-[[ "${2}x" == "x" ]] && \
- { echo "Usage: $( basename "$0" ) output.pdf extension"
-   echo "       merges all files (*.extension) into a single PDF"
-   echo "If files z_merged.pdf, z_temp.pdf or $1 exist, they will be overwritten"
- exit 1
- } || \
- OutName="$1"
- ext="$2"
+[[ "${2}x" == "x" ]] &&
+	{
+		echo "Usage: $(basename "$0") output.pdf extension"
+		echo "       merges all files (*.extension) into a single PDF"
+		echo "If files z_merged.pdf, z_temp.pdf or $1 exist, they will be overwritten"
+		exit 1
+	} ||
+	OutName="$1"
+ext="$2"
 
 # Set basic variables
-unset Debug #; Debug="yes" # print extra messages
-IMBackground="white"      # what colour for paper
-IMQuality="91"            # JPEG compression level
-PaperHghtMetr="297"       # milimeters, 297 for ISO A4
-PaperWdthMetr="210"       # milimeters, 210 for ISO A4
-PaperDens="200"           # maximum (wanted) dpi for a page
-PaperHInch=$( echo scale=5\; $PaperHghtMetr / 2.54 / 10      | bc -l ) # Inch
-PaperWInch=$( echo scale=5\; $PaperWdthMetr / 2.54 / 10      | bc -l ) # Inch
-PaperRtio=$(     echo scale=5\; $PaperWdthMetr / $PaperHghtMetr | bc -l )
+unset Debug                                                     #; Debug="yes" # print extra messages
+IMBackground="white"                                            # what colour for paper
+IMQuality="91"                                                  # JPEG compression level
+PaperHghtMetr="297"                                             # milimeters, 297 for ISO A4
+PaperWdthMetr="210"                                             # milimeters, 210 for ISO A4
+PaperDens="200"                                                 # maximum (wanted) dpi for a page
+PaperHInch=$(echo scale=5\; $PaperHghtMetr / 2.54 / 10 | bc -l) # Inch
+PaperWInch=$(echo scale=5\; $PaperWdthMetr / 2.54 / 10 | bc -l) # Inch
+PaperRtio=$(echo scale=5\; $PaperWdthMetr / $PaperHghtMetr | bc -l)
 
 # Remove temporary files from prior run
 rm -rf z_merged.pdf z_temp.pdf 2>/dev/null
 
 # Process any $ext file in the current directory
-find . -maxdepth 1 -name "*.${ext}" -print0 | sort -z | while read -d '' -r FName
-do
-  echo "Converting $FName"
-  ImgIdentify=$( identify -format "%w %h" "$FName" )
-  ImgWdthOrig=$( echo "$ImgIdentify" | cut -d" " -f1  )
-  ImgHghtOrig=$( echo "$ImgIdentify" | cut -d" " -f2  )
-  ImgRtio=$( echo "scale=5; $ImgWdthOrig / $ImgHghtOrig"  | bc -l )
+find . -maxdepth 1 -name "*.${ext}" -print0 | sort -z | while read -d '' -r FName; do
+	echo "Converting $FName"
+	ImgIdentify=$(identify -format "%w %h" "$FName")
+	ImgWdthOrig=$(echo "$ImgIdentify" | cut -d" " -f1)
+	ImgHghtOrig=$(echo "$ImgIdentify" | cut -d" " -f2)
+	ImgRtio=$(echo "scale=5; $ImgWdthOrig / $ImgHghtOrig" | bc -l)
 
+	# Match output page layout - Landscape or Portrait - to input file
+	if (($(echo "$ImgRtio > 1 && $PaperRtio > 1 || $ImgRtio < 1 && $PaperRtio < 1" | bc -l))); then
+		echo "Portrait"
+		PaperHghtInch=$PaperHInch
+		PaperWdthInch=$PaperWInch
+	else
+		echo "Landscape"
+		PaperHghtInch=$PaperWInch
+		PaperWdthInch=$PaperHInch
+	fi
 
-# Match output page layout - Landscape or Portrait - to input file
-  if (( $(echo "$ImgRtio > 1 && $PaperRtio > 1 || $ImgRtio < 1 && $PaperRtio < 1" |bc -l) )); then
-    echo "Portrait"
-    PaperHghtInch=$PaperHInch
-    PaperWdthInch=$PaperWInch
-  else
-    echo "Landscape"
-    PaperHghtInch=$PaperWInch
-    PaperWdthInch=$PaperHInch
-  fi
+	[[ $(echo $ImgRtio'>'$PaperRtio | bc -l) == 1 ]] &&
+		ImgDens=$(echo scale=0\; $ImgWdthOrig / $PaperWdthInch | bc -l) ||
+		ImgDens=$(echo scale=0\; $ImgHghtOrig / $PaperHghtInch | bc -l)
+	[[ $Debug ]] && echo "ImgDens1: $ImgDens"
+	[[ $(echo $ImgDens'>'$PaperDens | bc -l) == 1 ]] &&
+		ImgDens=$PaperDens
+	[[ $Debug ]] && echo "ImgDens2: $ImgDens"
 
+	ImgWdth=$(echo $PaperWdthInch \* $ImgDens | bc -l) # pixels
+	ImgHght=$(echo $PaperHghtInch \* $ImgDens | bc -l) # pixels
 
-  [[ $( echo $ImgRtio'>'$PaperRtio | bc -l ) == 1 ]] \
-    && ImgDens=$( echo scale=0\; $ImgWdthOrig / $PaperWdthInch | bc -l ) \
-    || ImgDens=$( echo scale=0\; $ImgHghtOrig / $PaperHghtInch | bc -l )
-  [[ $Debug ]] && echo "ImgDens1: $ImgDens"
-  [[ $( echo $ImgDens'>'$PaperDens | bc -l ) == 1 ]] \
-    && ImgDens=$PaperDens
-  [[ $Debug ]] && echo "ImgDens2: $ImgDens"
+	[[ $Debug ]] && echo "ImgWdth: $ImgWdth".
+	[[ $Debug ]] && echo "ImgHght: $ImgHght".
 
-  ImgWdth=$( echo $PaperWdthInch \* $ImgDens | bc -l ) # pixels
-  ImgHght=$( echo $PaperHghtInch \* $ImgDens | bc -l ) # pixels
+	convert "${FName}" \
+		-resize ${ImgWdth}x${ImgHght} \
+		-background $IMBackground -gravity center \
+		-extent ${ImgWdth}x${ImgHght} \
+		-units PixelsPerInch -set density $ImgDens \
+		-repage ${ImgWdth}x${ImgHght}+0+0 \
+		-compress JPEG \
+		-quality $IMQuality \
+		"${FName%.$ext}.pdf"
 
-  [[ $Debug ]] && echo "ImgWdth: $ImgWdth".
-  [[ $Debug ]] && echo "ImgHght: $ImgHght".
-
-  convert "${FName}"                                 \
-          -resize ${ImgWdth}x${ImgHght}              \
-          -background $IMBackground -gravity center  \
-          -extent ${ImgWdth}x${ImgHght}              \
-          -units PixelsPerInch -set density $ImgDens \
-          -repage ${ImgWdth}x${ImgHght}+0+0          \
-          -compress JPEG                             \
-          -quality $IMQuality                        \
-          "${FName%.$ext}.pdf"
-
-  # Merge new PDF page with prior pages
-  [[ -f z_merged.pdf ]] && \
-   { pdftk z_merged.pdf "${FName%.$ext}.pdf" cat output z_temp.pdf
-     mv z_temp.pdf z_merged.pdf
-   } || \
-     cp "${FName%.$ext}.pdf" z_merged.pdf
-  [[ $Debug ]] || rm -rf "${FName%.$ext}.pdf"
+	# Merge new PDF page with prior pages
+	[[ -f z_merged.pdf ]] &&
+		{
+			pdftk.pdftk-java z_merged.pdf "${FName%.$ext}.pdf" cat output z_temp.pdf
+			mv z_temp.pdf z_merged.pdf
+		} ||
+		cp "${FName%.$ext}.pdf" z_merged.pdf
+	[[ $Debug ]] || rm -rf "${FName%.$ext}.pdf"
 done
 
 [[ -f z_merged.pdf ]] && mv z_merged.pdf "$OutName"
