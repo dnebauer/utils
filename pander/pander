@@ -1876,12 +1876,9 @@ function capture(cmd, raw)
 	-- so there is no error to capture with assert();
 	-- error token method based on https://stackoverflow.com/a/24227576
 	local err_token = "::ERROR::"
-	local handle = io.popen(cmd .. " 2>&1 || echo " .. err_token, "r")
-	-- nil-checking fails to remove 'need-check-nil' errors
-	---@diagnostic disable:need-check-nil
+	local handle = assert(io.popen(cmd .. " 2>&1 || echo " .. err_token, "r"))
 	local output = handle:read("*a")
 	handle:close()
-	---@diagnostic enable:need-check-nil
 	if output:find(err_token) then
 		error(output:match("^(.-)%s*" .. err_token), 2)
 	end
@@ -2675,20 +2672,18 @@ function pandoc_cmd_style_actions(cmd, actions, fname)
 				return nil, sf("can't get tmpfile name: %s", metadata_file)
 			end
 			ok, fh = pcall(io.open, metadata_file, "w")
-			if not ok then
+			if not ok or fh == nil then
 				os.remove(metadata_file)
 				return nil, sf("can't open %s: %s", metadata_file, fh)
 			end
-			---@diagnostic disable:need-check-nil,param-type-mismatch
 			ok, err = pcall(function()
+				---@cast metadata string|nil
 				fh:write(metadata)
 			end)
-			---@diagnostic enable:need-check-nil,param-type-mismatch
 			if not ok then
 				os.remove(metadata_file)
 				return nil, sf("can't write to %s: %s", metadata_file, err)
 			end
-			---@diagnostic disable-next-line:need-check-nil
 			ok, err = pcall(function()
 				fh:close()
 			end)
@@ -2714,8 +2709,8 @@ end
 -- @function path_exists
 function path_exists(path)
 	local result = pcall(function()
-		local fh = io.open(path, "r")
-		fh:close() ---@diagnostic disable-line: need-check-nil
+		local fh = assert(io.open(path, "r"))
+		fh:close()
 	end)
 	return result
 end
@@ -2912,10 +2907,13 @@ end
 -- extract details of input file and output format    {{{2
 -- assumes markdown input file is last argument on command line
 -- (this is enforced by vim's vim-pandoc plugin)
----@diagnostic disable: need-check-nil
+if options == nil or input_files == nil then
+	local msg = "Unable to get details of input file and output format"
+	abort(msg)
+	error(msg) -- required to cheat need-check-nil check
+end
 pander.input_filename = input_files[#input_files]
 pander.output_format = options["--to"]
----@diagnostic enable: need-check-nil
 -- }}}2
 
 -- get metadata styles    {{{1
@@ -2923,9 +2921,8 @@ pander.output_format = options["--to"]
 -- run pandoc command    {{{2
 local styles
 do
-	---@diagnostic disable: param-type-mismatch
+	---@cast input_files table
 	local cmd = sf('pandoc --template="%s" "%s"', pander.template, table.concat(input_files, '" "'))
-	---@diagnostic enable: param-type-mismatch
 	show_cmd("Extract metadata: ", cmd)
 	local ok, output = pcall(capture, cmd)
 	if not ok then
@@ -2984,13 +2981,11 @@ local cmd = "pandoc"
 do
 	local metadata_file
 	-- metadata filepath returned so it can be properly deleted in time
-	---@diagnostic disable-next-line: cast-local-type
 	cmd, metadata_file = pandoc_cmd_style_actions(cmd, actions, pander.input_filename)
 	if not cmd then
 		abort(metadata_file)
 	end
-	-- metadata_file is nil if no metadata actions found
-	---@diagnostic disable-next-line: assign-type-mismatch
+	---@cast pander table
 	pander.metadata_file = metadata_file
 end
 -- now that metadata file exists use pcall to trap errors and allow for
@@ -3025,7 +3020,11 @@ end -- }}}2
 
 -- process post_run tasks    {{{2
 do
-	---@diagnostic disable-next-line: need-check-nil
+	if actions == nil then
+		local msg = "Cannot do post processing with undefined actions"
+		abort(msg)
+		error(msg) -- required to cheat need-check-nil check
+	end
 	local ok, err = post_process(actions.post_run, pander.input_filename)
 	if not ok then
 		abort(err)
