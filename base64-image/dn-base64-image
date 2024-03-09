@@ -1,111 +1,116 @@
-#!/usr/bin/perl 
+#!/usr/bin/perl
 
-use Moo;    #                                                          {{{1
+use Moo;                                  # {{{1
 use strictures 2;
-use 5.014_002;
+use 5.036_001;
 use namespace::clean;
-use version; our $VERSION = qv('0.1');    #                            }}}1
+use version; our $VERSION = qv('0.1');    # }}}1
 
 {
 
-    package Dn::Internal;
+  package Dn::Internal;
 
-    use Moo;    #                                                      {{{1
-    use namespace::clean -except => [ '_options_data', '_options_config' ];
-    use autodie qw(open close);
-    use Cwd qw(abs_path);
-    use File::MimeInfo;
-    use Function::Parameters;
-    use MIME::Base64 qw(encode_base64);
-    use MooX::Options;
-    use Readonly;
+  use Moo;                                # {{{1
+  use namespace::clean -except => [ '_options_data', '_options_config' ];
+  use autodie qw(open close);
+  use Carp    qw(croak);
+  use Const::Fast;
+  use Cwd;
+  use File::MimeInfo;
+  use Function::Parameters;
+  use MIME::Base64;
+  use MooX::Options;
 
-    Readonly my $TRUE  => 1;
-    Readonly my $FALSE => 0;    #                                      }}}1
+  const my $TRUE  => 1;
+  const my $FALSE => 0;                   # }}}1
 
-    # Options
+  # Options
 
-    # image    (-i)                                                    {{{1
-    option 'image' => (
-        is            => 'rw',
-        format        => 's',
-        short         => 'i',
-        required      => $TRUE,
-        documentation => 'Image to convert',
-    );
+  # image    (-i)    {{{1
+  option 'image' => (
+    is            => 'rw',
+    format        => 's',
+    short         => 'i',
+    required      => $TRUE,
+    documentation => 'Image to convert',
+  );
 
-    # mimetype (-m)                                                    {{{1
-    option 'mime_type' => (
-        is            => 'rw',
-        format        => 's',
-        short         => 'm',
-        documentation => 'Override autodetected mimetype',
-    );    #                                                            }}}1
+  # mimetype (-m)    {{{1
+  option 'mime_type' => (
+    is            => 'rw',
+    format        => 's',    ## no critic (ProhibitDuplicateLiteral)
+    short         => 'm',
+    documentation => 'Override autodetected mimetype',
+  );                         # }}}1
 
-    # Methods
+  # Methods
 
-    # main()                                                           {{{1
-    #
-    # does:   writes html element to standard output
-    # params: nil
-    # prints: html img element
-    # return: n/a (die if error)
-    method main () {
+  # main()    {{{1
+  #
+  # does:   writes html element to standard output
+  # params: nil
+  # prints: html img element
+  # return: n/a (die if error)
+  sub main ($self) {    ## no critic (RequireInterpolationOfMetachars)
 
-        # file must exist
-        if ( not -f $self->image ) { die 'Invalid image file'; }
+    # file must exist
+    if (not -e $self->image) { croak 'Invalid image file'; }
 
-        # get file mimetype
-        my $mimetype = $self->_file_mime_type();
-        if ( not $mimetype ) {
-            die "Unable to determine image file mime type\n";
-        }
-
-        # get file content as base64
-        my $data = $self->_encode_image();
-        if ( not $data ) {
-            die "Unable to encode image file\n";
-        }
-
-        # write img element
-        print qq{<img src="data:$mimetype;base64,$data"/>};
+    # get file mimetype
+    my $mimetype = $self->_file_mime_type();
+    if (not $mimetype) {
+      die "Unable to determine image file mime type\n";
     }
 
-    # _file_mimetype()                                                 {{{1
-    #
-    # does:   get file mimetype
-    # params: nil
-    # prints: nil
-    # return: scalar string
-    method _file_mime_type () {
-        if ( $self->mime_type ) { return $self->mime_type; }
-        return File::MimeInfo->new()->mimetype( $self->image );
+    # get file content as base64
+    my $data = $self->_encode_image();
+    if (not $data) {
+      die "Unable to encode image file\n";
     }
 
-    # _encode_image()                                                  {{{1
-    #
-    # does:   encode image as base64
-    # params: nil
-    # prints: nil
-    # return: scalar string (base64 data)
-    # note:   previously used MIME::Base64::URLSafe>url_b64encode to encode
-    #         data, but resulting output could not be handled by Firefox
-    method _encode_image () {
-        open my $fh, '<', $self->image;
-        my @content = <$fh>;
-        close $fh;
-        my $raw = join q{}, @content;
-        my $encoded = MIME::Base64::encode_base64($raw);
-        $encoded =~ s/\s+//xsmg;
-        return $encoded;
-    }    #                                                              }}}1
+    # write img element
+    print qq{<img src="data:$mimetype;base64,$data"/>} or croak;
 
-    1;
+    return $TRUE;
+  }
+
+  # _file_mimetype()    {{{1
+  #
+  # does:   get file mimetype
+  # params: nil
+  # prints: nil
+  # return: scalar string
+  sub _file_mime_type ($self) { ## no critic (RequireInterpolationOfMetachars)
+    if ($self->mime_type) { return $self->mime_type; }
+    return File::MimeInfo->new()->mimetype($self->image);
+  }
+
+  # _encode_image()    {{{1
+  #
+  # does:   encode image as base64
+  # params: nil
+  # prints: nil
+  # return: scalar string (base64 data)
+  # note:   previously used MIME::Base64::URLSafe>url_b64encode to encode
+  #         data, but resulting output could not be handled by Firefox
+  sub _encode_image ($self) {   ## no critic (RequireInterpolationOfMetachars)
+    open my $fh, '<', $self->image;
+    my @content = <$fh>;
+    close $fh;
+    my $raw     = join q{}, @content;
+    my $encoded = MIME::Base64::encode_base64($raw);
+    $encoded =~ s/\s+//xsmg;
+    return $encoded;
+  }                             # }}}1
+
+  1;
 }
 
 my $p = Dn::Internal->new_with_options->main;
 
-# POD                                                                   {{{1
+# POD    {{{1
+
+## no critic (RequirePodSections)
 
 __END__
 
@@ -145,31 +150,8 @@ Create html element 'img' for an image using data uri with base64 encoding.
 
 =head1 DEPENDENCIES
 
-=over
-
-=item autodie
-
-=item Cwd
-
-=item File::MimeInfo
-
-=item Function::Parameters
-
-=item MIME::Base64
-
-=item Moo
-
-=item MooX::Options
-
-=item namespace::clean
-
-=item Readonly
-
-=item strictures
-
-=item version
-
-=back
+autodie, Carp, Const::Fast, Cwd, File::MimeInfo, MIME::Base64, Moo,
+MooX::Options, namespace::clean, strictures, version.
 
 =head1 BUGS AND LIMITATIONS
 
@@ -181,7 +163,7 @@ David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 2015 David Nebauer E<lt>davidnebauer@hotkey.net.auE<gt>
+Copyright (c) 2024 David Nebauer E<lt>david@nebauer.orgE<gt>
 
 This script is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

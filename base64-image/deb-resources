@@ -21,14 +21,14 @@ package-name dn-base64-image
 # Package version
 # Version number for package.
 # Required.  One only.
-version 0.5
+version 0.6
 
 # Script and binary files
 # Executable files to be packaged.
 # Can be standard ('bin-files') or superuser-only ('sbin-files').
 # Required.  Multiple allowed
 bin-file dn-base64-image
-#sbin-file 
+#sbin-file
 
 # Manpages
 # Man pages to package.
@@ -38,7 +38,7 @@ man-file dn-base64-image.1
 # Data files
 # Data files to package.
 # Optional.  Multiple allowed.
-#data-file 
+#data-file
 
 # Icon files
 # Icon files to package.
@@ -46,47 +46,47 @@ man-file dn-base64-image.1
 # Useful command is: 'convert icon.png -geometry 32x32 icon.xpm'.
 # Installs to /usr/share/icons.
 # Optional.  Multiple allowed.
-#icon-file 
+#icon-file
 
 # Configuration files
 # Configuration files to package.
 # Optional.  Multiple allowed.
-#conf-file 
+#conf-file
 
 # Executable library files
 # Executable programs run by other programs.
 # Optional.  Multiple allowed.
-#libexec-file 
+#libexec-file
 
 # Library data files
 # Data files used by other programs.
 # Optional.  Multiple allowed.
-#libdata-file 
+#libdata-file
 
 # Templates file
 # Debian build system templates file
 # Optional.  One only
-#templates-file 
+#templates-file
 
 # Pre-install file
 # Debian build system pre-install file
 # Optional.  One only
-#preinstall-file 
+#preinstall-file
 
 # Post-install file
 # Debian build system post-install file
 # Optional.  One only
-#postinstall-file 
+#postinstall-file
 
 # Pre-remove file
 # Debian build system pre-remove file
 # Optional.  One only
-#preremove-file 
+#preremove-file
 
 # Post-remove file
 # Debian build system post-remove file
 # Optional.  One only
-#postremove-file 
+#postremove-file
 
 # Control summary
 # One line summary of script for inclusion in the
@@ -116,11 +116,11 @@ control-description base64 encoding. See manpage for further details.
 #   autodie
 depends-on libautodie-perl (>= 2.28-1)
 
+#   Const::Fast
+depends-on libconst-fast-perl (>= 0.014-2)
+
 #   File::Mimeinfo
 depends-on libfile-mimeinfo-perl (>= 0.27-1)
-
-#   Function::Parameters
-depends-on libfunction-parameters-perl (>= 1.0603-1)
 
 #   MooX::Options
 depends-on libmoox-options-perl (>= 4.018-1)
@@ -131,9 +131,6 @@ depends-on libnamespace-autoclean-perl (>= 0.20-1)
 #   perl, Cwd, File::Copy, MIME::Base64, Moo
 depends-on libmoo-perl (>= 2.000001-3)
 
-#   Readonly
-depends-on libreadonly-perl (>= 2.000-2)
-
 #   strictures
 depends-on libstrictures-perl (>= 2.000001-2)
 
@@ -142,7 +139,7 @@ depends-on libversion-perl (>= 1:0.9912-1)
 
 # Copyright year
 # Year of copyright
-year 2012
+year 2024
 
 # Email
 # Email address of package maintainer
