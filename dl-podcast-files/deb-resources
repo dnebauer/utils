@@ -11,18 +11,18 @@
 # Some names can be used only once while others can
 # be used multiple times.
 # ------------------------------------------------------------
- 
+
 # Package name
 # Name of the package to be generated.
 # Must not contain whitespace.
 # Required. One only.
 package-name dn-dl-podcast-files
- 
+
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.2
- 
+version 0.3
+
 # Script and binary files
 # Executable files to be packaged.
 # Can be standard ('bin-file') or superuser-only ('sbin-file').
@@ -30,20 +30,20 @@ version 0.2
 # Default value of 'sbin-file' in built deb package: /usr/sbin
 # Required (unless a library package). Multiple allowed
 bin-file dn-dl-podcast-files
-#sbin-file 
- 
+#sbin-file
+
 # Manpages
 # Man pages to package.
 # Default location in built deb package: /usr/share/man/man1
 # Required (unless a library package). Multiple allowed.
 man-file dn-dl-podcast-files.1
- 
+
 # Data files
 # Data files to package.
 # Default location in built deb package: /usr/share/\$(PACKAGE).
 # Optional. Multiple allowed.
-#data-file 
- 
+#data-file
+
 # Icon file
 # Icon file to package.
 # Must be xpm format no larger than 32x32.
@@ -52,8 +52,8 @@ man-file dn-dl-podcast-files.1
 # Note icons are not put into an application subdirectory
 # -- be careful of filename clashes.
 # Optional. Multiple allowed.
-#icon-file 
- 
+#icon-file
+
 # Desktop file
 # Desktop file to package.
 # Must conform to freedesktop.org Desktop Entry Specification
@@ -62,14 +62,14 @@ man-file dn-dl-podcast-files.1
 # Note desktop files are not put into an application subdirectory
 # -- be careful of filename clashes.
 # Optional. Multiple allowed.
-#desktop-file 
- 
+#desktop-file
+
 # Configuration files
 # Configuration files to package.
 # Default location in built deb package: /etc/\$(PACKAGE).
 # Optional. Multiple allowed.
-#conf-file 
- 
+#conf-file
+
 # Executable library files
 # Executable programs run by other programs.
 # Since multiarch implementation this path includes a subdirectory
@@ -78,8 +78,8 @@ man-file dn-dl-podcast-files.1
 #   dpkg-architecture -qDEB_HOST_MULTIARCH
 # Default value in built deb package: /usr/lib/<triplet>/\$(PACKAGE).
 # Optional. Multiple allowed.
-#libexec-file 
- 
+#libexec-file
+
 # Library data files
 # Data files used by other programs.
 # Since multiarch implementation this path includes a subdirectory
@@ -88,50 +88,50 @@ man-file dn-dl-podcast-files.1
 #   dpkg-architecture -qDEB_HOST_MULTIARCH
 # Default value in built deb package: /usr/lib/<triplet>/\$(PACKAGE).
 # Optional. Multiple allowed.
-#libdata-file 
- 
+#libdata-file
+
 # Debconf file
 # Debian build system debconf file
 # In final package is named 'PACKAGE.config'
 # Optional. One only
-#debconf-file 
- 
+#debconf-file
+
 # Templates file
 # Debian build system templates file
 # In final package is named 'PACKAGE.templates'
 # Optional. One only
-#templates-file 
- 
+#templates-file
+
 # Pre-install file
 # Debian build system pre-install file
 # In final package is named 'PACKAGE.preinst'
 # Optional. One only
-#preinstall-file 
- 
+#preinstall-file
+
 # Post-install file
 # Debian build system post-install file
 # In final package is named 'PACKAGE.postint'
 # Optional. One only
-#postinstall-file 
- 
+#postinstall-file
+
 # Pre-remove file
 # Debian build system pre-remove file
 # In final package is named 'PACKAGE.prerm'
 # Optional. One only
-#preremove-file 
- 
+#preremove-file
+
 # Post-remove file
 # Debian build system post-remove file
 # In final package is named 'PACKAGE.postrm'
 # Optional. One only
-#postremove-file 
- 
+#postremove-file
+
 # Bash completion file
 # Debian build system bash completion file
 # In final package is named 'PACKAGE.bash-completion'
 # Optional. One only
-#bash-completion-file 
- 
+#bash-completion-file
+
 # Control summary
 # One line summary of script for inclusion in the
 # package 'control' file.
@@ -139,7 +139,7 @@ man-file dn-dl-podcast-files.1
 # Must be no longer than 60 characters.
 # Required. One only.
 control-summary download podcast files
- 
+
 # Control description
 # Description of script. This is a longer description
 # than the one line summary and can stretch over
@@ -154,74 +154,74 @@ control-description input file listing details of the files to download.
 control-description Downloaded files are saved to the current directory.
 control-description .
 control-description See man page for further details.
- 
+
 # Dependency
 # The name of a single package this package depends on.
 # Can include minimum version.
 # Optional. Multiple allowed.
- 
+
 ### Perl modules
- 
-#   perl, English, File::Copy
+
+#   perl, Carp, English, File::Copy, File::Fetch
 depends-on perl (>= 5.20.2-6)
- 
-#   Dn::Common
-depends-on libdn-common-perl (>= 1.0.2-1)
- 
-#   Function::Parameters
-depends-on libfunction-parameters-perl (>= 1.0603-1)
- 
+
+#   Const::Fast
+depends-on libconst-fast-perl (>= 0.014-2)
+
+#   DateTime::Format::ISO8601
+depends-on libdatetime-format-iso8601-perl (>= 0.16-2)
+
 #   Moo
 depends-on libmoo-perl (>= 2.000001-2)
- 
+
 #   MooX::HandlesVia
 depends-on libmoox-handlesvia-perl (>= 0.001008-2)
- 
+
 #   MooX::Options
 depends-on libmoox-options-perl (>= 4.018-1)
- 
+
 #   namespace::clean
 depends-on libnamespace-clean-perl (>= 0.25-1)
- 
-#   Readonly
-depends-on libreadonly-perl (>= 2.000-2)
- 
+
+#   Role::Utils::Dn
+depends-on librole-utils-dn-perl (>= 0.3-1)
+
 #   strictures
 depends-on libstrictures-perl (>= 2.000001-2)
- 
+
 #   Time::Simple
 depends-on libtime-simple-perl (>= 0.06-1)
- 
+
 #   Types::DateTime
 depends-on libtypes-datetime-perl (>= 0.001-4)
- 
+
 #   Types::Standard
 depends-on libtype-tiny-perl (>= 1.000005-1)
- 
+
 #   Types::URI
 depends-on libtypes-uri-perl (>= 0.006-1)
- 
+
 #   version
 depends-on libversion-perl (>= 1:0.9912-1)
- 
+
 #   YAML
 depends-on libyaml-perl (>= 1.15-1)
- 
+
 ### Executables
- 
+
 #   wget
 depends-on wget (>= 1.17.1-1)
- 
+
 # Copyright year
 # Year of copyright
 # Required. One only.
 year 2016
- 
+
 # Email
 # Email address of package maintainer
 # Required. One only.
 email david@nebauer.org
- 
+
 # Author
 # Author of script
 # Required. Multiple allowed.
