@@ -21,14 +21,14 @@ package-name dn-abcde-rename
 # Package version
 # Version number for package.
 # Required.  One only.
-version 0.7
+version 0.8
 
 # Script and binary files
 # Executable files to be packaged.
 # Can be standard ('bin-files') or superuser-only ('sbin-files').
 # Required.  Multiple allowed
 bin-file dn-abcde-rename
-#sbin-file 
+#sbin-file
 
 # Manpages
 # Man pages to package.
@@ -38,27 +38,27 @@ man-file dn-abcde-rename.1
 # Data files
 # Data files to package.
 # Optional.  Multiple allowed.
-#data-file 
+#data-file
 
 # Configuration files
 # Configuration files to package.
 # Optional.  Multiple allowed.
-#conf-file 
+#conf-file
 
 # Executable library files
 # Executable programs run by other programs.
 # Optional.  Multiple allowed.
-#lib-file 
+#lib-file
 
 # Pre-install file
 # Debian build system pre-install file
 # Optional.  One only
-#preinstall	
+#preinstall
 
 # Post-install file
 # Debian build system post-install file
 # Optional.  One only
-#postinstall 
+#postinstall
 
 # Control summary
 # One line summary of script for inclusion in the
@@ -95,11 +95,8 @@ control-description alphanumerics, spaces or dashes are removed.
 #   perl, Carp, English, File::Copy, Moo
 depends-on libmoo-perl (>= 2.000001-2)
 
-#   Dn::Common
-depends-on libdn-common-perl (>= 1.0.7-1)
-
-#   Function::Parameters
-depends-on libfunction-parameters-perl (>= 1.0603-1)
+#   Const::Fast
+depends-on libconst-fast-perl (>= 0.014-2)
 
 #   MooX::HandlesVia
 depends-on libmoox-handlesvia-perl (>= 0.001008-2)
@@ -110,8 +107,8 @@ depends-on libmoox-options-perl (>= 4.018-1)
 #   namespace::clean
 depends-on libnamespace-clean-perl (>= 0.25-1)
 
-#   Readonly
-depends-on libreadonly-perl (>= 2.000-2)
+#   Role::Utils::Dn
+depends-on librole-utils-dn-perl (>= 0.3-1)
 
 #   strictures
 depends-on libstrictures-perl (>= 2.000001-2)
@@ -127,7 +124,7 @@ depends-on libversion-perl (>= 1:0.9912-1)
 
 # Copyright year
 # Year of copyright
-year 2010
+year 2024
 
 # Email
 # Email address of package maintainer
