@@ -1,990 +1,1030 @@
 #!/usr/bin/perl
 
-use Moo;                 # {{{1
+# modules    {{{1
+use Moo;
 use strictures 2;
-use 5.014_002;
+use 5.036_001;
 use version; our $VERSION = qv('0.1');
-use namespace::clean;    # }}}1
+use namespace::clean;
+use Const::Fast;
+
+const my $FILE_TOKEN => '::FILE::';    # }}}1
 
 # package Dn::Distro::Archive    {{{1
 {
 
-    package Dn::Distro::Archive;
+  package Dn::Distro::Archive;
 
-    # Purpose    {{{2
+  # Purpose    {{{2
 
-    # Models behaviour of different type of distribution archive
+  # Models behaviour of different type of distribution archive
 
-    # For each archive type this package provides:
+  # For each archive type this package provides:
 
-    # - a regular expression that matches the archive file name
-    #   . usually matches on a distinctive suffix
-    #   . regex
-    #   . in targz archives = qr/[.]tar[.]gz\z/xsm
+  # - a regular expression that matches the archive file name
+  #   . usually matches on a distinctive suffix
+  #   . regex
+  #   . in targz archives = qr/[.]tar[.]gz\z/xsm
 
-    # - number of elements in the suffix
-    #   . useful for snipping them off filenames
-    #   . integer
-    #   . in targz archives = 2
+  # - number of elements in the suffix
+  #   . useful for snipping them off filenames
+  #   . integer
+  #   . in targz archives = 2
 
-    # - shell command to extract archive
-    #   . used to extract archive contents
-    #   . reference to array of strings (each word in
-    #     the command is an array element)
-    #   . include element '::FILE::' to represent the
-    #     archive name
-    #   . for targx archives = [ 'tar', 'zxvf', '::FILE::' ]
-    # }}}2
+  # - shell command to extract archive
+  #   . used to extract archive contents
+  #   . reference to array of strings (each word in
+  #     the command is an array element)
+  #   . include element '::FILE::' ($FILE_TOKEN) to
+  #     represent the archive name
+  #   . for targx archives = [ 'tar', 'zxvf', '::FILE::' ]
+  # }}}2
 
-    use Moo;
-    use strictures 2;
-    use namespace::clean;
-    use Carp qw(confess);
-    use Const::Fast;
-    use Function::Parameters;
-    use Types::Standard;
+  use Moo;
+  use strictures 2;
+  use namespace::clean;
+  use Carp qw(confess);
+  use Const::Fast;
+  use Types::Standard;
 
-    const my $TRUE       => 1;
-    const my $FILE_TOKEN => '::FILE::';
+  const my $TRUE => 1;
 
-    has 'match' => (
-        is       => 'rw',
-        isa      => Types::Standard::RegexpRef,
-        required => $TRUE,
-        doc      => 'Regular expression for matching file name',
-    );
+  has 'match' => (
+    is       => 'rw',
+    isa      => Types::Standard::RegexpRef,
+    required => $TRUE,
+    doc      => 'Regular expression for matching file name',
+  );
 
-    has 'ext_snips' => (
-        is       => 'rw',
-        isa      => Types::Standard::Int,
-        required => $TRUE,
-        doc      => 'Number of filetype extensions',
-    );
+  has 'ext_snips' => (
+    is       => 'rw',
+    isa      => Types::Standard::Int,
+    required => $TRUE,
+    doc      => 'Number of filetype extensions',
+  );
 
-    has 'extract_cmd_parts' => (
-        is       => 'rw',
-        isa      => Types::Standard::ArrayRef [Types::Standard::Str],
-        traits   => ['Array'],
-        required => $TRUE,
-        handles  => { extract_command => 'elements', },
-        doc      => 'Command to extract archive',
-    );
+  has 'extract_cmd_parts' => (
+    is       => 'rw',
+    isa      => Types::Standard::ArrayRef [Types::Standard::Str],
+    traits   => ['Array'],
+    required => $TRUE,
+    handles  => { extract_command => 'elements', },
+    doc      => 'Command to extract archive',
+  );
 
-    method extract_cmd ($file) {
-        if ( not $file ) { confess 'No file provided'; }
-        my @cmd = @{ $self->extract_cmd_parts };
-        foreach my $part (@cmd) {
-            if ( $part eq $FILE_TOKEN ) { $part = $file; }
-        }
-        return @cmd;
+  sub extract_cmd ($self, $file)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    if (not $file) { confess 'No file provided'; }
+    my @cmd = @{ $self->extract_cmd_parts };
+    foreach my $part (@cmd) {
+      if ($part eq $FILE_TOKEN) { $part = $file; }
     }
+    return @cmd;
+  }
 }
 
 # package Dn::Distro::File    {{{1
 {
 
-    package Dn::Distro::File;    ## no critic (ProhibitMultiplePackages)
+  package Dn::Distro::File;    ## no critic (ProhibitMultiplePackages)
 
-    # Purpose                                                          {{{2
+  # Purpose    {{{2
 
-    # Stores the following information about a distribution file:
+  # Stores the following information about a distribution file:
 
-    # - name
-    #   . file name
-    #   . string
+  # - name
+  #   . file name
+  #   . string
 
-    # module_ver
-    #   . part of the file name representing module name and version
-    #   . string
+  # module_ver
+  #   . part of the file name representing module name and version
+  #   . string
 
-    # distro_type
-    #   . key value to the corresponding distribution type
-    #     in Dn::BuildModule attribute '_distro_types_details'
-    #   . string
-    # }}}2
+  # distro_type
+  #   . key value to the corresponding distribution type
+  #     in Dn::BuildModule attribute '_distro_types_details'
+  #   . string
+  # }}}2
 
-    use Moo;
-    use strictures 2;
-    use namespace::clean;
-    use Const::Fast;
-    use Types::Standard;
+  use Moo;
+  use strictures 2;
+  use namespace::clean;
+  use Const::Fast;
+  use Types::Standard;
 
-    const my $TRUE => 1;
+  const my $TRUE => 1;
 
-    has 'name' => (
-        is       => 'rw',
-        isa      => Types::Standard::Str,
-        required => $TRUE,
-        doc      => 'Distribution file name',
-    );
+  has 'name' => (
+    is       => 'rw',
+    isa      => Types::Standard::Str,
+    required => $TRUE,
+    doc      => 'Distribution file name',
+  );
 
-    has 'module_ver' => (
-        is       => 'rw',
-        isa      => Types::Standard::Str,
-        required => $TRUE,
-        doc      => 'Module version',
-    );
+  has 'module_ver' => (
+    is       => 'rw',
+    isa      => Types::Standard::Str,
+    required => $TRUE,
+    doc      => 'Module version',
+  );
 
-    has 'distro_type' => (
-        is       => 'rw',
-        isa      => Types::Standard::Str,
-        required => $TRUE,
-        doc      => 'Distribution type keyword',
+  has 'distro_type' => (
+    is       => 'rw',
+    isa      => Types::Standard::Str,
+    required => $TRUE,
+    doc      => 'Distribution type keyword',
 
-        # keyword is one of the keys of the Dn::BuildModule
-        # attribute '_distro_types_details' hash
-    );
+    # keyword is one of the keys of the Dn::BuildModule
+    # attribute '_distro_types_details' hash
+  );
 }    # }}}1
 
 {
 
-    package Dn::BuildModule;    ## no critic (ProhibitMultiplePackages)
+  package Dn::BuildModule;    ## no critic (ProhibitMultiplePackages)
 
-    use Moo;                    #    {{{1
-    use strictures 2;
-    use namespace::clean -except => [ '_options_data', '_options_config' ];
-    use MooX::Options;
-    use MooX::HandlesVia;
-    use Carp qw(confess);
-    use Const::Fast;
-    use English qw(-no_match_vars);
-    use Feature::Compat::Try;
-    use File::Basename;
-    use File::Copy::Recursive;
-    use File::DirSync;
-    use File::chdir;            # provides $CWD
-    use Function::Parameters;
-    use Git::Wrapper;
-    use Path::Tiny;
-    use Types::Dn;              # custom subtypes
-    use Types::Path::Tiny;
-    use Types::Standard;
-    use experimental qw(switch);
+  # modules    # {{{1
+  use Moo;
+  use strictures 2;
+  use namespace::clean -except => [ '_options_data', '_options_config' ];
+  use MooX::Options;
+  use MooX::HandlesVia;
+  use Carp qw(confess);
+  use Const::Fast;
+  use English qw(-no_match_vars);
+  use File::Basename;
+  use File::Copy::Recursive;
+  use File::DirSync;
+  use File::chdir;    # provides $CWD
+  use Git::Wrapper;
+  use Path::Tiny;
+  use Try::Tiny;
+  use Types::Dn;      # custom subtypes
+  use Types::Path::Tiny;
+  use Types::Standard;
 
-    with qw(Role::Utils::Dn);
+  with qw(Role::Utils::Dn);
 
-    const my $TRUE              => 1;
-    const my $FALSE             => 0;
-    const my $INDEX_FINAL       => -1;
-    const my $INDEX_PENULTIMATE => -2;    # }}}1
+  const my $TRUE              => 1;
+  const my $FALSE             => 0;
+  const my $INDEX_FINAL       => -1;
+  const my $INDEX_PENULTIMATE => -2;
+  const my $SPACE             => q{ };
+  const my $TO_READ           => q{<};
+  const my $TO_WRITE          => q{>};    # }}}1
 
-    # options
+  # options
 
-    # email        (-e)    {{{1
-    option 'email' => (
-        is       => 'ro',
-        format   => 's',
-        required => $FALSE,
-        short    => 'e',
-        doc      => 'Package maintainer email (default: david@nebauer.org)',
+  # email        (-e)    {{{1
+  option 'email' => (
+    is       => 'ro',
+    format   => 's',
+    required => $FALSE,
+    short    => 'e',
+    doc      => 'Package maintainer email (default: david@nebauer.org)',
 
-        # this option is not used directly, but it used in
-        # construction of attribute '_email'
+    # this option is not used directly, but it used in
+    # construction of attribute '_email'
+  );
+
+  # no_builddeps (-d)    {{{1
+  option 'no_builddeps' => (
+    is       => 'ro',
+    required => $FALSE,
+    short    => 'd',
+    doc      => 'Prevent debuild checking build dependencies',
+
+    # debuild's default behaviour is to run dpkg-checkbuilddeps to check
+    # build dependencies and conflicts;
+    # occasionally this check will declare that a locally installed
+    # module is an unmet dependency even if a suitable version of it is
+    # correctly installed;
+    # this option runs debuild with its '-d' option, which prevents it
+    # running dpkg-checkbuilddeps;
+    # this solves the immediate problem of the failed dependency check,
+    # but be aware it may obscure other build problems
+  );
+
+  # no_install   (-n)    {{{1
+  option 'no_install' => (
+    is       => 'ro',
+    required => $FALSE,
+    short    => 'n',
+    doc      => 'Suppress installation of debian package',
+  );    # }}}1
+
+  # attributes
+
+  # _build_dir    {{{1
+  has '_build_dir_path' => (
+    is  => 'rw',
+    isa => Types::Standard::Maybe [
+      Types::Standard::InstanceOf ['Path::Tiny'],
+    ],
+    default => sub {undef},
+    doc     => 'Build directory',
+  );
+
+  sub _build_dir ($self) {    ## no critic (RequireInterpolationOfMetachars)
+    return $self->_build_dir_path->canonpath();
+  }
+
+  # _deb_file    {{{1
+  has '_deb_file_name' => (
+    is       => 'rw',
+    isa      => Types::Path::Tiny::File,
+    coerce   => $TRUE,
+    required => $FALSE,
+    doc      => 'Debian package filename',
+
+    # example: libdn-perltidy_0.1-1_all.deb
+  );
+
+  sub _deb_file ($self) {    ## no critic (RequireInterpolationOfMetachars)
+    if ($self->_deb_file_name->basename) {
+      return $self->_deb_file_name->basename();
+    }
+    else {
+      return $FALSE;
+    }
+  }
+
+  # _debian_dir    {{{1
+  has '_debian_dir_path' => (
+    is      => 'ro',
+    isa     => Types::Path::Tiny::AbsDir,
+    lazy    => $TRUE,
+    coerce  => $TRUE,
+    default => sub {
+      my $self = shift;
+      if (not $self->_distro_name_ver) {
+        confess "Cannot construct module debian directory pathname\n";
+      }
+      my $build = $self->_build_dir;
+      return $self->dir_join($build, $self->_distro_name_ver, 'debian');
+    },
+    doc => 'Module build debian directory',
+
+    # = <base_dir>/build/MODULENAME-VERSION/debian
+  );
+
+  sub _debian_dir ($self) {    ## no critic (RequireInterpolationOfMetachars)
+    return $self->_debian_dir_path->canonpath();
+  }
+
+  # _distro_file    {{{1
+  has '_distro_file_name' => (
+    is       => 'rw',
+    isa      => Types::Path::Tiny::File,
+    coerce   => $TRUE,
+    required => $FALSE,
+    doc      => 'Distribution filename',
+
+    # example: Dn-PerlTidy-v0.1.tar.gz
+  );
+
+  sub _distro_file ($self) {    ## no critic (RequireInterpolationOfMetachars)
+    if ($self->_distro_file_name) {
+      return $self->_distro_file_name->basename();
+    }
+    else {
+      return $FALSE;
+    }
+  }
+
+  # _distro_name_ver    {{{1
+  has '_distro_name_ver' => (
+    is       => 'rw',
+    isa      => Types::Standard::Str,
+    required => $FALSE,
+    doc      => 'Basename of distro gzipped tarball',
+
+    # example: Dn-PerlTidy-v0.1
+  );
+
+  # _distro_types_details    {{{1
+  has '_distro_types_details' => (
+    is  => 'ro',
+    isa => Types::Standard::HashRef [
+      Types::Standard::InstanceOf ['Dn::Distro::Archive'],
+    ],
+    reader => '_distro_types_details', ## no critic (ProhibitDuplicateLiteral)
+    default => sub {
+      my $self = shift;
+
+      # include '::FILE::' ($FILE_TOKEN) token in
+      # each extract command to represent the file name
+      return {
+        targz => Dn::Distro::Archive->new(
+
+          #match             => '*.tar.gz',
+          match             => qr/[.]tar[.]gz\z/xsm,
+          ext_snips         => 2,
+          extract_cmd_parts => [ 'tar', 'zxvf', $FILE_TOKEN ],
+        ),
+      };
+    },
+    handles_via => 'Hash',
+    handles     => { _distro_types => 'keys', _distro_type => 'get', },
+    doc         => 'Details of distribution types',
+  );
+
+  # _email    {{{1
+  has '_email' => (
+    is      => 'ro',
+    isa     => Types::Dn::EmailAddress,
+    lazy    => $TRUE,
+    default => sub {
+      my $self = shift,;
+      return $self->email ? $self->email : 'david@nebauer.org';
+    },
+    doc => 'Package maintainer email',
+  );
+
+  # _git_repo_created    {{{1
+  has '_git_repo_created' => (
+    is      => 'rw',
+    isa     => Types::Standard::Bool,
+    default => sub {$FALSE},
+    doc     => 'Whether git repo created during build process (flag)',
+  );
+
+  # _module_dir    {{{1
+  has '_module_dir_path' => (
+    is      => 'ro',
+    isa     => Types::Path::Tiny::AbsDir,
+    lazy    => $TRUE,
+    coerce  => $TRUE,
+    default => sub {
+      my $self = shift;
+      if (not $self->_distro_name_ver) {
+        confess "Cannot construct module directory pathname\n";
+      }
+      my $build = $self->_build_dir;
+      return $self->dir_join($build, $self->_distro_name_ver);
+    },
+    doc => 'Module directory',
+
+    # = <base_dir>/build/MODULENAME-VERSION
+  );
+
+  sub _module_dir ($self) {    ## no critic (RequireInterpolationOfMetachars)
+    return $self->_module_dir_path->canonpath();
+  }
+
+  # _required_dir    {{{1
+  has '_required_dir_path' => (
+    is      => 'ro',
+    isa     => Types::Path::Tiny::AbsDir,
+    lazy    => $TRUE,
+    coerce  => $TRUE,
+    default => sub {
+      my $self  = shift;
+      my $build = $self->_build_dir;
+      return $self->dir_join($build, 'required');
+    },
+    doc => 'Required directory',
+  );
+
+  sub _required_dir ($self) {   ## no critic (RequireInterpolationOfMetachars)
+    return $self->_required_dir_path->canonpath();
+  }
+
+  # _source_dir    {{{1
+  has '_source_dir_path' => (
+    is  => 'rw',
+    isa => Types::Standard::Maybe [
+      ## no critic (ProhibitDuplicateLiteral)
+      Types::Standard::InstanceOf ['Path::Tiny'],
+      ## use critic
+    ],
+    default => sub {undef},
+    doc     => 'Source directory',
+  );
+
+  sub _source_dir ($self) {    ## no critic (RequireInterpolationOfMetachars)
+    return $self->_source_dir_path->canonpath();
+  }
+
+  # _this_distro_type    {{{1
+  has '_this_distro_type' => (
+    is       => 'rw',
+    isa      => Types::Standard::Str,
+    required => $FALSE,
+    doc      => 'Distro file archive type',
+
+    # one of the keys from attribute '_distro_types_details'
+  );                           # }}}1
+
+  # methods
+
+  # main()  {{{1
+  #
+  # does:  builds debian package from module
+  # params: nil
+  # prints: nil
+  # return: n/a
+  sub main ($self) {    ## no critic (RequireInterpolationOfMetachars)
+    if (not $self->_tools_available) { return $FALSE; }
+    $self->_setup;
+    $self->_build_dist;
+    $self->_extract_module_name_version_type;
+    $self->_extract_distribution;
+    $self->_create_debian_build_files;
+    $self->_amend_debian_rules;
+    $self->_copy_required_files;
+    $self->_create_debian_package;
+    $self->_retrieve_deb_file_name;
+    $self->_install_package;
+
+    return $TRUE;
+  }
+
+  # _tools_available()  {{{1
+  #
+  # does:   check that required executables are on system
+  # params: nil
+  # prints: messages if required tools are not available
+  # return: boolean
+  sub _tools_available ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    my @tools = qw(debuild make tar);
+    return $self->tools_available(@tools);
+  }
+
+  # _setup()  {{{1
+  #
+  # does:   setup attributes that cannot be "lazy built" (because it requires
+  #         a method from $self, including from Role::Utils::Dn)
+  # params: nil
+  # prints: messages if errors encountered
+  # return: nil
+  sub _setup ($self) {    ## no critic (RequireInterpolationOfMetachars)
+
+    # base dir    {{{2
+    my $base;
+    {
+      my $cwd = Path::Tiny::path($self->cwd);
+      $base = $cwd->parent;
+    }
+
+    # build dir    {{{2
+    {
+      # Path::Tiny requires regex for 'children' method
+      ## no critic (ProhibitFixedStringMatches)
+      my @children = $base->children(qr/\Abuild\z/xsm);
+      ## use critic
+      if (scalar @children == 1 and $children[0]->is_dir) {
+        $self->_build_dir_path($children[0]);
+      }
+      else {
+        die "Cannot find build directory\n";
+      }
+    }
+
+    # source dir    {{{2
+    {
+      # Path::Tiny requires regex for 'children' method
+      ## no critic (ProhibitFixedStringMatches)
+      my @children = $base->children(qr/\Asource\z/xsm);
+      ## use critic
+      if (scalar @children == 1 and $children[0]->is_dir) {
+        $self->_source_dir_path($children[0]);
+      }
+      else {
+        die "Cannot find source directory\n";
+      }
+    }
+
+    # }}}2
+
+    return;
+  }
+
+  # _build_dist()  {{{1
+  #
+  # does:   build module distribution (.tar.gz)
+  # params: nil
+  # prints: nil
+  # return: nil, die on error
+  sub _build_dist ($self) {    ## no critic (RequireInterpolationOfMetachars)
+    $self->_copy_source_to_build;
+    if ($self->_has_dist_ini) {
+      $self->_build_dist_using_milla;
+      return;
+    }
+    if ($self->_has_makefile_pl) {
+      $self->_build_dist_using_extutils_makemaker;
+      return;
+    }
+    if ($self->_has_build_pl) {
+      $self->_build_dist_using_module_build;
+      return;
+    }
+    die "No Makefile.PL, Build.PL or dist.ini found\n";
+  }
+
+  # _copy_source_to_build    {{{1
+  #
+  # does:   recursive copy of contents of source directory
+  #         to build directory
+  # params: nil
+  # prints: nil
+  # return: nil, die on error
+  sub _copy_source_to_build ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    my $source = $self->_source_dir;
+    my $build  = $self->_build_dir;
+    if (not -e $source) {
+      die "Cannot locate source directory '$source'\n";
+    }
+    if (not -e $build) {
+      die "Cannot locate build directory '$build'\n";
+    }
+    try {    # ensure nocache so does full copy each time
+      my $dirsync = File::DirSync->new(
+        { src => $source, dst => $build, nocache => $TRUE });
+      $dirsync->dirsync();
+      say 'Copied source to build directory' or confess;
+    }
+    catch {
+      confess "Copy of source to build directory failed: $_";
+    };
+    return $TRUE;
+  }
+
+  # _has_dist_ini()  {{{1
+  #
+  # does:   check whether build directory contains file 'dist.ini'
+  # params: nil
+  # prints: nil
+  # return: boolean
+  sub _has_dist_ini ($self) {   ## no critic (RequireInterpolationOfMetachars)
+    my $build_dir = $self->_build_dir;
+    return $self->file_list($build_dir, qr/\Adist[.]ini\z/xsm);
+  }
+
+  # _announce_cmd_run($cmd_ref)  {{{1
+  #
+  # does:   announce command to be run
+  # params: $cmd_ref - command to run [arrayref, required]
+  # prints: announcement
+  # return: nil, die on error
+  sub _announce_cmd_run ($self, $cmd_ref)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    my @cmd = @{$cmd_ref};
+    say q{Running '} . join($SPACE, @cmd) . q{':} or confess;
+    return $TRUE;
+  }
+
+  # _build_dist_using_milla()  {{{1
+  #
+  # does:   build distribution using milla
+  # params: nil
+  # prints: nil
+  # return: nil, die on error
+  sub _build_dist_using_milla ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+
+    # change to build directory
+    my $build = $self->_build_dir;
+    local $File::chdir::CWD = $File::chdir::CWD;
+    $File::chdir::CWD = $build;
+
+    # milla requires git repository
+    my $git_dirpath = $self->dir_join($build, '.git');
+    my $git_dir     = Path::Tiny::path($git_dirpath);
+    if ($git_dir->is_dir) { $self->path_remove($git_dirpath); }
+    my $git = Git::Wrapper->new($build) or confess;
+    try {
+      $git->init;
+      $git->add({ all => $TRUE });
+      $git->commit({ message => 'Initial commit' });
+    }
+    catch {
+      confess "git command failed: $_";
+    };
+
+    # build using milla
+    my @cmds = ([qw( prove -l t )], [qw( milla test )], [qw( milla build )],);
+    for my $cmd (@cmds) {
+      $self->_announce_cmd_run($cmd);
+      $self->run_command(undef, @{$cmd});
+    }
+
+    # remove git repo (because of higher level git repo)
+    $self->path_remove($git_dirpath);
+
+    return;
+  }
+
+  # _has_makefile_pl()  {{{1
+  #
+  # does:   check whether build directory contains file 'Makefile.PL'
+  # params: nil
+  # prints: nil
+  # return: boolean
+  sub _has_makefile_pl ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    my $build_dir = $self->_build_dir;
+    return $self->file_list($build_dir, qr/\AMakefile[.]PL\z/xsm);
+  }
+
+  # _build_dist_using_extutils_makemaker    {{{1
+  #
+  # does:   build distribution using Makefile.PL
+  # params: nil
+  # prints: nil
+  # return: nil, die on error
+  sub _build_dist_using_extutils_makemaker ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    local $File::chdir::CWD = $File::chdir::CWD;
+    $File::chdir::CWD = $self->_build_dir;
+
+    my @cmds =
+        ([qw( perl Makefile.PL )], [qw( make test )], [qw( make dist )],);
+    for my $cmd (@cmds) {
+      $self->_announce_cmd_run($cmd);
+      $self->run_command(undef, @{$cmd});
+    }
+    return $TRUE;
+  }
+
+  # _has_build_pl()  {{{1
+  #
+  # does:   check whether build directory contains file 'Build.PL'
+  # params: nil
+  # prints: nil
+  # return: boolean
+  sub _has_build_pl ($self) {   ## no critic (RequireInterpolationOfMetachars)
+    my $build_dir = $self->_build_dir;
+    return $self->file_list($build_dir, qr/\ABuild[.]PL\z/xsm);
+  }
+
+  # _build_dist_using_module_build    {{{1
+  #
+  # does:   build distribution using Build.PL
+  # params: nil
+  # prints: nil
+  # return: nil, die on error
+  sub _build_dist_using_module_build ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    local $File::chdir::CWD = $File::chdir::CWD;
+    $File::chdir::CWD = $self->_build_dir;
+    my @cmds = (
+      [qw ( perl Build.PL )], [qw ( ./Build )],
+      [qw ( ./Build test )],  [qw ( ./Build dist )],
     );
-
-    # no_builddeps (-d)    {{{1
-    option 'no_builddeps' => (
-        is       => 'ro',
-        required => $FALSE,
-        short    => 'd',
-        doc      => 'Prevent debuild checking build dependencies',
-
-        # debuild's default behaviour is to run dpkg-checkbuilddeps to check
-        # build dependencies and conflicts;
-        # occasionally this check will declare that a locally installed
-        # module is an unmet dependency even if a suitable version of it is
-        # correctly installed;
-        # this option runs debuild with its '-d' option, which prevents it
-        # running dpkg-checkbuilddeps;
-        # this solves the immediate problem of the failed dependency check,
-        # but be aware it may obscure other build problems
-    );
-
-    # no_install   (-n)    {{{1
-    option 'no_install' => (
-        is       => 'ro',
-        required => $FALSE,
-        short    => 'n',
-        doc      => 'Suppress installation of debian package',
-    );    # }}}1
-
-    # attributes
-
-    # _base_dir    {{{1
-    has '_base_dir_path' => (
-        is  => 'rw',
-        isa => Types::Standard::Maybe [
-            Types::Standard::InstanceOf ['Path::Tiny']
-        ],
-        default => sub {undef},
-        doc     => q{Base directory (parent of 'source' and 'build')},
-    );
-
-    method _base_dir () {
-        return $self->_base_dir_path->canonpath();
+    for my $cmd (@cmds) {
+      $self->_announce_cmd_run($cmd);
+      $self->run_command(undef, @{$cmd});
     }
+    return $TRUE;
+  }
 
-    # _build_dir    {{{1
-    has '_build_dir_path' => (
-        is  => 'rw',
-        isa => Types::Standard::Maybe [
-            Types::Standard::InstanceOf ['Path::Tiny']
-        ],
-        default => sub {undef},
-        doc     => 'Build directory',
-    );
+  # _extract_module_name_version_type()  {{{1
+  #
+  # does:   locates distribution file and gets name
+  #         extracts module name-version from distribution file name
+  #         assigns archive type of distribution file
+  #         sets attributes for file name and type, and module-version
+  # params: nil
+  # prints: nil
+  # return: nil, die on error
+  sub _extract_module_name_version_type ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
 
-    method _build_dir () {
-        return $self->_build_dir_path->canonpath();
-    }
-
-    # _deb_file    {{{1
-    has '_deb_file_name' => (
-        is       => 'rw',
-        isa      => Types::Path::Tiny::File,
-        coerce   => $TRUE,
-        required => $FALSE,
-        doc      => 'Debian package filename',
-
-        # example: libdn-perltidy_0.1-1_all.deb
-    );
-
-    method _deb_file () {
-        if ( $self->_deb_file_name->basename ) {
-            return $self->_deb_file_name->basename();
+    # extract module name and version for each distro type    {{{2
+    local $File::chdir::CWD = $File::chdir::CWD;
+    $File::chdir::CWD = $self->_build_dir;
+    my @distro_types = $self->_distro_types;
+    my @results;
+    foreach my $type (@distro_types) {    # cycle through distro types
+      my $num_snips    = $self->_distro_type($type)->ext_snips;
+      my $pattern      = $self->_distro_type($type)->match;
+      my @file_matches = $self->file_list($CWD, $pattern);
+      foreach my $file_match (@file_matches) {    # expect 0 or 1 matches
+        my $distro_file = $self->file_name($file_match);
+        my $module_ver  = $distro_file;                    # get module-ver
+        for (1 .. $num_snips) {
+          my ($file, $dir, $suffix) =
+              File::Basename::fileparse($module_ver, qr/[.][^.]*/xsm);
+          $module_ver = $file;
         }
-        else {
-            return;
-        }
-    }
-
-    # _debian_dir    {{{1
-    has '_debian_dir_path' => (
-        is     => 'lazy',
-        isa    => Types::Path::Tiny::AbsDir,
-        coerce => $TRUE,
-        doc    => 'Module build debian directory',
-
-        # = <base_dir>/build/MODULENAME-VERSION/debian
-    );
-
-    method _build__debian_dir_path () {
-        if ( not $self->_distro_name_ver ) {
-            confess "Cannot construct module debian directory pathname\n";
-        }
-        my $build = $self->_build_dir;
-        return $self->dir_join( $build, $self->_distro_name_ver, 'debian' );
-    }
-
-    method _debian_dir () {
-        return $self->_debian_dir_path->canonpath();
-    }
-
-    # _distro_file    {{{1
-    has '_distro_file_name' => (
-        is       => 'rw',
-        isa      => Types::Path::Tiny::File,
-        coerce   => $TRUE,
-        required => $FALSE,
-        doc      => 'Distribution filename',
-
-        # example: Dn-PerlTidy-v0.1.tar.gz
-    );
-
-    method _distro_file () {
-        if ( $self->_distro_file_name ) {
-            return $self->_distro_file_name->basename();
-        }
-        else {
-            return;
-        }
-    }
-
-    # _distro_name_ver    {{{1
-    has '_distro_name_ver' => (
-        is       => 'rw',
-        isa      => Types::Standard::Str,
-        required => $FALSE,
-        doc      => 'Basename of distro gzipped tarball',
-
-        # example: Dn-PerlTidy-v0.1
-    );
-
-    # _distro_types_details    {{{1
-    has '_distro_types_details' => (
-        is  => 'ro',
-        isa => Types::Standard::HashRef [
-            Types::Standard::InstanceOf ['Dn::Distro::Archive']
-        ],
-        reader      => '_distro_types_details',
-        builder     => '_build_distro_types_details',
-        handles_via => 'Hash',
-        handles     => { _distro_types => 'keys', _distro_type => 'get', },
-        doc         => 'Details of distribution types',
-    );
-
-    method _build_distro_types_details () {
-
-        # include '::FILE::' token in each extract
-        # command to represent the file name
-        return {
-            targz => Dn::Distro::Archive->new(
-
-                #match             => '*.tar.gz',
-                match             => qr/[.]tar[.]gz\z/xsm,
-                ext_snips         => 2,
-                extract_cmd_parts => [ 'tar', 'zxvf', '::FILE::' ],
-            ),
-        };
-    }
-
-    # _email    {{{1
-    has '_email' => (
-        is  => 'lazy',
-        isa => Types::Dn::EmailAddress,
-        doc => 'Package maintainer email',
-    );
-
-    method _build__email () {
-        return $self->email ? $self->email : 'david@nebauer.org';
-    }
-
-    # _git_repo_created    {{{1
-    has '_git_repo_created' => (
-        is      => 'rw',
-        isa     => Types::Standard::Bool,
-        default => sub {$FALSE},
-        doc     => 'Whether git repo created during build process (flag)',
-    );
-
-    # _module_dir    {{{1
-    has '_module_dir_path' => (
-        is     => 'lazy',
-        isa    => Types::Path::Tiny::AbsDir,
-        coerce => $TRUE,
-        doc    => 'Module directory',
-
-        # = <base_dir>/build/MODULENAME-VERSION
-    );
-
-    method _build__module_dir_path () {
-        if ( not $self->_distro_name_ver ) {
-            confess "Cannot construct module directory pathname\n";
-        }
-        my $build = $self->_build_dir;
-        return $self->dir_join( $build, $self->_distro_name_ver );
-    }
-
-    method _module_dir () {
-        return $self->_module_dir_path->canonpath();
-    }
-
-    # _required_dir    {{{1
-    has '_required_dir_path' => (
-        is     => 'lazy',
-        isa    => Types::Path::Tiny::AbsDir,
-        coerce => $TRUE,
-        doc    => 'Required directory',
-    );
-
-    method _build__required_dir_path () {
-        my $build = $self->_build_dir;
-        return $self->dir_join( $build, 'required' );
-    }
-
-    method _required_dir () {
-        return $self->_required_dir_path->canonpath();
-    }
-
-    # _source_dir    {{{1
-    has '_source_dir_path' => (
-        is  => 'rw',
-        isa => Types::Standard::Maybe [
-            Types::Standard::InstanceOf ['Path::Tiny']
-        ],
-        default => sub {undef},
-        doc     => 'Source directory',
-    );
-
-    method _source_dir () {
-        return $self->_source_dir_path->canonpath();
-    }
-
-    # _this_distro_type    {{{1
-    has '_this_distro_type' => (
-        is       => 'rw',
-        isa      => Types::Standard::Str,
-        required => $FALSE,
-        doc      => 'Distro file archive type',
-
-        # one of the keys from attribute '_distro_types_details'
-    );                      # }}}1
-
-    # methods
-
-    # main()  {{{1
-    #
-    # does:  builds debian package from module
-    # params: nil
-    # prints: nil
-    # return: n/a
-    method main () {
-        if ( not $self->_tools_available ) { return; }
-        $self->_setup;
-        $self->_build_dist;
-        $self->_extract_module_name_version_type;
-        $self->_extract_distribution;
-        $self->_create_debian_build_files;
-        $self->_amend_debian_rules;
-        $self->_copy_required_files;
-        $self->_create_debian_package;
-        $self->_retrieve_deb_file_name;
-        $self->_install_package;
-    }
-
-    # _tools_available()  {{{1
-    #
-    # does:   check that required executables are on system
-    # params: nil
-    # prints: messages if required tools are not available
-    # return: boolean
-    method _tools_available () {
-        my @tools = qw(debuild make tar);
-        return $self->tools_available(@tools);
-    }
-
-   # _setup()  {{{1
-   #
-   # does:   setup attributes that cannot be "lazy built" (because it requires
-   #         a method from $self, including from Role::Utils::Dn)
-   # params: nil
-   # prints: messages if errors encountered
-   # return: nil
-    method _setup () {
-
-        # base dir    {{{2
-        my $base;
-        {
-            my $cwd = Path::Tiny::path( $self->cwd );
-            $base = $cwd->parent;
-            $self->_base_dir_path($base);
-        }
-
-        # build dir    {{{2
-        {
-            # Path::Tiny requires regex for 'children' method
-            ## no critic (ProhibitFixedStringMatches)
-            my @children = $base->children(qr/\Abuild\z/xsm);
-            ## use critic
-            if ( scalar @children == 1 and $children[0]->is_dir ) {
-                $self->_build_dir_path( $children[0] );
-            }
-            else {
-                die "Cannot find build directory\n";
-            }
-        }
-
-        # source dir    {{{2
-        {
-            # Path::Tiny requires regex for 'children' method
-            ## no critic (ProhibitFixedStringMatches)
-            my @children = $base->children(qr/\Asource\z/xsm);
-            ## use critic
-            if ( scalar @children == 1 and $children[0]->is_dir ) {
-                $self->_source_dir_path( $children[0] );
-            }
-            else {
-                die "Cannot find source directory\n";
-            }
-        }
-
-        # }}}2
-
-        return;
-    }
-
-    # _build_dist()  {{{1
-    #
-    # does:   build module distribution (.tar.gz)
-    # params: nil
-    # prints: nil
-    # return: nil, die on error
-    method _build_dist () {
-        $self->_copy_source_to_build;
-        if ( $self->_has_dist_ini ) {
-            $self->_build_dist_using_milla;
-            return;
-        }
-        if ( $self->_has_makefile_pl ) {
-            $self->_build_dist_using_extutils_makemaker;
-            return;
-        }
-        if ( $self->_has_build_pl ) {
-            $self->_build_dist_using_module_build;
-            return;
-        }
-        die "No Makefile.PL, Build.PL or dist.ini found\n";
-    }
-
-    # _copy_source_to_build    {{{1
-    #
-    # does:   recursive copy of contents of source directory
-    #         to build directory
-    # params: nil
-    # prints: nil
-    # return: nil, die on error
-    method _copy_source_to_build () {
-        my $source = $self->_source_dir;
-        my $build  = $self->_build_dir;
-        if ( not -e $source ) {
-            die "Cannot locate source directory '$source'\n";
-        }
-        if ( not -e $build ) {
-            die "Cannot locate build directory '$build'\n";
-        }
-        try {    # ensure nocache so does full copy each time
-            my $dirsync
-                = File::DirSync->new(
-                { src => $source, dst => $build, nocache => $TRUE } );
-            $dirsync->dirsync();
-            say 'Copied source to build directory' or confess;
-        }
-        catch ($err) {
-            confess "Copy of source to build directory failed: $err";
-        }
-    }
-
-    # _has_dist_ini()  {{{1
-    #
-    # does:   check whether build directory contains file 'dist.ini'
-    # params: nil
-    # prints: nil
-    # return: boolean
-    method _has_dist_ini () {
-        my $build_dir = $self->_build_dir;
-        return $self->file_list( $build_dir, qr/\Adist[.]ini\z/xsm );
-    }
-
-    # _build_dist_using_milla()  {{{1
-    #
-    # does:   build distribution using milla
-    # params: nil
-    # prints: nil
-    # return: nil, die on error
-    method _build_dist_using_milla () {
-
-        # change to build directory
-        my $build = $self->_build_dir;
-        local $File::chdir::CWD = $File::chdir::CWD;
-        $File::chdir::CWD = $build;
-
-        # milla requires git repository
-        my $git_dirpath = $self->dir_join( $build, '.git' );
-        my $git_dir     = Path::Tiny::path($git_dirpath);
-        if ( $git_dir->is_dir ) { $self->path_remove($git_dirpath); }
-        my $git = Git::Wrapper->new($build) or confess;
-        try {
-            $git->init;
-            $git->add( { all => $TRUE } );
-            $git->commit( { message => 'Initial commit' } );
-        }
-        catch ($err) {
-            confess "git command failed: $err"
-        }
-
-        # build using milla
-        my @cmds = ( [qw( prove -l t )], [qw( milla test )],
-            [qw( milla build )], );
-        for my $cmd (@cmds) {
-            say q{Running '} . join( q{ }, @{$cmd} ) . q{':} or confess;
-            $self->run_command( undef, @{$cmd} );
-        }
-
-        # remove git repo (because of higher level git repo)
-        $self->path_remove($git_dirpath);
-
-        return;
-    }
-
-    # _has_makefile_pl()  {{{1
-    #
-    # does:   check whether build directory contains file 'Makefile.PL'
-    # params: nil
-    # prints: nil
-    # return: boolean
-    method _has_makefile_pl () {
-        my $build_dir = $self->_build_dir;
-        return $self->file_list( $build_dir, qr/\AMakefile[.]PL\z/xsm );
-    }
-
-    # _build_dist_using_extutils_makemaker    {{{1
-    #
-    # does:   build distribution using Makefile.PL
-    # params: nil
-    # prints: nil
-    # return: nil, die on error
-    method _build_dist_using_extutils_makemaker () {
-        local $File::chdir::CWD = $File::chdir::CWD;
-        $File::chdir::CWD = $self->_build_dir;
-
-        my @cmds = (
-            [qw( perl Makefile.PL )], [qw( make test )], [qw( make dist )],
+        my $result = Dn::Distro::File->new(
+          name        => $distro_file,
+          module_ver  => $module_ver,
+          distro_type => $type,
         );
-        for my $cmd (@cmds) {
-            say q{Running '} . join( q{ }, @{$cmd} ) . q{':} or confess;
-            $self->run_command( undef, @{$cmd} );
-        }
+        push @results, $result;
+      }
     }
 
-    # _has_build_pl()  {{{1
-    #
-    # does:   check whether build directory contains file 'Build.PL'
-    # params: nil
-    # prints: nil
-    # return: boolean
-    method _has_build_pl () {
-        my $build_dir = $self->_build_dir;
-        return $self->file_list( $build_dir, qr/\ABuild[.]PL\z/xsm );
+    # success if only one matching distribution file found    {{{2
+    for (scalar @results) {
+      if ($_ == 0) {    # error
+        my $msg = 'Unable to extract module name and version ';
+        $msg .= 'from distribution file';
+        confess $msg;
+      }
+      elsif ($_ > 1) {    # error
+        my @msg = ("Multiple distribution files detected:\n");
+        foreach my $result (@results) {
+          my $file = $result->name;
+          push @msg, "  $file\n";
+        }
+        confess @msg;
+      }
+      else {              # success
+        my $result = $results[0];
+        $self->_distro_file_name($result->name);
+        $self->_distro_name_ver($result->module_ver);
+        $self->_this_distro_type($result->distro_type);
+      }
+    }    # }}}2
+    return;
+  }
+
+  # _extract_distribution()  {{{1
+  #
+  # does:   extracts distribution file in build directory
+  # params: nil
+  # prints: nil
+  # return: nil, die on error
+  sub _extract_distribution ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+
+    # assemble extraction command
+    my $type = $self->_this_distro_type;
+    my $file = $self->_distro_file;
+    my @cmd  = $self->_distro_type($type)->extract_cmd($file);
+
+    # run command
+    local $File::chdir::CWD = $File::chdir::CWD;
+    $File::chdir::CWD = $self->_build_dir;
+    $self->_announce_cmd_run([@cmd]);
+    $self->run_command(undef, @cmd);
+
+    return $TRUE;
+  }
+
+  # _create_debian_build_files()  {{{1
+  #
+  # does:   run dh-make-perl to create debian package files
+  # params: nil
+  # prints: nil
+  # return: nil, die on error
+  sub _create_debian_build_files ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    my $email     = $self->_email;
+    my @cmd       = ('dh-make-perl', '--vcs', q{''});
+    my $connected = $self->internet_connection($TRUE);
+    if (not $connected) {
+      say "\nRunning dh-make-perl with '--no-network'" or confess;
+      push @cmd, '--no-network';
+    }
+    push @cmd, '--email', $email, $self->_distro_name_ver;
+    local $File::chdir::CWD = $File::chdir::CWD;
+    $File::chdir::CWD = $self->_build_dir;
+    $self->_announce_cmd_run([@cmd]);
+    $self->run_command(undef, @cmd);
+
+    return $TRUE;
+  }
+
+  # _derive_pkg_name_from_changelog()  {{{1
+  #
+  # does:   extract debian package name from changelog
+  # params: nil
+  # prints: nil
+  # return: scalar string, die on error
+  sub _derive_pkg_name_from_changelog ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+
+    # get content of changelog
+    my $debian_dir = $self->_debian_dir;
+    my $changelog  = $self->path_join($debian_dir, 'changelog');
+    if (not(-e $changelog)) {
+      confess "Cannot locate changelog '$changelog'";
+    }
+    open my $fh, $TO_READ, $changelog
+        or die "Unable to open $changelog: $ERRNO\n";
+    my @log = <$fh>;
+    close $fh or die "Unable to close $changelog: $ERRNO\n";
+    chomp @log;
+
+    # get package name from first line
+    my $line = $log[0];
+    my $pkg  = (split /\s+/xsm, $line)[0];
+    if (not $pkg) { confess 'Unable to extract package name'; }
+
+    return $pkg;
+  }
+
+  # _amend_debian_rules()  {{{1
+  #
+  # does:   make changes to debian rules file
+  # params: nil
+  # prints: nil
+  # return: n/a, die on failure
+  sub _amend_debian_rules ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+
+    # reused variables    {{{2
+    my ($fh, @new_rule);
+
+    # get debian subdirectory    {{{2
+    my $debian_dir = $self->_debian_dir;
+    my $rules_fp   = $self->path_join($debian_dir, 'rules');
+    if (not -e $rules_fp) { confess 'Cannot find rules file'; }
+
+    # read in default rules file    {{{2
+    open $fh, $TO_READ, $rules_fp
+        or confess "Unable to open $rules_fp: $ERRNO";
+    my @rules = <$fh>;
+    close $fh or confess "Unable to close $rules_fp: $ERRNO";
+    chomp @rules;
+
+    # remove empty lines at end of file    {{{2
+    while (1) {
+      my $final_line       = $rules[$INDEX_FINAL];
+      my $penultimate_line = $rules[$INDEX_PENULTIMATE];
+      last if (not(not $final_line and not $penultimate_line));
+      pop @rules;
     }
 
-    # _build_dist_using_module_build    {{{1
-    #
-    # does:   build distribution using Build.PL
-    # params: nil
-    # prints: nil
-    # return: nil, die on error
-    method _build_dist_using_module_build () {
-        local $File::chdir::CWD = $File::chdir::CWD;
-        $File::chdir::CWD = $self->_build_dir;
-        my @cmds = (
-            [qw ( perl Build.PL )], [qw ( ./Build )],
-            [qw ( ./Build test )],  [qw ( ./Build dist )],
-        );
-        for my $cmd (@cmds) {
-            say q{Running '} . join( q{ }, @{$cmd} ) . q{':} or confess;
-            $self->run_command( undef, @{$cmd} );
+    # add bash completion if bash completion file provided    {{{2
+    # - is in 'required' directory
+    # - must have form: 'PKG_NAME.bash-completion'
+    my $pkg_name = $self->_derive_pkg_name_from_changelog;
+    my $required = $self->_required_dir;
+    my $bashcomp =
+        $self->path_join($required, $pkg_name) . '.bash-completion';
+    if (-e $bashcomp) {
+      foreach my $line (@rules) {
+        if ($line =~ /^\s*dh\s+/xsm) {
+          $line .= ' --with bash-completion';
         }
+      }
     }
 
-    # _extract_module_name_version_type()  {{{1
-    #
-    # does:   locates distribution file and gets name
-    #         extracts module name-version from distribution file name
-    #         assigns archive type of distribution file
-    #         sets attributes for file name and type, and module-version
-    # params: nil
-    # prints: nil
-    # return: nil, die on error
-    method _extract_module_name_version_type () {
+    # new rule: set sharedstatedir    {{{2
+    # - hard tab required by rules file format
+    @new_rule = (    ## no critic (ProhibitHardTabs)
+      q{},
+      q{# Make directory variable sharedstatedir debian compliant},
+      q{override_dh_auto_configure:},
+      q{	dh_auto_configure -- --sharedstatedir=/var/lib},
+      q{},
+    );
+    push @rules, @new_rule;
 
-        # extract module name and version for each distro type    {{{2
-        local $File::chdir::CWD = $File::chdir::CWD;
-        $File::chdir::CWD = $self->_build_dir;
-        my @distro_types = $self->_distro_types;
-        my @results;
-        foreach my $type (@distro_types) {    # cycle through distro types
-            my $num_snips    = $self->_distro_type($type)->ext_snips;
-            my $pattern      = $self->_distro_type($type)->match;
-            my @file_matches = $self->file_list( $CWD, $pattern );
-            foreach my $file_match (@file_matches) {   # expect 0 or 1 matches
-                my $distro_file = $self->file_name($file_match);
-                my $module_ver  = $distro_file;        # get module-ver
-                for ( 1 .. $num_snips ) {
-                    my ( $file, $dir, $suffix )
-                        = File::Basename::fileparse( $module_ver,
-                        qr/[.][^.]*/xsm );
-                    $module_ver = $file;
-                }
-                my $result = Dn::Distro::File->new(
-                    name        => $distro_file,
-                    module_ver  => $module_ver,
-                    distro_type => $type,
-                );
-                push @results, $result;
-            }
-        }
+    # new rule: do not sign package    {{{2
+    #@new_rule = (
+    #    q{# Suppress digital signing of package},
+    #    q{override_dh_md5sums:}, q{},
+    #);
+    #push @rules, @new_rule;
 
-        # success if only one matching distribution file found    {{{2
-        for ( scalar @results ) {
-            if ( $_ == 0 ) {    # error
-                my $msg = 'Unable to extract module name and version ';
-                $msg .= 'from distribution file';
-                confess $msg;
-            }
-            elsif ( $_ > 1 ) {     # error
-                my @msg = "Multiple distribution files detected:\n";
-                foreach my $result (@results) {
-                    my $file = $result->name;
-                    push @msg, "  $file\n";
-                }
-                confess @msg;
-            }
-            else {             # success
-                my $result = $results[0];
-                $self->_distro_file_name( $result->name );
-                $self->_distro_name_ver( $result->module_ver );
-                $self->_this_distro_type( $result->distro_type );
-            }
-        }    # }}}2
-        return;
+    # new rule: prevent stripping of information from files    {{{2
+    @new_rule = (
+      q{# Suppress stripping of information from files},
+      q{override_dh_strip_nondeterminism:},
+      q{},
+    );
+    push @rules, @new_rule;
+
+    # write back amended file    {{{2
+    open $fh, $TO_WRITE, $rules_fp    ## no critic (RequireBriefOpen)
+        or confess "Unable to open $rules_fp: $ERRNO";
+    foreach my $line (@rules) {
+      say {$fh} $line
+          or confess "Unable to write to $rules_fp: $OS_ERROR";
+    }
+    close $fh or confess "Unable to close $rules_fp: $ERRNO";    # }}}2
+
+    return;
+  }
+
+  # _copy_required_files()  {{{1
+  #
+  # does:   copy any required files to debian subdirectory
+  # params: nil
+  # prints: number of files copied
+  # return: nil, die on error
+  sub _copy_required_files ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+
+    # set source and target directories
+    my $src = $self->_required_dir;
+    my $dst = $self->_debian_dir;
+
+    # remove target file before copy, and copy top level directory only
+    # - localised as per PBP, so ignore package variable warning
+    ## no critic (ProhibitPackageVars)
+    local $File::Copy::Recursive::RMTrgFil = $TRUE;
+    local $File::Copy::Recursive::MaxDepth = 1;
+    ## use critic
+    my ($files_and_dirs_num, $dirs_num, $depth) =
+        File::Copy::Recursive::dircopy($src, $dst)
+        or confess "Copy of required debian files failed\n";
+
+    # report outcome
+    if ($files_and_dirs_num > 0) {
+      my $files_num = $files_and_dirs_num - $dirs_num;
+      say $SPACE or confess;
+      say "Copied $files_num required debian files to build tree"
+          or confess;
     }
 
-    # _extract_distribution()  {{{1
-    #
-    # does:   extracts distribution file in build directory
-    # params: nil
-    # prints: nil
-    # return: nil, die on error
-    method _extract_distribution () {
+    return $TRUE;
+  }
 
-        # assemble extraction command
-        my $type = $self->_this_distro_type;
-        my $file = $self->_distro_file;
-        my @cmd  = $self->_distro_type($type)->extract_cmd($file);
+  # _create_debian_package()  {{{1
+  #
+  # does:   runs debuild to build package
+  # params: nil
+  # prints: nil
+  # return: nil, die on error
+  sub _create_debian_package ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    say $SPACE                    or confess;
+    say 'Building debian package' or confess;
 
-        # run command
-        local $File::chdir::CWD = $File::chdir::CWD;
-        $File::chdir::CWD = $self->_build_dir;
-        say q{Running '} . join( q{ }, @cmd ) . q{':} or confess;
-        $self->run_command( undef, @cmd );
+    # debuild options: -i  = filter out revision control system files
+    #                  -us = do not sign source package
+    #                  -uc = do not sign .changes file
+    #                  -b  = binary build only - no source files
+    #                  -d  = do not check building dependencies
+    my @cmd = qw(debuild -i -us -uc -b);
+    if ($self->no_builddeps) { push @cmd, '-d'; }
+    local $File::chdir::CWD = $File::chdir::CWD;
+    $File::chdir::CWD = $self->_module_dir;
+    $self->_announce_cmd_run([@cmd]);
+    $self->run_command(undef, @cmd);
+
+    return $TRUE;
+  }
+
+  # _retrieve_deb_file_name()  {{{1
+  #
+  # does:   locates distribution file and gets name
+  #         extracts module name-version from distribution file name
+  #         assigns archive type of distribution file
+  #         sets attributes for file name and type, and module-version
+  # params: nil
+  # prints: name of deb file
+  # return: nil, die on error
+  sub _retrieve_deb_file_name ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    local $File::chdir::CWD = $File::chdir::CWD;
+    $File::chdir::CWD = $self->_build_dir;
+    my @debs = $self->file_list($CWD, qr/[.]deb\z/xsm);
+    if (scalar @debs == 0) {    # error
+      confess "Unable to find built deb file\n";
+    }
+    elsif (scalar @debs > 1) {    # error
+      ## no critic (ProhibitDuplicateLiteral)
+      my @msg = ("Multiple distribution files detected:\n");
+      ## use critic
+      foreach my $deb (@debs) {
+        push @msg, "  $deb\n";
+      }
+      confess @msg;
+    }
+    else {                        # success
+      my $deb_path = $debs[0];
+      my $deb_name = $self->file_name($deb_path);
+      say $SPACE                                or confess;
+      say "Built deb file '../build/$deb_name'" or confess;
+      $self->_deb_file_name($deb_name);
     }
 
-    # _create_debian_build_files()  {{{1
-    #
-    # does:   run dh-make-perl to create debian package files
-    # params: nil
-    # prints: nil
-    # return: nil, die on error
-    method _create_debian_build_files () {
-        my $email     = $self->_email;
-        my @cmd       = ( 'dh-make-perl', '--vcs', q{''} );
-        my $connected = $self->internet_connection($TRUE);
-        if ( not $connected ) {
-            say "\nRunning dh-make-perl with '--no-network'" or confess;
-            push @cmd, '--no-network';
-        }
-        push @cmd, '--email', $email, $self->_distro_name_ver;
-        local $File::chdir::CWD = $File::chdir::CWD;
-        $File::chdir::CWD = $self->_build_dir;
-        say q{Running '} . join( q{ }, @cmd ) . q{':} or confess;
-        $self->run_command( undef, @cmd );
+    return $TRUE;
+  }
+
+  # _install_package()  {{{1
+  #
+  # does:   installs debian package
+  # prints: question and feedback
+  # params: nil
+  # return: n/a
+  sub _install_package ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+
+    # shall we install?
+    if ($self->no_install) {
+      say $SPACE                                   or confess;
+      say 'Not installing package at your request' or confess;
+      return $FALSE;
     }
 
-    # _derive_pkg_name_from_changelog()  {{{1
-    #
-    # does:   extract debian package name from changelog
-    # params: nil
-    # prints: nil
-    # return: scalar string, die on error
-    method _derive_pkg_name_from_changelog () {
+    # okay, let's install
+    my $deb = '../build/' . $self->_deb_file;
+    $self->debian_install_deb($deb);
 
-        # get content of changelog
-        my $debian_dir = $self->_debian_dir;
-        my $changelog  = $self->path_join( $debian_dir, 'changelog' );
-        if ( not( -f $changelog ) ) {
-            confess "Cannot locate changelog '$changelog'";
-        }
-        open my $fh, '<', $changelog
-            or die "Unable to open $changelog: $ERRNO\n";
-        my @log = <$fh>;
-        close $fh or die "Unable to close $changelog: $ERRNO\n";
-        chomp @log;
-
-        # get package name from first line
-        my $line = $log[0];
-        my $pkg  = ( split /\s+/xsm, $line )[0];
-        if ( not $pkg ) { confess 'Unable to extract package name'; }
-
-        return $pkg;
-    }
-
-    # _amend_debian_rules()  {{{1
-    #
-    # does:   make changes to debian rules file
-    # params: nil
-    # prints: nil
-    # return: n/a, die on failure
-    method _amend_debian_rules () {
-
-        # reused variables    {{{2
-        my ( $fh, @new_rule );
-
-        # get debian subdirectory    {{{2
-        my $debian_dir = $self->_debian_dir;
-        my $rules_fp   = $self->path_join( $debian_dir, 'rules' );
-        if ( not -f $rules_fp ) { confess 'Cannot find rules file'; }
-
-        # read in default rules file    {{{2
-        open $fh, '<', $rules_fp or die "Unable to open $rules_fp: $ERRNO\n";
-        my @rules = <$fh>;
-        close $fh or die "Unable to close $rules_fp: $ERRNO\n";
-        chomp @rules;
-
-        # remove empty lines at end of file    {{{2
-        while (1) {
-            my $final_line       = $rules[$INDEX_FINAL];
-            my $penultimate_line = $rules[$INDEX_PENULTIMATE];
-            last if ( not( not $final_line and not $penultimate_line ) );
-            pop @rules;
-        }
-
-        # add bash completion if bash completion file provided    {{{2
-        # - is in 'required' directory
-        # - must have form: 'PKG_NAME.bash-completion'
-        my $pkg_name = $self->_derive_pkg_name_from_changelog;
-        my $required = $self->_required_dir;
-        my $bashcomp
-            = $self->path_join( $required, $pkg_name ) . '.bash-completion';
-        if ( -e $bashcomp ) {
-            foreach my $line (@rules) {
-                if ( $line =~ /^\s*dh\s+/xsm ) {
-                    $line .= ' --with bash-completion';
-                }
-            }
-        }
-
-        # new rule: set sharedstatedir    {{{2
-        # - hard tab required by rules file format
-        @new_rule = (    ## no critic (ProhibitHardTabs)
-            q{},
-            q{# Make directory variable sharedstatedir debian compliant},
-            q{override_dh_auto_configure:},
-            q{	dh_auto_configure -- --sharedstatedir=/var/lib},
-            q{},
-        );
-        push @rules, @new_rule;
-
-        # new rule: do not sign package    {{{2
-        #@new_rule = (
-        #    q{# Suppress digital signing of package},
-        #    q{override_dh_md5sums:}, q{},
-        #);
-        #push @rules, @new_rule;
-
-        # new rule: prevent stripping of information from files    {{{2
-        @new_rule = (
-            q{# Suppress stripping of information from files},
-            q{override_dh_strip_nondeterminism:},
-            q{},
-        );
-        push @rules, @new_rule;
-
-        # write back amended file    {{{2
-        open $fh, '>', $rules_fp or die "Unable to open $rules_fp: $ERRNO\n";
-        foreach my $line (@rules) {
-            say {$fh} $line
-                or confess "Unable to write to $rules_fp: $OS_ERROR";
-        }
-        close $fh or die "Unable to close $rules_fp: $ERRNO\n";    # }}}2
-
-        return;
-    }
-
-    # _copy_required_files()  {{{1
-    #
-    # does:   copy any required files to debian subdirectory
-    # params: nil
-    # prints: number of files copied
-    # return: nil, die on error
-    method _copy_required_files () {
-
-        # set source and target directories
-        my $src = $self->_required_dir;
-        my $dst = $self->_debian_dir;
-
-        # remove target file before copy, and copy top level directory only
-        # - localised as per PBP, so ignore package variable warning
-        ## no critic (ProhibitPackageVars)
-        local $File::Copy::Recursive::RMTrgFil = $TRUE;
-        local $File::Copy::Recursive::MaxDepth = 1;
-        ## use critic
-        my ( $files_and_dirs_num, $dirs_num, $depth )
-            = File::Copy::Recursive::dircopy( $src, $dst )
-            or confess "Copy of required debian files failed\n";
-
-        # report outcome
-        if ( $files_and_dirs_num > 0 ) {
-            my $files_num = $files_and_dirs_num - $dirs_num;
-            say q{ } or confess;
-            say "Copied $files_num required debian files to build tree"
-                or confess;
-        }
-    }
-
-    # _create_debian_package()  {{{1
-    #
-    # does:   runs debuild to build package
-    # params: nil
-    # prints: nil
-    # return: nil, die on error
-    method _create_debian_package () {
-        say q{ }                      or confess;
-        say 'Building debian package' or confess;
-
-        # debuild options: -i  = filter out revision control system files
-        #                  -us = do not sign source package
-        #                  -uc = do not sign .changes file
-        #                  -b  = binary build only - no source files
-        #                  -d  = do not check building dependencies
-        my @cmd = qw(debuild -i -us -uc -b);
-        if ( $self->no_builddeps ) { push @cmd, '-d'; }
-        local $File::chdir::CWD = $File::chdir::CWD;
-        $File::chdir::CWD = $self->_module_dir;
-        say q{Running '} . join( q{ }, @cmd ) . q{':} or confess;
-        $self->run_command( undef, @cmd );
-    }
-
-    # _retrieve_deb_file_name()  {{{1
-    #
-    # does:   locates distribution file and gets name
-    #         extracts module name-version from distribution file name
-    #         assigns archive type of distribution file
-    #         sets attributes for file name and type, and module-version
-    # params: nil
-    # prints: name of deb file
-    # return: nil, die on error
-    method _retrieve_deb_file_name () {
-        local $File::chdir::CWD = $File::chdir::CWD;
-        $File::chdir::CWD = $self->_build_dir;
-        my @debs = $self->file_list( $CWD, qr/[.]deb\z/xsm );
-        if ( scalar @debs == 0 ) {      # error
-            confess "Unable to find built deb file\n";
-        }
-        elsif ( scalar @debs > 1 ) {    # error
-            my @msg = ("Multiple distribution files detected:\n");
-            foreach my $deb (@debs) {
-                push @msg, "  $deb\n";
-            }
-            confess @msg;
-        }
-        else {                          # success
-            my $deb_path = $debs[0];
-            my $deb_name = $self->file_name($deb_path);
-            say q{ }                                  or confess;
-            say "Built deb file '../build/$deb_name'" or confess;
-            $self->_deb_file_name($deb_name);
-        }
-    }
-
-    # _install_package()  {{{1
-    #
-    # does:   installs debian package
-    # prints: question and feedback
-    # params: nil
-    # return: n/a
-    method _install_package () {
-
-        # shall we install?
-        if ( $self->no_install ) {
-            say q{ }                                     or confess;
-            say 'Not installing package at your request' or confess;
-            return;
-        }
-
-        # okay, let's install
-        my $deb = '../build/' . $self->_deb_file;
-        $self->debian_install_deb($deb);
-    }                            # }}}1
+    return $TRUE;
+  }    # }}}1
 
 }
 
@@ -1387,9 +1427,9 @@ the script.
 =head2 Perl modules
 
 Carp, Const::Fast, English, experimental, File::Basename, File::chdir,
-File::Copy::Recursive, File::DirSync, Function::Parameters, Git::Wrapper, Moo,
-MooX::HandlesVia, MooX::Options, namespace::clean, Path::Tiny, Role::Utils::Dn,
-strictures, Types::Dn, Types::Path::Tiny, Types::Standard, version.
+File::Copy::Recursive, File::DirSync, Git::Wrapper, Moo, MooX::HandlesVia,
+MooX::Options, namespace::clean, Path::Tiny, Role::Utils::Dn, strictures,
+Types::Dn, Types::Path::Tiny, Types::Standard, version.
 
 =head2 Executables
 

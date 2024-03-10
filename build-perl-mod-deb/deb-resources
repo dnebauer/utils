@@ -21,7 +21,7 @@ package-name dn-build-perl-mod-deb
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.9.4
+version 0.9.5
 
 # Script and binary files
 # Executable files to be packaged.
@@ -30,7 +30,7 @@ version 0.9.4
 # Default value of 'sbin-files' in built deb package: /usr/sbin
 # Required. Multiple allowed
 bin-file dn-build-perl-mod-deb
-#sbin-file 
+#sbin-file
 
 # Manpages
 # Man pages to package.
@@ -42,7 +42,7 @@ man-file dn-build-perl-mod-deb.1
 # Data files to package.
 # Default value in built deb package: /usr/share/$(PACKAGE).
 # Optional. Multiple allowed.
-#data-file 
+#data-file
 
 # Icon files
 # Icon files to package.
@@ -52,13 +52,13 @@ man-file dn-build-perl-mod-deb.1
 # Note icons are not put into application subdirectory
 # -- be careful of filename clashes.
 # Optional. Multiple allowed.
-#icon-files 
+#icon-files
 
 # Configuration files
 # Configuration files to package.
 # Default value in built deb package: /etc/$(PACKAGE).
 # Optional. Multiple allowed.
-#conf-file 
+#conf-file
 
 # Executable library files
 # Executable programs run by other programs.
@@ -68,7 +68,7 @@ man-file dn-build-perl-mod-deb.1
 #   dpkg-architecture -qDEB_HOST_MULTIARCH
 # Default value in built deb package: /usr/lib/<triplet>/$(PACKAGE).
 # Optional. Multiple allowed.
-#libexec-files 
+#libexec-files
 
 # Library data files
 # Data files used by other programs.
@@ -78,37 +78,37 @@ man-file dn-build-perl-mod-deb.1
 #   dpkg-architecture -qDEB_HOST_MULTIARCH
 # Default value in built deb package: /usr/lib/<triplet>/$(PACKAGE).
 # Optional. Multiple allowed.
-#libdata-files 
+#libdata-files
 
 # Templates file
 # Debian build system templates file
 # Optional. One only
-#templates 
+#templates
 
 # Pre-install file
 # Debian build system pre-install file
 # Optional. One only
-#preinstall 
+#preinstall
 
 # Post-install file
 # Debian build system post-install file
 # Optional. One only
-#postinstall 
+#postinstall
 
 # Pre-remove file
 # Debian build system pre-remove file
 # Optional. One only
-#preremove 
+#preremove
 
 # Post-remove file
 # Debian build system post-remove file
 # Optional. One only
-#postremove 
+#postremove
 
 # Bash completion file
 # Debian build system bash completion file
 # Optional. One only
-#bash-completion 
+#bash-completion
 
 # Control summary
 # One line summary of script for inclusion in the
@@ -146,9 +146,6 @@ depends-on libconst-fast-perl (>= 0.014-1.1)
 #   - provides 'milla'
 #   - not available from standard debian repositories
 
-#   Feature::Compat::Try
-depends-on libfeature-compat-try-perl (>= 0.04-2)
-
 #   File::chdir
 depends-on libfile-chdir-perl (>= 0.1008-1)
 
@@ -181,6 +178,9 @@ depends-on librole-utils-dn-perl (>= 0.1-1)
 
 #   strictures
 depends-on libstrictures-perl (>= 2.000001-2)
+
+#   Try::Tiny
+depends-on libtry-tiny-perl (>= 0.31-2)
 
 #   Types::Dn
 depends-on libtypes-dn-perl (>= 0.1-1)
@@ -219,7 +219,7 @@ depends-on tar (>= 1.27.1-2+b1)
 # Copyright year
 # Year of copyright
 # Required. One only.
-year 2015
+year 2024
 
 # Email
 # Email address of package maintainer
