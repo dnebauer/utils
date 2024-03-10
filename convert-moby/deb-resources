@@ -21,7 +21,7 @@ package-name dn-convert-moby
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.5
+version 0.6
 
 # Script and binary files
 # Executable files to be packaged.
@@ -41,7 +41,7 @@ man-file dn-convert-moby.1
 # Data files to package.
 # Default value in built deb package: /usr/share/$(PACKAGE).
 # Optional. Multiple allowed.
-#data-file 
+#data-file
 
 # Icon files
 # Icon files to package.
@@ -51,13 +51,13 @@ man-file dn-convert-moby.1
 # Note icons are not put into application subdirectory
 # -- be careful of filename clashes.
 # Optional. Multiple allowed.
-#icon-files 
+#icon-files
 
 # Configuration files
 # Configuration files to package.
 # Default value in built deb package: /etc/$(PACKAGE).
 # Optional. Multiple allowed.
-#conf-file 
+#conf-file
 
 # Executable library files
 # Executable programs run by other programs.
@@ -67,7 +67,7 @@ man-file dn-convert-moby.1
 #   dpkg-architecture -qDEB_HOST_MULTIARCH
     # Default value in built deb package: /usr/lib/<triplet>/$(PACKAGE).
 # Optional. Multiple allowed.
-#libexec-files 
+#libexec-files
 
 # Library data files
 # Data files used by other programs.
@@ -77,37 +77,37 @@ man-file dn-convert-moby.1
 #   dpkg-architecture -qDEB_HOST_MULTIARCH
 # Default value in built deb package: /usr/lib/<triplet>/$(PACKAGE).
 # Optional. Multiple allowed.
-#libdata-files 
+#libdata-files
 
 # Templates file
 # Debian build system templates file
 # Optional. One only
-#templates 
+#templates
 
 # Pre-install file
 # Debian build system pre-install file
 # Optional. One only
-#preinstall 
+#preinstall
 
 # Post-install file
 # Debian build system post-install file
 # Optional. One only
-#postinstall 
+#postinstall
 
 # Pre-remove file
 # Debian build system pre-remove file
 # Optional. One only
-#preremove 
+#preremove
 
 # Post-remove file
 # Debian build system post-remove file
 # Optional. One only
-#postremove 
+#postremove
 
 # Bash completion file
 # Debian build system bash completion file
 # Optional. One only
-#bash-completion 
+#bash-completion
 
 # Control summary
 # One line summary of script for inclusion in the
@@ -142,23 +142,20 @@ control-description vim thesaurus file.
 
 ### Perl modules
 
-#   perl, Cwd, Moo
+#   perl, Carp, Cwd, Moo
 depends-on libmoo-perl (>= 2.000001-3)
 
 #   autodie
 depends-on libautodie-perl (>= 2.28-1)
 
-#   Function::Parameters
-depends-on libfunction-parameters-perl (>= 1.0603-1)
+#   Const::Fast
+depends-on libconst-fast-perl (>= 0.014-2)
 
 #   MooX::HandlesVia
 depends-on libmoox-handlesvia-perl (>= 0.001008-2)
 
 #   Getopt::Long::Descriptive
 depends-on libgetopt-long-descriptive-perl (>= 0.100-1)
-
-#   Readonly
-depends-on libreadonly-perl (>= 2.000-2)
 
 #   Types::Standard
 depends-on libtype-tiny-perl (>= 1.000005-1)

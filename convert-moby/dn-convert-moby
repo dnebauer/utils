@@ -1,277 +1,292 @@
-#!/usr/bin/perl 
+#!/usr/bin/perl
 
-use Moo;    #                                                          {{{1
+use Moo;                                  # {{{1
 use strictures 2;
-use 5.018_001;
-use version; our $VERSION = qv('0.1');    #                            }}}1
+use 5.036_001;
+use version; our $VERSION = qv('0.1');    # }}}1
 
 {
 
-    package Dn::Internal;
+  package Dn::Internal;
 
-    use Moo;    #                                                      {{{1
-    use strictures 2;
-    use namespace::clean -except => [ '_options_data', '_options_config' ];
-    use autodie qw(open close);
-    use Cwd qw(abs_path);
-    use Getopt::Long::Descriptive;
-    use Function::Parameters;
-    use List::Util qw(uniq);
-    use MooX::HandlesVia;
-    use Readonly;
-    use Types::Standard qw(ArrayRef Str);
+  use Moo;                                # {{{1
+  use strictures 2;
+  use namespace::clean -except => [ '_options_data', '_options_config' ];
+  use autodie qw(open close);
+  use Const::Fast;
+  use Carp qw(croak);
+  use Cwd;
+  use Getopt::Long::Descriptive;
+  use List::Util;
+  use MooX::HandlesVia;
+  use Types::Standard;
 
-    Readonly my $TRUE  => 1;
-    Readonly my $FALSE => 0;    #                                      }}}1
+  const my $TRUE  => 1;
+  const my $FALSE => 0;    # }}}1
 
-    # Attributes
+  # Attributes
 
-    # _moby                                                            {{{1
-    has '_moby' => (
-        is  => 'lazy',
-        isa => Types::Standard::Str,
-        doc => 'File path to extracted debian Moby thesaurus',
-    );
+  # _moby    {{{1
+  has '_moby' => (
+    is      => 'ro',
+    isa     => Types::Standard::Str,
+    lazy    => $TRUE,
+    default => sub {
+      my $self = shift;
 
-    method _build__moby () {
+      # get unique file names
+      my @matches;
+      for my $arg (@ARGV) { push @matches, glob "$arg"; }
+      my @unique_matches = List::Util::uniq @matches;
+      my @files          = grep {-r} @unique_matches;    # ignore non-files
 
-        # get unique file names
-        my @matches;
-        for my $arg (@ARGV) { push @matches, glob "$arg"; }
-        my @unique_matches = List::Util::uniq @matches;
-        my @files = grep {-r} @unique_matches;    # ignore non-files
+      # want one filepath only
+      my $count = @files;
+      die "No filepath provided\n"      if $count == 0;
+      die "Provide only one filepath\n" if $count > 1;
 
-        # want one filepath only
-        my $count = scalar @files;
-        die "No filepath provided\n" if $count == 0;
-        die "Provide only one filepath\n" if $count > 1;
+      return $files[0];
+    },
+    doc => 'File path to extracted debian Moby thesaurus',
+  );
 
-        return $files[0];
-    }
+  # _terms    {{{1
+  has '_terms' => (
+    is          => 'rw',
+    isa         => Types::Standard::ArrayRef [Types::Standard::Str],
+    default     => sub { [] },
+    handles_via => 'Array',
+    handles     => {
+      '_add_pair'     => 'push',
+      '_all_terms'    => 'elements',
+      '_unique_terms' => 'uniq',
+      '_clear_terms'  => 'clear',
+      '_term_count'   => 'count',
+    },
+    documentation => 'Root-synonym pairs',
+  );    # }}}1
 
-    # _terms                                                           {{{1
-    has '_terms' => (
-        is          => 'rw',
-        isa         => Types::Standard::ArrayRef [Types::Standard::Str],
-        default     => sub { [] },
-        handles_via => 'Array',
-        handles     => {
-            '_add_pair'     => 'push',
-            '_all_terms'    => 'elements',
-            '_unique_terms' => 'uniq',
-            '_clear_terms'  => 'clear',
-            '_term_count'   => 'count',
-        },
-        documentation => 'Root-synonym pairs',
-    );    #                                                            }}}1
+  # Methods
 
-    # Methods
+  # main()    {{{1
+  #
+  # does:   main method
+  # params: nil
+  # prints: feedback
+  # return: result
+  sub main ($self) {    ## no critic (RequireInterpolationOfMetachars)
+    $self->_usage;      # print usage message if help requested
+    $self->_extract_moby_terms;
+    $self->_uniquefy_terms;
+    $self->_write_vim_thesaurus;
 
-    # main()                                                           {{{1
-    #
-    # does:   main method
-    # params: nil
-    # prints: feedback
-    # return: result
-    method main () {
-        $self->_usage;    # print usage message if help requested
-        $self->_extract_moby_terms;
-        $self->_uniquefy_terms;
-        $self->_write_vim_thesaurus;
-    }
+    return $TRUE;
+  }
 
-    # _usage()                                                         {{{1
-    #
-    # does:   print usage message if requested
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    method _usage () {
+  # _usage()    {{{1
+  #
+  # does:   print usage message if requested
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub _usage ($self) {    ## no critic (RequireInterpolationOfMetachars)
 
-        # handle args
-        my ( $opt, $usage ) = Getopt::Long::Descriptive::describe_options(
-            '%c %o <file>',
-            [],
-            [   'help|h',
-                'print usage message and exit',
-                { shortcircuit => 1 }
-            ],
+    # handle args
+    my ($opt, $usage) =
+        Getopt::Long::Descriptive::describe_options('%c %o <file>', [],
+      [ 'help|h', 'print usage message and exit', { shortcircuit => 1 } ],
         );
-        if ( $opt->help ) {
-            print $usage->text;
-            exit;
-        }
-
-        return;
+    if ($opt->help) {
+      print $usage->text or croak;
+      exit;
     }
 
-    # _extract_moby_terms()                                            {{{1
-    #
-    # does:   convert thesaurus file
-    # params: nil
-    # prints: feedback
-    # return: nil
-    # note:   there are two methods available for adding terms:
-    #         1 - pair root with each synonym and add each pair
-    #             (uses method '_add_root_synonym_pairs')
-    #         2 - walk along root-synonym list and add consecutive
-    #             pairs (uses method '_add_synonym_pairs')
-    #         currently using '_add_root_synonym_pairs'
-    method _extract_moby_terms () {
-        open my $fh, '<', $self->_moby;
-        my @lines = <$fh>;
-        close $fh;
-        say 'Extracting terms from Moby thesaurus:';
-        my $progress = q{};
-        my $root;
-        my @synonyms;
+    return;
+  }
 
-        for my $line (@lines) {     # cycle through moby thesaurus
-            chomp $line;
-            if ( not $root ) {      # waiting for next root
-                if ( $line
-                    =~ /^\d+\sMoby\sThesaurus\swords\sfor\s"[^"]+":$/xsm )
-                {
-                    $root = $line
-                        =~ s/^\d+\sMoby\sThesaurus\swords\sfor\s"([^"]+)":$/$1/xsmr;
-                    if ( $self->_term_is_good($root) ) {    # good term
-                        my $root_first_letter = uc substr $root, 0, 1;
-                        if ( $root_first_letter ne $progress ) {
-                            $progress = $root_first_letter;    # on new letter
-                            my $msg = '  processing terms beginning with '
-                                . "$progress...";
-                            say $msg;
-                        }
-                    }
-                    else {
-                        $root = q{};    # ignore if bad term
-                    }
-                }
+  # _extract_moby_terms()    {{{1
+  #
+  # does:   convert thesaurus file
+  # params: nil
+  # prints: feedback
+  # return: nil
+  # note:   there are two methods available for adding terms:
+  #         1 - pair root with each synonym and add each pair
+  #             (uses method '_add_root_synonym_pairs')
+  #         2 - walk along root-synonym list and add consecutive
+  #             pairs (uses method '_add_synonym_pairs')
+  #         currently using '_add_root_synonym_pairs'
+  sub _extract_moby_terms ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    open my $fh, '<', $self->_moby;
+    my @lines = <$fh>;
+    close $fh;
+    say 'Extracting terms from Moby thesaurus:' or croak;
+    my $progress = q{};
+    my $root;
+    my @synonyms;
+
+    for my $line (@lines) {    # cycle through moby thesaurus
+      chomp $line;
+      if (not $root) {         # waiting for next root
+        if ($line =~ /^\d+\sMoby\sThesaurus\swords\sfor\s"[^"]+":$/xsm) {
+          $root = $line
+              =~ s/^\d+\sMoby\sThesaurus\swords\sfor\s"([^"]+)":$/$1/xsmr;
+          if ($self->_term_is_good($root)) {    # good term
+            my $root_first_letter = uc substr $root, 0, 1;
+            if ($root_first_letter ne $progress)
+            {    ## no critic (ProhibitDeepNests)
+              $progress = $root_first_letter;    # on new letter
+              my $msg = '  processing terms beginning with ' . "$progress...";
+              say $msg or croak;
             }
-            else {                      # still building synonym terms
-                if ( $line =~ /^\s*$/xsm ) {    # empty line = end of synonyms
-                    @synonyms = grep { $self->_term_is_good($_) } @synonyms;
-                    $self->_add_root_synonym_pairs( $root, @synonyms );
-                    @synonyms = ();             # now reset to await next root
-                    $root     = q{};
-                }
-                else {                          # have more synonyms
-                    my $trimmed = $self->_trim_whitespace($line);
-                    my @new_synonyms = split /,/, $trimmed;
-                    push @synonyms, @new_synonyms;
-                }
-            }
+          }
+          else {
+            $root = q{};                         # ignore if bad term
+          }
         }
-        say '  Done.';    # finished with progress report
-    }
-
-    # _term_is_good($term)                                             {{{1
-    #
-    # does:   determine whether term is suitable for adding to thesaurus
-    # params: 1 - thesaurus term
-    # prints: nil
-    # return: boolean
-    # note:   term is suitable if it does not contain space, tab, dash,
-    #         quote, slash or dollar sign
-    method _term_is_good ($term) {
-        return $FALSE if $term =~ /\s/xsm;
-        return $FALSE if $term =~ /-/xsm;
-        return $FALSE if $term =~ /"/xsm;
-        return $FALSE if $term =~ /\//xsm;
-        return $FALSE if $term =~ /\$/xsm;
-        return $TRUE;
-    }
-
-    # _add_root_synonym_pairs($root, @synonyms)                        {{{1
-    #
-    # does:   add synonym pairs
-    # params: root and list of synonyms
-    # prints: nil
-    # return: nil
-    # note:   pairs root with each synonym in turn
-    method _add_root_synonym_pairs ($root, @synonyms) {
-        for my $synonym (@synonyms) {
-            $self->_add_pair("$root,$synonym\n");
-            $self->_add_pair("$synonym,$root\n");
+      }
+      else {    # still building synonym terms
+        if ($line =~ /^\s*$/xsm) {    # empty line = end of synonyms
+          @synonyms = grep { $self->_term_is_good($_) } @synonyms;
+          $self->_add_root_synonym_pairs($root, @synonyms);
+          @synonyms = ();             # now reset to await next root
+          $root     = q{};
         }
-    }
-
-    # _add_synonym_pairs(@synonyms)                                    {{{1
-    #
-    # does:   add synonym pairs
-    # params: list of synonyms
-    # prints: nil
-    # return: nil
-    # note:   assumes root is first element in synonym list, e.g.,
-    #             $self->_add_synonym_pairs($root, @synonyms);
-    # note:   "walks" along list adding consecutive pairs of terms
-    method _add_synonym_pairs (@synonyms) {
-        my ( $left, $right );
-        for my $synonym (@synonyms) {
-            $left  = $right;
-            $right = $synonym;
-            if ( $left and $right ) {
-                $self->_add_pair("$left,$right\n");
-                $self->_add_pair("$right,$left\n");
-            }
+        else {                        # have more synonyms
+          my $trimmed      = $self->_trim_whitespace($line);
+          my @new_synonyms = split /,/xsm, $trimmed;
+          push @synonyms, @new_synonyms;
         }
+      }
+    }
+    say '  Done.' or croak;    # finished with progress report
+
+    return $TRUE;
+  }
+
+  # _term_is_good($term)    {{{1
+  #
+  # does:   determine whether term is suitable for adding to thesaurus
+  # params: 1 - thesaurus term
+  # prints: nil
+  # return: boolean
+  # note:   term is suitable if it does not contain space, tab, dash,
+  #         quote, slash or dollar sign
+  sub _term_is_good ($self, $term)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    return $FALSE if $term =~ /\s/xsm;
+    return $FALSE if $term =~ /-/xsm;
+    return $FALSE if $term =~ /"/xsm;
+    return $FALSE if $term =~ /\//xsm;
+    return $FALSE if $term =~ /\$/xsm;
+    return $TRUE;
+  }
+
+  # _add_root_synonym_pairs($root, @synonyms)    {{{1
+  #
+  # does:   add synonym pairs
+  # params: root and list of synonyms
+  # prints: nil
+  # return: nil
+  # note:   pairs root with each synonym in turn
+  sub _add_root_synonym_pairs ($self, $root, @synonyms)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    for my $synonym (@synonyms) {
+      $self->_add_pair("$root,$synonym\n");
+      $self->_add_pair("$synonym,$root\n");
     }
 
-    # _trim_whitespace($line)                                          {{{1
-    #
-    # does:   removes whitespace leading, trailing and following commas
-    # params: 1 - line to be trimmed of whitespace
-    # prints: nil
-    # return: scalar (string)
-    method _trim_whitespace ($line) {
-        $line =~ s/^\s+//gxsm;
-        $line =~ s/\s+$//gxsm;
-        $line =~ s/,\s+/,/gxsm;
-        $line;
+    return $TRUE;
+  }
+
+  # _add_synonym_pairs(@synonyms)    {{{1
+  #
+  # does:   add synonym pairs
+  # params: list of synonyms
+  # prints: nil
+  # return: nil
+  # note:   assumes root is first element in synonym list, e.g.,
+  #             $self->_add_synonym_pairs($root, @synonyms);
+  # note:   "walks" along list adding consecutive pairs of terms
+  sub _add_synonym_pairs ($self, @synonyms)
+  { ## no critic (RequireInterpolationOfMetachars,ProhibitUnusedPrivateSubroutines)
+    my ($left_term, $right_term);
+    for my $synonym (@synonyms) {
+      $left_term  = $right_term;
+      $right_term = $synonym;
+      if ($left_term and $right_term) {
+        $self->_add_pair("$left_term,$right_term\n");
+        $self->_add_pair("$right_term,$left_term\n");
+      }
     }
 
-    # _uniquefy_terms()                                                {{{1
-    #
-    # does:   ensures terms are unique
-    # params: nil
-    # prints: feedback
-    # return: nil
-    method _uniquefy_terms () {
-        say 'Removing duplicates:';
-        say '  Extracting unique terms...';
-        my @unique = sort $self->_unique_terms;
-        say '  Clear existing data...';
-        $self->_clear_terms;
-        say '  Reloading unique terms...';
-        for my $pair (@unique) {
-            $self->_add_pair($pair);
-        }
-        say '  Done.';
+    return $TRUE;
+  }
+
+  # _trim_whitespace($line)    {{{1
+  #
+  # does:   removes whitespace leading, trailing and following commas
+  # params: 1 - line to be trimmed of whitespace
+  # prints: nil
+  # return: scalar (string)
+  sub _trim_whitespace ($self, $line)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    $line =~ s/^\s+//gxsm;
+    $line =~ s/\s+$//gxsm;
+    $line =~ s/,\s+/,/gxsm;
+    return $line;
+  }
+
+  # _uniquefy_terms()    {{{1
+  #
+  # does:   ensures terms are unique
+  # params: nil
+  # prints: feedback
+  # return: nil
+  sub _uniquefy_terms ($self) { ## no critic (RequireInterpolationOfMetachars)
+    say 'Removing duplicates:'         or croak;
+    say '  Extracting unique terms...' or croak;
+    my @unique = sort $self->_unique_terms;
+    say '  Clear existing data...' or croak;
+    $self->_clear_terms;
+    say '  Reloading unique terms...' or croak;
+    for my $pair (@unique) {
+      $self->_add_pair($pair);
     }
+    say '  Done.' or croak;    ## no critic (ProhibitDuplicateLiteral)
 
-    # _write_vim_thesaurus()                                           {{{1
-    #
-    # does:   writes vim thesaurus file 'MOBY.new'
-    # params: nil
-    # prints: nil
-    # return: nil
-    method _write_vim_thesaurus () {
-        my $outfile = $self->_moby . '.new';
-        say "Writing vim thesaurus '$outfile':";
-        open my $fh, '>', $outfile;
-        print {$fh} $self->_all_terms;
-        close $fh;
-        say '  Done.';
-        printf "Wrote %s entries to vim thesaurus '%s'\n",
-            $self->_term_count, $outfile;
-    }    #                                                             }}}1
+    return $TRUE;
+  }
 
-    1;
+  # _write_vim_thesaurus()    {{{1
+  #
+  # does:   writes vim thesaurus file 'MOBY.new'
+  # params: nil
+  # prints: nil
+  # return: nil
+  sub _write_vim_thesaurus ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    my $outfile = $self->_moby . '.new';
+    say "Writing vim thesaurus '$outfile':" or croak;
+    open my $fh, '>', $outfile;
+    print {$fh} $self->_all_terms or croak;
+    close $fh;
+    say '  Done.' or croak;    ## no critic (ProhibitDuplicateLiteral)
+    printf "Wrote %s entries to vim thesaurus '%s'\n",
+        $self->_term_count, $outfile;
+
+    return $TRUE;
+  }    # }}}1
+
+  1;
 }
 
 my $p = Dn::Internal->new->main;
 
-# POD                                                                  {{{1
+# POD    {{{1
+
+## no critic (RequirePodSections)
 
 __END__
 
@@ -372,8 +387,8 @@ All duplicate entries are removed before writing the vim thesaurus file.
 
 =head2 Perl modules
 
-autodie, Cwd, Function::Parameters, Getopt::Long::Descriptive, List::Util, Moo,
-MooX::HandlesVia, Readonly, strictures, Types::Standard, version.
+autodie, Const::Fast, Cwd, Getopt::Long::Descriptive, List::Util, Moo,
+MooX::HandlesVia, strictures, Types::Standard, version.
 
 =head2 Other
 
@@ -389,7 +404,7 @@ David Nebauer (david at nebauer dot org)
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 2015 David Nebauer (david at nebauer dot org)
+Copyright (c) 2015, 2024 David Nebauer (david at nebauer dot org)
 
 This script is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
