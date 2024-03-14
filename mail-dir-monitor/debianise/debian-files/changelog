@@ -1,3 +1,9 @@
+mail-dir-monitor (0.3-1) unstable; urgency=medium
+
+  * Modernise
+
+ -- David Nebauer <david@nebauer.org>  Thu, 14 Mar 2024 21:41:07 +0930
+
 mail-dir-monitor (0.2-2) unstable; urgency=medium
 
   * Replace when() (deprecated)

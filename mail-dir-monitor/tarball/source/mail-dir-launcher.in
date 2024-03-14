@@ -3,19 +3,22 @@
 use Moo;
 use strictures 2;
 use 5.006;
-use 5.22.1;
+use 5.036_001;
 use version; our $VERSION = qv('0.1');
 use namespace::clean;
+use Const::Fast;
 use Daemon::Control;
 use Getopt::Long;
 
+const my $DELAY => 300;
+
 # handle options
 
-my ( $conf_dir, $delay ) = ( q{}, 300 );
+my ($conf_dir, $delay) = (q{}, $DELAY);
 
 Getopt::Long::GetOptions(
-    'conf_dir|c' => \$conf_dir,
-    'delay|d=i'  => \$delay,
+  'conf_dir|c' => \$conf_dir,
+  'delay|d=i'  => \$delay,
 );
 
 my $args = [ '--delay', $delay ];
@@ -23,20 +26,25 @@ if ($conf_dir) { push @{$args}, '--conf_dir', $conf_dir; }
 
 # run daemon
 
+## no critic (RequireInterpolationOfMetachars, ProhibitDuplicateLiteral)
 exit Daemon::Control->new(
-    name         => 'Mail Directory Monitor',
-    program      => '/usr/sbin/mail-dir-monitor',
-    program_args => $args,
-    path         => '/usr/sbin/mail-dir-launcher',
-    pid_file     => '/var/run/mail-dir-monitor.pid',
-    kill_timeout => 5,
-    lsb_start    => '$syslog $local_fs $named $time',
-    lsb_stop     => '$syslog $local_fs $named $time',
-    lsb_sdesc    => 'A daemon which controls the mail-dir-monitor utility',
-    lsb_desc     => 'Monitor mail queue directories for stuck files',
+  name         => 'Mail Directory Monitor',
+  program      => '/usr/sbin/mail-dir-monitor',
+  program_args => $args,
+  path         => '/usr/sbin/mail-dir-launcher',
+  pid_file     => '/var/run/mail-dir-monitor.pid',
+  kill_timeout => 5,
+  lsb_start    => '$syslog $local_fs $named $time',
+  lsb_stop     => '$syslog $local_fs $named $time',
+  lsb_sdesc    => 'A daemon which controls the mail-dir-monitor utility',
+  lsb_desc     => 'Monitor mail queue directories for stuck files',
 )->run;
+## use critic
 
 # POD    {{{1
+
+## no critic (RequirePodSections)
+
 __END__
 
 =encoding utf8
@@ -47,7 +55,7 @@ mail-dir-launcher - launcher for mail-dir-monitor daemon
 
 =head1 USAGE
 
-B<mail-dir-launcher> [B<-c>] [B<-d>] 
+B<mail-dir-launcher> [B<-c>] [B<-d>]
 
 B<mail-dir-launcher> B<-h>
 
@@ -89,7 +97,8 @@ mail-dir-monitor.
 
 =head2 Perl modules
 
-Daemon::Control, Getopt::Long, Moo, namespace::clean, strictures, version.
+Const::Fast, Daemon::Control, Getopt::Long, Moo, namespace::clean, strictures,
+version.
 
 =head1 BUGS AND LIMITATIONS
 
