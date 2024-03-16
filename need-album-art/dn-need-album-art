@@ -1,74 +1,74 @@
 #!/usr/bin/perl
 
-use Moo;    # {{{1
+use Moo;                 # {{{1
 use strictures 2;
 use 5.006;
-use 5.022001;
+use 5.036_001;
 use version; our $VERSION = qv('0.1');
-use namespace::clean;
-use utf8;    # }}}1
+use namespace::clean;    # }}}1
 
 {
 
-    package Dn::NeedAlbumArt;
+  package Dn::NeedAlbumArt;
 
-    use Moo;    # {{{1
-    use strictures 2;
-    use namespace::clean;
-    use Carp qw(croak);
-    use Const::Fast;
-    use Cwd;
-    use English qw(-no_match_vars);
-    use File::Find::Rule;
-    use File::Spec;
-    use Function::Parameters;
-    use List::MoreUtils;
-    use MooX::Options protect_argv => 0;
+  use Moo;               # {{{1
+  use strictures 2;
+  use namespace::clean;
+  use Carp qw(croak);
+  use Const::Fast;
+  use Cwd;
+  use English qw(-no_match_vars);
+  use File::Find::Rule;
+  use File::Spec;
+  use List::SomeUtils;
+  use MooX::Options protect_argv => 0;
 
-    const my $TRUE  => 1;
-    const my $FALSE => 0;    # }}}1
+  const my $TRUE  => 1;
+  const my $FALSE => 0;
+  const my $BASE  => Cwd::getcwd;    # }}}1
 
-    # methods
+  # methods
 
-    # main()    {{{1
-    #
-    # does:   main method
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    method main () {
+  # main()    {{{1
+  #
+  # does:   main method
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub main ($self) {    ## no critic (RequireInterpolationOfMetachars)
 
-        const my $BASE => Cwd::getcwd;
+    # get directories with mp3 files but no album cover art
+    # - File::Find::Rule->exec($filter) invokes $filter with $_ (aka $ARG)
+    #   set to:
+    #   (short name, name parameters, current path, full relative filename)
+    my $filter = sub {
 
-        # get directories with mp3 files but no album cover art
-        my $filter = sub {
+      # get current directory path
+      my $path = $ARG[2];    # third parameter
 
-            # get current directory path
-            my $path = $ARG[2];    # third parameter
+      # look for mp3 files
+      my $glob_mp3 = File::Spec->catfile($path, '*.mp3');
+      my @mp3s     = glob $glob_mp3;
 
-            # look for mp3 files
-            my $glob_mp3 = File::Spec->catfile( $path, '*.mp3' );
-            my @mp3s     = glob $glob_mp3;
+      # look for album cover art
+      my $glob_art  = File::Spec->catfile($path, '{cover,album}.{png,jpg}');
+      my @art_files = glob $glob_art;
+      my $has_art   = List::SomeUtils::any {-e} @art_files;
 
-            # look for album cover art
-            my $glob_art
-                = File::Spec->catfile( $path, '{cover,album}.{png,jpg}' );
-            my @art_files = glob $glob_art;
-            my $has_art   = List::MoreUtils::any {-e} @art_files;
+      # return true if has mp3 files but no album cover art
+      return (@mp3s and not $has_art);
+    };
 
-            # return true if has mp3 files but no album cover art
-            return ( @mp3s and not $has_art );
+    my @dirpaths = File::Find::Rule->directory->exec($filter)->in($BASE);
 
-        };
-        my @dirpaths = File::Find::Rule->directory->exec($filter)->in($BASE);
+    # convert all found (absolute) directory paths into relative paths
+    my @dirs = map { File::Spec->abs2rel($_, $BASE) } @dirpaths;
 
-        # convert all found (absolute) directory paths into relative paths
-        my @dirs = map { File::Spec->abs2rel( $_, $BASE ) } @dirpaths;
+    # output directories to stdout
+    foreach (sort @dirs) { say or croak; }
 
-        # output directories to stdout
-        foreach (sort @dirs) { say or croak; }
-
-    }    # }}}1
+    return;
+  }    # }}}1
 
 }
 
@@ -110,7 +110,7 @@ Display help and exit.
 Search the current directory recursively for subdirectories that need album
 cover art. More specifically, it searches for subdirectories containing mp3
 files but no album cover art file. An album cover art file is one named
-F<album.png>, F<album.jpg>, F<cover.png>, or F<cover.png>. 
+F<album.png>, F<album.jpg>, F<cover.png>, or F<cover.png>.
 
 The subdirectories matching these conditions are printed to STDOUT, one per
 line.
@@ -124,9 +124,7 @@ by an underlying module or by the operating system.
 
 =head2 Perl modules
 
-Carp, Const::Fast, Cwd, English, File::Find::Rule, File::Spec,
-Function::Parameters, List::MoreUtils, Moo, MooX::Options, namespace::clean,
-strictures, utf8, version.
+Carp, Const::Fast, Cwd, English, File::Find::Rule, File::Spec, List::SomeUtils, Moo, MooX::Options, namespace::clean, strictures, utf8, version.
 
 =head1 CONFIGURATION
 
