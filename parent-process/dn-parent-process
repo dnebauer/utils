@@ -2,7 +2,7 @@
 
 use Moo;    # {{{1
 use strictures 2;
-use 5.014_002;
+use 5.036_001;
 use version; our $VERSION = qv('0.1');
 
 # package Dn::Internal::Pair {{{1
@@ -50,20 +50,19 @@ use version; our $VERSION = qv('0.1');
 
   use Moo;                 # {{{1
   use strictures 2;
+  use autodie qw(open close);
   use MooX::HandlesVia;
   use namespace::clean -except => [ '_options_data', '_options_config', ];
-  use Carp;
-  use Dn::Common;
+  use Carp qw(croak confess);
+  use Const::Fast;
   use Dn::Internal::Pair;
   use English qw(-no_match_vars);
-  use Function::Parameters;
   use Getopt::Long::Descriptive;
-  use List::Util;
-  use Const::Fast;
+  use List::SomeUtils;
+  use Proc::ProcessTable;
   use Types::Standard qw(Int);
-  use autodie         qw(open close);
-  use experimental 'switch';
-  my $cp = Dn::Common->new();
+
+  with qw(Role::Utils::Dn);
 
   const my $TRUE  => 1;
   const my $FALSE => 0;    # }}}1
@@ -72,28 +71,36 @@ use version; our $VERSION = qv('0.1');
 
   # _pid {{{1
   has '_pid' => (
-    is  => 'lazy',
-    isa => Types::Standard::Int,
-    doc => 'Child process id',     ## no critic (ProhibitDuplicateLiteral)
+    is      => 'ro',
+    isa     => Types::Standard::Int,
+    lazy    => $TRUE,
+    default => sub {
+      my $self = shift;
+      my @args = List::SomeUtils::uniq @ARGV;
+
+      # no duplicates allowed
+      if (scalar @ARGV > scalar @args) {
+        die "Duplicate arguments not allowed\n";
+      }
+
+      # must have one argument only
+      if (not @args) {
+        die "No pid provided\n";
+      }
+      if (scalar @args > 1) {
+        die "Too many arguments (need one only)\n";
+      }
+
+      return $args[0];
+    },
+    doc => 'Child process id to analyse',
   );
 
-  method _build__pid () {    ## no critic (ProhibitUnusedPrivateSubroutines)
-
-    my @args = List::Util::uniq @ARGV;
-
-    # no duplicates allowed
-    if (scalar @ARGV > scalar @args) {
-      die "Duplicate arguments not allowed\n";
-    }
-
-    # must have one argument only
-    die "No argument provided\n"               if not @args;
-    die "Too many arguments (need one only)\n" if scalar @args > 1;
-
-    return $args[0];
-  }
-
   # _data {{{1
+  # - structure: [
+  #     [ parent, child ],
+  #     ... ,
+  #   ]
   has '_data' => (
     is  => 'rw',
     isa => Types::Standard::ArrayRef [
@@ -107,12 +114,23 @@ use version; our $VERSION = qv('0.1');
       _pairs    => 'elements',
     },
     documentation => 'Parent and child process details',
+  );
 
-    # structure: [
-    #   [ parent, child ],
-    #   ... ,
-    # ]
-  );    # }}}1
+  # _add_process, _clear_processes, _command, _pids    {{{1
+  has '_processes' => (
+    is          => 'rw',
+    isa         => Types::Standard::HashRef [Types::Standard::Str],
+    lazy        => $TRUE,
+    default     => sub { {} },
+    handles_via => 'Hash',
+    handles     => {
+      _add_process     => 'set',      # ($pid, $cmd)->void
+      _clear_processes => 'clear',    # ()->void
+      _command         => 'get',      # ($pid)->$cmd
+      _pids            => 'keys',     # ()->@pids
+    },
+    documentation => q{Running processes},
+  );                                  # }}}1
 
   # methods
 
@@ -122,31 +140,10 @@ use version; our $VERSION = qv('0.1');
   #   params: nil
   #   prints: feedback
   #   return: result
-  method main () {
-    $self->_usage;    # print usage message if help requested
+  sub main ($self) {    ## no critic (RequireInterpolationOfMetachars)
+    $self->_usage;      # print usage message if help requested
     $self->_get_process_data();
     $self->_print_data();
-    return;
-  }
-
-  # _usage() {{{1
-  #
-  # does:   print usage message if requested
-  # params: nil
-  # prints: feedback
-  # return: n/a, dies on failure
-  method _usage () {
-
-    # handle args
-    my ($opt, $usage) =
-        Getopt::Long::Descriptive::describe_options('%c %o <pid>', [],
-      [ 'help|h', 'print usage message and exit', { shortcircuit => 1 }, ],
-        );
-    if ($opt->help) {
-      print $usage->text or croak;
-      exit;
-    }
-
     return;
   }
 
@@ -156,11 +153,12 @@ use version; our $VERSION = qv('0.1');
   # params: nil
   # prints: nil
   # return: n/a, dies on failure
-  method _get_process_data () {
+  sub _get_process_data ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
     my $child = $self->_pid;
     while ($child != 0) {    # 0 is kernel, the final parent
-      my $parent  = $cp->process_parent($child);
-      my $command = $cp->pid_command($child);
+      my $parent  = $self->_process_parent($child);
+      my $command = $self->_pid_command($child);
       my $pair    = Dn::Internal::Pair->new(
         parent  => $parent,
         child   => $child,
@@ -172,13 +170,57 @@ use version; our $VERSION = qv('0.1');
     return;
   }
 
+  # _load_processes()    {{{1
+  #
+  # does:   load '_processes' attribute with pid=>command pairs
+  # params: nil
+  # prints: nil
+  # return: nil
+  sub _load_processes ($self) { ## no critic (RequireInterpolationOfMetachars)
+    $self->_clear_processes;
+    foreach my $process (@{ Proc::ProcessTable->new()->table() }) {
+      $self->_add_process($process->pid, $process->cmndline);
+    }
+    return;
+  }
+
+  # _pid_command($pid)    {{{1
+  #
+  # does:   get command for given process id
+  # params: $pid - process id [required]
+  # prints: nil, except error messages
+  # return: scalar string (process command)
+  sub _pid_command ($self, $pid)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    if (not $self->_pid_running($pid)) {
+      warn "PID '$pid' is not running\n";
+      return q{};
+    }
+    return $self->_command($pid);
+  }
+
+  # _pid_running($pid)    {{{1
+  #
+  # does:   determines whether process id is running
+  #         reloads processes each time method is called
+  # params: $pid - pid to look for [required]
+  # prints: nil
+  # return: boolean scalar
+  sub _pid_running ($self, $pid)
+  {   ## no critic (RequireInterpolationOfMetachars, ProhibitDuplicateLiteral)
+    if (not $pid) { return $FALSE; }
+    $self->_reload_processes;
+    my @pids = $self->_pids();
+    return scalar grep {/^$pid$/xsm} @pids;    # force scalar context
+  }
+
   # _print_data() {{{1
   #
   # does:   print process data in pretty table
   # params: nil
   # prints: nil
   # return: n/a, dies on failure
-  method _print_data () {
+  sub _print_data ($self) {    ## no critic (RequireInterpolationOfMetachars)
 
     # create table and header
     my $sep = \' | ';
@@ -189,7 +231,7 @@ use version; our $VERSION = qv('0.1');
     # - localise package variable as per Perl Best Practice (pp. 77-79)
     const my $LAST_COL_MIN_WIDTH => 15;
     const my $OTHER_COLS_WIDTH   => 18;
-    my $term_width     = $cp->term_size->width;
+    my $term_width     = $self->term_width;
     my $last_col_width = $term_width - $OTHER_COLS_WIDTH;
     if ($last_col_width < $LAST_COL_MIN_WIDTH) {
       die "Terminal is too narrow for display\n";
@@ -218,6 +260,65 @@ use version; our $VERSION = qv('0.1');
     }
     foreach my $line (@output) { $line = q{ } . $line; }    # prepend space
     foreach my $line (@output) { print $line or croak; }
+
+    return;
+  }
+
+  # _process_parent($pid)    {{{1
+  #
+  # does:   gets parent process of a specified pid
+  # params: $pid - pid to analyse [required]
+  # prints: nil, except errors
+  # return: scalar int (pid)
+  sub _process_parent ($self, $pid)
+  {   ## no critic (RequireInterpolationOfMetachars, ProhibitDuplicateLiteral)
+
+    # check arg
+    if (not $self->_pid_running($pid)) {
+      die "PID '$pid' is not running\n";
+    }
+
+    # get parent process
+    my $t = Proc::ProcessTable->new();
+    my @parents =
+        map { $_->ppid() } grep { $_->pid() == $pid } @{ $t->table() };
+    my $parent_count = @parents;
+    if ($parent_count == 0) { confess "No parent PID found for PID '$pid'"; }
+    if ($parent_count > 1) {
+      confess "Multiple parent PIDs found for PID '$pid'";
+    }
+    return $parents[0];
+  }
+
+  # _reload_processes()    {{{1
+  #
+  # does:   reload '_processes' attribute with pid=>command pairs
+  # params: nil
+  # prints: nil
+  # return: nil
+  sub _reload_processes ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    $self->_load_processes;
+    return;
+  }
+
+  # _usage() {{{1
+  #
+  # does:   print usage message if requested
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub _usage ($self) {    ## no critic (RequireInterpolationOfMetachars)
+
+    # handle args
+    my ($opt, $usage) =
+        Getopt::Long::Descriptive::describe_options('%c %o <pid>', [],
+      [ 'help|h', 'print usage message and exit', { shortcircuit => 1 }, ],
+        );
+    if ($opt->help) {
+      print $usage->text or croak;
+      exit;
+    }
 
     return;
   }    # }}}1
@@ -273,10 +374,9 @@ tabular format.
 
 =head2 Perl modules
 
-autodie, Carp, Const::Fast, Dn::Common, English, experimental,
-Function::Parameters, Getopt::Long::Descriptive, List::Util, Moo,
-MooX::HandlesVia, namespace::clean, strictures, Text::Table, Text::Wrap,
-Types::Dn, Types::Standard, version.
+autodie, Carp, Const::Fast, English, Getopt::Long::Descriptive,
+List::SomeUtils, Moo, MooX::HandlesVia, namespace::clean, Proc::ProcessTable,
+strictures, Role::Utils::Dn, Text::Table, Text::Wrap, Types::Standard, version.
 
 =head2 Executables
 
@@ -286,13 +386,13 @@ ps.
 
 =head2 Operating systems
 
-Underlying library L</"Dn::Common"> uses module L</"Proc::ProcessTable"> to
-determine process parentage. At the time of writing this module worked on
-darwin, nonstop-ux, Cygwin on Windows, linux, solaris, aix, hpux, freebsd,
-irix, dec_osf, bsdi, netbsd, unixware 7.x, SunOS and openbsd.
+The module L</"Proc::ProcessTable"> is used to determine process parentage.
+At the time of writing this module worked on darwin, nonstop-ux, Cygwin on
+Windows, linux, solaris, aix, hpux, freebsd, irix, dec_osf, bsdi, netbsd,
+unixware 7.x, SunOS and openbsd.
 
-Note that it does not work on Windows natively, but on Cygwin on Windows. See
-the module's current README for updated information.
+Note that it does not work on Windows natively, but on Cygwin on Windows.
+See the module's current README for updated information.
 
 =head1 BUGS AND LIMITATIONS
 

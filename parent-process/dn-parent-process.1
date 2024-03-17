@@ -55,7 +55,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DN-PARENT-PROCESS 1"
-.TH DN-PARENT-PROCESS 1 2024-02-04 "perl v5.38.2" "User Contributed Perl Documentation"
+.TH DN-PARENT-PROCESS 1 2024-03-17 "perl v5.38.2" "User Contributed Perl Documentation"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -85,10 +85,9 @@ tabular format.
 .IX Header "DEPENDENCIES"
 .SS "Perl modules"
 .IX Subsection "Perl modules"
-autodie, Carp, Const::Fast, Dn::Common, English, experimental,
-Function::Parameters, Getopt::Long::Descriptive, List::Util, Moo,
-MooX::HandlesVia, namespace::clean, strictures, Text::Table, Text::Wrap,
-Types::Dn, Types::Standard, version.
+autodie, Carp, Const::Fast, English, Getopt::Long::Descriptive,
+List::SomeUtils, Moo, MooX::HandlesVia, namespace::clean, Proc::ProcessTable,
+strictures, Role::Utils::Dn, Text::Table, Text::Wrap, Types::Standard, version.
 .SS Executables
 .IX Subsection "Executables"
 ps.
@@ -96,13 +95,13 @@ ps.
 .IX Header "CONFIGURATION AND ENVIRONMENT"
 .SS "Operating systems"
 .IX Subsection "Operating systems"
-Underlying library "Dn::Common" uses module "Proc::ProcessTable" to
-determine process parentage. At the time of writing this module worked on
-darwin, nonstop-ux, Cygwin on Windows, linux, solaris, aix, hpux, freebsd,
-irix, dec_osf, bsdi, netbsd, unixware 7.x, SunOS and openbsd.
+The module "Proc::ProcessTable" is used to determine process parentage.
+At the time of writing this module worked on darwin, nonstop-ux, Cygwin on
+Windows, linux, solaris, aix, hpux, freebsd, irix, dec_osf, bsdi, netbsd,
+unixware 7.x, SunOS and openbsd.
 .PP
-Note that it does not work on Windows natively, but on Cygwin on Windows. See
-the module's current README for updated information.
+Note that it does not work on Windows natively, but on Cygwin on Windows.
+See the module's current README for updated information.
 .SH "BUGS AND LIMITATIONS"
 .IX Header "BUGS AND LIMITATIONS"
 Please report any bugs to the author.
