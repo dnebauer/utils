@@ -1,106 +1,113 @@
-#!/usr/bin/perl 
+#!/usr/bin/perl
 
-use Moo;    # {{{1
+use Moo;                 # {{{1
 use strictures 2;
-use 5.014_002;
+use 5.036_001;
 use version; our $VERSION = qv('0.1');
 use namespace::clean;    # }}}1
 
 {
 
-    package Dn::PkgUpdate;
+  package Dn::PkgUpdate;
 
-    use Moo;             # {{{1
-    use strictures 2;
-    use namespace::clean -except => [ '_options_data', '_options_config' ];
-    use Env qw(USER);
-    use Function::Parameters;
-    use MooX::HandlesVia;
-    use MooX::Options;
-    use Readonly;
-    use Types::Standard qw(ArrayRef Str);
-    use Dn::Common;
-    my $cp = Dn::Common->new();
+  use Moo;               # {{{1
+  use strictures 2;
+  use namespace::clean -except => [ '_options_data', '_options_config' ];
+  use Carp qw(croak);
+  use Const::Fast;
+  use Env qw($USER);
+  use MooX::HandlesVia;
+  use MooX::Options;
+  use Types::Standard;
 
-    Readonly my $TRUE  => 1;
-    Readonly my $FALSE => 0;    # }}}1
+  with qw(Role::Utils::Dn);
 
-    # options
+  const my $TRUE     => 1;
+  const my $FALSE    => 0;
+  const my $APTITUDE => 'aptitude';
 
-    # option ignore_failure (-i)    {{{1
-    option 'ignore_failure' => (
-        is            => 'ro',
-        required      => $FALSE,
-        short         => 'i',
-        documentation => 'Continue after failed command',
-    );    # }}}1
-          # option final_prompt   (-p)    {{{1
-    option 'final_prompt' => (
-        is            => 'ro',
-        required      => $FALSE,
-        short         => 'p',
-        documentation => 'Prompt when finished',
-    );    # }}}1
+  # }}}1
 
-    # attributes
+  # options
 
-    # _cmds    {{{1
-    has '_cmd_list' => (
-        is  => 'ro',
-        isa => Types::Standard::ArrayRef [
-            Types::Standard::ArrayRef [Types::Standard::Str]
-        ],
-        required      => $TRUE,
-        builder       => '_build_cmd_list',
-        handles_via   => 'Array',
-        handles       => { _cmds => 'elements', },
-        documentation => q{Aptitude commands},
-    );
+  # ignore_failure (-i)    {{{1
+  option 'ignore_failure' => (
+    is            => 'ro',
+    required      => $FALSE,
+    short         => 'i',
+    documentation => 'Continue after failed command',
+  );
 
-    method _build_cmd_list () {
-        my $cmds = [
-            ['dn-local-apt-repository-update-all-dirs'],
-            [ 'aptitude', 'update' ],
-            [ 'aptitude', '--autoclean-on-startup' ],
-            [ 'aptitude', 'install' ],
-        ];
-        if ( $USER ne 'root' ) {
-            foreach my $cmd ( @{$cmds} ) {
-                unshift @{$cmd}, 'sudo';
-            }
+  # final_prompt   (-p)    {{{1
+  option 'final_prompt' => (
+    is            => 'ro',
+    required      => $FALSE,
+    short         => 'p',
+    documentation => 'Prompt when finished',
+  );    # }}}1
+
+  # attributes
+
+  # _cmds    {{{1
+  has '_cmd_list' => (
+    is  => 'ro',
+    isa => Types::Standard::ArrayRef [
+      Types::Standard::ArrayRef [Types::Standard::Str],
+    ],
+    required    => $TRUE,
+    builder     => '_build_cmd_list',
+    handles_via => 'Array',
+    handles     => { _cmds => 'elements', },
+    default     => sub {
+      my $self = shift;
+      my $cmds = [
+        ['dn-local-apt-repository-update-all-dirs'],
+        [ $APTITUDE, 'update' ],
+        [ $APTITUDE, '--autoclean-on-startup' ],
+        [ $APTITUDE, 'install' ],
+      ];
+      if ($USER ne 'root') {
+        foreach my $cmd (@{$cmds}) {
+          unshift @{$cmd}, 'sudo';
         }
-        return $cmds;
-    }    # }}}1
+      }
+      return $cmds;
+    },
+    documentation => q{Aptitude commands},
+  );    # }}}1
 
-    # methods
+  # methods
 
-    # main()    {{{1
-    #
-    # does:   main method
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    method main () {
+  # main()    {{{1
+  #
+  # does:   main method
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub main ($self) {    ## no critic (RequireInterpolationOfMetachars)
 
-        # check for defined apps
-        if ( not $self->_cmds ) { die "No apps defined\n"; }
-        my @cmds = $self->_cmds;
+    # check for defined apps
+    if (not $self->_cmds) { die "No apps defined\n"; }
+    my @cmds = $self->_cmds;
 
-        # check for internet connection
-        if ( not $cp->internet_connection() ) {
-            die "No internet connection detected\n";
+    # check for internet connection
+    if (not $self->internet_connection()) {
+      die "No internet connection detected\n";
+    }
+    foreach my $cmd_parts (@cmds) {
+      my @cmd     = @{$cmd_parts};
+      my $cmd_str = join q{ }, @cmd;
+      my $msg     = sprintf "\nRunning [%s]...\n", $cmd_str;
+      say $msg or croak;
+      if (!eval { system @cmd; 1 }) {
+        if (not $self->ignore_failure) {
+          die "Command failed, aborting...\n";
         }
-        foreach my $cmd_parts (@cmds) {
-            my @cmd = @{$cmd_parts};
-            say "\nRunning [" . ( join q{ }, @cmd ) . "]...\n";
-            if ( !eval { system @cmd; 1 } ) {
-                if ( not $self->ignore_failure ) {
-                    die "Command failed, aborting...\n";
-                }
-            }
-        }
-        if ( $self->final_prompt ) { $cp->prompt(); }
-    }    # }}}1
+      }
+    }
+    if ($self->final_prompt) { $self->interact_prompt(); }
+    return;
+  }    # }}}1
 
 }
 
@@ -121,6 +128,10 @@ dn-pkg-update - update existing, and install new, debian packages
 B<dn-pkg-update> [ I<-i> ] [ I<-f> ]
 
 B<dn-pkg-update -h>
+
+=head1 REQUIRED ARGUMENTS
+
+There are no required arguments.
 
 =head1 OPTIONS
 
@@ -168,16 +179,46 @@ This script runs the following commands in sequence:
 Package management is a superuser activity. If the user is not root the package
 management commands are run with C<sudo>.
 
+=head1 DIAGNOSTICS
+
+=head2 Command failed, aborting...
+
+This error occurs if a package update command exits with an error status.
+
+=head2 No apps defined
+
+This error means no package update commands have been defined.
+It is an internal script error which requires script modification.
+
+=head2 No internet connection detected
+
+This script requires an internet connection and will die with this error
+message if no such connection is found.
+
+=head1 CONFIGURATION
+
+There is no script configuration.
+
 =head1 DEPENDENCIES
 
 =head2 Perl modules
 
-Dn::Common, Env, Function::Parameters, Moo, MooX::HandlesVia, MooX::Options,
-namespace::clean, Readonly, strictures, Types::Standard, version.
+Const::Fast, Env, Moo, MooX::HandlesVia, MooX::Options, namespace::clean,
+Role::Utils::Dn, strictures, Types::Standard, version.
 
 =head2 Executables
 
 aptitude, dn-local-apt-repository-update-all-dirs, perl, sudo.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 EXIT STATUS
+
+The scripts exits with exit code 0 if it completes successfully.
+If the script fails it exits with an exit code assigned by the perl 'die'
+command.
 
 =head1 BUGS AND LIMITATIONS
 
