@@ -1,184 +1,210 @@
-#!/usr/bin/perl 
+#!/usr/bin/perl
 
-use Moo;    # {{{1
+use Moo;                                  # {{{1
 use strictures 2;
-use 5.014_002;
+use 5.036_001;
 use version; our $VERSION = qv('0.1');    # }}}1
 
 {
 
-    package Dn::Internal;
+  package Dn::Internal;
 
-    use Moo;                              # }}}1
-    use strictures 2;
-    use MooX::Options protect_argv => 0;
-    use namespace::clean -except   => [ '_options_data', '_options_config' ];
-    use Carp qw(croak);
-    use Clipboard;
-    use Const::Fast;
-    use English qw( -no_match_vars );
-    use Function::Parameters;
-    use List::MoreUtils;
-    use List::Util;
-    use POSIX;    # for WIFEXITED, WEXITSTATUS, WIFSIGNALED, WTERMSIG
-    use Symbol;
-    use Types::Standard;
+  use Moo;                                # }}}1
+  use strictures 2;
+  use MooX::Options protect_argv => 0;
+  use namespace::clean -except => [ '_options_data', '_options_config' ];
+  use Carp qw(croak confess);
+  use Clipboard;
+  use Const::Fast;
+  use English;
+  use List::SomeUtils;
+  use Symbol;
+  use Types::Standard;
 
-    with qw(Role::Utils::Dn);
+  with qw(Role::Utils::Dn);
 
-    const my $TRUE  => 1;
-    const my $FALSE => 0;    # }}}1
+  const my $TRUE  => 1;
+  const my $FALSE => 0;    # }}}1
 
-    # options
+  # options
 
-    # no_copy            (-n) {{{1
-    option 'no_copy' => (
-        is       => 'ro',
-        required => $FALSE,
-        short    => 'n',
-        doc      => q{Don't copy package name to clipboard},
-    );
+  # no_copy            (-n) {{{1
+  option 'no_copy' => (
+    is       => 'ro',
+    required => $FALSE,
+    short    => 'n',
+    doc      => q{Don't copy package name to clipboard},
+  );
 
-    # additional_modules (-a) {{{1
-    option 'additional_modules' => (
-        is        => 'ro',
-        format    => 's@',
-        required  => $FALSE,
-        default   => sub { [] },
-        autosplit => q{,},
-        short     => 'a',
-        doc       => 'Perl modules required for perl command',
-    );    # }}}1
+  # additional_modules (-a) {{{1
+  option 'additional_modules' => (
+    is        => 'ro',
+    format    => 's@',
+    required  => $FALSE,
+    default   => sub { [] },
+    autosplit => q{,},
+    short     => 'a',
+    doc       => 'Perl modules required for perl command',
+  );    # }}}1
 
-    # attributes
+  # attributes
 
-    # _module {{{1
-    has '_module' => (
-        is  => 'lazy',
-        isa => Types::Standard::Str,
-        doc => 'Perl module name',
-    );
+  # _module {{{1
+  has '_module' => (
+    is      => 'ro',
+    isa     => Types::Standard::Str,
+    lazy    => $TRUE,
+    default => sub {
+      my $self = shift;
+      my @args = List::SomeUtils::uniq @ARGV;
 
-    method _build__module () {
+      # must have one argument only
+      die "No argument provided\n"                  if not @args;
+      die "Too many module names (need one only)\n" if scalar @args > 1;
 
-        my @args = List::Util::uniq @ARGV;
+      return $args[0];
+    },
+    doc => 'Perl module name',
+  );
 
-        # must have one argument only
-        die "No argument provided\n"                  if not @args;
-        die "Too many module names (need one only)\n" if scalar @args > 1;
+  # _module_file    {{{1
+  has '_module_file' => (
+    is            => 'rw',
+    isa           => Types::Standard::Str,
+    required      => $FALSE,
+    documentation => 'File from which module loaded',
+  );
 
-        return $args[0];
+  # _debian_package    {{{1
+  has '_debian_package' => (
+    is            => 'rw',
+    isa           => Types::Standard::Str,
+    required      => $FALSE,
+    documentation => 'Debian package providing module',
+  );    # }}}1
+
+  # methods
+
+  # main()    {{{1
+  #
+  # does:   main method
+  # params: nil
+  # prints: feedback
+  # return: result
+  sub main ($self) {    ## no critic (RequireInterpolationOfMetachars)
+    $self->_get_module_file();
+    $self->_get_debian_package();
+    $self->_provide_feedback();
+    $self->_copy_to_clipboard();
+    return;
+  }
+
+  # _copy_to_clipboard()    {{{1
+  #
+  # does:   copy package name to clipboard
+  # params: nil
+  # prints: feedback if error
+  # return: n/a
+  sub _copy_to_clipboard ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+
+    return if $self->no_copy;
+
+    my $pkg = $self->_debian_package;
+
+    $self->copy_to_clipboard($pkg);
+
+    return;
+
+  }
+
+  # _get_cmd_output($cmd)    {{{1
+  #
+  # does:   get output from shell command
+  # params: $cmd - shell command [arrayref, required]
+  # prints: nil
+  # return: array
+  sub _get_cmd_output ($self, $cmd)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    my @output;
+    my $result = $self->shell_command($cmd);    # croaks on failure
+    push @output, $result->stdout;
+    if (not @output) { exit; }                  # error already displayed
+    if (scalar @output != 1) {
+      my $msg = q{Unexpected output '} . join q{|}, @output . q{'};
+      confess $msg;
     }
+    return @output;
+  }
 
-    # _module_file    {{{1
-    has '_module_file' => (
-        is            => 'rw',
-        isa           => Types::Standard::Str,
-        required      => $FALSE,
-        documentation => 'File from which module loaded',
-    );
+  # _get_debian_package()    {{{1
+  #
+  # does:   get file loaded for module
+  # params: nil
+  # prints: nil
+  # return: scalar file path
+  sub _get_debian_package ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    my $module_file = $self->_module_file;
+    my $cmd         = [ 'dpkg', '-S', $module_file ];
+    ##my @output;
+    ##my $result = $self->shell_command($cmd);    # croaks on failure
+    ##push @output, $result->stdout;
+    ##if (not @output) { exit; }                  # error already displayed
+    ##if (scalar @output != 1) {
+    ##  my $msg = q{Unexpected output '} . join $PIPE, @output . $SINGLE_QUOTE;
+    ##  confess $msg;
+    ##}
+    my @output         = $self->_get_cmd_output($cmd);
+    my $debian_package = (split /:/xsm, $output[0])[0];
+    $self->_debian_package($debian_package);
+    return;
+  }
 
-    # _debian_package    {{{1
-    has '_debian_package' => (
-        is            => 'rw',
-        isa           => Types::Standard::Str,
-        required      => $FALSE,
-        documentation => 'Debian package providing module',
-    );    # }}}1
-
-    # methods
-
-    # main()    {{{1
-    #
-    # does:   main method
-    # params: nil
-    # prints: feedback
-    # return: result
-    method main () {
-        $self->_get_module_file();
-        $self->_get_debian_package();
-        $self->_provide_feedback();
-        $self->_copy_to_clipboard();
+  # _get_module_file()    {{{1
+  #
+  # does:   get file loaded for module
+  # params: nil
+  # prints: nil
+  # return: scalar file path
+  sub _get_module_file ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    my $module = $self->_module;
+    my $file   = $module =~ s{::}{/}grxsm;
+    my $cmd;
+    $cmd .= q[perl];
+    my @additional_modules = @{ $self->additional_modules };
+    foreach my $additional_module (@additional_modules) {
+      $cmd .= qq[ -M'$additional_module'];
     }
+    $cmd .= qq[ -M'$module' -E 'say ] . q[$] . qq[INC{"${file}.pm"}'];
+    ##my @output;
+    ##my $result = $self->shell_command($cmd);    # croaks on failure
+    ##push @output, $result->stdout;
+    ##if (not @output) { exit; }                  # error already displayed
+    ##if (scalar @output != 1) {
+    ##  my $msg = q{Unexpected output '} . join $PIPE, @output . $SINGLE_QUOTE;
+    ##  confess $msg;
+    ##}
+    my @output      = $self->_get_cmd_output($cmd);
+    my $module_file = $output[0];
+    $self->_module_file($self->path_true($module_file));
+    return;
+  }
 
-    # _get_module_file()    {{{1
-    #
-    # does:   get file loaded for module
-    # params: nil
-    # prints: nil
-    # return: scalar file path
-    method _get_module_file () {
-        my $module = $self->_module;
-        my $file   = $module =~ s{::}{/}grxsm;
-        my $cmd;
-        $cmd .= q[perl];
-        my @additional_modules = @{ $self->additional_modules };
-        foreach my $additional_module (@additional_modules) {
-            $cmd .= qq[ -M'$additional_module'];
-        }
-        $cmd .= qq[ -M'$module' -E 'say ] . q[$] . qq[INC{"${file}.pm"}'];
-        my @output;
-        my $result = $self->shell_command($cmd);    # croaks on failure
-        push @output, $result->stdout;
-        if ( not @output ) { exit; }                # error already displayed
-        if ( scalar @output != 1 ) {
-            my $msg = q{Unexpected output '} . join q{|}, @output . q{'};
-            croak $msg;
-        }
-        my $module_file = $output[0];
-        $self->_module_file( $self->path_true($module_file) );
-    }
-
-    # _get_debian_package()    {{{1
-    #
-    # does:   get file loaded for module
-    # params: nil
-    # prints: nil
-    # return: scalar file path
-    method _get_debian_package () {
-        my $module_file = $self->_module_file;
-        my $cmd         = [ 'dpkg', '-S', $module_file ];
-        my @output;
-        my $result = $self->shell_command($cmd);    # croaks on failure
-        push @output, $result->stdout;
-        if ( not @output ) { exit; }                # error already displayed
-        if ( scalar @output != 1 ) {
-            my $msg = q{Unexpected output '} . join q{|}, @output . q{'};
-            croak $msg;
-        }
-        my $debian_package = ( split /:/xsm, $output[0] )[0];
-        $self->_debian_package($debian_package);
-    }
-
-    # _provide_feedback()    {{{1
-    #
-    # does:   provide feedback to user
-    # params: nil
-    # prints: feedback
-    # return: n/a
-    method _provide_feedback () {
-        say 'Module name:    ' . $self->_module         or croak;
-        say 'Module file:    ' . $self->_module_file    or croak;
-        say 'Debian package: ' . $self->_debian_package or croak;
-    }
-
-    # _copy_to_clipboard()    {{{1
-    #
-    # does:   copy package name to clipboard
-    # params: nil
-    # prints: feedback if error
-    # return: n/a
-    method _copy_to_clipboard () {
-
-        return if $self->no_copy;
-
-        my $pkg = $self->_debian_package;
-
-        $self->copy_to_clipboard($pkg);
-
-        return;
-
-    }    # }}}1
+  # _provide_feedback()    {{{1
+  #
+  # does:   provide feedback to user
+  # params: nil
+  # prints: feedback
+  # return: n/a
+  sub _provide_feedback ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    say 'Module name:    ' . $self->_module         or croak;
+    say 'Module file:    ' . $self->_module_file    or croak;
+    say 'Debian package: ' . $self->_debian_package or croak;
+    return;
+  }    # }}}1
 
 }
 
@@ -298,9 +324,9 @@ provided by the operating system.
 
 =head2 Perl modules
 
-Carp, Clipboard, Const::Fast, Role::Utils::Dn, English, Function::Parameters,
-List::MoreUtils, List::Util, Moo, MooX::Options, namespace::clean, POSIX,
-strictures, Symbol, Types::Standard, version.
+Carp, Const::Fast, English, List::SomeUtils, Moo, MooX::Options,
+namespace::clean, Role::Utils::Dn, strictures, Symbol, Types::Standard,
+version.
 
 =head2 Executables
 
