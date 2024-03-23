@@ -145,16 +145,8 @@ use version; our $VERSION = qv('0.1');    # }}}1
   # return: scalar file path
   sub _get_debian_package ($self)
   {    ## no critic (RequireInterpolationOfMetachars)
-    my $module_file = $self->_module_file;
-    my $cmd         = [ 'dpkg', '-S', $module_file ];
-    ##my @output;
-    ##my $result = $self->shell_command($cmd);    # croaks on failure
-    ##push @output, $result->stdout;
-    ##if (not @output) { exit; }                  # error already displayed
-    ##if (scalar @output != 1) {
-    ##  my $msg = q{Unexpected output '} . join $PIPE, @output . $SINGLE_QUOTE;
-    ##  confess $msg;
-    ##}
+    my $module_file    = $self->_module_file;
+    my $cmd            = [ 'dpkg', '-S', $module_file ];
     my @output         = $self->_get_cmd_output($cmd);
     my $debian_package = (split /:/xsm, $output[0])[0];
     $self->_debian_package($debian_package);
@@ -178,14 +170,6 @@ use version; our $VERSION = qv('0.1');    # }}}1
       $cmd .= qq[ -M'$additional_module'];
     }
     $cmd .= qq[ -M'$module' -E 'say ] . q[$] . qq[INC{"${file}.pm"}'];
-    ##my @output;
-    ##my $result = $self->shell_command($cmd);    # croaks on failure
-    ##push @output, $result->stdout;
-    ##if (not @output) { exit; }                  # error already displayed
-    ##if (scalar @output != 1) {
-    ##  my $msg = q{Unexpected output '} . join $PIPE, @output . $SINGLE_QUOTE;
-    ##  confess $msg;
-    ##}
     my @output      = $self->_get_cmd_output($cmd);
     my $module_file = $output[0];
     $self->_module_file($self->path_true($module_file));
