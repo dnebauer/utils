@@ -1,469 +1,476 @@
 #!/usr/bin/perl
 
-use Moo;    # {{{1
+# modules    {{{1
+use Moo;
 use strictures 2;
 use 5.006;
-use 5.022_001;
+use 5.038_001;
 use version; our $VERSION = qv('0.1');
 use namespace::clean;    # }}}1
 
 {
-    # TODO: add version check for tiddlywiki (steal from tw-plugin-join)
+  # TODO: add version check for tiddlywiki (steal from tw-plugin-join)
 
-    package Dn::TW::Plugin::Split;
+  package Dn::TW::Plugin::Split;
 
-    use Moo;             # {{{1
-    use strictures 2;
-    use namespace::clean -except => [ '_options_data', '_options_config' ];
-    use Carp qw(croak);
-    use Const::Fast;
-    use English;
-    use File::Basename;
-    use File::Copy;
-    use File::Find::Rule;
-    use File::Spec;
-    use File::Which;
-    use Function::Parameters;
-    use IPC::Cmd;
-    use List::SomeUtils;
-    use MooX::HandlesVia;
-    use MooX::Options protect_argv => 0;
-    use Path::Tiny qw(cwd);
-    use Types::Path::Tiny qw(AbsDir AbsFile);
-    use Types::Standard qw(Maybe);
+  # modules    {{{1
+  use Moo;
+  use strictures 2;
+  use namespace::clean -except => [ '_options_data', '_options_config' ];
+  use Carp qw(croak);
+  use Const::Fast;
+  use English;
+  use File::Basename;
+  use File::Copy;
+  use File::Find::Rule;
+  use File::Spec;
+  use File::Which;
+  use IPC::Cmd;
+  use List::SomeUtils;
+  use MooX::HandlesVia;
+  use MooX::Options protect_argv => 0;
+  use Path::Tiny;
+  use Types::Path::Tiny;
+  use Types::Standard;
 
-    const my $TW_MIN_VERSION => '5.1.20';    # for --savewikifolder command
+  const my $TW_MIN_VERSION => '5.1.20';    # for --savewikifolder command
 
-    const my $TRUE  => 1;
-    const my $FALSE => 0;                    # }}}1
+  const my $TRUE           => 1;
+  const my $FALSE          => 0;
+  const my $COMMA_SPACE    => q{, };
+  const my $CMD_TIDDLYWIKI => 'tiddlywiki';
+  const my $PERIOD         => q{.};
+  const my $SPACE          => q{ };
 
-    # options
+  # }}}1
 
-    # format (-f)    {{{1
-    option 'format' => (
-        is         => 'ro',
-        format     => 's',
-        repeatable => $TRUE,
-        default    => sub { [] },
-        short      => 'f',
-        required   => $FALSE,
-        doc        => "Plugin file format ['tid' (default) or 'json']",
-    );
+  # options
 
-    # simplify (-s)    {{{1
-    option 'simplify' => (
-        is       => 'ro',
-        short    => 's',
-        required => $FALSE,
-        doc      => 'Whether to simplify extracted file names',
-    );    # }}}1
+  # format (-f)    {{{1
+  option 'format' => (
+    is         => 'ro',
+    format     => 's',
+    repeatable => $TRUE,
+    default    => sub { [] },
+    short      => 'f',
+    required   => $FALSE,
+    doc        => q{Plugin file format ['tid' (default) or 'json']},
+  );
 
-    # attributes
+  # simplify (-s)    {{{1
+  option 'simplify' => (
+    is       => 'ro',
+    short    => 's',      ## no critic (ProhibitDuplicateLiteral)
+    required => $FALSE,
+    doc      => 'Whether to simplify extracted file names',
+  );                      # }}}1
 
-    # _cwd    {{{1
-    has '_cwd' => (
-        is     => 'lazy',
-        isa    => Types::Path::Tiny::AbsDir,
-        coerce => Types::Path::Tiny::AbsDir->coercion,
-        doc    => 'Current working directory',
-    );
+  # attributes
 
-    method _build__cwd () {
-        return Path::Tiny->cwd;
+  # _cwd    {{{1
+  has '_cwd' => (
+    is      => 'ro',
+    isa     => Types::Path::Tiny::AbsDir,
+    coerce  => Types::Path::Tiny::AbsDir->coercion,
+    lazy    => $TRUE,
+    default => sub { return Path::Tiny->cwd; },
+    doc     => 'Current working directory',
+  );
+
+  # _extract_dir    {{{1
+  has '_extract_dir' => (
+    is      => 'ro',
+    isa     => Types::Path::Tiny::AbsDir,
+    coerce  => Types::Path::Tiny::AbsDir->coercion,
+    lazy    => $TRUE,
+    default => sub { return Path::Tiny->tempdir; },
+    doc     => 'Directory to which plugin is extracted',
+  );
+
+  # _plugin_input_file    {{{1
+  has '_plugin_input_file' => (
+    is      => 'ro',
+    isa     => Types::Path::Tiny::AbsFile,
+    coerce  => Types::Path::Tiny::AbsFile->coercion,
+    lazy    => $TRUE,
+    default => sub {
+
+      # get unique command line arguments
+      my @args;
+      for my $arg (@ARGV) { push @args, glob "$arg"; }
+
+      # must have only one argument
+      my $count = @args;
+      die "Error: No file name provided\n" if $count == 0;
+      die "Error: Expected 1 command line argument, got $count\n"
+          if $count > 1;
+
+      # return value to be coerced
+      return $args[0];
+    },
+    doc => 'Input plugin file path',
+  );
+
+  # _plugin_dir    {{{1
+  has '_plugin_dir' => (
+    is     => 'rw',
+    isa    => Types::Standard::Maybe [Types::Path::Tiny::AbsDir],
+    coerce => Types::Path::Tiny::AbsDir->coercion,
+    doc    => 'Saved plugins specific plugin directory',
+  );    # }}}1
+
+  # methods
+
+  # run()    {{{1
+  #
+  # does:   main method
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub run ($self) {    ## no critic (RequireInterpolationOfMetachars)
+
+    # check tiddlywiki version (dies if not satisfied)
+    $self->_check_tw_version;
+
+    # extract plugin to temporary directory
+    $self->_extract_plugin;
+
+    # simplify file names if requested
+    if ($self->simplify) { $self->_simplify; }
+
+    # copy files back to current working directory
+    $self->_output;
+
+    return;
+  }
+
+  # _check_tw_version()    {{{1
+  #
+  # does:   checks that tw meets minimum version requirement
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  # note:   relies on presence of $TW_MIN_VERSION variable/constant
+  # note:   assumes semantic versioning, e.g., 'major.minor.patch'
+  sub _check_tw_version ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    my $tw = $CMD_TIDDLYWIKI;
+    File::Which::which $tw or die "Error: Missing executable '$tw'\n";
+    my $cmd = [ $tw, '--version' ];
+    my ($success, $err_msg, $full, $stdout, $stderr) =
+        IPC::Cmd::run(command => $cmd);
+    if (not $success) {
+      warn "$err_msg\n";
+      my $cmd_str = join $SPACE, @{$cmd};
+      warn "Version command: '$cmd_str'\n";
+      die "Error: Version command failed\n";
+    }
+    my @version       = split /[.]/xsm, (@{$stdout})[0];
+    my $version_parts = @version;
+    my @minimum       = split /[.]/xsm, $TW_MIN_VERSION;
+    my $minimum_parts = @minimum;
+    if ($version_parts != $minimum_parts) {
+      my $version_string = join $PERIOD, @version;
+      my $minimum_string = join $PERIOD, @minimum;
+      my $err =
+            "The $tw version ($version_string) does not have the\n"
+          . "same number of elements as the minimum\n"
+          . "specified version ($minimum_string)";
+      croak $err;
+    }
+    my $index = 0;
+    while ($index <= 2) {
+      if (  $version[$index] =~ /\A\d+\Z/xsm
+        and $minimum[$index] =~ /\A\d+\Z/xsm)
+      {
+        # do numerical comparison
+        die "tiddlywiki is v$stdout, need at least v$TW_MIN_VERSION\n"
+            if $version[$index] < $minimum[$index];
+      }
+      else {
+        # do text comparison
+        die "tiddlywiki is v$stdout, need at least v$TW_MIN_VERSION\n"
+            if "$version[$index]" lt "$minimum[$index]";
+      }
+      $index++;
+    }
+    return;
+  }
+
+  # _deserializer()    {{{1
+  #
+  # does:   decides on deserializer based on plugin file format
+  # params: nil
+  # prints: feedback
+  # return: scalar string - deserializer
+  sub _deserializer ($self) {   ## no critic (RequireInterpolationOfMetachars)
+
+    # variables    {{{2
+    my $default = 'tid';
+    my $format;
+    my %deserializers =
+        (tid => 'application/x-tiddler', json => 'application/json',);
+
+    # get plugin format    {{{2
+    my @formats = @{ $self->format };
+    if (@formats) {
+
+      # user provided format
+      my $count = @formats;
+      die "Expected 1 plugin file format, got $count\n" if $count > 1;
+      $format = $formats[0];
+      my %valid = map { $_ => $TRUE } keys %deserializers;
+      die "Error: Invalid plugin file format '$format'\n"
+          if not exists $valid{$format};
+    }
+    else {
+      # format not specified by user
+      # - assume json if file has 'json' extension, otherwise tid file
+      my $plugin = $self->_plugin_input_file->canonpath;
+      my $ext_re = qr/[.][^.]+\Z/xsm;
+      my $ext    = (File::Basename::fileparse($plugin, $ext_re))[2];
+      $format = ($ext =~ /\A[.]json\Z/xsm) ? 'json' : $default;
     }
 
-    # _extract_dir    {{{1
-    has '_extract_dir' => (
-        is     => 'lazy',
-        isa    => Types::Path::Tiny::AbsDir,
-        coerce => Types::Path::Tiny::AbsDir->coercion,
-        doc    => 'Directory to which plugin is extracted',
-    );
+    # return deserializer for plugin file format    {{{2
+    croak "Missing plugin file format '$format'"
+        if not exists $deserializers{$format};
 
-    method _build__extract_dir () {
-        return Path::Tiny->tempdir;
+    return $deserializers{$format};    # }}}2
+  }
+
+  # _dir_contents($dir)    {{{1
+  #
+  # does:   gets list of immediate files and subdirectories in a directory
+  # params: $dir - directory [scalar string]
+  # prints: feedback
+  # return: list of absolute paths, dies on failure
+  sub _dir_contents ($self, $dir)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    my $finder = File::Find::Rule->new;
+    $finder->mindepth(1);
+    $finder->maxdepth(1);
+    my @contents = $finder->in($dir);
+    return @contents;
+  }
+
+  # _dir_files($dir)    {{{1
+  #
+  # does:   gets list of files in a directory
+  # params: $dir - directory [scalar string]
+  # prints: feedback
+  # return: list of absolute filepaths, dies on failure
+  sub _dir_files ($self, $dir)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    my $finder = File::Find::Rule->new;
+    $finder->file;
+    my @files = $finder->in($dir);
+    return @files;
+  }
+
+  # _dir_subdirs($dir)    {{{1
+  #
+  # does:   gets list of immediate subdirectories in a directory
+  # params: $dir - directory [scalar string]
+  # prints: feedback
+  # return: list of absolute dirpaths, dies on failure
+  sub _dir_subdirs ($self, $dir)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    my $finder = File::Find::Rule->new;
+    $finder->directory;
+    $finder->mindepth(1);
+    $finder->maxdepth(1);
+    my @subdirs = $finder->in($dir);
+    return @subdirs;
+  }
+
+  # _extract_plugin()    {{{1
+  #
+  # does:   extracts plugin file to temporary plugins directory
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub _extract_plugin ($self) { ## no critic (RequireInterpolationOfMetachars)
+
+    # variables for cmdline command    {{{2
+    my $tw         = $CMD_TIDDLYWIKI;
+    my $deserial   = $self->_deserializer;
+    my $opt_import = '--import';
+    my $plugin     = $self->_plugin_input_file->canonpath;
+    my $opt_save   = '--savewikifolder';
+    my $dir        = $self->_extract_dir->canonpath;
+
+    # run extraction command    {{{2
+    my $cmd = [ $tw, $opt_import, $plugin, $deserial, $opt_save, $dir ];
+    my ($success, $err_msg, $full, $stdout, $stderr) =
+        IPC::Cmd::run(command => $cmd);
+
+    if (not $success) {
+      warn "$err_msg\n";
+      my $extract = join $SPACE, @{$cmd};
+      warn "Extraction command: '$extract'\n";
+      die "Error: Plugin extraction command failed\n";
     }
 
-    # _plugin_input_file    {{{1
-    has '_plugin_input_file' => (
-        is     => 'lazy',
-        isa    => Types::Path::Tiny::AbsFile,
-        coerce => Types::Path::Tiny::AbsFile->coercion,
-        doc    => 'Input plugin file path',
-    );
+    # check for plugins subdirectory    {{{2
+    my $plugins_dir = File::Spec->catdir($dir, 'plugins');
+    die "Error: No 'plugins' directory in extracted plugin\n"
+        if not -d $plugins_dir;
 
-    method _build__plugin_input_file () {
+    # set extracted plugin subdirectory name    {{{2
+    my @plugin_dirs  = $self->_dir_subdirs($plugins_dir);
+    my $subdir_count = @plugin_dirs;
+    if ($subdir_count == 0) {
+      die "Error: No plugin directories in extracted content\n";
+    }
+    if ($subdir_count > 1) {
+      my $dirs = join $COMMA_SPACE, @plugin_dirs;
+      my $err  = 'Error: Expected 1 plugin directory, '
+          . "got $subdir_count: $dirs\n";
+      die "$err\n";
+    }
+    $self->_plugin_dir($plugin_dirs[0]);
 
-        # get unique command line arguments
-        my @args;
-        for my $arg (@ARGV) { push @args, glob "$arg"; }
+    # need to have files in plugin directory    {{{2
+    my @contents = $self->_dir_contents($self->_plugin_dir->canonpath);
+    die "Error: No plugin files extracted\n" if not @contents;    # }}}2
 
-        # must have only one argument
-        my $count = scalar @args;
-        die "Error: No file name provided\n" if $count == 0;
-        die "Error: Expected 1 command line argument, got $count\n"
-            if $count > 1;
+    return;
+  }
 
-        # return value to be coerced
-        return $args[0];
+  # _output()    {{{1
+  #
+  # does:   copies extracted files back to current directory
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  # notes:  current directory has to be empty
+  sub _output ($self) {    ## no critic (RequireInterpolationOfMetachars)
+
+    # can't be anything in current directory
+    my $cwd          = $self->_cwd->canonpath;
+    my @cwd_contents = $self->_dir_contents($cwd);
+    die "Error: Output directory must be empty\n" if @cwd_contents;
+
+    # move plugin files to current directory
+    my $plugin_dir = $self->_plugin_dir->canonpath;
+    my @froms      = $self->_dir_files($plugin_dir);
+    for my $from (@froms) {
+      File::Copy::move($from, $cwd)
+          or croak "Unable to copy '$from' to '$cwd': $OS_ERROR";
     }
 
-    # _plugin_dir    {{{1
-    has '_plugin_dir' => (
-        is     => 'rw',
-        isa    => Types::Standard::Maybe [Types::Path::Tiny::AbsDir],
-        coerce => Types::Path::Tiny::AbsDir->coercion,
-        doc    => 'Saved plugins specific plugin directory',
-    );    # }}}1
+    return;
+  }
 
-    # methods
+  # _simplify()    {{{1
+  #
+  # does:   simplifies extracted plugin names
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  # notes:  specifically, if stem '$__plugins_' present in at least one
+  #         file name, trim longest common stem starting with this from
+  #         those files; *unless* doing so results in duplicate
+  #         file names
+  sub _simplify ($self)
+  {    ## no critic (RequireInterpolationOfMetachars ProhibitExcessComplexity)
 
-    # run()    {{{1
-    #
-    # does:   main method
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    method run () {
+    # get file list    {{{2
+    my $dir       = $self->_plugin_dir->canonpath;
+    my @fps       = $self->_dir_files($dir);
+    my @all_files = sort map { (File::Basename::fileparse($_))[0] } @fps;
 
-        # check tiddlywiki version (dies if not satisfied)
-        $self->_check_tw_version;
+    # only interested if start with '$__plugins_'    {{{2
+    my $plug_re = qr/\A\$__plugins_/xsm;
+    return if not List::SomeUtils::any {/$plug_re/xsm} @all_files;
+    my @files = grep {/$plug_re/xsm} @all_files;
+    return if scalar @files == 1;
 
-        # extract plugin to temporary directory
-        $self->_extract_plugin;
-
-        # simplify file names if requested
-        if ( $self->simplify ) { $self->_simplify; }
-
-        # copy files back to current working directory
-        $self->_output;
-
-        return;
+    # find longest matching stem    {{{2
+    const my $MIN_STEM_LENGTH = 12;    # '$__plugins_X'
+    my $len = $MIN_STEM_LENGTH;
+    while ($TRUE) {
+      my @stems = map { substr $_, 0, $len } @files;
+      my %stem_counts;
+      for my $stem (@stems) { $stem_counts{$stem}++; }
+      if (scalar keys %stem_counts > 1) {    # no longer all share stem
+        $len--;
+        last;
+      }
+      $len++;
+    }
+    my $full_stem = substr $files[0], 0, $len;
+    $full_stem =~ s/(\$)/\\$1/xsm;    # escape leading '$'
+    my $matches_full_stem = grep {/\A$full_stem/xsm} @files;
+    if ($matches_full_stem != scalar @files) {
+      my $err = "Stem = $full_stem, files = " . join $COMMA_SPACE, @files;
+      croak $err;
     }
 
-    # _check_tw_version()    {{{1
-    #
-    # does:   checks that tw meets minimum version requirement
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    # note:   relies on presence of $TW_MIN_VERSION variable/constant
-    # note:   assumes semantic versioning, e.g., 'major.minor.patch'
-    method _check_tw_version () {
-        my $tw = 'tiddlywiki';
-        File::Which::which $tw or die "Error: Missing executable '$tw'\n";
-        my $cmd = [ $tw, '--version' ];
-        my ( $success, $err_msg, $full, $stdout, $stderr )
-            = IPC::Cmd::run( command => $cmd );
-        if ( not $success ) {
-            warn "$err_msg\n";
-            my $cmd_str = join q{ }, @{$cmd};
-            warn "Version command: '$cmd_str'\n";
-            die "Error: Version command failed\n";
-        }
-        my @version       = split /[.]/xsm, ( @{$stdout} )[0];
-        my $version_parts = scalar @version;
-        my @minimum       = split /[.]/xsm, $TW_MIN_VERSION;
-        my $minimum_parts = scalar @minimum;
-        if ( $version_parts != $minimum_parts ) {
-            my $version_string = join q{.}, @version;
-            my $minimum_string = join q{.}, @minimum;
-            my $err
-                = "The $tw version ($version_string) does not have the\n"
-                . "same number of elements as the minimum\n"
-                . "specified version ($minimum_string)";
-            croak $err;
-        }
-        my $index = 0;
-        while ( $index <= 2 ) {
-            if (    $version[$index] =~ /\A\d+\Z/xsm
-                and $minimum[$index] =~ /\A\d+\Z/xsm )
-            {
-                # do numerical comparison
-                die "tiddlywiki is v$stdout, need at least v$TW_MIN_VERSION\n"
-                    if $version[$index] < $minimum[$index];
-            }
-            else {
-                # do text comparison
-                die "tiddlywiki is v$stdout, need at least v$TW_MIN_VERSION\n"
-                    if "$version[$index]" lt "$minimum[$index]";
-            }
-            $index++;
-        }
-        return;
+    # check new file names    {{{2
+    # - no duplicates
+    my %rename    = map  { $_ => $self->_snip($_, $len) } @files;
+    my @new_files = grep { !/$plug_re/xsm } @all_files;
+    push @new_files, values %rename;
+    my %count;
+    for my $file (@new_files) { $count{$file}++; }
+    my @duplicates = grep { $count{$_} > 1 } keys %count;
+    if (@duplicates) {
+      say 'Intended to simplify these extracted files:' or croak;
+      for (sort @files) {
+        say "- $_" or croak;
+      }
+      say 'Simplification resulted in duplicate files:' or croak;
+      for (sort @duplicates) {
+        say "- $_" or croak;
+      }
+      warn "Simplification NOT performed\n";
+      return;
     }
 
-    # _deserializer()    {{{1
-    #
-    # does:   decides on deserializer based on plugin file format
-    # params: nil
-    # prints: feedback
-    # return: scalar string - deserializer
-    method _deserializer () {
-
-        # variables    {{{2
-        my $default = 'tid';
-        my $format;
-        my %deserializers
-            = ( tid => 'application/x-tiddler', json => 'application/json', );
-
-        # get plugin format    {{{2
-        my @formats = @{ $self->format };
-        if (@formats) {
-
-            # user provided format
-            my $count = scalar @formats;
-            die "Expected 1 plugin file format, got $count\n" if $count > 1;
-            $format = $formats[0];
-            my %valid = map { $_ => $TRUE } keys %deserializers;
-            die "Error: Invalid plugin file format '$format'\n"
-                if not exists $valid{$format};
-        }
-        else {
-            # format not specified by user
-            # - assume json if file has 'json' extension, otherwise tid file
-            my $plugin = $self->_plugin_input_file->canonpath;
-            my $ext_re = qr/[.][^.]+\Z/xsm;
-            my $ext    = ( File::Basename::fileparse( $plugin, $ext_re ) )[2];
-            $format = ( $ext =~ /\A[.]json\Z/xsm ) ? 'json' : $default;
-        }
-
-        # return deserializer for plugin file format    {{{2
-        croak "Missing plugin file format '$format'"
-            if not exists $deserializers{$format};
-
-        return $deserializers{$format};    # }}}2
+    # - check none start with period (i.e., extension only left)
+    my @exts = grep {/\A[.]/xsm} values %rename;
+    if (@exts) {
+      say 'Simplification would have resulted in:' or croak;
+      for my $source (sort keys %rename) {
+        say "  $source\n  -> $rename{$source}" or croak;
+      }
+      say 'but these target filename(s) appear to be file extensions:'
+          or croak;
+      for (sort @exts) {
+        say "- $_" or croak;
+      }
+      ## no critic (ProhibitDuplicateLiteral)
+      warn "Simplification NOT performed\n";
+      ## use critic
+      return;
     }
 
-    # _dir_contents($dir)    {{{1
-    #
-    # does:   gets list of immediate files and subdirectories in a directory
-    # params: $dir - directory [scalar string]
-    # prints: feedback
-    # return: list of absolute paths, dies on failure
-    method _dir_contents ($dir) {
-        my $finder = File::Find::Rule->new;
-        $finder->mindepth(1);
-        $finder->maxdepth(1);
-        my @contents = $finder->in($dir);
-        return @contents;
-    }
+    # rename files    {{{2
+    for my $source_file (keys %rename) {
+      my $target_file = $rename{$source_file};
+      my $from        = File::Spec->catfile($dir, $source_file);
+      my $to          = File::Spec->catfile($dir, $target_file);
+      File::Copy::move($from, $to)
+          or croak "Unable to rename '$from' to '$to': $OS_ERROR";
+    }    # }}}2
 
-    # _dir_files($dir)    {{{1
-    #
-    # does:   gets list of files in a directory
-    # params: $dir - directory [scalar string]
-    # prints: feedback
-    # return: list of absolute filepaths, dies on failure
-    method _dir_files ($dir) {
-        my $finder = File::Find::Rule->new;
-        $finder->file;
-        my @files = $finder->in($dir);
-        return @files;
-    }
+    return;
+  }
 
-    # _dir_subdirs($dir)    {{{1
-    #
-    # does:   gets list of immediate subdirectories in a directory
-    # params: $dir - directory [scalar string]
-    # prints: feedback
-    # return: list of absolute dirpaths, dies on failure
-    method _dir_subdirs ($dir) {
-        my $finder = File::Find::Rule->new;
-        $finder->directory;
-        $finder->mindepth(1);
-        $finder->maxdepth(1);
-        my @subdirs = $finder->in($dir);
-        return @subdirs;
-    }
-
-    # _extract_plugin()    {{{1
-    #
-    # does:   extracts plugin file to temporary plugins directory
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    method _extract_plugin () {
-
-        # variables for cmdline command    {{{2
-        my $tw         = 'tiddlywiki';
-        my $deserial   = $self->_deserializer;
-        my $opt_import = '--import';
-        my $plugin     = $self->_plugin_input_file->canonpath;
-        my $opt_save   = '--savewikifolder';
-        my $dir        = $self->_extract_dir->canonpath;
-
-        # run extraction command    {{{2
-        my $cmd = [ $tw, $opt_import, $plugin, $deserial, $opt_save, $dir ];
-        my ( $success, $err_msg, $full, $stdout, $stderr )
-            = IPC::Cmd::run( command => $cmd );
-
-        if ( not $success ) {
-            warn "$err_msg\n";
-            my $extract = join q{ }, @{$cmd};
-            warn "Extraction command: '$extract'\n";
-            die "Error: Plugin extraction command failed\n";
-        }
-
-        # check for plugins subdirectory    {{{2
-        my $plugins_dir = File::Spec->catdir( $dir, 'plugins' );
-        die "Error: No 'plugins' directory in extracted plugin\n"
-            if not -d $plugins_dir;
-
-        # set extracted plugin subdirectory name    {{{2
-        my @plugin_dirs  = $self->_dir_subdirs($plugins_dir);
-        my $subdir_count = scalar @plugin_dirs;
-        if ( $subdir_count == 0 ) {
-            die "Error: No plugin directories in extracted content\n";
-        }
-        if ( $subdir_count > 1 ) {
-            my $dirs = join q{, }, @plugin_dirs;
-            my $err  = 'Error: Expected 1 plugin directory, '
-                . "got $subdir_count: $dirs\n";
-            die "$err\n";
-        }
-        $self->_plugin_dir( $plugin_dirs[0] );
-
-        # need to have files in plugin directory    {{{2
-        my @contents = $self->_dir_contents( $self->_plugin_dir->canonpath );
-        die "Error: No plugin files extracted\n" if not @contents;    # }}}2
-
-        return;
-    }
-
-    # _output()    {{{1
-    #
-    # does:   copies extracted files back to current directory
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    # notes:  current directory has to be empty
-    method _output () {
-
-        # can't be anything in current directory
-        my $cwd          = $self->_cwd->canonpath;
-        my @cwd_contents = $self->_dir_contents($cwd);
-        die "Error: Output directory must be empty\n" if @cwd_contents;
-
-        # move plugin files to current directory
-        my $plugin_dir = $self->_plugin_dir->canonpath;
-        my @froms      = $self->_dir_files($plugin_dir);
-        for my $from (@froms) {
-            File::Copy::move( $from, $cwd )
-                or croak "Unable to copy '$from' to '$cwd': $OS_ERROR";
-        }
-
-        return;
-    }
-
-    # _simplify()    {{{1
-    #
-    # does:   simplifies extracted plugin names
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    # notes:  specifically, if stem '$__plugins_' present in at least one
-    #         file name, trim longest common stem starting with this from
-    #         those files; *unless* doing so results in duplicate
-    #         file names
-    method _simplify () {
-
-        # get file list    {{{2
-        my $dir = $self->_plugin_dir->canonpath;
-        my @fps = $self->_dir_files($dir);
-        my @all_files
-            = sort map { ( File::Basename::fileparse($_) )[0] } @fps;
-
-        # only interested if start with '$__plugins_'    {{{2
-        my $plug_re = qr/\A\$__plugins_/xsm;
-        return if not List::SomeUtils::any {/$plug_re/xsm} @all_files;
-        my @files = grep {/$plug_re/xsm} @all_files;
-        return if scalar @files == 1;
-
-        # find longest matching stem    {{{2
-        my $len = 12;    # '$__plugins_X'
-        while ($TRUE) {
-            my @stems = map { substr $_, 0, $len } @files;
-            my %stem_counts;
-            for my $stem (@stems) { $stem_counts{$stem}++; }
-            if ( scalar keys %stem_counts > 1 ) {   # no longer all share stem
-                $len--;
-                last;
-            }
-            $len++;
-        }
-        my $full_stem = substr $files[0], 0, $len;
-        $full_stem =~ s/(\$)/\\$1/xsm;              # escape leading '$'
-        my $matches_full_stem = grep {/\A$full_stem/xsm} @files;
-        if ( $matches_full_stem != scalar @files ) {
-            my $err = "Stem = $full_stem, files = " . join q{, }, @files;
-            croak $err;
-        }
-
-        # check new file names    {{{2
-        # - no duplicates
-        my %rename    = map  { $_ => $self->_snip( $_, $len ) } @files;
-        my @new_files = grep { !/$plug_re/xsm } @all_files;
-        push @new_files, values %rename;
-        my %count;
-        for my $file (@new_files) { $count{$file}++; }
-        my @duplicates = grep { $count{$_} > 1 } keys %count;
-        if (@duplicates) {
-            say 'Intended to simplify these extracted files:'
-                or croak 'Unable to write to console';
-            for ( sort @files ) {
-                say "- $_" or croak 'Unable to write to console';
-            }
-            say 'Simplification resulted in duplicate files:'
-                or croak 'Unable to write to console';
-            for ( sort @duplicates ) {
-                say "- $_" or croak 'Unable to write to console';
-            }
-            warn "Simplication NOT performed\n";
-            return;
-        }
-
-        # - check none start with period (i.e., extension only left)
-        my @exts = grep {/\A[.]/xsm} values %rename;
-        if (@exts) {
-            say 'Simplification would have resulted in:'
-                or croak 'Unable to write to console';
-            for my $source ( sort keys %rename ) {
-                say "  $source\n  -> $rename{$source}"
-                    or croak 'Unable to write to console';
-            }
-            say 'but these target filename(s) appear to be file extensions:'
-                or croak 'Unable to write to console';
-            for ( sort @exts ) {
-                say "- $_" or croak 'Unable to write to console';
-            }
-            warn "Simplication NOT performed\n";
-            return;
-        }
-
-        # rename files    {{{2
-        for my $source_file ( keys %rename ) {
-            my $target_file = $rename{$source_file};
-            my $from        = File::Spec->catfile( $dir, $source_file );
-            my $to          = File::Spec->catfile( $dir, $target_file );
-            File::Copy::move( $from, $to )
-                or croak "Unable to rename '$from' to '$to': $OS_ERROR";
-        }    # }}}2
-
-        return;
-    }
-
-    # _snip($name, $start)    {{{1
-    #
-    # does:   snip stem from file name
-    # params: $name  - file name [scalar string]
-    #         $start - where new file name is to start [scalar integer]
-    # prints: feedback
-    # return: scalar string, dies on failure
-    method _snip ( $name, $start ) {
-        my $pruned = substr $name, $start;
-        return $pruned;
-    };    # }}}1
+  # _snip($name, $start)    {{{1
+  #
+  # does:   snip stem from file name
+  # params: $name  - file name [scalar string]
+  #         $start - where new file name is to start [scalar integer]
+  # prints: feedback
+  # return: scalar string, dies on failure
+  sub _snip ($self, $name, $start)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    my $pruned = substr $name, $start;
+    return $pruned;
+  }    # }}}1
 
 }
 
@@ -706,9 +713,9 @@ unable to do so.
 =head2 Perl modules
 
 Carp, Const::Fast, English, File::Basename, File::Copy, File::Find::Rule,
-File::Spec, File::Which, Function::Parameters, IPC::Cmd, List::SomeUtils, Moo,
-MooX::HandlesVia, MooX::Options, namespace::clean, Path::Tiny;, strictures,
-Types::Path::Tiny, Types::Standard, version.
+File::Spec, File::Which, IPC::Cmd, List::SomeUtils, Moo, MooX::HandlesVia,
+MooX::Options, namespace::clean, Path::Tiny;, strictures, Types::Path::Tiny,
+Types::Standard, version.
 
 =head1 EXIT STATUS
 
