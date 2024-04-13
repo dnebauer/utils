@@ -55,7 +55,7 @@
 .\" ========================================================================
 .\"
 .IX Title "DN-QK-DEB 1"
-.TH DN-QK-DEB 1 2024-01-30 "perl v5.38.2" "User Contributed Perl Documentation"
+.TH DN-QK-DEB 1 2024-04-13 "perl v5.38.2" "User Contributed Perl Documentation"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -189,15 +189,51 @@ Directory for system configuration files. Default value in built deb package:
 .RE
 .RS 4
 .RE
+.SH DIAGNOSTICS
+.IX Header "DIAGNOSTICS"
+.SS "Unrecognised keyword 'WORD' at line number"
+.IX Subsection "Unrecognised keyword 'WORD' at line number"
+Occurs when an unrecognised keyword is encountered in the
+\&\fIdeb-resources\fR file.
+.SS "Invalid path type '$type'"
+.IX Subsection "Invalid path type '$type'"
+This is an internal script error. Contact the script author.
+.SS "Copy failed: ERROR =head2 Unable to copy 'FILE'"
+.IX Subsection "Copy failed: ERROR =head2 Unable to copy 'FILE'"
+Occurs when a system error prevents a file copy operation.
+.SS "Error processing extra path 'PATH'"
+.IX Subsection "Error processing extra path 'PATH'"
+An extra path is neither a file nor a directory.
+.SS "Unable to delete 'FILE/DIR'"
+.IX Subsection "Unable to delete 'FILE/DIR'"
+A file or directory deletion operation failed.
+.SS "No distro file =head2 Multiple distro files =head2 Failed to copy 'DISTRO_FILE' to deb parent dir =head2 Cannot find distro in deb parent directory =head2 Unable to parse 'DISTRO_FILE' =head2 Could not extract 'DISTRO_FILE'"
+.IX Subsection "No distro file =head2 Multiple distro files =head2 Failed to copy 'DISTRO_FILE' to deb parent dir =head2 Cannot find distro in deb parent directory =head2 Unable to parse 'DISTRO_FILE' =head2 Could not extract 'DISTRO_FILE'"
+These errors can occur during processing of an intermediary distribution file.
+.SS "Could not find debian build directory =head2 No filename provided =head2 Cannot find debian subdirectory =head2 Cannot find rules file"
+.IX Subsection "Could not find debian build directory =head2 No filename provided =head2 Cannot find debian subdirectory =head2 Cannot find rules file"
+This are errors of debianisation.
+.SS "Multiple 'PATTERN' files generated =head2 Did not generate 'PATTERN' file =head2 Unable to copy 'FILE'"
+.IX Subsection "Multiple 'PATTERN' files generated =head2 Did not generate 'PATTERN' file =head2 Unable to copy 'FILE'"
+Errors that can occur when moving package files to the project directory.
+.SS "No debs found in 'PROJECT_DIR' =head2 Multiple debs found in 'PROJECT_DIR'"
+.IX Subsection "No debs found in 'PROJECT_DIR' =head2 Multiple debs found in 'PROJECT_DIR'"
+Errors that can occur during installation of the built debian package.
+.SS "Unable to delete existing resource file"
+.IX Subsection "Unable to delete existing resource file"
+Occurs when a deletion operation on an existing \fIdeb-resources\fR file
+fails.
+.SS "Cannot build package without version number =head2 Invalid version =head2 New version cannot be lower than current version"
+.IX Subsection "Cannot build package without version number =head2 Invalid version =head2 New version cannot be lower than current version"
+Errors that can occur when the user is prompted to enter a new version number.
 .SH DEPENDENCIES
 .IX Header "DEPENDENCIES"
-autodie, Archive::Tar, Carp, Dn::Common, Dn::Deb::Quick, Dpkg::Version,
-English, experimental, File::chdir, Function::Parameters, Moo,
-MooX::HandlesVia, MooX::Options, namespace::clean, Path::Tiny, Pod::Man,
-Readonly, strictures, Types::Dn, Types::Dn::Debian, Types::Path::Tiny,
-Types::Standard, version.
-.SH "CONFIGURATION AND ENVIRONMENT"
-.IX Header "CONFIGURATION AND ENVIRONMENT"
+autodie, Archive::Tar, Carp, Const::Fast, Dn::Deb::Quick, Dpkg::Version,
+English, experimental, File::chdir, Moo, MooX::HandlesVia, MooX::Options,
+namespace::clean, Path::Tiny, Pod::Man, strictures, Types::Dn,
+Types::Dn::Debian, Types::Path::Tiny, Types::Standard, version.
+.SH CONFIGURATION
+.IX Header "CONFIGURATION"
 A resources file in the build directory, called \fIdeb-resources\fR by
 default, provides details about the package to be built.
 .PP
