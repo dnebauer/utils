@@ -131,7 +131,7 @@ extra-path contrib
 # This, in turn, is displayed by many package managers.
 # Must be no longer than 60 characters.
 # Required. One only.
-control-summary recursively finds a process's parent process
+control-summary recursively finds parents of a process
 
 # Control description
 # Description of script. This is a longer description
