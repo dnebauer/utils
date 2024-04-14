@@ -1,232 +1,248 @@
 #!/usr/bin/perl
 
-use Moo;    # {{{1
+# modules    {{{1
+use Moo;
 use strictures 2;
 use 5.006;
-use 5.022_001;
-use version; our $VERSION = qv('0.1');
-use namespace::clean;    # }}}1
+use 5.038_001;
+use version; our $VERSION = qv('0.3');
+use namespace::clean;
+use Const::Fast;
+
+const my $COMMA_SPACE    => q{, };
+const my $REF_TYPE_ARRAY => 'ARRAY';
+
+# }}}1
 
 # package Dn::TW::UnPlug::Base    {{{1
 # - attributes and methods used by multiple packages
 {
 
-    package Dn::TW::UnPlug::Base;
+  package Dn::TW::UnPlug::Base;
 
-    use Moo;    # {{{2
-    use strictures 2;
-    use namespace::clean;
-    use Carp qw(croak confess);
-    use Const::Fast;
-    use File::Basename;
-    use File::Find::Rule;
-    use Function::Parameters;
-    use JSON::MaybeXS;
-    use Path::Tiny;
+  # modules    {{{2
+  use Moo;
+  use strictures 2;
+  use namespace::clean;
+  use Carp qw(croak confess);
+  use Const::Fast;
+  use File::Basename;
+  use File::Find::Rule;
+  use Function::Parameters;
+  use JSON::MaybeXS;
+  use Path::Tiny;
 
-    const my $TRUE  => 1;
-    const my $FALSE => 0;    # }}}2
+  const my $TRUE  => 1;
+  const my $FALSE => 0;
 
-    # attributes
+  # }}}2
 
-    # _json_processor    {{{2
-    has '_json_processor' => (
-        is      => 'ro',
-        doc     => 'JSON processor',
-        default => sub {
-            JSON::MaybeXS->new(
-                utf8         => $TRUE,
-                indent       => $TRUE,
-                space_before => $FALSE,
-                space_after  => $TRUE,
-                canonical    => $TRUE,
-            );
-        },
-    );
+  # attributes
 
-    # _json_true    {{{2
-    # - currently unused but keep for possible inclusion
-    #   of boolean values in future tiddlywiki.files output
-    has '_json_true' => (
-        is      => 'ro',
-        default => sub { JSON::MaybeXS->true },
-        doc     => 'JSON truth value',
-    );
+  # _json_processor    {{{2
+  has '_json_processor' => (
+    is      => 'ro',
+    doc     => 'JSON processor',
+    default => sub {
+      JSON::MaybeXS->new(
+        utf8         => $TRUE,
+        indent       => $TRUE,
+        space_before => $FALSE,
+        space_after  => $TRUE,
+        canonical    => $TRUE,
+      );
+    },
+  );
 
-    # _json_false    {{{2
-    # - currently unused but keep for possible inclusion
-    #   of boolean values in future tiddlywiki.files output
-    has '_json_false' => (
-        is      => 'ro',
-        default => sub { JSON::MaybeXS->false },
-        doc     => 'JSON false value',
-    );    # }}}2
+  # _json_true    {{{2
+  # - currently unused but keep for possible inclusion
+  #   of boolean values in future tiddlywiki.files output
+  has '_json_true' => (
+    is      => 'ro',
+    default => sub { JSON::MaybeXS->true },
+    doc     => 'JSON truth value',
+  );
 
-    # methods
+  # _json_false    {{{2
+  # - currently unused but keep for possible inclusion
+  #   of boolean values in future tiddlywiki.files output
+  has '_json_false' => (
+    is      => 'ro',
+    default => sub { JSON::MaybeXS->false },
+    doc     => 'JSON false value',
+  );    # }}}2
 
-    # _file_name_parts($fp)    {{{2
-    #
-    # does:   extract file name parts
-    # params: $fp  - file path [string, required]
-    # prints: feedback
-    # return: list of (filename, basename, extension)
-    #         dies on failure
-    method _file_name_parts ($fp) {
+  # methods
 
-        # get file name parts
-        my $ext_re = qr/[.][^.]+\Z/xsm;
-        my ( $base, $dir, $ext ) = File::Basename::fileparse( $fp, $ext_re );
-        my $file = $base . $ext;
+  # _file_name_parts($fp)    {{{2
+  #
+  # does:   extract file name parts
+  # params: $fp  - file path [string, required]
+  # prints: feedback
+  # return: list of (filename, basename, extension)
+  #         dies on failure
+  sub _file_name_parts ($self, $fp)
+  {    ## no critic (RequireInterpolationOfMetachars)
 
-        # return filepath parts
-        return ( $file, $base, $ext );
+    # get file name parts
+    my $ext_re = qr/[.][^.]+\Z/xsm;
+    my ($base, $dir, $ext) = File::Basename::fileparse($fp, $ext_re);
+    my $file = $base . $ext;
+
+    # return filepath parts
+    return ($file, $base, $ext);
+  }
+
+  # _json_data_structure_to_strings($data)    {{{2
+  #
+  # does:   convert data structure to array of strings representing json
+  # params: $data - data structure to convert to json strings
+  #                 [hashref or arrayref]
+  # prints: feedback
+  # return: string array reference, dies on failure
+  sub _json_data_structure_to_strings ($self, $data)
+  {    ## no critic (RequireInterpolationOfMetachars)
+
+    # data must be hash or array reference    {{{3
+    my $ref = ref $data;
+    if (not($ref eq 'HASH' or $ref eq $REF_TYPE_ARRAY)) {
+      croak "Expected hashref or arrayref, got $ref";
     }
 
-    # _json_data_structure_to_strings($data)    {{{2
-    #
-    # does:   convert data structure to array of strings representing json
-    # params: $data - data structure to convert to json strings
-    #                 [hashref or arrayref]
-    # prints: feedback
-    # return: string array reference, dies on failure
-    method _json_data_structure_to_strings ($data) {
+    # convert data structure to json string array reference    {{{3
+    my $json_string = $self->_json_processor->encode($data);
+    my @output_raw  = split /\n/xsm, $json_string;
+    my @output      = map {"$_\n"} @output_raw;    # }}}3
 
-        # data must be hash or array reference    {{{3
-        my $ref = ref $data;
-        if ( not( $ref eq 'HASH' or $ref eq 'ARRAY' ) ) {
-            croak "Expected hashref or arrayref, got $ref";
-        }
+    return [@output];
+  }
 
-        # convert data structure to json string array reference    {{{3
-        my $json_string = $self->_json_processor->encode($data);
-        my @output_raw  = split /\n/xsm, $json_string;
-        my @output      = map {"$_\n"} @output_raw;                # }}}3
+  # _json_strings_to_data_structure($input)    {{{2
+  #
+  # does:   convert json input (string or string array) to data structure
+  # params: $input - json input [string or string array]
+  # prints: feedback
+  # return: hashref or arrayref, dies on failure
+  sub _json_strings_to_data_structure ($self, $input_val)
+  {    ## no critic (RequireInterpolationOfMetachars)
 
-        return [@output];
+    # input must be string or arrayref of strings    {{{3
+    my $ref = ref $input_val;
+    if (not($ref eq q{} or $ref eq $REF_TYPE_ARRAY)) {
+      croak "Expected string or arrayref, got $ref";
+    }
+    if ($ref eq $REF_TYPE_ARRAY) {
+      my @items = @{$input_val};
+      for my $item (@items) {
+        my $item_ref = ref $item;
+        croak "Expected strings, got a $item_ref" if $item_ref ne q{};
+      }
     }
 
-    # _json_strings_to_data_structure($input)    {{{2
-    #
-    # does:   convert json input (string or string array) to data structure
-    # params: $input - json input [string or string array]
-    # prints: feedback
-    # return: hashref or arrayref, dies on failure
-    method _json_strings_to_data_structure ($input_val) {
-
-        # input must be string or arrayref of strings    {{{3
-        my $ref = ref $input_val;
-        if ( not( $ref eq q{} or $ref eq 'ARRAY' ) ) {
-            croak "Expected string or arrayref, got $ref";
-        }
-        if ( $ref eq 'ARRAY' ) {
-            my @items = @{$input_val};
-            for my $item (@items) {
-                my $item_ref = ref $item;
-                croak "Expected strings, got a $item_ref" if $item_ref ne q{};
-            }
-        }
-
-        # convert input to single string    {{{3
-        my $input;
-        if ( $ref eq 'ARRAY' ) {
-            $input = join "\n", @{$input_val};
-        }
-        else {
-            $input = $input_val;
-        }
-
-        # perform conversion    {{{3
-        my $data = $self->_json_processor->decode($input);    # }}}3
-
-        return $data;
-
+    # convert input to single string    {{{3
+    my $input;
+    if ($ref eq $REF_TYPE_ARRAY) {
+      $input = join "\n", @{$input_val};
+    }
+    else {
+      $input = $input_val;
     }
 
-    # _read_file($fp)    {{{2
-    #
-    # does:   read file
-    # params: $fp - file path [string]
-    # prints: feedback
-    # return: string arrayref, dies on failure
-    method _read_file ($fp) {
+    # perform conversion    {{{3
+    my $data = $self->_json_processor->decode($input);    # }}}3
 
-        confess "Cannot read file '$fp'" if not -r $fp;
+    return $data;
 
-        # read output file (croaks on failure)
-        my $fp_obj  = Path::Tiny::path($fp);
-        my @content = $fp_obj->lines_utf8( { chomp => $TRUE } );
+  }
 
-        return [@content];
+  # _read_file($fp)    {{{2
+  #
+  # does:   read file
+  # params: $fp - file path [string]
+  # prints: feedback
+  # return: string arrayref, dies on failure
+  sub _read_file ($self, $fp)
+  {    ## no critic (RequireInterpolationOfMetachars ProhibitDuplicateLiteral)
+
+    confess "Cannot read file '$fp'" if not -r $fp;
+
+    # read output file (croaks on failure)
+    my $fp_obj  = Path::Tiny::path($fp);
+    my @content = $fp_obj->lines_utf8({ chomp => $TRUE });
+
+    return [@content];
+  }
+
+  # _uniquify_file($fp, $fb=, $fps=[])    {{{2
+  #
+  # does:   ensure output file does not exist
+  # params: $fp  - intended output file path [string, required]
+  #         $fb  - feedback message template
+  #                [string, optional, default=undef, see notes below]
+  #         $fps - existing file paths [arrayref, optional, default=undef]
+  # prints: feedback
+  # return: string output file path, dies on failure
+  # note:   feedback message only displayed if two criteria met:
+  #         - the file has to be uniquified
+  #         - a feedback message template was provided
+  # note:   feedback message has two placeholders:
+  #         - '%f' for submitted file path
+  #         - '%u' for uniquified file path
+  sub _uniquify_file ($self, $fp, $fb = undef, $fps = undef)
+  {    ## no critic (RequireInterpolationOfMetachars)
+
+    # get comparison list of file paths    {{{3
+    my %exists;
+    if (defined $fps) {    # provided, so presume handling tiddler files
+      %exists = map { $_ => $TRUE } @{$fps};
+    }
+    else {                 # not provided, so presume current directory
+      %exists =
+          map { $_ => $TRUE } File::Find::Rule->file->maxdepth(1)->in(q{.});
     }
 
-    # _uniquify_file($fp, $fb=, $fps=[])    {{{2
-    #
-    # does:   ensure output file does not exist
-    # params: $fp  - intended output file path [string, required]
-    #         $fb  - feedback message template
-    #                [string, optional, default=undef, see notes below]
-    #         $fps - existing file paths [arrayref, optional, default=undef]
-    # prints: feedback
-    # return: string output file path, dies on failure
-    # note:   feedback message only displayed if two criteria met:
-    #         - the file has to be uniquified
-    #         - a feedback message template was provided
-    # note:   feedback message has two placeholders:
-    #         - '%f' for submitted file path
-    #         - '%u' for uniquified file path
-    method _uniquify_file ( $fp, $fb =, $fps = ) {
+    # return submitted filepath if already unique    {{{3
+    return $fp if not $exists{$fp};
 
-        # get comparison list of file paths    {{{3
-        my %exists;
-        if ( defined $fps ) {    # provided, so presume handling tiddler files
-            %exists = map { $_ => $TRUE } @{$fps};
-        }
-        else {                   # not provided, so presume current directory
-            %exists = map { $_ => $TRUE }
-                File::Find::Rule->file->maxdepth(1)->in(q{.});
-        }
-
-        # return submitted filepath if already unique    {{{3
-        return $fp if not $exists{$fp};
-
-        # okay, it already exists, so make unique with basename suffix    {{{3
-        my ( $ignore, $base, $ext ) = $self->_file_name_parts($fp);
-        my ( $index, $unique ) = (0);
-        while ($TRUE) {
-            $unique = $base . q{_} . ++$index . $ext;
-            last if not $exists{$unique};
-        }
-
-        # feedback    {{{3
-        if ( defined $fb ) {
-            my $feedback = $fb =~ s/%f/$fp/xsmr =~ s/%u/$unique/xsmr;
-            say $feedback or croak 'Unable to write to console';
-        }    # }}}3
-
-        return $unique;
+    # okay, it already exists, so make unique with basename suffix    {{{3
+    my ($ignore, $base, $ext) = $self->_file_name_parts($fp);
+    my ($index, $unique) = (0);
+    while ($TRUE) {
+      $unique = $base . q{_} . ++$index . $ext;
+      last if not $exists{$unique};
     }
 
-    # _write_file($fp, $content)    {{{2
-    #
-    # does:   write output file
-    # params: $fp      - output file path [string]
-    #         $content - file lines [string arrayref]
-    # prints: feedback
-    # return: n/a, dies on failure
-    # note:   assumes file does not already exist
-    method _write_file ( $fp, $content ) {
+    # feedback    {{{3
+    if (defined $fb) {
+      my $feedback = $fb =~ s/%f/$fp/xsmr =~ s/%u/$unique/xsmr;
+      say $feedback or croak 'Unable to write to console';
+    }    # }}}3
 
-        confess "Output file '$fp' already exists" if -r $fp;
+    return $unique;
+  }
 
-        # write output file
-        my $fp_obj = Path::Tiny::path($fp);
-        $fp_obj->spew_utf8( @{$content} );    # croaks on failure
+  # _write_file($fp, $content)    {{{2
+  #
+  # does:   write output file
+  # params: $fp      - output file path [string]
+  #         $content - file lines [string arrayref]
+  # prints: feedback
+  # return: n/a, dies on failure
+  # note:   assumes file does not already exist
+  sub _write_file ($self, $fp, $content)
+  {    ## no critic (RequireInterpolationOfMetachars)
 
-        # check for existence of output file
-        croak "Unable to write '$fp'" if not -r $fp;
+    confess "Output file '$fp' already exists" if -r $fp;
 
-        return;
-    };    # }}}2
+    # write output file
+    my $fp_obj = Path::Tiny::path($fp);
+    $fp_obj->spew_utf8(@{$content});    # croaks on failure
+
+    # check for existence of output file
+    croak "Unable to write '$fp'" if not -r $fp;
+
+    return;
+  }    # }}}2
 
 }
 
@@ -234,73 +250,72 @@ use namespace::clean;    # }}}1
 # - represent metadata fields in tiddlers and plugin.info files
 {
 
-    package Dn::TW::UnPlug::Fields;
+  package Dn::TW::UnPlug::Fields;    ## no critic (ProhibitMultiplePackages)
 
-    use Moo;    # {{{2
-    use strictures 2;
-    use namespace::clean;
-    use Const::Fast;
-    use Function::Parameters;
-    use MooX::HandlesVia;
-    use Types::Standard;
+  use Moo;                           # {{{2
+  use strictures 2;
+  use namespace::clean;
+  use Const::Fast;
+  use MooX::HandlesVia;
+  use Types::Standard;
 
-    const my $TRUE  => 1;
-    const my $FALSE => 0;    # }}}2
+  const my $TRUE  => 1;
+  const my $FALSE => 0;              # }}}2
 
-    # attributes
+  # attributes
 
-    # names, add_fields, value    {{{2
-    has '_fields' => (
-        is          => 'rw',
-        isa         => Types::Standard::HashRef [Types::Standard::Str],
-        required    => $FALSE,
-        default     => sub { {} },
-        handles_via => 'Hash',
-        handles     => {
-            names      => 'keys',    # names
-            add_fields => 'set',     # add_fields($name=>$value, ...)
-            value      => 'get',     # value($name)
-        },
-        doc => 'Hash of field names and values',
-    );                               # }}}2
+  # names, add_fields, value    {{{2
+  has '_fields' => (
+    is          => 'rw',
+    isa         => Types::Standard::HashRef [Types::Standard::Str],
+    required    => $FALSE,
+    default     => sub { {} },
+    handles_via => 'Hash',
+    handles     => {
+      names      => 'keys',    # names
+      add_fields => 'set',     # add_fields($name=>$value, ...)
+      value      => 'get',     # value($name)
+    },
+    doc => 'Hash of field names and values',
+  );                           # }}}2
 
-    # methods
+  # methods
 
-    # as_data()    {{{2
-    #
-    # does:   return fields as data structure (hashref)
-    # params: nil
-    # prints: feedback
-    # return: hashref of strings, dies on failure
-    method as_data () {
+  # as_data()    {{{2
+  #
+  # does:   return fields as data structure (hashref)
+  # params: nil
+  # prints: feedback
+  # return: hashref of strings, dies on failure
+  sub as_data ($self) {    ## no critic (RequireInterpolationOfMetachars)
 
-        # put fields into hashref data structure
-        my $fields = {};
-        for my $name ( $self->names ) {
-            $fields->{$name} = $self->value($name);
-        }
-
-        return $fields;
+    # put fields into hashref data structure
+    my $fields = {};
+    for my $name ($self->names) {
+      $fields->{$name} = $self->value($name);
     }
 
-    # as_metadata()    {{{2
-    #
-    # does:   return fields as metadata lines "$name: $value"
-    # params: nil
-    # prints: feedback
-    # return: arrayref of strings, dies on failure
-    method as_metadata () {
+    return $fields;
+  }
 
-        # put output lines into array
-        my @metadata;
-        for my $name ( $self->names ) {
-            next if $name eq 'text';    # don't include tiddler content
-            my $value = $self->value($name);
-            push @metadata, "$name: $value";
-        }
+  # as_metadata()    {{{2
+  #
+  # does:   return fields as metadata lines "$name: $value"
+  # params: nil
+  # prints: feedback
+  # return: arrayref of strings, dies on failure
+  sub as_metadata ($self) {    ## no critic (RequireInterpolationOfMetachars)
 
-        return [@metadata];
-    };    # }}}2
+    # put output lines into array
+    my @metadata;
+    for my $name ($self->names) {
+      next if $name eq 'text';    # don't include tiddler content
+      my $value = $self->value($name);
+      push @metadata, "$name: $value";
+    }
+
+    return [@metadata];
+  }    # }}}2
 
 }
 
@@ -308,343 +323,114 @@ use namespace::clean;    # }}}1
 # - represent plugin.info file
 {
 
-    package Dn::TW::UnPlug::PluginInfoFile;
+  ## no critic (ProhibitMultiplePackages)
+  package Dn::TW::UnPlug::PluginInfoFile;
+  ## use critic
 
-    use Moo;    # {{{2
-    use strictures 2;
-    use namespace::clean;
-    use Carp qw(croak);
-    use Dn::TW::ConvertPlugin::Fields;
-    use Function::Parameters;
-    use MooX::HandlesVia;
-    use Types::Standard;
+  use Moo;    # {{{2
+  use strictures 2;
+  use namespace::clean;
+  use Carp qw(croak);
+  use Dn::TW::UnPlug::Fields;
+  use MooX::HandlesVia;
+  use Types::Standard;
 
-    extends 'Dn::TW::UnPlug::Base';    # }}}2
+  extends 'Dn::TW::UnPlug::Base';    # }}}2
 
-    # attributes
+  # attributes
 
-    # _fields    {{{2
-    has '_fields' => (
-        is      => 'rw',
-        isa     => Types::Standard::InstanceOf ['Dn::TW::UnPlug::Fields'],
-        default => sub { Dn::TW::UnPlug::Fields->new },
-        doc     => 'Metadata fields in the plugin.info file',
-    );
+  # _fields    {{{2
+  has '_fields' => (    ## no critic (ProhibitDuplicateLiteral)
+    is      => 'rw',
+    isa     => Types::Standard::InstanceOf ['Dn::TW::UnPlug::Fields'],
+    default => sub { Dn::TW::UnPlug::Fields->new },
+    doc     => 'Metadata fields in the plugin.info file',
+  );
 
-    # _is_required, _field_index, _required_fields    {{{2
-    has '_required_fields_array' => (
-        is      => 'ro',
-        isa     => Types::Standard::ArrayRef [Types::Standard::Str],
-        default => sub {
-            [   'title',        'description',
-                'author',       'version',
-                'core-version', 'source',
-                'plugin-type',  'list',
-            ];
-        },
-        handles_via => 'Array',
-        handles     => {
-            _field_index     => 'first_index',    # _field_index(sub)
-            _required_fields => 'elements',       # _required_fields
-        },
-        doc => 'Required fields in plugin.info file',
-    );
+  # _is_required, _field_index, _required_fields    {{{2
+  has '_required_fields_array' => (
+    is      => 'ro',
+    isa     => Types::Standard::ArrayRef [Types::Standard::Str],
+    default => sub {
+      return [
+        'title',        'description', 'author',      'version',
+        'core-version', 'source',      'plugin-type', 'list',
+      ];
+    },
+    handles_via => 'Array',
+    handles     => {
+      _field_index     => 'first_index',    # _field_index(sub)
+      _required_fields => 'elements',       # _required_fields
+    },
+    doc => 'Required fields in plugin.info file',
+  );
 
-    method _is_required ($field) {
-        my $index = $self->_field_index( sub {/\A$field\Z/xsm} );
-        return $index > -1;
-    }    # }}}2
+  sub _is_required ($self, $field)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    my $index = $self->_field_index(sub {/\A$field\Z/xsm});
+    return $index >= 0;
+  }    # }}}2
 
-    # methods
+  # methods
 
-    # add_fields($fields)    {{{2
-    #
-    # does:   add plugin.info fields
-    # params: $fields - file metadata fields [name-value hashref, required]
-    # prints: feedback
-    # return: n/a, dies on failure
-    method add_fields ($fields_ref) {
-        my %fields = %{$fields_ref};
+  # add_fields($fields)    {{{2
+  #
+  # does:   add plugin.info fields
+  # params: $fields - file metadata fields [name-value hashref, required]
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub add_fields ($self, $fields_ref)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    my %fields = %{$fields_ref};
 
-        # remove unneeded metadata fields
-        for my $field ( sort keys %fields ) {
-            if ( not $self->_is_required($field) ) {
-                delete $fields{$field};
-            }
-        }
-
-        # check that all required fields are present
-        my @missing;
-        for my $field ( $self->_required_fields ) {
-            if ( not exists $fields{$field} ) { push @missing, $field; }
-        }
-        if (@missing) {
-            my $frag = ( scalar @missing > 1 ) ? 'fields' : 'field';
-            my $msg  = "Warning: the plugin.info file is missing $frag: "
-                . join q{, }, @missing;
-            say $msg or croak 'Unable to write to console';
-        }
-
-        # add content
-        $self->_fields->add_fields(%fields);
-
-        return;
+    # remove unneeded metadata fields
+    for my $field (sort keys %fields) {
+      if (not $self->_is_required($field)) {
+        delete $fields{$field};
+      }
     }
 
-    # write_output()    {{{2
-    #
-    # does:   write 'plugin.info' output file
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    method write_output () {
-
-        # put fields into hashref data structure
-        my $fields = $self->_fields->as_data;
-
-        # get json-equivalent output lines
-        my $output = $self->_json_data_structure_to_strings($fields);
-
-        # write to file
-        my $fp = $self->_uniquify_file( 'plugin.info',
-            q{Plugin file '%f' exists, writing to '%u' instead} );
-        $self->_write_file( $fp, $output );
-
-        return;
-    };    # }}}2
-
-}
-
-# package Dn::TW::UnPlug::Tiddlers    {{{1
-# - represent set of tiddlers unpacked from plugin
-{
-
-    package Dn::TW::UnPlug::Tiddlers;
-
-    use Moo;    # {{{2
-    use strictures 2;
-    use namespace::clean;
-    use Carp qw(croak);
-    use Const::Fast;
-    use Dn::TW::UnPlug::Tiddler;
-    use Function::Parameters;
-    use MooX::HandlesVia;
-    use Types::Standard;
-
-    extends 'Dn::TW::UnPlug::Base';
-
-    const my $TRUE  => 1;
-    const my $FALSE => 0;    # }}}2
-
-    # attributes
-
-    # _add_tiddler, _content, _files    {{{2
-    has '_tiddlers' => (
-        is  => 'rw',
-        isa => Types::Standard::HashRef [
-            Types::Standard::InstanceOf ['Dn::TW::UnPlug::Tiddler'],
-        ],
-        default     => sub { {} },
-        handles_via => 'Hash',
-        handles     => {
-            _add_tiddler => 'set',     # _add_tiddler($file=>$fields)
-            _content     => 'get',     # _content($name)
-            _files       => 'keys',    # _files
-        },
-        doc => 'Hash of tiddler file names and tiddler content',
-    );                                 # }}}2
-
-    # methods
-
-    # add_tiddler($fields)    {{{2
-    #
-    # does:   add tiddler
-    # params: $fields - field names and values [hashref, required]
-    # prints: feedback
-    # return: n/a, dies on failure
-    method add_tiddler ($fields_ref) {
-
-        my %fields = %{$fields_ref};
-
-        # derive file name from title field
-        my $file = $self->_file_name( $fields{'title'} );
-
-        # create tiddler
-        my $tiddler = Dn::TW::UnPlug::Tiddler->new;
-        $tiddler->add_fields(%fields);
-
-        # add tiddler
-        $self->_add_tiddler( $file => $tiddler );
-
-        return;
+    # check that all required fields are present
+    my @missing;
+    for my $field ($self->_required_fields) {
+      if (not exists $fields{$field}) { push @missing, $field; }
+    }
+    if (@missing) {
+      my $frag = (scalar @missing > 1) ? 'fields' : 'field';
+      my $msg =
+          "Warning: the plugin.info file is missing $frag: "
+          . join $COMMA_SPACE,
+          @missing;
+      say $msg or croak;
     }
 
-    # configure_metadata_location($in_tw_files, $in_tidder)    {{{2
-    #
-    # does:   configure whether metadata stored in tiddler or tiddlywiki.files
-    # params: $in_tw_files - these files store metadata in tiddlywiki.files
-    #                        regardless of default setting
-    #                        [arrayref, required but may be empty]
-    #         $in_tiddler  - these files store metadata in tiddler
-    #                        regardless of default setting
-    #                        [arrayref, required but may be empty]
-    # prints: feedback
-    # return: n/a, dies on failure
-    # note:   default algorithm is:
-    #         IF extension = 'tid' AND type = 'text/[vnd|x]-tiddlywiki'
-    #         THEN store in tiddler file
-    #         ELSE store in tiddlywiki.files file
-    method configure_metadata_location ( $in_tw_files, $in_tiddler ) {
+    # add content
+    $self->_fields->add_fields(%fields);
 
-        # set default values    {{{3
-        my %files = map { $_ => $TRUE } sort $self->_files;
-        for my $file ( keys %files ) {
-            my $tiddler    = $self->_content($file);
-            my $type       = $tiddler->field_value('type');
-            my $ext        = ( $self->_file_name_parts($file) )[2];
-            my $in_tiddler = $FALSE;
-            if (    defined $ext
-                and $ext eq '.tid'
-                and $type =~ /\Atext\/(vnd|x)-tiddlywiki\Z/xsm )
-            {
-                $in_tiddler = $TRUE;
-            }
-            $tiddler->metadata_in_tiddler($in_tiddler);
-        }
+    return;
+  }
 
-        # now check override files exist    {{{3
-        my @missing;
-        my %overridden;
-        for my $file ( @{$in_tw_files} ) { $overridden{$file} = $TRUE; }
-        for my $file ( @{$in_tiddler} )  { $overridden{$file} = $TRUE; }
-        for my $file ( sort keys %overridden ) {
-            if ( not exists $files{$file} ) { push @missing, $file; }
-        }
-        if (@missing) {
-            my $frag = ( scalar @missing > 1 ) ? 'files' : 'file';
-            my $msg
-                = "Warning: config file refers to non-existent tiddler $frag: "
-                . join q{, }, @missing;
-            say $msg or croak 'Unable to write to console';
-        }
+  # write_output()    {{{2
+  #
+  # does:   write 'plugin.info' output file
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub write_output ($self) {    ## no critic (RequireInterpolationOfMetachars)
 
-        # set overrides    {{{3
-        for my $file ( @{$in_tw_files} ) {
-            if ( exists $files{$file} ) {
-                my $tiddler = $self->_content($file);
-                $tiddler->metadata_in_tiddler($FALSE);
-            }
-        }
-        for my $file ( @{$in_tiddler} ) {
-            if ( exists $files{$file} ) {
-                my $tiddler = $self->_content($file);
-                $tiddler->metadata_in_tiddler($TRUE);
-            }
-        }    # }}}3
+    # put fields into hashref data structure
+    my $fields = $self->_fields->as_data;
 
-        return;
-    }
+    # get json-equivalent output lines
+    my $output = $self->_json_data_structure_to_strings($fields);
 
-    # write_output()    {{{2
-    #
-    # does:   write plugin tiddler files and 'tiddlywiki.files' file
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    method write_output () {
+    # write to file
+    my $fp = $self->_uniquify_file('plugin.info',
+      q{Plugin file '%f' exists, writing to '%u' instead});
+    $self->_write_file($fp, $output);
 
-        # write tiddler files
-        $self->_write_tiddler_files;
-
-        # write 'tiddlywiki.files' file
-        $self->_write_tiddlywiki_files_file;
-
-        return;
-    }
-
-    # _file_name($title)    {{{2
-    #
-    # does:   derive tiddler file name
-    # params: $title - tiddler title [string, required]
-    # prints: feedback
-    # return: string file name, dies on failure
-    # note:   take last element of tiddler title, replace colons and spaces
-    #         with underscores, and ensure uniqueness
-    method _file_name ($title) {
-
-        # extract file part of title
-        my ( $ignore, $base, $ext ) = $self->_file_name_parts($title);
-        my $file = $base . $ext;
-
-        # replace colons and spaces with underscores
-        $file =~ s/[\s:]/_/gxsm;
-
-        # ensure file name is unique
-        my @existing = $self->_files;
-        my $unique
-            = $self->_uniquify_file( $file,
-            q{Tiddler file '%f' already exists, using '%u' instead},
-            [@existing] );
-
-        return $unique;
-    }
-
-    # _write_tiddler_files()    {{{2
-    #
-    # does:   write plugin tiddler files
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    method _write_tiddler_files () {
-
-        for my $file ( sort $self->_files ) {
-            my $tiddler = $self->_content($file);
-            my $output  = $tiddler->output;
-            my $fp      = $self->_uniquify_file( $file,
-                q{Tiddler file '%f' exists, writing to '%u' instead} );
-            $self->_write_file( $fp, $output );
-        }
-
-        return;
-    }
-
-    # _write_tiddlywiki_files_file()    {{{2
-    #
-    # does:   write 'tiddlywiki.files' file
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    method _write_tiddlywiki_files_file () {
-
-        # create output data structure    {{{3
-        my @tiddlers;
-        for my $file ( $self->_files ) {
-            my $tiddler = $self->_content($file);
-            if ( not $tiddler->metadata_in_tiddler ) {
-                my $fields = $tiddler->fields_as_data;
-                if ( exists $fields->{'text'} ) {
-                    delete $fields->{'text'};
-                }
-                my $tiddler_output = {
-                    file   => $file,
-                    fields => $fields,
-                };
-                push @tiddlers, $tiddler_output;
-            }
-        }
-        return if not @tiddlers;
-        my $data = { tiddlers => [@tiddlers] };
-
-        # get json-equivalent output lines    {{{3
-        my $output = $self->_json_data_structure_to_strings($data);
-
-        # write to file    {{{3
-        my $fp = $self->_uniquify_file( 'tiddlywiki.files',
-            q{External metadata file '%f' exists, writing to '%u' instead} );
-        $self->_write_file( $fp, $output );    # }}}3
-
-        return;
-    };    # }}}2
+    return;
+  }    # }}}2
 
 }
 
@@ -652,98 +438,344 @@ use namespace::clean;    # }}}1
 # - represent individual tiddler
 {
 
-    package Dn::TW::UnPlug::Tiddler;
+  package Dn::TW::UnPlug::Tiddler;    ## no critic (ProhibitMultiplePackages)
 
-    use Moo;    # {{{2
-    use strictures 2;
-    use namespace::clean;
-    use Const::Fast;
-    use Dn::TW::UnPlug::Fields;
-    use Function::Parameters;
-    use Types::Standard;
+  use Moo;                            # {{{2
+  use strictures 2;
+  use namespace::clean;
+  use Const::Fast;
+  use Dn::TW::UnPlug::Fields;
+  use Types::Standard;
 
-    const my $TRUE  => 1;
-    const my $FALSE => 0;    # }}}2
+  const my $TRUE  => 1;
+  const my $FALSE => 0;
 
-    # attributes
+  # }}}2
 
-    # _fields    {{{2
-    has '_fields' => (
-        is      => 'rw',
-        isa     => Types::Standard::InstanceOf ['Dn::TW::UnPlug::Fields'],
-        default => sub { Dn::TW::UnPlug::Fields->new },
-        doc     => 'Metadata fields in the tiddler file',
-    );
+  # attributes
 
-    # metadata_in_tiddler    {{{2
-    has 'metadata_in_tiddler' => (
-        is      => 'rw',
-        isa     => Types::Standard::Bool,
-        default => $TRUE,
-        doc     => 'Whether to store non-content metadata fields in tiddler',
-    );    # }}}2
+  # _fields    {{{2
+  has '_fields' => (    ## no critic (ProhibitDuplicateLiteral)
+    is      => 'rw',
+    isa     => Types::Standard::InstanceOf ['Dn::TW::UnPlug::Fields'],
+    default => sub { Dn::TW::UnPlug::Fields->new },
+    doc     => 'Metadata fields in the tiddler file',
+  );
 
-    # methods
+  # metadata_in_tiddler    {{{2
+  has 'metadata_in_tiddler' => (
+    is      => 'rw',
+    isa     => Types::Standard::Bool,
+    default => $TRUE,
+    doc     => 'Whether to store non-content metadata fields in tiddler',
+  );    # }}}2
 
-    # add_fields()    {{{2
-    #
-    # does:   add fields to tiddler
-    # params: %fields - field data
-    # prints: feedback
-    # return: n/a, dies on failure
-    method add_fields (%fields) {
-        $self->_fields->add_fields(%fields);
-        return;
+  # methods
+
+  # add_fields()    {{{2
+  #
+  # does:   add fields to tiddler
+  # params: %fields - field data
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub add_fields ($self, %fields)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    $self->_fields->add_fields(%fields);
+    return;
+  }
+
+  # field_value($name)    {{{2
+  #
+  # does:   get a field value
+  # params: $name - field name
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub field_value ($self, $name)
+  {    ## no critic (RequireInterpolationOfMetachars)
+    return $self->_fields->value($name);
+  }
+
+  # fields_as_data()    {{{2
+  #
+  # does:   get all field data as a hashref data structure
+  # params: nil
+  # prints: feedback
+  # return: hashref, dies on failure
+  sub fields_as_data ($self) {  ## no critic (RequireInterpolationOfMetachars)
+    my $data = $self->_fields->as_data;
+    return $data;
+  }
+
+  # output()    {{{2
+  #
+  # does:   generate output for writing tiddler file
+  # params: nil
+  # prints: feedback
+  # return: arrayref of string output lines, dies on failure
+  sub output ($self) {    ## no critic (RequireInterpolationOfMetachars)
+
+    # metadata only if tiddler set to do so
+    my @output;
+    if ($self->metadata_in_tiddler) {
+      my $metadata = $self->_fields->as_metadata;
+      push @output, @{$metadata};
+      push @output, q{};            # blank line following metadata
     }
 
-    # field_value($name)    {{{2
-    #
-    # does:   get a field value
-    # params: $name - field name
-    # prints: feedback
-    # return: n/a, dies on failure
-    method field_value ($name) {
-        my $name = $self->_fields->value($name);
-        return $name;
+    # add tiddler content
+    ## no critic (ProhibitDuplicateLiteral)
+    my $text = $self->_fields->value('text');
+    ## use critic
+    my @content = split /\r?\n/xsm, $text;    # handle '\r\n' and '\n'
+    if (@content) { push @output, @content; }
+
+    # add newline
+    my @output_with_newlines = map {"$_\n"} @output;
+
+    return [@output_with_newlines];
+  }    # }}}2
+
+}
+
+# package Dn::TW::UnPlug::Tiddlers    {{{1
+# - represent set of tiddlers unpacked from plugin
+{
+
+  package Dn::TW::UnPlug::Tiddlers;    ## no critic (ProhibitMultiplePackages)
+
+  use Moo;                             # {{{2
+  use strictures 2;
+  use namespace::clean;
+  use Carp qw(croak);
+  use Const::Fast;
+  use Dn::TW::UnPlug::Tiddler;
+  use MooX::HandlesVia;
+  use Types::Standard;
+
+  extends 'Dn::TW::UnPlug::Base';      ## no critic (ProhibitDuplicateLiteral)
+
+  const my $TRUE  => 1;
+  const my $FALSE => 0;                # }}}2
+
+  # attributes
+
+  # _add_tiddler, _content, _files    {{{2
+  has '_tiddlers' => (
+    is  => 'rw',
+    isa => Types::Standard::HashRef [
+      Types::Standard::InstanceOf ['Dn::TW::UnPlug::Tiddler'],
+    ],
+    default     => sub { {} },
+    handles_via => 'Hash',
+    ## no critic (ProhibitDuplicateLiteral)
+    handles => {
+      _add_tiddler => 'set',     # _add_tiddler($file=>$fields)
+      _content     => 'get',     # _content($name)
+      _files       => 'keys',    # _files
+    },
+    ## use critic
+    doc => 'Hash of tiddler file names and tiddler content',
+  );    # }}}2
+
+  # methods
+
+  # add_tiddler($fields)    {{{2
+  #
+  # does:   add tiddler
+  # params: $fields - field names and values [hashref, required]
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub add_tiddler ($self, $fields_ref)
+  {    ## no critic (RequireInterpolationOfMetachars ProhibitDuplicateLiteral)
+
+    my %fields = %{$fields_ref};
+
+    # derive file name from title field
+    ## no critic (ProhibitDuplicateLiteral)
+    my $file = $self->_file_name($fields{'title'});
+    ## use critic
+
+    # create tiddler
+    my $tiddler = Dn::TW::UnPlug::Tiddler->new;
+    $tiddler->add_fields(%fields);
+
+    # add tiddler
+    $self->_add_tiddler($file => $tiddler);
+
+    return;
+  }
+
+  # configure_metadata_location($in_tw_files, $in_tidder)    {{{2
+  #
+  # does:   configure whether metadata stored in tiddler or tiddlywiki.files
+  # params: $in_tw_files - these files store metadata in tiddlywiki.files
+  #                        regardless of default setting
+  #                        [arrayref, required but may be empty]
+  #         $in_tiddler  - these files store metadata in tiddler
+  #                        regardless of default setting
+  #                        [arrayref, required but may be empty]
+  # prints: feedback
+  # return: n/a, dies on failure
+  # note:   default algorithm is:
+  #         IF extension = 'tid' AND type = 'text/[vnd|x]-tiddlywiki'
+  #         THEN store in tiddler file
+  #         ELSE store in tiddlywiki.files file
+  sub configure_metadata_location ($self, $in_tw_files, $in_tiddler)
+  {    ## no critic (RequireInterpolationOfMetachars ProhibitManyArgs)
+
+    # set default values    {{{3
+    my %files = map { $_ => $TRUE } sort $self->_files;
+    for my $file (keys %files) {
+      my $tiddler    = $self->_content($file);
+      my $type       = $tiddler->field_value('type');
+      my $ext        = ($self->_file_name_parts($file))[2];
+      my $in_tiddler = $FALSE;
+      if (  defined $ext
+        and $ext eq '.tid'
+        and $type =~ /\Atext\/(vnd|x)-tiddlywiki\Z/xsm)
+      {
+        $in_tiddler = $TRUE;
+      }
+      $tiddler->metadata_in_tiddler($in_tiddler);
     }
 
-    # fields_as_data()    {{{2
-    #
-    # does:   get all field data as a hashref data structure
-    # params: nil
-    # prints: feedback
-    # return: hashref, dies on failure
-    method fields_as_data () {
-        my $data = $self->_fields->as_data;
-        return $data;
+    # now check override files exist    {{{3
+    my @missing;
+    my %overridden;
+    for my $file (@{$in_tw_files}) { $overridden{$file} = $TRUE; }
+    for my $file (@{$in_tiddler})  { $overridden{$file} = $TRUE; }
+    for my $file (sort keys %overridden) {
+      if (not exists $files{$file}) { push @missing, $file; }
+    }
+    if (@missing) {
+      my $frag = (scalar @missing > 1) ? 'files' : 'file';
+      my $msg  = "Warning: config file refers to non-existent tiddler $frag: "
+          . join $COMMA_SPACE, @missing;
+      say $msg or croak;
     }
 
-    # output()    {{{2
-    #
-    # does:   generate output for writing tiddler file
-    # params: nil
-    # prints: feedback
-    # return: arrayref of string output lines, dies on failure
-    method output () {
+    # set overrides    {{{3
+    for my $file (@{$in_tw_files}) {
+      if (exists $files{$file}) {
+        my $tiddler = $self->_content($file);
+        $tiddler->metadata_in_tiddler($FALSE);
+      }
+    }
+    for my $file (@{$in_tiddler}) {
+      if (exists $files{$file}) {
+        my $tiddler = $self->_content($file);
+        $tiddler->metadata_in_tiddler($TRUE);
+      }
+    }    # }}}3
 
-        # metadata only if tiddler set to do so
-        my @output;
-        if ( $self->metadata_in_tiddler ) {
-            my $metadata = $self->_fields->as_metadata;
-            push @output, @{$metadata};
-            push @output, q{};            # blank line following metadata
+    return;
+  }
+
+  # write_output()    {{{2
+  #
+  # does:   write plugin tiddler files and 'tiddlywiki.files' file
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub write_output ($self) {    ## no critic (RequireInterpolationOfMetachars)
+
+    # write tiddler files
+    $self->_write_tiddler_files;
+
+    # write 'tiddlywiki.files' file
+    $self->_write_tiddlywiki_files_file;
+
+    return;
+  }
+
+  # _file_name($title)    {{{2
+  #
+  # does:   derive tiddler file name
+  # params: $title - tiddler title [string, required]
+  # prints: feedback
+  # return: string file name, dies on failure
+  # note:   take last element of tiddler title, replace colons and spaces
+  #         with underscores, and ensure uniqueness
+  sub _file_name ($self, $title)
+  {    ## no critic (RequireInterpolationOfMetachars)
+
+    # extract file part of title
+    my ($ignore, $base, $ext) = $self->_file_name_parts($title);
+    my $file = $base . $ext;
+
+    # replace colons and spaces with underscores
+    $file =~ s/[\s:]/_/gxsm;
+
+    # ensure file name is unique
+    my @existing = $self->_files;
+    my $unique =
+        $self->_uniquify_file($file,
+      q{Tiddler file '%f' already exists, using '%u' instead},
+      [@existing]);
+
+    return $unique;
+  }
+
+  # _write_tiddler_files()    {{{2
+  #
+  # does:   write plugin tiddler files
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub _write_tiddler_files ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+
+    for my $file (sort $self->_files) {
+      my $tiddler = $self->_content($file);
+      my $output  = $tiddler->output;
+      my $fp      = $self->_uniquify_file($file,
+        q{Tiddler file '%f' exists, writing to '%u' instead});
+      $self->_write_file($fp, $output);
+    }
+
+    return;
+  }
+
+  # _write_tiddlywiki_files_file()    {{{2
+  #
+  # does:   write 'tiddlywiki.files' file
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub _write_tiddlywiki_files_file ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+
+    # create output data structure    {{{3
+    my @tiddlers;
+    for my $file ($self->_files) {
+      my $tiddler = $self->_content($file);
+      if (not $tiddler->metadata_in_tiddler) {
+        my $fields = $tiddler->fields_as_data;
+        ## no critic (ProhibitDuplicateLiteral)
+        if (exists $fields->{'text'}) {
+          delete $fields->{'text'};
         }
+        ## use critic
+        my $tiddler_output = {
+          file   => $file,
+          fields => $fields,
+        };
+        push @tiddlers, $tiddler_output;
+      }
+    }
+    return if not @tiddlers;
+    my $data = { tiddlers => [@tiddlers] };
 
-        # add tiddler content
-        my $text    = $self->_fields->value('text');
-        my @content = split /\r?\n/xsm, $text;        # handle '\r\n' and '\n'
-        if (@content) { push @output, @content; }
+    # get json-equivalent output lines    {{{3
+    my $output = $self->_json_data_structure_to_strings($data);
 
-        # add newline
-        my @output_with_newlines = map {"$_\n"} @output;
+    # write to file    {{{3
+    my $fp = $self->_uniquify_file('tiddlywiki.files',
+      q{External metadata file '%f' exists, writing to '%u' instead});
+    $self->_write_file($fp, $output);    # }}}3
 
-        return [@output_with_newlines];
-    };    # }}}2
+    return;
+  }    # }}}2
 
 }
 
@@ -753,368 +785,374 @@ use namespace::clean;    # }}}1
 #   file
 {
 
-    package Dn::TW::UnPlug::MetadataOverrides;
+  ## no critic (ProhibitMultiplePackages)
+  package Dn::TW::UnPlug::MetadataOverrides;
+  ## use critic
 
-    use Moo;    # {{{2
-    use strictures 2;
-    use namespace::clean;
-    use Function::Parameters;
-    use MooX::HandlesVia;
-    use Types::Standard;    # }}}2
+  use Moo;                # {{{2
+  use strictures 2;
+  use namespace::clean;
+  use MooX::HandlesVia;
+  use Types::Standard;    # }}}2
 
-    # attributes
+  # attributes
 
-    # add_for_tw_files, in_tw_files    {{{2
-    has '_metadata_in_tw_files' => (
-        is          => 'rw',
-        isa         => Types::Standard::ArrayRef [Types::Standard::Str],
-        default     => sub { [] },
-        handles_via => 'Array',
-        handles     => {
-            add_for_tw_files => 'push',        # add_for_tw_files(file)
-            in_tw_files      => 'elements',    # in_tw_files
-        },
-        doc => 'Store non-content metadata in tiddlywiki.files',
-    );
+  # add_for_tw_files, in_tw_files    {{{2
+  has '_metadata_in_tw_files' => (
+    is          => 'rw',
+    isa         => Types::Standard::ArrayRef [Types::Standard::Str],
+    default     => sub { [] },
+    handles_via => 'Array',
+    handles     => {
+      add_for_tw_files => 'push',        # add_for_tw_files(file)
+      in_tw_files      => 'elements',    # in_tw_files
+    },
+    doc => 'Store non-content metadata in tiddlywiki.files',
+  );
 
-    # in_tiddler    {{{2
-    has '_metadata_in_tiddler' => (
-        is          => 'rw',
-        isa         => Types::Standard::ArrayRef [Types::Standard::Str],
-        default     => sub { [] },
-        handles_via => 'Array',
-        handles     => {
-            add_for_tiddler => 'push',         # add_for_tiddler(file)
-            in_tiddler      => 'elements',     # in_tiddler
-        },
-        doc => 'Store non-content metadata in tiddler file',
-    );                                         # }}}2
+  # in_tiddler    {{{2
+  has '_metadata_in_tiddler' => (
+    is          => 'rw',
+    isa         => Types::Standard::ArrayRef [Types::Standard::Str],
+    default     => sub { [] },
+    handles_via => 'Array',
+    handles     => {
+      add_for_tiddler => 'push',         # add_for_tiddler(file)
+      in_tiddler      => 'elements',     # in_tiddler
+    },
+    doc => 'Store non-content metadata in tiddler file',
+  );                                     # }}}2
 
 }    # }}}1
 
 {
 
-    package Dn::TW::UnPlug::Main;
+  package Dn::TW::UnPlug::Main;    ## no critic (ProhibitMultiplePackages)
 
-    use Moo;    # {{{1
-    use strictures 2;
-    use namespace::clean -except => [ '_options_data', '_options_config' ];
-    use Carp qw(croak);
-    use Const::Fast;
-    use Dn::TW::UnPlug::MetadataOverrides;
-    use Dn::TW::UnPlug::PluginInfoFile;
-    use Dn::TW::UnPlug::Tiddlers;
-    use Function::Parameters;
-    use List::SomeUtils qw(uniq);
-    use MooX::HandlesVia;
-    use MooX::Options protect_argv => 0;
-    use Types::Path::Tiny qw(AbsFile);
-    use Types::Standard;
+  use Moo;                         # {{{1
+  use strictures 2;
+  use namespace::clean -except => [ '_options_data', '_options_config' ];
+  use Carp qw(croak);
+  use Const::Fast;
+  use Dn::TW::UnPlug::MetadataOverrides;
+  use Dn::TW::UnPlug::PluginInfoFile;
+  use Dn::TW::UnPlug::Tiddlers;
+  use List::SomeUtils;
+  use MooX::HandlesVia;
+  use MooX::Options protect_argv => 0;
+  use Types::Path::Tiny;
+  use Types::Standard;
 
-    extends 'Dn::TW::UnPlug::Base';
+  extends 'Dn::TW::UnPlug::Base';    ## no critic (ProhibitDuplicateLiteral)
 
-    const my $TRUE  => 1;
-    const my $FALSE => 0;    # }}}1
+  const my $TRUE  => 1;
+  const my $FALSE => 0;              # }}}1
 
-    # options
+  # options
 
-    # config  (-c)    {{{1
-    option 'config' => (
-        is       => 'ro',
-        format   => 's',
-        required => $FALSE,
-        default  => sub {undef},
-        short    => 'c',
-        doc      => 'Configuration file path',
-    );
+  # config  (-c)    {{{1
+  option 'config' => (
+    is       => 'ro',
+    format   => 's',
+    required => $FALSE,
+    default  => sub {undef},
+    short    => 'c',
+    doc      => 'Configuration file path',
+  );
 
-    # config_template (-t)    {{{1
-    option 'config_template' => (
-        is       => 'ro',
-        short    => 't',
-        required => $FALSE,
-        doc      => 'Write template config file to ./config.json',
-    );    # }}}1
+  # config_template (-t)    {{{1
+  option 'config_template' => (
+    is       => 'ro',
+    short    => 't',
+    required => $FALSE,
+    doc      => 'Write template config file to ./config.json',
+  );    # }}}1
 
-    # attributes
+  # attributes
 
-    # _config_file    {{{1
-    has '_config_file' => (
-        is => 'lazy',    # needed, or $self->config is undef when evaluated
-        isa    => Types::Standard::Maybe [Types::Path::Tiny::AbsFile],
-        coerce => Types::Path::Tiny::AbsFile->coercion,
-        doc    => 'Configuration file path',
-    );
+  # _config_file    {{{1
+  has '_config_file' => (
+    is      => 'ro',    # needed, or $self->config is undef when evaluated
+    isa     => Types::Standard::Maybe [Types::Path::Tiny::AbsFile],
+    coerce  => Types::Path::Tiny::AbsFile->coercion,
+    lazy    => $TRUE,
+    default => sub {
+      my $self = shift;
+      return $self->config;
+    },
+    doc => 'Configuration file path',  ## no critic (ProhibitDuplicateLiteral)
+  );
 
-    method _build__config_file () {
-        return $self->config;
+  # _config_file_template    {{{1
+  has '_config_file_template' => (
+    is      => 'ro',
+    isa     => Types::Standard::HashRef,
+    lazy    => $TRUE,
+    default => sub {
+      return {
+        overrides => {
+          metadata => {
+            in_tw_files => [],
+            in_tiddler  => [],
+          },
+        },
+      };
+    },
+    doc => 'Content model for template config file',
+  );
+
+  # _metadata_overrides    {{{1
+  # - i.e., whether to store in tiddler or tiddlywiki.files file
+  has '_metadata_overrides' => (
+    is  => 'rw',
+    isa => Types::Standard::InstanceOf ['Dn::TW::UnPlug::MetadataOverrides'],
+    default => sub { Dn::TW::UnPlug::MetadataOverrides->new },
+    doc     => 'Overrides of default metadata location',
+  );
+
+  # _plugin_info_file    {{{1
+  has '_plugin_info_file' => (
+    is      => 'rw',
+    isa     => Types::Standard::InstanceOf ['Dn::TW::UnPlug::PluginInfoFile'],
+    default => sub { Dn::TW::UnPlug::PluginInfoFile->new },
+    doc     => 'The plugin.info file',
+  );
+
+  # _plugin_input_file    {{{1
+  has '_plugin_input_file' => (
+    is      => 'ro',
+    isa     => Types::Path::Tiny::AbsFile,
+    coerce  => Types::Path::Tiny::AbsFile->coercion,
+    lazy    => $TRUE,
+    default => sub {
+
+      # get unique command line arguments
+      my @args;
+      for my $arg (@ARGV) { push @args, glob "$arg"; }
+
+      # must have only one argument
+      my $count = @args;
+      die "No file name provided\n"                        if $count == 0;
+      die "Expected 1 command line argument, got $count\n" if $count > 1;
+
+      # return value to be coerced
+      return $args[0];
+    },
+    doc => 'Input plugin file path',
+  );
+
+  # _tiddlers    {{{1
+  has '_tiddlers' => (    ## no critic (ProhibitDuplicateLiteral)
+    is      => 'rw',
+    isa     => Types::Standard::InstanceOf ['Dn::TW::UnPlug::Tiddlers'],
+    default => sub { Dn::TW::UnPlug::Tiddlers->new },
+    doc     => 'Plugin tiddlers',
+  );                      # }}}1
+
+  # methods
+
+  # run()    {{{1
+  #
+  # does:   main method
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub run ($self) {    ## no critic (RequireInterpolationOfMetachars)
+
+    # write template file (and exit) if requested
+    if ($self->config_template) {
+      $self->_write_config_template;
+      return;
     }
 
-    # _config_file_template    {{{1
-    has '_config_file_template' => (
-        is  => 'lazy',
-        isa => Types::Standard::HashRef,
-        doc => 'Content model for template config file',
-    );
+    # process config file
+    $self->_process_config_file;
 
-    method _build__config_file_template () {
-        my $template = {
-            overrides => {
-                metadata => {
-                    in_tw_files => [],
-                    in_tiddler  => [],
-                },
-            },
-        };
+    # process plugin input file
+    $self->_process_plugin_input_file;
 
-        return $template;
+    # set where metadata written, i.e., to tiddlywiki.files or not
+    $self->_configure_metadata_location;
+
+    # write output files
+    $self->_write_output;
+
+    return;
+  }
+
+  # _configure_metadata_location()    {{{1
+  #
+  # does:   configure whether non-content metadata is stored in tiddler files
+  #         or in the tiddlywiki.files file
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub _configure_metadata_location ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+
+    # get location override details
+    my (@in_tw_files, @in_tiddler);
+    push @in_tw_files, $self->_metadata_overrides->in_tw_files;
+    push @in_tiddler,  $self->_metadata_overrides->in_tiddler;
+
+    # delegate to tiddlers object
+    $self->_tiddlers->configure_metadata_location([@in_tw_files],
+      [@in_tiddler]);
+
+    return;
+  }
+
+  # _process_config_file()    {{{1
+  #
+  # does:   extract plugin.info and tiddler content from plugin file
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  # note:   assume json file that imports to hashref structure:
+  #         -------------------------
+  #         $config->{
+  #           overrides => {
+  #             metadata => {
+  #               combine  => [ <FILES> ],
+  #               separate => [ <FILES> ],
+  #             }
+  #           }
+  #         }
+  #         -------------------------
+  sub _process_config_file ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
+
+    # quick return if no config file specified    {{{2
+    my $config_file = $self->_config_file;
+    return if not $config_file;
+
+    # parse file    {{{2
+    my @content = @{ $self->_read_file($config_file) };
+    my $json    = $self->_json_strings_to_data_structure([@content]);
+
+    # extract override data    {{{2
+    ## no critic (ProhibitDuplicateLiteral)
+    return if not exists $json->{'overrides'};
+    my $overrides = $json->{'overrides'};
+    return if not exists $overrides->{'metadata'};
+    my $metadata = $overrides->{'metadata'};
+    my (@in_tw_files, @in_tiddler);
+    if (exists $metadata->{'in_tw_files'}) {
+      my $in_tw_files_value = $metadata->{'in_tw_files'};
+      my $in_tw_files_ref   = ref $in_tw_files_value;
+      if ($in_tw_files_ref eq $REF_TYPE_ARRAY) {
+        push @in_tw_files, @{$in_tw_files_value};
+      }
     }
-
-    # _metadata_overrides    {{{1
-    # - i.e., whether to store in tiddler or tiddlywiki.files file
-    has '_metadata_overrides' => (
-        is => 'rw',
-        isa =>
-            Types::Standard::InstanceOf ['Dn::TW::UnPlug::MetadataOverrides'],
-        default => sub { Dn::TW::UnPlug::MetadataOverrides->new },
-        doc     => 'Overrides of default metadata location',
-    );
-
-    # _plugin_info_file    {{{1
-    has '_plugin_info_file' => (
-        is  => 'rw',
-        isa => Types::Standard::InstanceOf ['Dn::TW::UnPlug::PluginInfoFile'],
-        default => sub { Dn::TW::UnPlug::PluginInfoFile->new },
-        doc     => 'The plugin.info file',
-    );
-
-    # _plugin_input_file    {{{1
-    has '_plugin_input_file' => (
-        is     => 'lazy',
-        isa    => Types::Path::Tiny::AbsFile,
-        coerce => Types::Path::Tiny::AbsFile->coercion,
-        doc    => 'Input plugin file path',
-    );
-
-    method _build__plugin_input_file () {
-
-        # get unique command line arguments
-        my @args;
-        for my $arg (@ARGV) { push @args, glob "$arg"; }
-
-        # must have only one argument
-        my $count = scalar @args;
-        die "No file name provided\n" if $count == 0;
-        die "Expected 1 command line argument, got $count\n" if $count > 1;
-
-        # return value to be coerced
-        return $args[0];
+    if (exists $metadata->{'in_tiddler'}) {
+      my $in_tiddler_value = $metadata->{'in_tiddler'};
+      my $in_tiddler_ref   = ref $in_tiddler_value;
+      if ($in_tiddler_ref eq $REF_TYPE_ARRAY) {
+        push @in_tiddler, @{$in_tiddler_value};
+      }
     }
+    ## use critic
 
-    # _tiddlers    {{{1
-    has '_tiddlers' => (
-        is      => 'rw',
-        isa     => Types::Standard::InstanceOf ['Dn::TW::UnPlug::Tiddlers'],
-        default => sub { Dn::TW::UnPlug::Tiddlers->new },
-        doc     => 'Plugin tiddlers',
-    );    # }}}1
-
-    # methods
-
-    # run()    {{{1
-    #
-    # does:   main method
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    method run () {
-
-        # write template file (and exit) if requested
-        if ( $self->config_template ) {
-            $self->_write_config_template;
-            return;
-        }
-
-        # process config file
-        $self->_process_config_file;
-
-        # process plugin input file
-        $self->_process_plugin_input_file;
-
-        # set where metadata written, i.e., to tiddlywiki.files or not
-        $self->_configure_metadata_location;
-
-        # write output files
-        $self->_write_output;
-
-        return;
+    # save override data    {{{2
+    if (@in_tw_files) {
+      $self->_metadata_overrides->add_for_tw_files(@in_tw_files);
     }
+    if (@in_tiddler) {
+      $self->_metadata_overrides->add_for_tiddler(@in_tiddler);
+    }    # }}}2
 
-   # _configure_metadata_location()    {{{1
-   #
-   # does:   configure whether non-content metadata is stored in tiddler files
-   #         or in the tiddlywiki.files file
-   # params: nil
-   # prints: feedback
-   # return: n/a, dies on failure
-    method _configure_metadata_location () {
+    return;
+  }
 
-        # get location override details
-        my ( @in_tw_files, @in_tiddler );
-        push @in_tw_files, $self->_metadata_overrides->in_tw_files;
-        push @in_tiddler,  $self->_metadata_overrides->in_tiddler;
+  # _process_plugin_input_file()    {{{1
+  #
+  # does:   extract plugin.info and tiddler content from plugin file
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  # note:   assume file has structure:
+  #         -------------------------
+  #         <name>: <value>
+  #         <name>: <value>
+  #         ...
+  #         <last_name>: <last_value>
+  #
+  #         {
+  #         <json>
+  #         }
+  #         -------------------------
+  sub _process_plugin_input_file ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
 
-        # delegate to tiddlers object
-        $self->_tiddlers->configure_metadata_location( [@in_tw_files],
-            [@in_tiddler] );
+    # parse input file    {{{2
+    my @content  = @{ $self->_read_file($self->_plugin_input_file) };
+    my $re_empty = qr/\A\s*\Z/xsm;
+    my $re_json  = qr/\A\s*[{]\s*\Z/xsm;
+    my $re_field = qr/\A\s*([^:]+)\s*:\s*(.*)\Z/xsm;
+    my %fields;
+    const my $STARTING_INDEX => -1;
+    my $index = $STARTING_INDEX;
 
-        return;
+    for my $line (@content) {
+      $index++;
+      next if $line =~ $re_empty;    # ignore empty lines
+      last if $line =~ $re_json;     # finish if reached start of json
+      if ($line =~ $re_field) { $fields{$1} = $2; }    # metadata field
+      else { croak "Unexpected input file content at line $index"; }
     }
+    my @json = @content[ $index .. $#content ];        # range of json content
 
-    # _process_config_file()    {{{1
-    #
-    # does:   extract plugin.info and tiddler content from plugin file
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    # note:   assume json file that imports to hashref structure:
-    #         -------------------------
-    #         $config->{
-    #           overrides => {
-    #             metadata => {
-    #               combine  => [ <FILES> ],
-    #               separate => [ <FILES> ],
-    #             }
-    #           }
-    #         }
-    #         -------------------------
-    method _process_config_file () {
+    # save data    {{{2
+    # - plugin.info fields
+    $self->_plugin_info_file->add_fields({%fields});
 
-        # quick return if no config file specified    {{{2
-        my $config_file = $self->_config_file;
-        return if not $config_file;
+    # - save tiddler data
+    my $json          = $self->_json_strings_to_data_structure([@json]);
+    my $json_tiddlers = $json->{'tiddlers'};
+    for my $title (sort keys %{$json_tiddlers}) {
+      $self->_tiddlers->add_tiddler($json_tiddlers->{$title});
+    }    # }}}2
 
-        # parse file    {{{2
-        my @content = @{ $self->_read_file($config_file) };
-        my $json    = $self->_json_strings_to_data_structure( [@content] );
+    return;
+  }
 
-        # extract override data    {{{2
-        return if not exists $json->{'overrides'};
-        my $overrides = $json->{'overrides'};
-        return if not exists $overrides->{'metadata'};
-        my $metadata = $overrides->{'metadata'};
-        my ( @in_tw_files, @in_tiddler );
-        if ( exists $metadata->{'in_tw_files'} ) {
-            my $in_tw_files_value = $metadata->{'in_tw_files'};
-            my $in_tw_files_ref   = ref $in_tw_files_value;
-            if ( $in_tw_files_ref eq 'ARRAY' ) {
-                push @in_tw_files, @{$in_tw_files_value};
-            }
-        }
-        if ( exists $metadata->{'in_tiddler'} ) {
-            my $in_tiddler_value = $metadata->{'in_tiddler'};
-            my $in_tiddler_ref   = ref $in_tiddler_value;
-            if ( $in_tiddler_ref eq 'ARRAY' ) {
-                push @in_tiddler, @{$in_tiddler_value};
-            }
-        }
+  # _write_config_template()    {{{1
+  #
+  # does:   write template config file
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub _write_config_template ($self)
+  {    ## no critic (RequireInterpolationOfMetachars)
 
-        # save override data    {{{2
-        if (@in_tw_files) {
-            $self->_metadata_overrides->add_for_tw_files(@in_tw_files);
-        }
-        if (@in_tiddler) {
-            $self->_metadata_overrides->add_for_tiddler(@in_tiddler);
-        }    # }}}2
+    # get json output
+    my $output =
+        $self->_json_data_structure_to_strings($self->_config_file_template);
 
-        return;
-    }
+    # write output
+    my $fp = $self->_uniquify_file('config.json',
+      q{Config file '%f' exists, writing to '%u' instead});
+    $self->_write_file($fp, $output);
 
-    # _process_plugin_input_file()    {{{1
-    #
-    # does:   extract plugin.info and tiddler content from plugin file
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    # note:   assume file has structure:
-    #         -------------------------
-    #         <name>: <value>
-    #         <name>: <value>
-    #         ...
-    #         <last_name>: <last_value>
-    #
-    #         {
-    #         <json>
-    #         }
-    #         -------------------------
-    method _process_plugin_input_file () {
+    return;
+  }
 
-        # parse input file    {{{2
-        my @content  = @{ $self->_read_file( $self->_plugin_input_file ) };
-        my $re_empty = qr/\A\s*\Z/xsm;
-        my $re_json  = qr/\A\s*[{]\s*\Z/xsm;
-        my $re_field = qr/\A\s*([^:]+)\s*:\s*(.*)\Z/xsm;
-        my %fields;
-        my $index = -1;
-        for my $line (@content) {
-            $index++;
-            next if $line =~ $re_empty;    # ignore empty lines
-            last if $line =~ $re_json;     # finish if reached start of json
-            if ( $line =~ $re_field ) { $fields{$1} = $2; }   # metadata field
-            else { croak "Unexpected input file content at line $index"; }
-        }
-        my @json = @content[ $index .. $#content ];    # range of json content
+  # _write_output()    {{{1
+  #
+  # does:   write output plugin files
+  # params: nil
+  # prints: feedback
+  # return: n/a, dies on failure
+  sub _write_output ($self) {   ## no critic (RequireInterpolationOfMetachars)
 
-        # save data    {{{2
-        # - plugin.info fields
-        $self->_plugin_info_file->add_fields( {%fields} );
+    # 'plugin.info'
+    $self->_plugin_info_file->write_output;
 
-        # - save tiddler data
-        my $json          = $self->_json_strings_to_data_structure( [@json] );
-        my $json_tiddlers = $json->{'tiddlers'};
-        for my $title ( sort keys %{$json_tiddlers} ) {
-            $self->_tiddlers->add_tiddler( $json_tiddlers->{$title} );
-        }    # }}}2
+    # tiddler files and, if required, 'tiddlywiki.files'
+    $self->_tiddlers->write_output;
 
-        return;
-    }
-
-    # _write_config_template()    {{{1
-    #
-    # does:   write template config file
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    method _write_config_template () {
-
-        # get json output
-        my $output = $self->_json_data_structure_to_strings(
-            $self->_config_file_template );
-
-        # write output
-        my $fp = $self->_uniquify_file( 'config.json',
-            q{Config file '%f' exists, writing to '%u' instead} );
-        $self->_write_file( $fp, $output );
-
-        return;
-    }
-
-    # _write_output()    {{{1
-    #
-    # does:   write output plugin files
-    # params: nil
-    # prints: feedback
-    # return: n/a, dies on failure
-    method _write_output () {
-
-        # 'plugin.info'
-        $self->_plugin_info_file->write_output;
-
-        # tiddler files and, if required, 'tiddlywiki.files'
-        $self->_tiddlers->write_output;
-
-        return;
-    };    # }}}1
+    return;
+  }                             # }}}1
 
 }
 
@@ -1266,7 +1304,7 @@ The expected file structure is metadata lines, each of the format "name:
 value", followed by an empty line, and then followed by json content.
 
 The json content is expected to commence with a left brace (C<{>) on its own
-line and end with a right brace (C<}>} on its own line.
+line and end with a right brace (C<}>) on its own line.
 
 =item Warning: config file refers to non-existent tiddler file(s)
 
@@ -1280,10 +1318,9 @@ file. This is a non-fatal warning.
 
 =head2 Perl modules
 
-Carp, Const::Fast, File::Basename, File::Find::Rule, Function::Parameters,
-JSON::MaybeXS, List::SomeUtils, Moo, MooX::HandlesVia, MooX::Options,
-namespace::clean, Path::Tiny;, strictures, Types::Path::Tiny, Types::Standard,
-version.
+Carp, Const::Fast, File::Basename, File::Find::Rule, JSON::MaybeXS,
+List::SomeUtils, Moo, MooX::HandlesVia, MooX::Options, namespace::clean,
+Path::Tiny;, strictures, Types::Path::Tiny, Types::Standard, version.
 
 =head1 CONFIGURATION
 
