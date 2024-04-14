@@ -11,18 +11,18 @@
 # Some names can be used only once while others can
 # be used multiple times.
 # ------------------------------------------------------------
- 
+
 # Package name
 # Name of the package to be generated.
 # Must not contain whitespace.
 # Required. One only.
 package-name dn-update-context-maillist
- 
+
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.5
- 
+version 0.6
+
 # Script and binary files
 # Executable files to be packaged.
 # Can be standard ('bin-file') or superuser-only ('sbin-file').
@@ -30,20 +30,20 @@ version 0.5
 # Default value of 'sbin-file' in built deb package: /usr/sbin
 # Required (unless a library package). Multiple allowed
 bin-file dn-update-context-maillist
-#sbin-file 
- 
+#sbin-file
+
 # Manpages
 # Man pages to package.
 # Default location in built deb package: /usr/share/man/man1
 # Required (unless a library package). Multiple allowed.
 man-file dn-update-context-maillist.1
- 
+
 # Data files
 # Data files to package.
 # Default location in built deb package: /usr/share/\$(PACKAGE).
 # Optional. Multiple allowed.
-#data-file 
- 
+#data-file
+
 # Icon file
 # Icon file to package.
 # Must be xpm format no larger than 32x32.
@@ -52,8 +52,8 @@ man-file dn-update-context-maillist.1
 # Note icons are not put into an application subdirectory
 # -- be careful of filename clashes.
 # Optional. Multiple allowed.
-#icon-file 
- 
+#icon-file
+
 # Desktop file
 # Desktop file to package.
 # Must conform to freedesktop.org Desktop Entry Specification
@@ -62,14 +62,14 @@ man-file dn-update-context-maillist.1
 # Note desktop files are not put into an application subdirectory
 # -- be careful of filename clashes.
 # Optional. Multiple allowed.
-#desktop-file 
- 
+#desktop-file
+
 # Configuration files
 # Configuration files to package.
 # Default location in built deb package: /etc/\$(PACKAGE).
 # Optional. Multiple allowed.
-#conf-file 
- 
+#conf-file
+
 # Executable library files
 # Executable programs run by other programs.
 # Since multiarch implementation this path includes a subdirectory
@@ -78,8 +78,8 @@ man-file dn-update-context-maillist.1
 #   dpkg-architecture -qDEB_HOST_MULTIARCH
 # Default value in built deb package: /usr/lib/<triplet>/\$(PACKAGE).
 # Optional. Multiple allowed.
-#libexec-file 
- 
+#libexec-file
+
 # Library data files
 # Data files used by other programs.
 # Since multiarch implementation this path includes a subdirectory
@@ -88,50 +88,50 @@ man-file dn-update-context-maillist.1
 #   dpkg-architecture -qDEB_HOST_MULTIARCH
 # Default value in built deb package: /usr/lib/<triplet>/\$(PACKAGE).
 # Optional. Multiple allowed.
-#libdata-file 
- 
+#libdata-file
+
 # Debconf file
 # Debian build system debconf file
 # In final package is named 'PACKAGE.config'
 # Optional. One only
-#debconf-file 
- 
+#debconf-file
+
 # Templates file
 # Debian build system templates file
 # In final package is named 'PACKAGE.templates'
 # Optional. One only
-#templates-file 
- 
+#templates-file
+
 # Pre-install file
 # Debian build system pre-install file
 # In final package is named 'PACKAGE.preinst'
 # Optional. One only
-#preinstall-file 
- 
+#preinstall-file
+
 # Post-install file
 # Debian build system post-install file
 # In final package is named 'PACKAGE.postint'
 # Optional. One only
-#postinstall-file 
- 
+#postinstall-file
+
 # Pre-remove file
 # Debian build system pre-remove file
 # In final package is named 'PACKAGE.prerm'
 # Optional. One only
-#preremove-file 
- 
+#preremove-file
+
 # Post-remove file
 # Debian build system post-remove file
 # In final package is named 'PACKAGE.postrm'
 # Optional. One only
-#postremove-file 
- 
+#postremove-file
+
 # Bash completion file
 # Debian build system bash completion file
 # In final package is named 'PACKAGE.bash-completion'
 # Optional. One only
-#bash-completion-file 
- 
+#bash-completion-file
+
 # Control summary
 # One line summary of script for inclusion in the
 # package 'control' file.
@@ -139,7 +139,7 @@ man-file dn-update-context-maillist.1
 # Must be no longer than 60 characters.
 # Required. One only.
 control-summary update local copy of ntg-context maillist archive
- 
+
 # Control description
 # Description of script. This is a longer description
 # than the one line summary and can stretch over
@@ -153,73 +153,67 @@ control-description Download ntg-context mailing list contents for current
 control-description year. Extract individual emails and write to output
 control-description directory mbox files for any email messages not currently
 control-description saved to directory.
- 
+
 # Dependency
 # The name of a single package this package depends on.
 # Can include minimum version.
 # Optional. Multiple allowed.
- 
+
 ### Perl modules
- 
-#   perl, Env, English, experimental, File::Basename,
-#   File::Spec, File::Temp, Sys::Syslog
-depends-on perl (>= 5.22.1-9)
- 
+
+#   perl, Carp, Env, English, experimental, File::Basename,
+#   File::Spec, File::Temp, Moo, Sys::Syslog
+depends-on libmoo-perl (>= 2.005005-1)
+
 #   Config::Tiny
-depends-on libconfig-tiny-perl (>= 2.23-1)
- 
-#   Dn::InteractiveIO
-depends-on libdn-interactiveio-perl (>= 0.1-1)
- 
+depends-on libconfig-tiny-perl (>= 2.30-1)
+
+#   Const::Fast
+depends-on libconst-fast-perl (>= 0.014-2)
+
 #   Dn::MboxenSplit
 depends-on libdn-mboxensplit-perl (>= 0.1-1)
- 
+
 #   File::Touch
-depends-on libfile-touch-perl (>= 0.11-1)
- 
+depends-on libfile-touch-perl (>= 0.12-2)
+
 #   File::Util
-depends-on libfile-util-perl (>= 4.132140-2)
- 
-#   Function::Parameters
-depends-on libfunction-parameters-perl (>= 1.0703-1)
- 
+depends-on libfile-util-perl (>= 4.201720-2)
+
+#   IO::Interactive
+depends-on libio-interactive-perl (>= 1.025-1)
+
 #   LWP::Simple
-depends-on libwww-perl (>= 6.15-1)
- 
-#   Moo
-depends-on libmoo-perl (>= 2.000002-1)
- 
+depends-on libwww-perl (>= 6.77-1)
+
 #   MooX::HandlesVia
-depends-on libmoox-handlesvia-perl (>= 0.001008-2)
- 
+depends-on libmoox-handlesvia-perl (>= 0.001009-2)
+
 #   MooX::Options
-depends-on libmoox-options-perl (>= 4.022-1)
- 
+depends-on libmoox-options-perl (>= 4.103-4)
+
 #   namespace::clean
-depends-on libnamespace-clean-perl (>= 0.26-1)
- 
-#   Readonly
-depends-on libreadonly-perl (>= 2.000-2)
- 
+depends-on libnamespace-clean-perl (>= 0.27-2)
+
 #   strictures
-depends-on libstrictures-perl (>= 2.000002-1)
- 
+depends-on libstrictures-perl (>= 2.000006-1)
+
 #   Types::Standard
-depends-on libtype-tiny-perl (>= 1.000005-1)
- 
+depends-on libtype-tiny-perl (>= 2.004000-1)
+
 #   version
-depends-on perl (>= 5.26.2-7+b1) | libversion-perl (>= 1:0.9915-1)
- 
+depends-on libversion-perl (>= 1:0.9930-1+b1)
+
 # Copyright year
 # Year of copyright
 # Required. One only.
 year 2016
- 
+
 # Email
 # Email address of package maintainer
 # Required. One only.
 email david @nebauer.org
- 
+
 # Author
 # Author of script
 # Required. Multiple allowed.
