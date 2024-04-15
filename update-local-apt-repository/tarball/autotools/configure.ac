@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.71])
 AC_INIT([Updater for local-alt-repository],
-        [1.1],
+        [1.2],
         [david@nebauer.org],
         [dn-update-local-apt-repository],
 )

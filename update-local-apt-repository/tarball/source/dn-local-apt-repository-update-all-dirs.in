@@ -21,15 +21,15 @@ set -o pipefail
 
 # variables    {{{1
 
-self="$(basename $0)"
+self="$(basename "$0")"
 updater='dn-local-apt-repository-update-dir'
 updater_cmd="$updater -q"
 repo_dir='/srv/local-apt-repository'
 pkg_roots=(
-    /home/david/data/computing/projects/libs
-    /home/david/data/computing/projects/utils
+	/home/david/data/computing/projects/libs
+	/home/david/data/computing/projects/utils
 )
-required_tools=("$updater")    # }}}1
+required_tools=("$updater") # }}}1
 
 # procedures
 
@@ -37,13 +37,13 @@ required_tools=("$updater")    # }}}1
 #   params: nil
 #   prints: nil
 #   return: nil
-displayUsage () {
-cat << _USAGE
+displayUsage() {
+	cat <<_USAGE
 $self: update local repository with personal packages
 
 Updates local-apt-repository directory
 ($repo_dir)
-with symlinks to personal debian packages. 
+with symlinks to personal debian packages.
 
 Symlinks are updated with
 '$updater'.
@@ -64,31 +64,45 @@ _USAGE
 #   return: nil
 #   note:   after execution variable ARGS contains
 #           remaining command line args (after options removed)
-processOptions () {
+processOptions() {
 	# read the command line options
-    local OPTIONS="$(                          \
-        getopt                                 \
-            --options lhvd                     \
-            --long    list,help,verbose,debug  \
-            --name    "${BASH_SOURCE[0]}"      \
-            -- "$@"                            \
-    )"
-    [[ $? -eq 0 ]] || {
-        echo 'Invalid command line options' 1>&2
-        exit 1
-    }
-    eval set -- "$OPTIONS"
-	while true ; do
+	local OPTIONS
+	if ! OPTIONS="$(
+		getopt \
+			--options lhvd \
+			--long list,help,verbose,debug \
+			--name "${BASH_SOURCE[0]}" \
+			-- "$@"
+	)"; then
+		echo 'Invalid command line options' 1>&2
+		exit 1
+	fi
+	eval set -- "$OPTIONS"
+	while true; do
 		case "$1" in
-        -l | --list    ) listPkgRoots   ; exit 0  ;;
-        -h | --help    ) displayUsage   ; exit 0  ;;
-        -v | --verbose ) set -o verbose ; shift 1 ;;
-        -d | --debug   ) set -o xtrace  ; shift 1 ;;
-        --             ) shift ; break ;;
-        *              ) break ;;
+		-l | --list)
+			listPkgRoots
+			exit 0
+			;;
+		-h | --help)
+			displayUsage
+			exit 0
+			;;
+		-v | --verbose)
+			set -o verbose
+			shift 1
+			;;
+		-d | --debug)
+			set -o xtrace
+			shift 1
+			;;
+		--)
+			shift
+			break
+			;;
+		*) break ;;
 		esac
 	done
-	ARGS="${@}"  # remaining arguments
 }
 
 # join items    {{{1
@@ -96,69 +110,67 @@ processOptions () {
 #           2+ - items to be joined
 #   prints: string containing joined items
 #   return: nil
-function joinBy () {
-    local d=$1
-    shift
-    local f=$1
-    shift
-    printf %s "$f" "${@/#/$d}"
+function joinBy() {
+	local d=$1
+	shift
+	local f=$1
+	shift
+	printf %s "$f" "${@/#/$d}"
 }
 
 # list package directories    {{{1
 #   params: nil
 #   prints: package directories
 #   return: nil
-listPkgRoots () {
-    for root in "${pkg_roots[@]}" ; do
-        echo $root
-    done
-}    # }}}1
-
+listPkgRoots() {
+	for root in "${pkg_roots[@]}"; do
+		echo "$root"
+	done
+} # }}}1
 
 # main
 
 # check for required tools    {{{1
 missing=()
-for tool in "${required_tools[@]}" ; do
-    command -v "$tool" &>/dev/null || missing+=("$tool")
+for tool in "${required_tools[@]}"; do
+	command -v "$tool" &>/dev/null || missing+=("$tool")
 done
-if [[ ${#missing[@]} -ne 0 ]] ; then
-    echo "$self: can't run without: $(joinBy ', ' "${missing[@]}")" \
-        > /dev/stderr
-    exit 1
+if [[ ${#missing[@]} -ne 0 ]]; then
+	echo "$self: can't run without: $(joinBy ', ' "${missing[@]}")" \
+		>/dev/stderr
+	exit 1
 fi
 unset missing tools required_tools
 
 # process command line options    {{{1
-# - results in $ARGS holding remaining non-option command line arguments
 processOptions "${@}"
 
 # check for local repository directory    {{{1
-if ! test -d "$repo_dir" ; then
-    echo "$self: can't locate repository directory: $repo_dir" > /dev/stderr
-    exit 1
+if ! test -d "$repo_dir"; then
+	echo "$self: can't locate repository directory: $repo_dir" >/dev/stderr
+	exit 1
 fi
 
 # check for package directories    {{{1
 roots=()
-for dir in "${pkg_roots[@]}" ; do
-	if test -d "$dir" ; then
-        roots+=("$dir")
-    else
-        echo "$self: can't locate package root directory: $dir" > /dev/stderr
-    fi
+for dir in "${pkg_roots[@]}"; do
+	if test -d "$dir"; then
+		roots+=("$dir")
+	else
+		echo "$self: can't locate package root directory: $dir" >/dev/stderr
+	fi
 done
-if [[ ${#roots[@]} -eq 0 ]] ; then
-    echo "$self: no valid package root directories to search" > /dev/stderr
-    exit 1
+if [[ ${#roots[@]} -eq 0 ]]; then
+	echo "$self: no valid package root directories to search" >/dev/stderr
+	exit 1
 fi
 
 # process package root directories    {{{1
-echo ' '    # feedback starts on new line
-for dir in "${roots[@]}" ; do
-    echo "$self: processing $dir"
-    cd "$dir"
-    $updater_cmd
-done    # }}}1
+echo ' ' # feedback starts on new line
+for dir in "${roots[@]}"; do
+	echo "$self: processing $dir"
+	cd "$dir"
+	$updater_cmd
+done # }}}1
 
 # vim:foldmethod=marker:
