@@ -1,7 +1,0 @@
-# *.deb
-*.diff.gz
-*.dsc
-*.orig.tar.gz
-*.bak
-# *.1
-tags

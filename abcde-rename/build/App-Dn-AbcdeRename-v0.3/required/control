@@ -1,0 +1,51 @@
+Source: dn-abcde-rename
+Maintainer: David Nebauer <david@nebauer.org>
+Section: perl
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               libmodule-build-tiny-perl,
+               perl (>= 5.38.0)
+Build-Depends-Indep: libconst-fast-perl <!nocheck>,
+                     libmoo-perl (>= 2.005005) <!nocheck>,
+                     libmoox-handlesvia-perl <!nocheck>,
+                     libmoox-options-perl <!nocheck>,
+                     librole-utils-dn-perl (>= 0.4) <!nocheck>,
+                     libstrictures-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libtext-unaccent-perl <!nocheck>,
+                     libtype-tiny-perl (>= 2.004000) <!nocheck>,
+                     libversion-perl <!nocheck>
+Standards-Version: 4.6.2
+Homepage: https://metacpan.org/release/App-Dn-AbcdeRename
+Rules-Requires-Root: no
+
+Package: dn-abcde-rename
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         libconst-fast-perl,
+         libmoo-perl (>= 2.005005),
+         libmoox-handlesvia-perl,
+         libmoox-options-perl,
+         librole-utils-dn-perl (>= 0.4),
+         libstrictures-perl,
+         libtext-unaccent-perl,
+         libtype-tiny-perl (>= 2.004000),
+         libversion-perl,
+         perl (>= 5.38.0)
+Description: rename abcde output files
+ The utility abcde rips cds to disc with each track output to an mp3 file. The
+ default output file naming format produces files named like:
+ .
+ 01.Song_Name.mp3
+ .
+ App::Dn::AbcdeRename provides the rename method which attempts to rename all
+ mp3 files in the current directory to:
+ .
+ artist-name_track-number_song-name.mp3
+ .
+ Note conversion to lowercase. All characters that are not alphanumerics,
+ spaces or dashes are removed.
+ .
+ A fatal error occurs if any mp3 file in the current directory is not named
+ according to the default abcde output format.

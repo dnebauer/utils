@@ -1,0 +1,7 @@
+dn-abcde-rename (0.3-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 800001
+
+ -- David Nebauer <david@nebauer.org>  Mon, 6 May 2024 16:29:47 +0930

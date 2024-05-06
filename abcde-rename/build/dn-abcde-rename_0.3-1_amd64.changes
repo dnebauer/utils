@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Mon, 6 May 2024 16:29:47 +0930
+Source: dn-abcde-rename
+Binary: dn-abcde-rename
+Architecture: all
+Version: 0.3-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-abcde-rename - rename abcde output files
+Closes: 800001
+Changes:
+ dn-abcde-rename (0.3-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 800001
+Checksums-Sha1:
+ ab101b0545aad5d95cf4799f819095cda055f13a 13220 dn-abcde-rename_0.3-1_all.deb
+ f80b42020a0eb2b54ea3c5489f52f28d1c6f466f 12764 dn-abcde-rename_0.3-1_amd64.buildinfo
+Checksums-Sha256:
+ 0cfdeab754344bcc23735f2213507decd83d36baf15e4982b7f92e5e73748460 13220 dn-abcde-rename_0.3-1_all.deb
+ 04fd6eb197a6ccd0aaea0f2f244a8b7e00d9f92b1f29aca58fd10245b3cc4fc0 12764 dn-abcde-rename_0.3-1_amd64.buildinfo
+Files:
+ 5768a4da8cf9371c7ee396ec83ca76ff 13220 perl optional dn-abcde-rename_0.3-1_all.deb
+ b5885d94ba1b1c094abce4f14c1ed346 12764 perl optional dn-abcde-rename_0.3-1_amd64.buildinfo

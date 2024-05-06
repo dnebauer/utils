@@ -1,0 +1,25 @@
+Package: dn-abcde-rename
+Version: 0.3-1
+Architecture: all
+Maintainer: David Nebauer <david@nebauer.org>
+Installed-Size: 45
+Depends: perl:any, libconst-fast-perl, libmoo-perl (>= 2.005005), libmoox-handlesvia-perl, libmoox-options-perl, librole-utils-dn-perl (>= 0.4), libstrictures-perl, libtext-unaccent-perl, libtype-tiny-perl (>= 2.004000), libversion-perl, perl (>= 5.38.0)
+Section: perl
+Priority: optional
+Homepage: https://metacpan.org/release/App-Dn-AbcdeRename
+Description: rename abcde output files
+ The utility abcde rips cds to disc with each track output to an mp3 file. The
+ default output file naming format produces files named like:
+ .
+ 01.Song_Name.mp3
+ .
+ App::Dn::AbcdeRename provides the rename method which attempts to rename all
+ mp3 files in the current directory to:
+ .
+ artist-name_track-number_song-name.mp3
+ .
+ Note conversion to lowercase. All characters that are not alphanumerics,
+ spaces or dashes are removed.
+ .
+ A fatal error occurs if any mp3 file in the current directory is not named
+ according to the default abcde output format.

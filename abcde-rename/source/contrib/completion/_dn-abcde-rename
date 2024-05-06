@@ -1,0 +1,15 @@
+#compdef dn-abcde-rename
+
+local rc=1
+
+_arguments -S \
+  - '(help_options)' \
+    '-h[Show a compact help message]' \
+    '--help[Show a long help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-a --artist)'{-a,--artist}'[Artist name (string, required)]:artist:' \
+  && rc=0
+
+return rc

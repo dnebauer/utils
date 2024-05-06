@@ -1,0 +1,130 @@
+NAME
+
+    App::Dn::AbcdeRename - rename abcde output files
+
+VERSION
+
+    This documentation applies to App::Dn::AbcdeRename version 0.3.
+
+SYNOPSIS
+
+      App::Dn::AbcdeRename->new(artist => $artist)->rename;
+
+DESCRIPTION
+
+    The utility abcde rips cds to disc with each track output to an mp3
+    file. The default output file naming format produces files named like:
+
+              01.Song_Name.mp3
+
+    App::Dn::AbcdeRename provides the rename method which attempts to
+    rename all mp3 files in the current directory to:
+
+              artist-name_track-number_song-name.mp3
+
+    Note conversion to lowercase. All characters that are not
+    alphanumerics, spaces or dashes are removed.
+
+    A fatal error occurs if any mp3 file in the current directory is not
+    named according to the default abcde output format.
+
+    The artist name must be provided during object instantiation.
+
+SUBROUTINES/METHODS
+
+ rename()
+
+    Renames all mp3 files in the current directory from naming format:
+
+              01.Song_Name.mp3
+
+    to naming format:
+
+              artist-name_track-number_song-name.mp3
+
+    See "DESCRIPTION" for further details.
+
+CONFIGURATION AND ENVIRONMENT
+
+ Properties
+
+  artist
+
+    This property holds the artist name which is used in the generation of
+    new file names.
+
+ Configuration files
+
+    None used.
+
+ Environment variables
+
+    None used.
+
+DIAGNOSTICS
+
+ No mp3 files
+
+    Occurs when there are no mp3 files in the current directory. Fatal
+    error.
+
+ No artist found
+
+    Was a valid value passed to the artist property at object
+    instantiation? Fatal error.
+
+ Could not extract name =head2 Could not extract number =head2 Error
+ extracting name and number from file name 'FILE' =head2 Unable to convert
+ 'FILE' =head2 Unable to convert artist 'ARTIST' =head2 Unable to convert
+ track name part 'NAME' of file name 'FILE'
+
+    These errors are triggered by problems converting a mp3 file to the
+    format:
+
+              artist-name_track-number_song-name.mp3
+
+    Perhaps it was not named according to the default abcde output file
+    format? Fatal errors.
+
+ Cannot have empty file name
+
+    This occurs when the user is editing file names and sets a file name to
+    an empty string. Fatal error.
+
+ Failed renaming 'FILE' to 'FILE': ERROR" =head2 Invalid file 'FILE'
+
+    These warnings indicate problems with the renaming operation, possibly
+    a system error. Non-fatal warnings.
+
+ Did not get both artist and file =head2 No file name pairs =head2 No files
+ in reference =head2 No files reference provided =head2 Not an arrayref
+
+    These are internal programming error messages. If one of them occurs it
+    indicates a logic error in the module that needs to be fixed. Please
+    report the error to the module maintainer. Fatal errors.
+
+INCOMPATIBILITIES
+
+    None known.
+
+BUGS AND LIMITATIONS
+
+    No bugs have been reported.
+
+DEPENDENCIES
+
+    Carp, Const::Fast, App::Dn::AbcdeRename::Pair, English, File::Copy,
+    Moo, MooX::HandlesVia, MooX::Options, Role::Utils::Dn, strictures,
+    Text::Unaccent, Types::Standard, version.
+
+LICENSE AND COPYRIGHT
+
+    This library is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
+    Copyright 2024, David Nebauer
+
+AUTHOR
+
+    David Nebauer <david@nebauer.org>
+

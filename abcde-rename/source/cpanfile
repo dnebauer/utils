@@ -1,0 +1,18 @@
+requires 'perl', '5.038';
+
+requires 'Carp', '1.50';
+requires 'Const::Fast', '0.014';
+requires 'English', '1.11';
+requires 'File::Copy', '2.41';
+requires 'Moo', '2.005005';
+requires 'MooX::HandlesVia', '0.001009';
+requires 'MooX::Options', '4.103';
+requires 'Role::Utils::Dn', '0.4';
+requires 'strictures', '2.000006';
+requires 'Text::Unaccent', '1.08';
+requires 'Types::Standard', '2.004000';
+requires 'version', '0.9930';
+
+on test => sub {
+    requires 'Test::More', '0.96';
+};
