@@ -1,3 +1,9 @@
+dn-mc-conf (3.0-4) UNRELEASED; urgency=low
+
+  * Remove dependecy on scribus
+
+ -- David Nebauer <david@nebauer.org>  Tue, 7 May 2024 00:23:56 +0930
+
 dn-mc-conf (3.0-3) UNRELEASED; urgency=low
 
   * trigger version bump for troubleshooting purposes
