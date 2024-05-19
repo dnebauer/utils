@@ -21,7 +21,7 @@ package-name neovide
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.12.2
+version 0.13.0
 
 # Script and binary files
 # Executable files to be packaged.
@@ -168,12 +168,14 @@ control-description terminal UI.
 # Optional. Multiple allowed.
 
 # neovim
-depends-on neovim (>= 0.6)
+# - at time of building 0.13.0, this version of neovide required v0.10.0 of neovim
+# - the version of nvim.appimage installed is 0.10.0, but the debian package is only 0.9.5 (testing)
+#depends-on neovim (>= 0.10)
 
 # Copyright year
 # Year of copyright
 # Required. One only.
-year 2022
+year 2024
 
 # Email
 # Email address of package maintainer

@@ -3,6 +3,7 @@
 .\" Filename: neovide.1
 .\" Author:   David Nebauer
 .\" History:  2022-08-15 - created
+.\" Modified: 2024-05-17 - update to v0.13.0
 
 .\" -----------------------------------------------------------------
 .\" NOTES
@@ -115,7 +116,7 @@ Numbered list:
 .\" MANPAGE CONTENT
 .\" -----------------------------------------------------------------
 
-.TH "NEOVIDE" "1" "2023-08-18" "" "NEOVIDE Manual"
+.TH "NEOVIDE" "1" "2024-05-17" "" "NEOVIDE Manual"
 .SH "NAME"
 \*[self] \- a simple graphical user interface for Neovim
 .SH "SYNOPSIS"
@@ -129,10 +130,11 @@ terminal UI.
 .SH "ARGUMENTS"
 .TP
 .I FILES_TO_OPEN
-Files to open. Plainly appended to neovim args. Optional.
+Files to open. Usually plainly appended to NeoVim args, except when \-\-wsl is
+used. Optional.
 .TP
 .I NEOVIM_ARGS
-Arguments to pass down to neovim without interpreting. Optional.
+Arguments to pass down to neovim without interpreting them. Optional.
 .SH "OPTIONS"
 .TP
 .B "\-\-fork"
@@ -144,12 +146,7 @@ set to
 .IR "none" "."
 [env: NEOVIDE_FRAME=] [default: full] [possible values: full, none]
 .TP
-.BI "\-\-geometry " "geometry"
-Specify the geometry of the window. Format is
-.I <width>x<height>
-in characters.
-.TP
-.BI "\-\-grid " "grid"
+.BI "\-\-grid " "[grid]"
 The initial grid size of the window [<columns>x<lines>]. Defaults to columns/
 lines from init.vim/lua if no value is given. If \-\-grid is not set then it's
 inferred from the window size.
@@ -163,10 +160,6 @@ Enables logging to a file in the current directory.
 .B "\-\-maximized"
 Maximize the window on startup. Not equivalent to fullscreen. [env:
 NEOVIDE_MAXIMIZED=]
-.TP
-.B "\-\-multigrid"
-Enable the Multigrid extension. Enables smooth scrolling and floating blur.
-[env: NEOVIDE_MULTIGRID=1]
 .TP
 .BI "\-\-neovim\-bin " "neovim_bin"
 Which NeoVim binary to invoke headlessly instead of
