@@ -1,0 +1,55 @@
+Source: dn-build-perl-mod-deb
+Maintainer: David Nebauer <david@nebauer.org>
+Section: perl
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               libmodule-build-tiny-perl,
+               perl (>= 5.38.0)
+Build-Depends-Indep: libconst-fast-perl <!nocheck>,
+                     libfile-chdir-perl <!nocheck>,
+                     libfile-copy-recursive-perl <!nocheck>,
+                     libfile-dirsync-perl (>= 1.22) <!nocheck>,
+                     libgit-wrapper-perl <!nocheck>,
+                     libmoo-perl (>= 2.005005) <!nocheck>,
+                     libmoox-handlesvia-perl <!nocheck>,
+                     libmoox-options-perl <!nocheck>,
+                     libnamespace-clean-perl <!nocheck>,
+                     libpath-tiny-perl (>= 0.144) <!nocheck>,
+                     librole-utils-dn-perl (>= 0.4) <!nocheck>,
+                     libstrictures-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libtype-tiny-perl (>= 2.004000) <!nocheck>,
+                     libtypes-dn-perl (>= 0.1) <!nocheck>,
+                     libtypes-path-tiny-perl <!nocheck>,
+                     libversion-perl <!nocheck>
+Standards-Version: 4.6.2
+Homepage: https://metacpan.org/release/App-Dn-BuildModule
+Rules-Requires-Root: no
+
+Package: dn-build-perl-mod-deb
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         devscripts,
+         dh-make-perl,
+         libconst-fast-perl,
+         libfile-chdir-perl,
+         libfile-copy-recursive-perl,
+         libfile-dirsync-perl (>= 1.22),
+         libgit-wrapper-perl,
+         libmoo-perl (>= 2.005005),
+         libmoox-handlesvia-perl,
+         libmoox-options-perl,
+         libnamespace-clean-perl,
+         libpath-tiny-perl (>= 0.144),
+         librole-utils-dn-perl (>= 0.4),
+         libstrictures-perl,
+         libtype-tiny-perl (>= 2.004000),
+         libtypes-dn-perl (>= 0.1),
+         libtypes-path-tiny-perl,
+         libversion-perl,
+         make,
+         perl (>= 5.38.0)
+Description: build a debian package
+ Builds a debian package from a perl module and associated files in a custom.
+ Requires a customised environment of build files.

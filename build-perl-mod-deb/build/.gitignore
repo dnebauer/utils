@@ -1,0 +1,7 @@
+/App-Dn-BuildModule-*
+/.build
+/_build*
+/Build
+MYMETA.*
+!META.json
+/.prove

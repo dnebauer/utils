@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Tue, 14 May 2024 22:09:35 +0930
+Source: dn-build-perl-mod-deb
+Binary: dn-build-perl-mod-deb
+Architecture: all
+Version: 0.10.0-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-build-perl-mod-deb - build a debian package
+Closes: 800001
+Changes:
+ dn-build-perl-mod-deb (0.10.0-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 800001
+Checksums-Sha1:
+ 9fec94f39834dbfe4541da8a783f6fa51a0555c6 29432 dn-build-perl-mod-deb_0.10.0-1_all.deb
+ b5440d7875fe7a7d39dbc0d7340e33c18b2f1aac 14300 dn-build-perl-mod-deb_0.10.0-1_amd64.buildinfo
+Checksums-Sha256:
+ 730b0ac9f943f064cc8204e5bf65053423eab507e6dfa461c8b3b4c0259945c9 29432 dn-build-perl-mod-deb_0.10.0-1_all.deb
+ 385e335509eecd7b541277571b9a458ecec2854fd352a83360bfb7d9131b9d26 14300 dn-build-perl-mod-deb_0.10.0-1_amd64.buildinfo
+Files:
+ 98c6b6873f0cedc67360eaed54a563bb 29432 perl optional dn-build-perl-mod-deb_0.10.0-1_all.deb
+ c58eb6aefe4d87bb9da0080e40352e79 14300 perl optional dn-build-perl-mod-deb_0.10.0-1_amd64.buildinfo

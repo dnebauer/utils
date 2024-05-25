@@ -1,0 +1,24 @@
+requires 'perl', '5.038';
+requires 'Carp', '1.50';
+requires 'Const::Fast', '0.014';
+requires 'English', '0.01';
+requires 'File::Basename', '2.86';
+requires 'File::chdir', '0.1008';
+requires 'File::Copy::Recursive', '0.45';
+requires 'File::DirSync', '1.22';
+requires 'Git::Wrapper', '0.048';
+requires 'Moo', '2.005005';
+requires 'MooX::HandlesVia', '0.001009';
+requires 'MooX::Options', '4.103';
+requires 'namespace::clean', '0.27';
+requires 'Path::Tiny', '0.144';
+requires 'Role::Utils::Dn', '0.4';
+requires 'strictures', '2.000006';
+requires 'Types::Dn', '0.1';
+requires 'Types::Path::Tiny', '0.006';
+requires 'Types::Standard', '2.004000';
+requires 'version', '0.9930';
+
+on test => sub {
+    requires 'Test::More', '0.96';
+};
