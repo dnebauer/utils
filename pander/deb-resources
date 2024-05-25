@@ -11,18 +11,18 @@
 # Some names can be used only once while others can
 # be used multiple times.
 # ------------------------------------------------------------
- 
+
 # Package name
 # Name of the package to be generated.
 # Must not contain whitespace.
 # Required. One only.
 package-name pander
- 
+
 # Package version
 # Version number for package.
 # Required. One only.
-version 1.16
- 
+version 1.17
+
 # Script and binary files
 # Executable files to be packaged.
 # Can be standard ('bin-file') or superuser-only ('sbin-file').
@@ -30,21 +30,21 @@ version 1.16
 # Default value of 'sbin-file' in built deb package: /usr/sbin
 # Required (unless a library package). Multiple allowed
 bin-file pander
-#sbin-file 
- 
+#sbin-file
+
 # Manpages
 # Man pages to package.
 # Default location in built deb package: /usr/share/man/man1
 # Required (unless a library package). Multiple allowed.
 man-file pander.1
- 
+
 # Data files
 # Data files to package.
 # Default location in built deb package: /usr/share/\$(PACKAGE).
 # Optional. Multiple allowed.
 data-file keyword-table
 data-file keyword-table.1
- 
+
 # Icon file
 # Icon file to package.
 # Must be xpm format no larger than 32x32.
@@ -53,8 +53,8 @@ data-file keyword-table.1
 # Note icons are not put into an application subdirectory
 # -- be careful of filename clashes.
 # Optional. Multiple allowed.
-#icon-file 
- 
+#icon-file
+
 # Desktop file
 # Desktop file to package.
 # Must conform to freedesktop.org Desktop Entry Specification
@@ -63,83 +63,83 @@ data-file keyword-table.1
 # Note desktop files are not put into an application subdirectory
 # -- be careful of filename clashes.
 # Optional. Multiple allowed.
-#desktop-file 
- 
+#desktop-file
+
 # Configuration files
 # Configuration files to package.
 # Default location in built deb package: /etc/\$(PACKAGE).
 # Optional. Multiple allowed.
-#conf-file 
- 
+#conf-file
+
 # Executable library files
 # Executable programs run by other programs.
 # Default value in built deb package: /usr/libexec/\$(PACKAGE).
 # Optional. Multiple allowed.
-#libexec-file 
- 
+#libexec-file
+
 # Library data files
 # Data files used by other programs.
 # Default value in built deb package: /usr/lib/\$(PACKAGE).
 # Optional. Multiple allowed.
-#libdata-file 
- 
+#libdata-file
+
 # Debconf file
 # Debian build system debconf file
 # In final package is named 'PACKAGE.config'
 # Optional. One only
-#debconf-file 
- 
+#debconf-file
+
 # Templates file
 # Debian build system templates file
 # In final package is named 'PACKAGE.templates'
 # Optional. One only
-#templates-file 
- 
+#templates-file
+
 # Pre-install file
 # Debian build system pre-install file
 # In final package is named 'PACKAGE.preinst'
 # Optional. One only
-#preinstall-file 
- 
+#preinstall-file
+
 # Post-install file
 # Debian build system post-install file
 # In final package is named 'PACKAGE.postint'
 # Optional. One only
-#postinstall-file 
- 
+#postinstall-file
+
 # Pre-remove file
 # Debian build system pre-remove file
 # In final package is named 'PACKAGE.prerm'
 # Optional. One only
-#preremove-file 
- 
+#preremove-file
+
 # Post-remove file
 # Debian build system post-remove file
 # In final package is named 'PACKAGE.postrm'
 # Optional. One only
-#postremove-file 
- 
+#postremove-file
+
 # Bash completion file
 # Debian build system bash completion file
 # In final package is named 'PACKAGE.bash-completion'
 # Optional. One only
-#bash-completion-file 
- 
+#bash-completion-file
+
 # Install file
 # Debian build system install file
 # In final package is named 'PACKAGE.install'
 # Can be used in conjunction with 'extra' key
 # Optional. One only
-#install-file 
- 
+#install-file
+
 # Extra files and directories
 # Extra distribution files and directories
 # Copied recursively into root of distribution
 # Not added to deb package unless in combination
 # with an install file (see 'install-file' key)
 # Optional. Multiple allowed
-#extra-path 
- 
+#extra-path
+
 # Control summary
 # One line summary of script for inclusion in the
 # package 'control' file.
@@ -147,7 +147,7 @@ data-file keyword-table.1
 # Must be no longer than 60 characters.
 # Required. One only.
 control-summary pandoc wrapper script
- 
+
 # Control description
 # Description of script. This is a longer description
 # than the one line summary and can stretch over
@@ -176,28 +176,28 @@ control-description script must be modified to alter them. An auxiliary script,
 control-description 'keyword-table', is provided; it keeps a single master
 control-description keyword table and can be used to generate the subsidiary
 control-description keyword tables in the pander script.
- 
+
 # Dependency
 # The name of a single package this package depends on.
 # Can include minimum version.
 # Optional. Multiple allowed.
- 
+
 # pandoc
 depends-on pandoc (>= 2.14.1-1)
- 
+
 # ebook-convert
 depends-on calibre (>= 5.12.0+dfsg-1)
- 
+
 # Copyright year
 # Year of copyright
 # Required. One only.
 year 2021
- 
+
 # Email
 # Email address of package maintainer
 # Required. One only.
 email david@nebauer.org
- 
+
 # Author
 # Author of script
 # Required. Multiple allowed.

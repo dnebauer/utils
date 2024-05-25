@@ -2,7 +2,7 @@
 
 --- Pandoc wrapper script
 -- @script pander
--- @version 1.7.0 -- set in pander_version()
+-- @version 1.17.0 -- set in pander_version()
 -- @author David Nebauer
 -- @license GPL-3+
 -- @copyright David Nebauer
@@ -353,21 +353,18 @@ local keyword_actions_data = {
 				"+smart",
 			},
 			filters = {
-				"pandoc-fignos",
-				"pandoc-eqnos",
-				"pandoc-tablenos",
+				"pandoc-crossref",
 			},
 			metadata = {
-				["eqnos-cleveref"] = true,
-				["eqnos-plus-name"] = "equation",
-				["fignos-cleveref"] = true,
-				["fignos-plus-name"] = "figure",
+				cref = true,
+				eqnPrefix = "equation",
+				figPrefix = "figure",
 				lang = "en-AU",
+				lstPrefix = "list",
 				numbersections = false,
 				papersize = "a4",
-				["secnos-cleveref"] = true,
-				["tablenos-cleveref"] = true,
-				["tablenos-warning-level"] = 1,
+				secPrefix = "section",
+				tblPrefix = "table",
 			},
 			options = {
 				["--embed-resources"] = true,
@@ -2551,7 +2548,7 @@ end
 -- @return nil
 -- @function pander_version
 function pander_version()
-	local version = "pander 1.7"
+	local version = "pander 1.17"
 	info(version)
 	os.exit()
 end
