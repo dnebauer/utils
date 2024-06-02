@@ -271,9 +271,7 @@ local keyword_actions_data = {
 			metadata = {
 				["cover-image"] = "::cover_image::",
 			},
-			post_run = {
-				"create_mobi",
-			},
+			post_run = {},
 		},
 		html = {
 			metadata = {
@@ -391,9 +389,7 @@ local keyword_actions_data = {
 			metadata = {
 				["cover-image"] = "::cover_image::",
 			},
-			post_run = {
-				"create_mobi",
-			},
+			post_run = {},
 		},
 		html = {
 			metadata = {
@@ -492,9 +488,7 @@ local keyword_actions_data = {
 			metadata = {
 				["cover-image"] = "::cover_image::",
 			},
-			post_run = {
-				"create_mobi",
-			},
+			post_run = {},
 		},
 		html = {
 			metadata = {
