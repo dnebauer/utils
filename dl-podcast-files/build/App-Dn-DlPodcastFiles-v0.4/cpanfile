@@ -1,0 +1,25 @@
+requires 'perl', '5.038';
+requires 'autodie', '2.36';
+requires 'Carp', '1.54';
+requires 'Const::Fast', '0.014';
+requires 'English', '1.11';
+requires 'File::Copy', '2.41';
+requires 'File::Fetch', '1.04';
+requires 'Moo', '2.005005';
+requires 'MooX::HandlesVia', '0.001009';
+requires 'MooX::Options', '4.103';
+requires 'namespace::clean', '0.27';
+requires 'Role::Utils::Dn', '0.4';
+requires 'strictures', '2.000006';
+requires 'Time::Simple', '0.06';
+requires 'Types::DateTime', '0.002';
+requires 'Types::Standard', '2.004000';
+requires 'Types::URI', '0.007';
+requires 'version', '0.9930';
+requires 'YAML', '1.31';
+
+# requires 'Some::Module', 'VERSION';
+
+on test => sub {
+    requires 'Test::More', '0.96';
+};

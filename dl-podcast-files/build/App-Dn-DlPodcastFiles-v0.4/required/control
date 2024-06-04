@@ -1,0 +1,59 @@
+Source: dn-dl-podcast-files
+Maintainer: David Nebauer <david@nebauer.org>
+Section: utils
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               libmodule-build-tiny-perl,
+               perl (>= 5.38.0)
+Build-Depends-Indep: libconst-fast-perl <!nocheck>,
+                     libmoo-perl (>= 2.005005) <!nocheck>,
+                     libmoox-handlesvia-perl <!nocheck>,
+                     libmoox-options-perl <!nocheck>,
+                     libnamespace-clean-perl <!nocheck>,
+                     librole-utils-dn-perl (>= 0.4) <!nocheck>,
+                     libstrictures-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libtime-simple-perl (>= 0.06) <!nocheck>,
+                     libtype-tiny-perl (>= 2.004000) <!nocheck>,
+                     libtypes-datetime-perl <!nocheck>,
+                     libtypes-uri-perl <!nocheck>,
+                     libversion-perl <!nocheck>,
+                     libyaml-perl (>= 1.31) <!nocheck>
+Standards-Version: 4.6.2
+Homepage: https://metacpan.org/release/App-Dn-DlPodcastFiles
+Rules-Requires-Root: no
+
+Package: dn-dl-podcast-files
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         libconst-fast-perl,
+         libmoo-perl (>= 2.005005),
+         libmoox-handlesvia-perl,
+         libmoox-options-perl,
+         libnamespace-clean-perl,
+         librole-utils-dn-perl (>= 0.4),
+         libstrictures-perl,
+         libtime-simple-perl (>= 0.06),
+         libtype-tiny-perl (>= 2.004000),
+         libtypes-datetime-perl,
+         libtypes-uri-perl,
+         libversion-perl,
+         libyaml-perl (>= 1.31),
+         perl (>= 5.38.0)
+Description: download podcast files
+ App::Dn::DlPodcastFiles was developed for downloading podcast files that are
+ too old to appear in a podcast feed but that are still included in the rss
+ feed file online. Details of the files are obtained and a yaml import file
+ created.
+ .
+ The import file lists the following for each download file:
+ .
+ url, title, date, time
+ .
+ Date and time are the date and time the file was published.
+ .
+ Required values are url, title and time. Date is optional.
+ .
+ Here is an example import file. It lists episodes from the "Fear the Boot"
+ podcast.

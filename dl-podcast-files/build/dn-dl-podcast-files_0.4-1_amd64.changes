@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Tue, 4 Jun 2024 22:32:24 +0930
+Source: dn-dl-podcast-files
+Binary: dn-dl-podcast-files
+Architecture: all
+Version: 0.4-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-dl-podcast-files - download podcast files
+Closes: 590000
+Changes:
+ dn-dl-podcast-files (0.4-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 590000
+Checksums-Sha1:
+ 3f1f0083382769a6a45c6637eed2eaca053f44c0 15008 dn-dl-podcast-files_0.4-1_all.deb
+ 3bc92d38ca5c6adb3d73bd1e1b331e3a3dc22d3e 13182 dn-dl-podcast-files_0.4-1_amd64.buildinfo
+Checksums-Sha256:
+ d2d6aa02e1b6762f4eadcd7edcf1269c02f0a7808fdc8763f905ad30aa9075d6 15008 dn-dl-podcast-files_0.4-1_all.deb
+ 4b413ee9534ddb1b5865ea8ddf001e1e09738e67e72de24b436f4d1fa8cd41fb 13182 dn-dl-podcast-files_0.4-1_amd64.buildinfo
+Files:
+ f9ea52fdbd4eb09e443925996246f2f3 15008 utils optional dn-dl-podcast-files_0.4-1_all.deb
+ 484d4a839c266aa47c285e1b3f7c29c9 13182 utils optional dn-dl-podcast-files_0.4-1_amd64.buildinfo

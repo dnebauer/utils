@@ -1,0 +1,11 @@
+c0b371bad17289bd3f76ca26213c6d93  usr/bin/dn-dl-podcast-files
+c990cc552ed9ad2efeb902cfcd2ee09c  usr/share/doc/dn-dl-podcast-files/changelog.Debian.gz
+9eabe51ad55d91a532a634abe54cba0d  usr/share/doc/dn-dl-podcast-files/changelog.gz
+95afc61cd0e2acca4487bf9148c6d7e1  usr/share/doc/dn-dl-podcast-files/copyright
+e828a752ce4c7214a495eaba9fb1060d  usr/share/man/man1/dn-dl-podcast-files.1p.gz
+e90f960f7df678e569686130fce0fcd8  usr/share/man/man3/App::Dn::DlPodcastFiles.3pm.gz
+55a44937be244e6978103c9c54e02828  usr/share/man/man3/App::Dn::DlPodcastFiles::Constants.3pm.gz
+6203880de0c25c8addb58f2e9bc79b28  usr/share/man/man3/App::Dn::DlPodcastFiles::Episode.3pm.gz
+84ad8028c291ca3a4f8619eeefe1c5b1  usr/share/perl5/App/Dn/DlPodcastFiles.pm
+e29e3279352bcc4b628b58e5b0844f90  usr/share/perl5/App/Dn/DlPodcastFiles/Constants.pm
+252bb60de5b9a1f75174b34ec76fabbc  usr/share/perl5/App/Dn/DlPodcastFiles/Episode.pm

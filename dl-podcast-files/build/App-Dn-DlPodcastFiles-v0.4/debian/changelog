@@ -1,0 +1,7 @@
+dn-dl-podcast-files (0.4-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 590000
+
+ -- David Nebauer <david@nebauer.org>  Tue, 4 Jun 2024 22:32:24 +0930

@@ -54,14 +54,17 @@
 .rr rF
 .\" ========================================================================
 .\"
-.IX Title "DN-DL-PODCAST-FILES 1"
-.TH DN-DL-PODCAST-FILES 1 2024-03-09 "perl v5.38.2" "User Contributed Perl Documentation"
+.IX Title "DN-DL-PODCAST-FILES 1p"
+.TH DN-DL-PODCAST-FILES 1p 2024-06-04 "perl v5.38.2" "User Contributed Perl Documentation"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
 .nh
 .SH NAME
 dn\-dl\-podcast\-files \- downloads podcast files
+.SH VERSION
+.IX Header "VERSION"
+This documentation is for dn-dl-podcast-files version 0.4.
 .SH USAGE
 .IX Header "USAGE"
 \&\fBdn-dl-podcast-files\fR \fI\-f file\fR
@@ -71,17 +74,34 @@ dn\-dl\-podcast\-files \- downloads podcast files
 .IX Header "OPTIONS"
 .IP \fB\-f\fR 4
 .IX Item "-f"
-Name of input file.
+Name of YAML import file.
 .Sp
 Required.
 .IP \fB\-h\fR 4
 .IX Item "-h"
 Display help and exit.
+.SH "REQUIRED ARGUMENTS"
+.IX Header "REQUIRED ARGUMENTS"
+None.
 .SH DESCRIPTION
 .IX Header "DESCRIPTION"
-A script developed for downloading podcast files that are too old to appear in a podcast feed but that are still included in the rss feed file online. Details of the files are obtained and a yaml input file created. The input file lists the following for each download file: url, title, date and time. Date and time are the date and time the file was published. Required values are url, title and time. Date is optional.
+A script developed for downloading podcast files that are too old to appear in
+a podcast feed but that are still included in the rss feed file online.
 .PP
-Here is an example input file. It lists episodes from the "Fear the Boot" podcast.
+Before running this script details of the podcast files are obtained and a YAML
+import file created. The import file lists the following for each download
+file:
+.PP
+.Vb 1
+\&    url, title, date, time
+.Ve
+.PP
+\&\fIdate\fR and \fItime\fR are the date and time the file was published.
+.PP
+Required values are \fIurl\fR, \fItitle\fR and \fItime\fR; \fIdate\fR is optional.
+.PP
+Here is an example import file. It lists episodes from the "Fear the Boot"
+podcast.
 .PP
 .Vb 10
 \&    \-\-\-
@@ -101,20 +121,52 @@ Here is an example input file. It lists episodes from the "Fear the Boot" podcas
 \&    time: 0836
 .Ve
 .PP
-The downloaded file name consists of the url filename with a prefix constructed from the episode's date and, if provided, time. Here are the download files corresponding to the input file shown above:
+The downloaded file name consists of the url filename with a prefix constructed
+from the episode's date and, if provided, time. Here are the download files
+corresponding to the import file shown above:
 .PP
 .Vb 3
 \&    20060515\-2230_feartheboot_0001.mp3
 \&    20060523\-0611_feartheboot_0002.mp3
 \&    20060530\-0836_feartheboot_0003.mp3
 .Ve
+.SH CONFIGURATION
+.IX Header "CONFIGURATION"
+This script does not use configuration files or environmental variables.
+.SH DIAGNOSTICS
+.IX Header "DIAGNOSTICS"
+.SS "Cannot find 'FILE'"
+.IX Subsection "Cannot find 'FILE'"
+Occurs when the specified YAML import file cannot be found.
+.SS "Download failed"
+.IX Subsection "Download failed"
+A podcast file could not be downloaded from the internet.
+.SS "No episode details were extracted from file 'FILE' data"
+.IX Subsection "No episode details were extracted from file 'FILE' data"
+No podcast episode details could be extracted from the data extracted from the
+YAML import file.
+.SS "No episodes were imported from file FILE"
+.IX Subsection "No episodes were imported from file FILE"
+After parsing the YAML import file no data could be extracted.
+.SS "No import file specified"
+.IX Subsection "No import file specified"
+Occurs when no YAML import file is specified.
+.SS "Unable to rename 'OLD' to 'NEW'"
+.IX Subsection "Unable to rename 'OLD' to 'NEW'"
+After downloading a podcast file it could not be renamed.
+.SH INCOMPATIBILITIES
+.IX Header "INCOMPATIBILITIES"
+There are no known incompatibilities.
+.SH "EXIT STATUS"
+.IX Header "EXIT STATUS"
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly the
+error code is that given by the system.
 .SH DEPENDENCIES
 .IX Header "DEPENDENCIES"
 .SS "Perl modules"
 .IX Subsection "Perl modules"
-Carp, Const::Fast, English, File::Copy, File::Fetch, Moo, MooX::HandlesVia,
-MooX::Options, Role::Utils::Dn, Time::Simple, Types::DateTime, Types::Standard,
-Types::URI, YAML, autodie, namespace::clean, strictures, version.
+Carp, Const::Fast, Moo, MooX::Options, namespace::clean, strictures, version.
 .SS Executables
 .IX Subsection "Executables"
 wget.
