@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Sat, 8 Jun 2024 15:40:22 +0930
+Source: dn-html2ebooks
+Binary: dn-html2ebooks
+Architecture: all
+Version: 0.6-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-html2ebooks - convert html file to ebook formats
+Closes: 596000
+Changes:
+ dn-html2ebooks (0.6-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 596000
+Checksums-Sha1:
+ 3ad97f09e220f089f3cc729b1005933dd32ba5b6 11624 dn-html2ebooks_0.6-1_all.deb
+ 0873c2b8a5615ee6682c7d54bb9c5a21d2751a48 9122 dn-html2ebooks_0.6-1_amd64.buildinfo
+Checksums-Sha256:
+ 9de2cf2ae3adb87afcb5b76bd6a98b9e18a5e98d7d6d94c39196691621b90b43 11624 dn-html2ebooks_0.6-1_all.deb
+ 2f9990a6a61109102f5858a5a65d5bc3f5fd2e4443fbeb90c4130896c56a6f25 9122 dn-html2ebooks_0.6-1_amd64.buildinfo
+Files:
+ d1b88c37b357814a43db3b607d698c1e 11624 utils optional dn-html2ebooks_0.6-1_all.deb
+ 44e079261be257a69297b331674b8678 9122 utils optional dn-html2ebooks_0.6-1_amd64.buildinfo

@@ -1,0 +1,7 @@
+dn-html2ebooks (0.6-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 596000
+
+ -- David Nebauer <david@nebauer.org>  Sat, 8 Jun 2024 15:40:22 +0930

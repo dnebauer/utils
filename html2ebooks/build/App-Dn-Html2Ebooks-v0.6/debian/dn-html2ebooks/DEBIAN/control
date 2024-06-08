@@ -1,0 +1,13 @@
+Package: dn-html2ebooks
+Version: 0.6-1
+Architecture: all
+Maintainer: David Nebauer <david@nebauer.org>
+Installed-Size: 42
+Depends: perl:any, libconst-fast-perl, libmoo-perl (>= 2.005005), libmoox-handlesvia-perl, libmoox-options-perl, libnamespace-clean-perl, libstrictures-perl, libtype-tiny-perl (>= 2.004000), libversion-perl, perl (>= 5.38.0)
+Section: utils
+Priority: optional
+Homepage: https://metacpan.org/release/App-Dn-Html2Ebooks
+Description: convert html file to ebook formats
+ Converts an html file in the current directory named basename.html or
+ basename.htm where "basename" is the option provided to the -b option. This
+ source file is converted to the following format and output file:
