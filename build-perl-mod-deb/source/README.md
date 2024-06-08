@@ -31,29 +31,29 @@ This script assumes the following build process has been followed at least
 once:
 
 - Install module source in the `source` directory. This may invove a command
-sequence like:
+  sequence like:
 
-        $ cd path/to/project-directory/source
+          $ cd path/to/project-directory/source
 
-        $ cpan -g The::Module
-        Checking The::Module
-        CPAN: Storable loaded ok (v2.49_01)
-        Reading '/home/david/.cpan/Metadata'
-          Database was generated on Sat, 09 May 2015 12:29:02 GMT
+          $ cpan -g The::Module
+          Checking The::Module
+          CPAN: Storable loaded ok (v2.49_01)
+          Reading '/home/david/.cpan/Metadata'
+            Database was generated on Sat, 09 May 2015 12:29:02 GMT
 
-        $ dir
-        TheModule-1.23.tar.gz
+          $ dir
+          TheModule-1.23.tar.gz
 
-        $ tar zxvf TheModule-1.23.tar.gz
-        TheModule-1.23/
-        TheModule-1.23/META.yml
-        ...
+          $ tar zxvf TheModule-1.23.tar.gz
+          TheModule-1.23/
+          TheModule-1.23/META.yml
+          ...
 
-        $ mv TheModule-1.23/* ./
+          $ mv TheModule-1.23/* ./
 
-        $ rmdir TheModule-1.23
+          $ rmdir TheModule-1.23
 
-        $ rm TheModule-1.23.tar.gz
+          $ rm TheModule-1.23.tar.gz
 
 - Create `required` subdirectory:
 
@@ -62,64 +62,65 @@ sequence like:
 
 - Add executable scripts
 
-    Scripts to be installed to `/usr/bin/` are put in
-    `source/script`. This directory needs to be created. The scripts are
-    not set as executable in this directory; that is handled during packaging.
+  Scripts to be installed to `/usr/bin/` are put in
+  `source/script`. This directory needs to be created. The scripts are
+  not set as executable in this directory; that is handled during packaging.
 
 - Add bash completion script
 
-    `dn-build-perl-mod-deb` provides support for a single bash completion
-    file. The file must be called `PACKAGE.bash-completion` where 'PACKAGE'
-    is the name of the debian package to be created. For example, the perl module
-    `My::Module` may be packaged as `libmy-module-perl`. If
-    executable scripts are included in the package, the accompanying bash
-    completion file in the source tree would be
-    `source/required/libmy-module-perl.bash-completion`, and would install
-    to `/usr/share/bash-completion/completions/libmy-module-perl`.
+  `dn-build-perl-mod-deb` provides support for a single bash completion
+  file. The file must be called `PACKAGE.bash-completion` where 'PACKAGE'
+  is the name of the debian package to be created. For example, the perl module
+  `My::Module` may be packaged as `libmy-module-perl`. If
+  executable scripts are included in the package, the accompanying bash
+  completion file in the source tree would be
+  `source/required/libmy-module-perl.bash-completion`, and would install
+  to `/usr/share/bash-completion/completions/libmy-module-perl`.
 
 - Add files for installation to other directories
 
-    There is a mechanism for installing files to any system location. The files
-    must be installed under the `source` directory in any subdirectory path. It is
-    a convention to install files under `source/contrib`. For example, a
-    zsh completion script may be located at `source/contrib/completion/zsh/_my-script` in the source tree. The install
-    destination is specified in `source/required/PACKAGE.install` where
-    PACKAGE is the debian package name. Each file to be installed must be listed in
-    this file with a destination directory. Here is the line that might be used for
-    the zsh completion file mentioned above:
+  There is a mechanism for installing files to any system location. The files
+  must be installed under the `source` directory in any subdirectory path. It is
+  a convention to install files under `source/contrib`. For example, a
+  zsh completion script may be located at `source/contrib/completion/zsh/_my-script` in the source tree. The install
+  destination is specified in `source/required/PACKAGE.install` where
+  PACKAGE is the debian package name. Each file to be installed must be listed in
+  this file with a destination directory. Here is the line that might be used for
+  the zsh completion file mentioned above:
 
         contrib/completion/zsh/_my-script /usr/share/zsh/vendor-completions
 
-    The location of the source file, relative to the `source` directory, is given
-    first, followed by the destination directory. Note that the destination does
-    not include the file name as it uses the name of the source file.
+  The location of the source file, relative to the `source` directory, is given
+  first, followed by the destination directory. Note that the destination does
+  not include the file name as it uses the name of the source file.
 
 - Copy all source files to `build` directory:
 
         $ cd ../build
         $ cp -r ../source/. ./
 
-    Note the use of `../source/.` rather than the more usual `../source/*`. This ensures hidden files and directories are copied as
-    well. This is important in some cases where failure to copy hidden files
-    results in `milla test` and `milla build` failing because it
-    cannot find the distribution.
+  Note the use of `../source/.` rather than the more usual `../source/*`. This ensures hidden files and directories are copied as
+  well. This is important in some cases where failure to copy hidden files
+  results in `milla test` and `milla build` failing because it
+  cannot find the distribution.
 
 - Build distribution file. Supported build methods are:
-    - Dist::Milla (relies on detecting a `dist.ini` file in the project root
+
+  - Dist::Milla (relies on detecting a `dist.ini` file in the project root
     directory)
 
             $ prove -l t
             $ milla test
             $ milla build
 
-    - ExtUtils::MakeMaker (relies on detecting a `Makefile.PL` file in the
+  - ExtUtils::MakeMaker (relies on detecting a `Makefile.PL` file in the
     project root directory)
 
             $ perl Makefile.PL
             $ make test
             $ make dist
 
-    - Module::Build (relies on detecting a `Build.PL` file in the root
+  - Module::Build (relies on detecting a `Build.PL` file in the root
     directory)
 
             $ perl Build.PL
@@ -127,7 +128,7 @@ sequence like:
             $ ./Build test
             $ ./Build dist
 
-    - Extract the distribution file, creating a subdirectory containing a copy of the
+  - Extract the distribution file, creating a subdirectory containing a copy of the
     distribution files:
 
             $ tar zxvf TheModule-1.23.tar.gz
@@ -136,21 +137,21 @@ sequence like:
         of this name being built, so that subdirectory must be deleted before
         `tar zxvf` is run.
 
-    - Create debian package build files using `dh-make-perl`:
+  - Create debian package build files using `dh-make-perl`:
 
-            $ dh-make-perl TheModule-1.23
+          $ dh-make-perl TheModule-1.23
 
-        This command may fail if module dependencies are not met. Install any required
-        modules before proceeding.
+    This command may fail if module dependencies are not met. Install any required
+    modules before proceeding.
 
-    - Perform initial build of debian package using `debuild`:
+  - Perform initial build of debian package using `debuild`:
 
-            $ cd TheModule-1.23
-            $ debuild
+          $ cd TheModule-1.23
+          $ debuild
 
-        Note that this operation is performed from the module directory.
+    Note that this operation is performed from the module directory.
 
-    - The initial buld operation will generate a number of lintian warnings. These
+  - The initial buld operation will generate a number of lintian warnings. These
     require changes to the `control`, `copyright` and `changelog` files in the
     debian subdirectory. These are copied to the `build` directory's `required`
     subdirectory:
@@ -187,7 +188,7 @@ sequence like:
         Also copy them to the `source/required` subdirectory so they are
         included in the next build sequence.
 
-    - Repeat the previous step until no lintian warnings appear during the package
+  - Repeat the previous step until no lintian warnings appear during the package
     build.
 
 ## Use of this script
@@ -201,7 +202,7 @@ Once the initial build has been performed, this script is run from the
 - Runs `dh-make-perl` on the extracted module source
 - Changes to the extracted module directory and runs `debuild`
 - Copies all files in the `build/required` directory to the module's
-`debian` directory
+  `debian` directory
 - Installs the created package.
 
 # SUBROUTINES/METHODS
@@ -221,7 +222,7 @@ Debian package maintainer email.
 
 Scalar. Optional. Default: <david@nebauer.org>.
 
-### dont\_check\_builddeps
+### dont_check_builddeps
 
 `debuild` default behaviour is to run `dpkg-checkbuilddeps` to check
 build dependencies and conflicts. Sometimes this check will declare that a
@@ -235,7 +236,7 @@ it may obscure other build problems.
 
 Boolean. Optional. Default: false.
 
-### dont\_install
+### dont_install
 
 Suppress installation of debian package after it is built.
 
