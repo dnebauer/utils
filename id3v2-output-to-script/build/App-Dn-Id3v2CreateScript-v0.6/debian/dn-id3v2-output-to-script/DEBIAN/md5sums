@@ -1,0 +1,11 @@
+93a28c52842ba466b1481b327eba7cfc  usr/bin/dn-id3v2-output-to-script
+9716af724de347a4cf247b24719e0029  usr/share/doc/dn-id3v2-output-to-script/changelog.Debian.gz
+adefc0f4e1c4aab6f267cdc850ceee27  usr/share/doc/dn-id3v2-output-to-script/changelog.gz
+8cd0fe56f4d48745ba4006820f9a1c59  usr/share/doc/dn-id3v2-output-to-script/copyright
+a64368b683e3decd6e047d9de770dd7f  usr/share/man/man1/dn-id3v2-output-to-script.1p.gz
+f85c2e552645cb568ebc0005f6d459db  usr/share/man/man3/App::Dn::Id3v2CreateScript.3pm.gz
+fb4955fd5890a08edb61fa6f9bf6db15  usr/share/man/man3/App::Dn::Id3v2CreateScript::FileProperties.3pm.gz
+5d75d3ef9f4a1279334aa111643fa9b4  usr/share/man/man3/App::Dn::Id3v2CreateScript::TagProperties.3pm.gz
+6f49c004735a85f7cdb941d135637bbb  usr/share/perl5/App/Dn/Id3v2CreateScript.pm
+303d780acef4bc4823fad1729c9b3779  usr/share/perl5/App/Dn/Id3v2CreateScript/FileProperties.pm
+00bdcca096a9ab6be951697877df87d0  usr/share/perl5/App/Dn/Id3v2CreateScript/TagProperties.pm

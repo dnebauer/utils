@@ -1,0 +1,23 @@
+Package: dn-id3v2-output-to-script
+Version: 0.6-1
+Architecture: all
+Maintainer: David Nebauer <david@nebauer.org>
+Installed-Size: 62
+Depends: perl:any, eyed3 (>= 0.9.7), id3v2 (>= 0.1.11), libconst-fast-perl, liblist-someutils-perl (>= 0.59), libmoo-perl (>= 2.005005), libmoox-handlesvia-perl, libmoox-options-perl, libmp3-tag-perl (>= 1.16), libnamespace-clean-perl, libpath-tiny-perl (>= 0.144), libstrictures-perl, libtype-tiny-perl (>= 2.004000), libversion-perl, perl (>= 5.38.0)
+Section: utils
+Priority: optional
+Homepage: https://metacpan.org/release/App-Dn-Id3v2CreateScript
+Description: converts id3v2 output to a script
+ Convert id3v2 output (created using the --list option) to a bash script. The
+ bash script contains an id3v2 command for each mp3 file which sets its tags
+ to those present in the initial output. Any id3v1 tag information in the
+ input is ignored. The id3v2 output can be provided to this script as stdin
+ (default) or as a file. The bash script output produced can be sent to stdout
+ (default) or to a file. If output is sent to a file the created file is set
+ to executable (permissions 0755).
+ .
+ This may seem to be a pointless script: when would it ever be necessary to
+ set mp3 file tags to the values they already have? One applicable scenario,
+ and the impetus for this script, is that on some occasions the id3v2 utility
+ is unable to modify existing tags on some mp3 files. In those cases it is
+ necessary to remove all tags and set them anew.
