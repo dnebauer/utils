@@ -3,7 +3,7 @@ Version: 0.6-1
 Architecture: all
 Maintainer: David Nebauer <david@nebauer.org>
 Installed-Size: 42
-Depends: perl:any, libconst-fast-perl, libmoo-perl (>= 2.005005), libmoox-handlesvia-perl, libmoox-options-perl, libnamespace-clean-perl, libstrictures-perl, libtype-tiny-perl (>= 2.004000), libversion-perl, perl (>= 5.38.0)
+Depends: perl:any, libconst-fast-perl, libmoo-perl (>= 2.005005), libmoox-handlesvia-perl, libmoox-options-perl, libnamespace-clean-perl, libpath-tiny-perl, libstrictures-perl, libtype-tiny-perl (>= 2.004000), libversion-perl, perl (>= 5.38.0)
 Section: utils
 Priority: optional
 Homepage: https://metacpan.org/release/App-Dn-Html2Ebooks

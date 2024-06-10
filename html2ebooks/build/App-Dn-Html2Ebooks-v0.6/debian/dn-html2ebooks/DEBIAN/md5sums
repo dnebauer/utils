@@ -3,7 +3,7 @@
 cc64bccbb5956f4f615c608cd3fc2a14  usr/share/doc/dn-html2ebooks/changelog.gz
 a5711c06bc4eba31fd223b45c1df13af  usr/share/doc/dn-html2ebooks/copyright
 c8e9b2f5c77d8d761587e91434342a1a  usr/share/man/man1/dn-html2ebooks.1p.gz
-b75a0e44665e9d140b2b9e04033df066  usr/share/man/man3/App::Dn::Html2Ebooks.3pm.gz
+05be6dc2149ba6dca468e6294011c918  usr/share/man/man3/App::Dn::Html2Ebooks.3pm.gz
 dd2de7bbd56e07537c83bbd91aa2e09c  usr/share/man/man3/App::Dn::Html2Ebooks::Format.3pm.gz
-3148f5fdff6fecbd604e37ad62f010a4  usr/share/perl5/App/Dn/Html2Ebooks.pm
+654a964c6d170f8122c0c9f218d01784  usr/share/perl5/App/Dn/Html2Ebooks.pm
 3b58e86a5e7b9815c9da7cc7a03ae749  usr/share/perl5/App/Dn/Html2Ebooks/Format.pm

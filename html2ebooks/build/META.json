@@ -42,6 +42,7 @@
             "Moo" : "2.005005",
             "MooX::HandlesVia" : "0.001009",
             "MooX::Options" : "4.103",
+            "Path::Tiny" : "0.144",
             "Types::Standard" : "2.004000",
             "namespace::clean" : "0.27",
             "perl" : "5.038",

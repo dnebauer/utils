@@ -80,7 +80,7 @@ Occurs when the script is unable to locate `ebook-convert` on the system.
 ## Perl modules
 
 App::Dn::Html2Ebooks::Format, Carp, Const::Fast, Moo, MooX::HandlesVia,
-namespace::clean, strictures, Types::Standard, version.
+namespace::clean, Path::Tiny, strictures, Types::Standard, version.
 
 ## Executables
 

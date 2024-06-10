@@ -11,6 +11,7 @@ use App::Dn::Html2Ebooks::Format;
 use Carp qw(croak);
 use Const::Fast;
 use MooX::HandlesVia;
+use Path::Tiny;
 use Types::Standard;
 
 with qw(Role::Utils::Dn);
@@ -65,7 +66,7 @@ has '_converter' => (
 # _source    {{{1
 has '_source' => (
   is      => 'ro',
-  isa     => Types::Standard::Str,
+  isa     => Types::Standard::InstanceOf ['Path::Tiny'],
   lazy    => $TRUE,
   default => sub {
 
@@ -74,8 +75,9 @@ has '_source' => (
     my $basename = $self->file_base_name;
     my $source;
     for my $ext (qw(html htm)) {
-      my $file = $basename . q[.] . $ext;
-      if ($self->file_readable($file)) {
+      my $filename = $basename . q[.] . $ext;
+      my $file     = Path::Tiny::path($filename);
+      if ($file->is_file) {
         $source = $file;
       }
     }
@@ -89,13 +91,17 @@ has '_source' => (
 
 # _cover    {{{1
 has '_cover' => (
-  is      => 'ro',
-  isa     => Types::Standard::Maybe [Types::Standard::Str],
+  is => 'ro',
+  ## no critic (ProhibitDuplicateLiteral)
+  isa =>
+      Types::Standard::Maybe [ Types::Standard::InstanceOf ['Path::Tiny'] ],
+  ## use critic
   lazy    => $TRUE,
   default => sub {
-    my $self = shift;
-    my $file = $self->file_base_name . '.png';
-    return $self->file_readable($file) ? $file : undef;
+    my $self     = shift;
+    my $filename = $self->file_base_name . '.png';
+    my $file     = Path::Tiny::path($filename);
+    return $file->is_file ? $file : undef;
   },
   doc => 'Cover png file',
 );
@@ -124,12 +130,12 @@ has '_formats_list' => (
 
     # variables    {{{2
     my $converter = $self->_converter;
-    my $source    = $self->_source;
+    my $source    = $self->_source->stringify;
     my $base      = $self->file_base($source);
-    my $cover     = $self->_cover;
+    my $cover     = $self->_cover ? $self->_cover->stringify : undef;
     my $date      = $self->_today;
     my $title     = $self->book_title;
-    my $author    = $self->book_author;          # }}}2
+    my $author    = $self->book_author;                                 # }}}2
 
     my @formats;
 
@@ -288,7 +294,7 @@ Occurs when the script is unable to locate F<ebook-convert> on the system.
 =head2 Perl modules
 
 App::Dn::Html2Ebooks::Format, Carp, Const::Fast, Moo, MooX::HandlesVia,
-namespace::clean, strictures, Types::Standard, version.
+namespace::clean, Path::Tiny, strictures, Types::Standard, version.
 
 =head2 Executables
 

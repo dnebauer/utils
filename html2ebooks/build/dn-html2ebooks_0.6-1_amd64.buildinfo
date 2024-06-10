@@ -4,14 +4,14 @@ Binary: dn-html2ebooks
 Architecture: all
 Version: 0.6-1
 Checksums-Md5:
- d1b88c37b357814a43db3b607d698c1e 11624 dn-html2ebooks_0.6-1_all.deb
+ 32690f46ca0bfc290ef516d48e6d5cd3 11720 dn-html2ebooks_0.6-1_all.deb
 Checksums-Sha1:
- 3ad97f09e220f089f3cc729b1005933dd32ba5b6 11624 dn-html2ebooks_0.6-1_all.deb
+ cca645d9aa9e3edd525b5132aa9ca93efa43817c 11720 dn-html2ebooks_0.6-1_all.deb
 Checksums-Sha256:
- 9de2cf2ae3adb87afcb5b76bd6a98b9e18a5e98d7d6d94c39196691621b90b43 11624 dn-html2ebooks_0.6-1_all.deb
+ 79182cdf37e0c598afe2f84aeec443cf79fc5fa016af47ed5cf72b1df2762414 11720 dn-html2ebooks_0.6-1_all.deb
 Build-Origin: Debian
 Build-Architecture: amd64
-Build-Date: Sat, 08 Jun 2024 16:09:40 +0930
+Build-Date: Mon, 10 Jun 2024 14:54:20 +0930
 Build-Tainted-By:
  merged-usr-via-aliased-dirs
  usr-local-has-configs
@@ -269,7 +269,7 @@ Installed-Build-Depends:
  llvm-15-linker-tools (= 1:15.0.7-14+b1),
  llvm-16-linker-tools (= 1:16.0.6-27),
  llvm-17-linker-tools (= 1:17.0.6-12),
- login (= 1:4.13+dfsg1-4),
+ login (= 1:4.13+dfsg1-5),
  m4 (= 1.4.19-4),
  make (= 4.3-4.1),
  man-db (= 2.12.1-1),
