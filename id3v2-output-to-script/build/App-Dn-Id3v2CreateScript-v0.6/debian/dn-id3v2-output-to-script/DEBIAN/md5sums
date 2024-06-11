@@ -9,3 +9,4 @@ fb4955fd5890a08edb61fa6f9bf6db15  usr/share/man/man3/App::Dn::Id3v2CreateScript:
 6f49c004735a85f7cdb941d135637bbb  usr/share/perl5/App/Dn/Id3v2CreateScript.pm
 303d780acef4bc4823fad1729c9b3779  usr/share/perl5/App/Dn/Id3v2CreateScript/FileProperties.pm
 00bdcca096a9ab6be951697877df87d0  usr/share/perl5/App/Dn/Id3v2CreateScript/TagProperties.pm
+d64d48d12b0b0fa34b8dce6401c13e71  usr/share/zsh/vendor-completions/_dn_id3v2_output_to_script

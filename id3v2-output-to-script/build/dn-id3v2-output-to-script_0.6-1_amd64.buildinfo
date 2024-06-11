@@ -4,14 +4,14 @@ Binary: dn-id3v2-output-to-script
 Architecture: all
 Version: 0.6-1
 Checksums-Md5:
- 77251c237b6b3347cf11c39111d9e290 18984 dn-id3v2-output-to-script_0.6-1_all.deb
+ 398c6a972bb034cec040e5f8295662a6 19268 dn-id3v2-output-to-script_0.6-1_all.deb
 Checksums-Sha1:
- becbe09e02fdb15dd2fdb52a525ee9dae5b0fadf 18984 dn-id3v2-output-to-script_0.6-1_all.deb
+ 1d3241ec6dcfb0ffd4f53939c0fada99219f540f 19268 dn-id3v2-output-to-script_0.6-1_all.deb
 Checksums-Sha256:
- 2b08f683d08f2f09d2dfa70d7fde87ee24c9aa0ee53727ec519d65e02c6342bf 18984 dn-id3v2-output-to-script_0.6-1_all.deb
+ 4c541b8ef40eb359935a8587bd203e32991e56d127c5211ce1c03a1c7dd07106 19268 dn-id3v2-output-to-script_0.6-1_all.deb
 Build-Origin: Debian
 Build-Architecture: amd64
-Build-Date: Sun, 09 Jun 2024 20:44:19 +0930
+Build-Date: Tue, 11 Jun 2024 22:57:18 +0930
 Build-Tainted-By:
  merged-usr-via-aliased-dirs
  usr-local-has-configs
@@ -48,7 +48,7 @@ Installed-Build-Depends:
  dash (= 0.5.12-8),
  debconf (= 1.5.86),
  debhelper (= 13.15.3),
- debianutils (= 5.17),
+ debianutils (= 5.18),
  dh-autoreconf (= 20),
  dh-strip-nondeterminism (= 1.14.0-1),
  diffutils (= 1:3.10-1),
@@ -244,7 +244,7 @@ Installed-Build-Depends:
  libsub-name-perl (= 0.27-1+b2),
  libsub-quote-perl (= 2.006008-1),
  libsub-uplevel-perl (= 0.2800-3),
- libsystemd0 (= 256~rc3-7),
+ libsystemd0 (= 256~rc4-1),
  libtext-glob-perl (= 0.11-3),
  libthai-data (= 0.1.29-2),
  libthai0 (= 0.1.29-2),
@@ -257,7 +257,7 @@ Installed-Build-Depends:
  libtypes-serialiser-perl (= 1.01-1),
  libubsan1 (= 14-20240330-1),
  libuchardet0 (= 0.0.8-1+b1),
- libudev1 (= 256~rc3-7),
+ libudev1 (= 256~rc4-1),
  libunicode-linebreak-perl (= 0.0.20190101-1+b7),
  libunistring5 (= 1.2-1),
  libuuid1 (= 2.40.1-8),

@@ -1,0 +1,17 @@
+#compdef dn-html2ebooks
+
+local rc=1
+
+_arguments -S \
+  - '(help_options)' \
+    '-h[Show a compact help message]' \
+    '--help[Show a long help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-b --basename)'{-b,--basename}'[Basename of input and output files]:base name:_files' \
+    '(-t --title)'{-t,--title}'[Title of book]:title:' \
+    '(-a --author)'{-a,--author}'[Author(s) of book]:author:' \
+  && rc=0
+
+return rc

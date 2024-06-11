@@ -6,6 +6,7 @@ MANIFEST
 META.json
 META.yml
 README
+contrib/completion/zsh/_dn-html2ebooks
 cpanfile
 dist.ini
 lib/App/Dn/Html2Ebooks.pm
@@ -13,6 +14,7 @@ lib/App/Dn/Html2Ebooks/Format.pm
 required/changelog
 required/control
 required/copyright
+required/dn-html2ebooks.install
 script/dn-html2ebooks
 t/author-pod-syntax.t
 t/basic.t

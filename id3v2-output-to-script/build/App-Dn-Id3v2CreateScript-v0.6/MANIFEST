@@ -6,6 +6,7 @@ MANIFEST
 META.json
 META.yml
 README
+contrib/completion/zsh/_dn_id3v2_output_to_script
 cpanfile
 dist.ini
 lib/App/Dn/Id3v2CreateScript.pm
@@ -14,6 +15,7 @@ lib/App/Dn/Id3v2CreateScript/TagProperties.pm
 required/changelog
 required/control
 required/copyright
+required/dn-id3v2-output-to-script.install
 script/dn-id3v2-output-to-script
 t/author-pod-syntax.t
 t/basic.t

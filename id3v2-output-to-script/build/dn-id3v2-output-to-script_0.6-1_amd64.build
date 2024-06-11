@@ -21,10 +21,10 @@ make[1]: Leaving directory '/home/david/data/computing/projects/utils/id3v2-outp
    dh_auto_build
 	/usr/bin/perl Build
 Unknown option: sharedstatedir
+cp lib/App/Dn/Id3v2CreateScript.pm blib/lib/App/Dn/Id3v2CreateScript.pm
+cp lib/App/Dn/Id3v2CreateScript/TagProperties.pm blib/lib/App/Dn/Id3v2CreateScript/TagProperties.pm
 cp lib/App/Dn/Id3v2CreateScript/FileProperties.pm blib/lib/App/Dn/Id3v2CreateScript/FileProperties.pm
 cp script/dn-id3v2-output-to-script blib/script/dn-id3v2-output-to-script
-cp lib/App/Dn/Id3v2CreateScript/TagProperties.pm blib/lib/App/Dn/Id3v2CreateScript/TagProperties.pm
-cp lib/App/Dn/Id3v2CreateScript.pm blib/lib/App/Dn/Id3v2CreateScript.pm
    dh_auto_test
 	/usr/bin/perl Build test --verbose 1
 Unknown option: sharedstatedir
@@ -34,7 +34,7 @@ ok 1
 1..1
 ok
 All tests successful.
-Files=2, Tests=1,  0 wallclock secs ( 0.02 usr  0.00 sys +  0.16 cusr  0.03 csys =  0.21 CPU)
+Files=2, Tests=1,  0 wallclock secs ( 0.01 usr  0.00 sys +  0.15 cusr  0.03 csys =  0.19 CPU)
 Result: PASS
    create-stamp debian/debhelper-build-stamp
    dh_prep
@@ -49,6 +49,7 @@ Installing /home/david/data/computing/projects/utils/id3v2-output-to-script/buil
 Installing /home/david/data/computing/projects/utils/id3v2-output-to-script/build/App-Dn-Id3v2CreateScript-v0.6/debian/dn-id3v2-output-to-script/usr/share/man/man3/App::Dn::Id3v2CreateScript.3pm
 Installing /home/david/data/computing/projects/utils/id3v2-output-to-script/build/App-Dn-Id3v2CreateScript-v0.6/debian/dn-id3v2-output-to-script/usr/share/man/man3/App::Dn::Id3v2CreateScript::TagProperties.3pm
 Installing /home/david/data/computing/projects/utils/id3v2-output-to-script/build/App-Dn-Id3v2CreateScript-v0.6/debian/dn-id3v2-output-to-script/usr/bin/dn-id3v2-output-to-script
+   dh_install
    dh_installdocs
    dh_installchangelogs
    dh_installman

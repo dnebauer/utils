@@ -22,8 +22,8 @@ make[1]: Leaving directory '/home/david/data/computing/projects/utils/html2ebook
 	/usr/bin/perl Build
 Unknown option: sharedstatedir
 cp lib/App/Dn/Html2Ebooks.pm blib/lib/App/Dn/Html2Ebooks.pm
-cp script/dn-html2ebooks blib/script/dn-html2ebooks
 cp lib/App/Dn/Html2Ebooks/Format.pm blib/lib/App/Dn/Html2Ebooks/Format.pm
+cp script/dn-html2ebooks blib/script/dn-html2ebooks
    dh_auto_test
 	/usr/bin/perl Build test --verbose 1
 Unknown option: sharedstatedir
@@ -33,7 +33,7 @@ ok 1
 1..1
 ok
 All tests successful.
-Files=2, Tests=1,  0 wallclock secs ( 0.01 usr  0.01 sys +  0.67 cusr  0.04 csys =  0.73 CPU)
+Files=2, Tests=1,  1 wallclock secs ( 0.02 usr  0.01 sys +  0.65 cusr  0.06 csys =  0.74 CPU)
 Result: PASS
    create-stamp debian/debhelper-build-stamp
    dh_prep
@@ -46,6 +46,7 @@ Installing /home/david/data/computing/projects/utils/html2ebooks/build/App-Dn-Ht
 Installing /home/david/data/computing/projects/utils/html2ebooks/build/App-Dn-Html2Ebooks-v0.6/debian/dn-html2ebooks/usr/share/man/man3/App::Dn::Html2Ebooks::Format.3pm
 Installing /home/david/data/computing/projects/utils/html2ebooks/build/App-Dn-Html2Ebooks-v0.6/debian/dn-html2ebooks/usr/share/man/man3/App::Dn::Html2Ebooks.3pm
 Installing /home/david/data/computing/projects/utils/html2ebooks/build/App-Dn-Html2Ebooks-v0.6/debian/dn-html2ebooks/usr/bin/dn-html2ebooks
+   dh_install
    dh_installdocs
    dh_installchangelogs
    dh_installman
