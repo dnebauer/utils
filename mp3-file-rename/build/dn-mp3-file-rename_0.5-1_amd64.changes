@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Tue, 11 Jun 2024 21:28:46 +0930
+Source: dn-mp3-file-rename
+Binary: dn-mp3-file-rename
+Architecture: all
+Version: 0.5-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-mp3-file-rename - rename mp3 files according to user formatting template
+Closes: 604945
+Changes:
+ dn-mp3-file-rename (0.5-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 604945
+Checksums-Sha1:
+ fad85bfb57eeb40c96838780a2f9caa718eeb889 19436 dn-mp3-file-rename_0.5-1_all.deb
+ 084b01bce98fc1228fae3e324e9e7922af3867d9 13121 dn-mp3-file-rename_0.5-1_amd64.buildinfo
+Checksums-Sha256:
+ c1f80bd077811565a49039a7501fd97919904822fa72df2c804e30c7cb0a542c 19436 dn-mp3-file-rename_0.5-1_all.deb
+ 4a51f62aa53d9306437d3798ae7d9a16f43f5282aafc0afd693fb104443e602a 13121 dn-mp3-file-rename_0.5-1_amd64.buildinfo
+Files:
+ 094026f3a0ab669bf33fee987cd4a305 19436 utils optional dn-mp3-file-rename_0.5-1_all.deb
+ 7a40b9a64bfea4d3a0ba2ea1d13656d1 13121 utils optional dn-mp3-file-rename_0.5-1_amd64.buildinfo

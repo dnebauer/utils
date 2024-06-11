@@ -1,0 +1,25 @@
+requires 'perl', '5.038';
+requires 'autodie', '2.36';
+requires 'Carp', '1.54';
+requires 'charnames', '1.50';
+requires 'Const::Fast', '0.014';
+requires 'Cwd', '3.89';
+requires 'English', '1.11';
+requires 'Log::Log4perl', '1.57';
+requires 'MP3::Info', '1.26';
+requires 'Moo', '2.005005';
+requires 'Moo::Role', '2.005005';
+requires 'MooX::HandlesVia', '0.001009';
+requires 'MooX::Options', '4.103';
+requires 'namespace::clean', '0.27';
+requires 'Role::Utils::Dn', '0.4';
+requires 'strictures', '2.000006';
+requires 'Term::ProgressBar::Simple', '0.03';
+requires 'Text::Unidecode', '1.30';
+requires 'Types::Path::Tiny', '0.006';
+requires 'Types::Standard', '2.004000';
+requires 'version', '0.9930';
+
+on test => sub {
+    requires 'Test::More', '0.96';
+};

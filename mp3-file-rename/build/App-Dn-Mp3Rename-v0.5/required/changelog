@@ -1,0 +1,7 @@
+dn-mp3-file-rename (0.5-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 604945
+
+ -- David Nebauer <david@nebauer.org>  Tue, 11 Jun 2024 21:28:46 +0930

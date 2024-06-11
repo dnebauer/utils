@@ -1,0 +1,50 @@
+Source: dn-mp3-file-rename
+Maintainer: David Nebauer <david@nebauer.org>
+Section: utils
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               libmodule-build-tiny-perl,
+               perl (>= 5.38.0)
+Build-Depends-Indep: libconst-fast-perl <!nocheck>,
+                     liblog-log4perl-perl (>= 1.57) <!nocheck>,
+                     libmoo-perl (>= 2.005005) <!nocheck>,
+                     libmoox-handlesvia-perl <!nocheck>,
+                     libmoox-options-perl <!nocheck>,
+                     libmp3-info-perl (>= 1.26) <!nocheck>,
+                     libnamespace-clean-perl <!nocheck>,
+                     librole-utils-dn-perl (>= 0.4) <!nocheck>,
+                     libstrictures-perl <!nocheck>,
+                     libterm-progressbar-simple-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libtext-unidecode-perl <!nocheck>,
+                     libtype-tiny-perl (>= 2.004000) <!nocheck>,
+                     libtypes-path-tiny-perl <!nocheck>,
+                     libversion-perl <!nocheck>
+Standards-Version: 4.6.2
+Homepage: https://metacpan.org/release/App-Dn-Mp3Rename
+Rules-Requires-Root: no
+
+Package: dn-mp3-file-rename
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         libconst-fast-perl,
+         liblog-log4perl-perl (>= 1.57),
+         libmoo-perl (>= 2.005005),
+         libmoox-handlesvia-perl,
+         libmoox-options-perl,
+         libmp3-info-perl (>= 1.26),
+         libnamespace-clean-perl,
+         librole-utils-dn-perl (>= 0.4),
+         libstrictures-perl,
+         libterm-progressbar-simple-perl,
+         libtext-unidecode-perl,
+         libtype-tiny-perl (>= 2.004000),
+         libtypes-path-tiny-perl,
+         libversion-perl,
+         perl (>= 5.38.0)
+Description: rename mp3 files according to user formatting template
+ Renames all audio mp3 files in the current directory. The names given to the
+ files are determined by a format template provided by the user. This template
+ actually determines the base name of the new file; all files automatically
+ retain the .mp3 extension.

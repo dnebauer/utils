@@ -1,0 +1,14 @@
+Package: dn-mp3-file-rename
+Version: 0.5-1
+Architecture: all
+Maintainer: David Nebauer <david@nebauer.org>
+Installed-Size: 65
+Depends: perl:any, libconst-fast-perl, liblog-log4perl-perl (>= 1.57), libmoo-perl (>= 2.005005), libmoox-handlesvia-perl, libmoox-options-perl, libmp3-info-perl (>= 1.26), libnamespace-clean-perl, librole-utils-dn-perl (>= 0.4), libstrictures-perl, libterm-progressbar-simple-perl, libtext-unidecode-perl, libtype-tiny-perl (>= 2.004000), libtypes-path-tiny-perl, libversion-perl, perl (>= 5.38.0)
+Section: utils
+Priority: optional
+Homepage: https://metacpan.org/release/App-Dn-Mp3Rename
+Description: rename mp3 files according to user formatting template
+ Renames all audio mp3 files in the current directory. The names given to the
+ files are determined by a format template provided by the user. This template
+ actually determines the base name of the new file; all files automatically
+ retain the .mp3 extension.

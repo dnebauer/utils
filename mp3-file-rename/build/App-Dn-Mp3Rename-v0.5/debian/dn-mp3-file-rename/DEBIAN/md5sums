@@ -1,0 +1,12 @@
+e31d84a54cf1a8296ffc1f5500871534  usr/bin/dn-mp3-file-rename
+2a76e5b265c4f875d982f6c9429396ba  usr/share/doc/dn-mp3-file-rename/changelog.Debian.gz
+3143ad220c5cff8ca6ad3846f6a4fdf5  usr/share/doc/dn-mp3-file-rename/changelog.gz
+e732d5d6a2791f3e46db92fc29d679a1  usr/share/doc/dn-mp3-file-rename/copyright
+2f3e89082631378fed36afc3ee9a5862  usr/share/man/man1/dn-mp3-file-rename.1p.gz
+8d941c46973edc72e52a7728711424ec  usr/share/man/man3/App::Dn::Mp3Rename.3pm.gz
+47ecedb156eb1ddc9697a23df6f9c6a0  usr/share/man/man3/App::Dn::Mp3Rename::AudioFile.3pm.gz
+bfa3ee793a1b1b6bf8b9d27e3c5df6d5  usr/share/man/man3/App::Dn::Mp3Rename::Role.3pm.gz
+8f0548005899c4653bc16e4606441afe  usr/share/perl5/App/Dn/Mp3Rename.pm
+45ed835464288699e08bec5a7b8798b6  usr/share/perl5/App/Dn/Mp3Rename/AudioFile.pm
+bd2281d353d17c1a19a58c0ba0e301b8  usr/share/perl5/App/Dn/Mp3Rename/Role.pm
+1c8f204b42c86dfc5ae2fcca50917888  usr/share/zsh/vendor-completions/_dn_mp3_file_rename
