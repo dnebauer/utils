@@ -1,1 +1,1 @@
-contrib/completion/_dn-abcde-rename /usr/share/zsh/vendor-completions
+contrib/completion/zsh/_dn-abcde-rename /usr/share/zsh/vendor-completions

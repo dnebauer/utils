@@ -19,10 +19,10 @@ Changes:
    * Closes: 800001
 Checksums-Sha1:
  91d2647feec64b326ea450b8bdfb2427eaaa9574 13132 dn-abcde-rename_0.3-1_all.deb
- de964bcb547858a05c9c30314c56a3fc98cd2818 12964 dn-abcde-rename_0.3-1_amd64.buildinfo
+ 0153928ebd5a193ebc2884666a09bc5615d7208e 12964 dn-abcde-rename_0.3-1_amd64.buildinfo
 Checksums-Sha256:
  1209ec16324b7aa59405b86c14d8938ec613a528e8f69becf1594dd1622506f4 13132 dn-abcde-rename_0.3-1_all.deb
- 396a20ff75507a36ba96a64b04eea5acc328f9897aa35b52138ff1a1501c56af 12964 dn-abcde-rename_0.3-1_amd64.buildinfo
+ 26c9dd68ffe123733a4db94f923182e61c3b14a238e758258efd6a787ea6c292 12964 dn-abcde-rename_0.3-1_amd64.buildinfo
 Files:
  7429025d26487c20903ce07fb8d7938f 13132 perl optional dn-abcde-rename_0.3-1_all.deb
- 09b7b84957943d1893017cc819274250 12964 perl optional dn-abcde-rename_0.3-1_amd64.buildinfo
+ df5369a52e49c6dccfe748efa4dfdc8a 12964 perl optional dn-abcde-rename_0.3-1_amd64.buildinfo

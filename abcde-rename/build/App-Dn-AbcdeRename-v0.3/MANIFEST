@@ -6,7 +6,7 @@ MANIFEST
 META.json
 META.yml
 README
-contrib/completion/_dn-abcde-rename
+contrib/completion/zsh/_dn-abcde-rename
 cpanfile
 dist.ini
 lib/App/Dn/AbcdeRename.pm
