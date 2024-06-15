@@ -1,10 +1,10 @@
-a0cb3fb797bdfde799532b4ccb87a383  usr/bin/dn-abcde-rename
+49ab325c695467156e6455703ad92dcc  usr/bin/dn-abcde-rename
 5b3374e4a9524e715ac74168afc70ba4  usr/share/doc/dn-abcde-rename/changelog.Debian.gz
 29d5b60382a70f3f29cf2857f26dded2  usr/share/doc/dn-abcde-rename/changelog.gz
 13d7a19105964571ef3f5a9461ba7d73  usr/share/doc/dn-abcde-rename/copyright
-9ec9285f6b7347e7adec0f831aaabe40  usr/share/man/man1/dn-abcde-rename.1p.gz
-a318d2c4a3b0018a7682a19a91b3797d  usr/share/man/man3/App::Dn::AbcdeRename.3pm.gz
+94bb3b5924950d66e0e9a4981abdfc32  usr/share/man/man1/dn-abcde-rename.1p.gz
+50d194df120ecda64b4214e2b08dbf05  usr/share/man/man3/App::Dn::AbcdeRename.3pm.gz
 355d9e465858e09ba021cadc4470284d  usr/share/man/man3/App::Dn::AbcdeRename::Pair.3pm.gz
-9eba86da97f62c2df6e31bfe65e55635  usr/share/perl5/App/Dn/AbcdeRename.pm
+013126c569f538302fa43fb59634340e  usr/share/perl5/App/Dn/AbcdeRename.pm
 e6eddb267b650ee4a3c3467973093b21  usr/share/perl5/App/Dn/AbcdeRename/Pair.pm
 5f4fb3fbde3ebd637fda96d39629aa00  usr/share/zsh/vendor-completions/_dn-abcde-rename

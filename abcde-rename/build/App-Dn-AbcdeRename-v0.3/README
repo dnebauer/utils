@@ -30,6 +30,27 @@ DESCRIPTION
 
     The artist name must be provided during object instantiation.
 
+CONFIGURATION AND ENVIRONMENT
+
+ Properties
+
+    None.
+
+ Configuration files
+
+    None used.
+
+ Environment variables
+
+    None used.
+
+OPTIONS
+
+    artist
+
+      This property holds the artist name which is used in the generation
+      of new file names. Scalar string. Required.
+
 SUBROUTINES/METHODS
 
  rename()
@@ -43,23 +64,6 @@ SUBROUTINES/METHODS
               artist-name_track-number_song-name.mp3
 
     See "DESCRIPTION" for further details.
-
-CONFIGURATION AND ENVIRONMENT
-
- Properties
-
-  artist
-
-    This property holds the artist name which is used in the generation of
-    new file names.
-
- Configuration files
-
-    None used.
-
- Environment variables
-
-    None used.
 
 DIAGNOSTICS
 

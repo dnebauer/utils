@@ -23,15 +23,18 @@ const my $ERR_NO_FNAME_PAIRS => 'No file name pairs';
 const my $STAR               => q{*};
 const my $UNDERSCORE         => q{_};                   #     }}}1
 
-# attributes
+# options
 
-# artist    {{{1
-has 'artist' => (
-  is       => 'ro',
-  isa      => Types::Standard::Str,
-  required => $TRUE,
-  doc      => 'Artist name',
-);    #     }}}1
+# artist (-a)   {{{1
+option 'artist' => (
+  is            => 'ro',
+  format        => 's',
+  required      => $TRUE,
+  short         => 'a',
+  documentation => 'Artist name',
+);    # }}}1
+
+# attributes
 
 # _name_pairs, _add_name_pair    {{{1
 has '_new_names_list' => (
@@ -343,6 +346,31 @@ according to the default C<abcde> output format.
 
 The artist name must be provided during object instantiation.
 
+=head1 CONFIGURATION AND ENVIRONMENT
+
+=head2 Properties
+
+None.
+
+=head2 Configuration files
+
+None used.
+
+=head2 Environment variables
+
+None used.
+
+=head1 OPTIONS
+
+=over
+
+=item artist
+
+This property holds the artist name which is used in the generation of new
+file names. Scalar string. Required.
+
+=back
+
 =head1 SUBROUTINES/METHODS
 
 =head2 rename()
@@ -356,23 +384,6 @@ to naming format:
 	  artist-name_track-number_song-name.mp3
 
 See L</DESCRIPTION> for further details.
-
-=head1 CONFIGURATION AND ENVIRONMENT
-
-=head2 Properties
-
-=head3 artist
-
-This property holds the artist name which is used in the generation of new
-file names.
-
-=head2 Configuration files
-
-None used.
-
-=head2 Environment variables
-
-None used.
 
 =head1 DIAGNOSTICS
 

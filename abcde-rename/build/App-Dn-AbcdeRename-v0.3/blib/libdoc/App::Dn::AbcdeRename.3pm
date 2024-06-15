@@ -93,6 +93,23 @@ A fatal error occurs if any \fImp3\fR file in the current directory is not named
 according to the default \f(CW\*(C`abcde\*(C'\fR output format.
 .PP
 The artist name must be provided during object instantiation.
+.SH "CONFIGURATION AND ENVIRONMENT"
+.IX Header "CONFIGURATION AND ENVIRONMENT"
+.SS Properties
+.IX Subsection "Properties"
+None.
+.SS "Configuration files"
+.IX Subsection "Configuration files"
+None used.
+.SS "Environment variables"
+.IX Subsection "Environment variables"
+None used.
+.SH OPTIONS
+.IX Header "OPTIONS"
+.IP artist 4
+.IX Item "artist"
+This property holds the artist name which is used in the generation of new
+file names. Scalar string. Required.
 .SH SUBROUTINES/METHODS
 .IX Header "SUBROUTINES/METHODS"
 .SS \fBrename()\fP
@@ -110,21 +127,6 @@ to naming format:
 .Ve
 .PP
 See "DESCRIPTION" for further details.
-.SH "CONFIGURATION AND ENVIRONMENT"
-.IX Header "CONFIGURATION AND ENVIRONMENT"
-.SS Properties
-.IX Subsection "Properties"
-\fIartist\fR
-.IX Subsection "artist"
-.PP
-This property holds the artist name which is used in the generation of new
-file names.
-.SS "Configuration files"
-.IX Subsection "Configuration files"
-None used.
-.SS "Environment variables"
-.IX Subsection "Environment variables"
-None used.
 .SH DIAGNOSTICS
 .IX Header "DIAGNOSTICS"
 .SS "No mp3 files"
