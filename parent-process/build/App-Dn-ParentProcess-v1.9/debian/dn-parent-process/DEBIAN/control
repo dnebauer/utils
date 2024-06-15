@@ -1,0 +1,12 @@
+Package: dn-parent-process
+Version: 1.9-1
+Architecture: all
+Maintainer: David Nebauer <david@nebauer.org>
+Installed-Size: 42
+Depends: perl:any, libconst-fast-perl, liblist-someutils-perl (>= 0.59), libmoo-perl (>= 2.005005), libmoox-handlesvia-perl, libmoox-options-perl, libnamespace-clean-perl, libproc-processtable-perl (>= 0.636), libstrictures-perl, libtext-table-perl (>= 1.132), libtype-tiny-perl (>= 2.004000), libversion-perl, procps (>= 4.0.4), perl (>= 5.38.0)
+Section: utils
+Priority: optional
+Homepage: https://metacpan.org/release/App-Dn-ParentProcess
+Description: find a process's parent recursively
+ Find a process's parent process recursively, and print that "ancestry"
+ information to console in a tabular format.

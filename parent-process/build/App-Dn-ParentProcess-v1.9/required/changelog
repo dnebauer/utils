@@ -1,0 +1,7 @@
+dn-parent-process (1.9-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 630925
+
+ -- David Nebauer <david@nebauer.org>  Sat, 15 Jun 2024 22:22:39 +0930

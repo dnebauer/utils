@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Sat, 15 Jun 2024 22:22:39 +0930
+Source: dn-parent-process
+Binary: dn-parent-process
+Architecture: all
+Version: 1.9-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-parent-process - find a process's parent recursively
+Closes: 630925
+Changes:
+ dn-parent-process (1.9-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 630925
+Checksums-Sha1:
+ 7fee3841219ff2a12943f6f402261e7dc7843b5a 11404 dn-parent-process_1.9-1_all.deb
+ ca95361f391f7d267f24f8e49f4451cc054a99b0 9211 dn-parent-process_1.9-1_amd64.buildinfo
+Checksums-Sha256:
+ faae772b618ee0be16f8dcdb5377550e9511b55bd8d94533840aad73c23f96c4 11404 dn-parent-process_1.9-1_all.deb
+ 4012265102d5761b29fed9acce5ec147f25d280dbf16127e17f7c32657941cfc 9211 dn-parent-process_1.9-1_amd64.buildinfo
+Files:
+ 60d7853d37b17fb57ecdd5a3cb310a01 11404 utils optional dn-parent-process_1.9-1_all.deb
+ 4fdb2bca550ce2ac7d5866e7e9a5a33a 9211 utils optional dn-parent-process_1.9-1_amd64.buildinfo

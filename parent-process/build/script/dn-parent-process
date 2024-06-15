@@ -1,0 +1,107 @@
+#!/usr/bin/perl
+
+use Moo;    # {{{1
+use strictures 2;
+use 5.006;
+use 5.038_001;
+use version; our $VERSION = qv('1.9');
+use namespace::clean;
+use App::Dn::ParentProcess;
+
+App::Dn::ParentProcess->new_with_options->run;
+
+1;
+
+# POD {{{1
+
+__END__
+
+=head1 NAME
+
+dn-parent-process - find a process's parent recursively
+
+=head1 USAGE
+
+B<dn-parent-process> -p I<pid>
+
+=head1 DESCRIPTION
+
+Find a process's parent process recursively, and print that "ancestry"
+information to console in a tabular format.
+
+=head1 CONFIGURATION
+
+This module requires no attributes to be set and uses no configuration file or
+environment variables.
+
+=head1 REQUIRED ARGUMENTS
+
+None.
+
+=head1 OPTIONS
+
+=over
+
+=item -p  --pid
+
+Id of process to investigate. Must be a running PID. Required.
+
+=back
+
+=head1 EXIT STATUS
+
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly
+the error code is that given by the system.
+
+=head1 DIAGNOSTICS
+
+=head2 Multiple parent PIDs found for PID 'PID'
+
+Multiple parents were located for a pid in the chain of parents.
+This should not happen and indicates a serious problem.
+Fatal (with stack trace).
+
+=head2 No parent PID found for PID 'PID'
+
+No parent pid could be located for a pid in the chain of parents.
+This should not happen and indicates a serious problem.
+Fatal (with stack trace).
+
+=head2 PID 'PID' is not running
+
+The specified pid must be running. Fatal.
+
+=head2 Terminal is too narrow for display
+
+The terminal must be at least 33 characters wide to display tabular output.
+Fatal.
+
+=head1 INCOMPATIBILITIES
+
+None known.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+App::Dn::ParentProcess, Moo, namespace::clean, strictures, version.
+
+=head1 AUTHOR
+
+David Nebauer (david at nebauer dot org)
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2024 David Nebauer (david at nebauer dot org)
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+# vim:fdm=marker
