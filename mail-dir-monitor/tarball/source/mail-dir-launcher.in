@@ -3,8 +3,8 @@
 use Moo;
 use strictures 2;
 use 5.006;
-use 5.036_001;
-use version; our $VERSION = qv('0.1');
+use 5.038_001;
+use version; our $VERSION = qv('0.4');
 use namespace::clean;
 use Const::Fast;
 use Daemon::Control;
@@ -26,6 +26,11 @@ if ($conf_dir) { push @{$args}, '--conf_dir', $conf_dir; }
 
 # run daemon
 
+# for documentation on the variables in the initialisation hash keys
+# 'lsb_start' and 'lsb_stop' see the Daemon::Control manpage, which refers to
+# <http://wiki.debian.org/LSBInitScripts>, which in turn refers to
+# <https://refspecs.linuxfoundation.org/LSB_3.1.0/LSB-Core-generic/LSB-Core-generic/facilname.html>.
+
 ## no critic (RequireInterpolationOfMetachars, ProhibitDuplicateLiteral)
 exit Daemon::Control->new(
   name         => 'Mail Directory Monitor',
@@ -43,11 +48,7 @@ exit Daemon::Control->new(
 
 # POD    {{{1
 
-## no critic (RequirePodSections)
-
 __END__
-
-=encoding utf8
 
 =head1 NAME
 
@@ -58,6 +59,20 @@ mail-dir-launcher - launcher for mail-dir-monitor daemon
 B<mail-dir-launcher> [B<-c>] [B<-d>]
 
 B<mail-dir-launcher> B<-h>
+
+=head1 DESCRIPTION
+
+Launch and daemonise the C<mail-dir-monitor> daemon which monitors mail queue
+directories for unsent, or "stuck", email messages. See help for
+C<mail-dir-monitor> for further information.
+
+=head1 CONFIGURATION
+
+None required.
+
+=head1 REQUIRED ARGUMENTS
+
+None required.
 
 =head1 OPTIONS
 
@@ -83,22 +98,32 @@ Display help and exit.
 
 =back
 
-=head1 DESCRIPTION
+=head1 EXIT STATUS
 
-Launch and daemonise the C<mail-dir-monitor> daemon which monitors mail queue
-directories for unsent, or "stuck," email messages. See help for
-C<mail-dir-monitor> for further information.
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly
+the error code is that given by the system.
+
+=head1 DIAGNOSTICS
+
+This script emits no custom error or warning messages. It does invoke
+S<< F<mail-dir-monitor> >> as a daemon, however, so see that script's
+documentation for diagnostic messabes it my emit.
+
+=head1 INCOMPATIBILITIES
+
+None reported.
 
 =head1 DEPENDENCIES
-
-=head2 Executables
-
-mail-dir-monitor.
 
 =head2 Perl modules
 
 Const::Fast, Daemon::Control, Getopt::Long, Moo, namespace::clean, strictures,
 version.
+
+=head2 Executables
+
+mail-dir-monitor.
 
 =head1 BUGS AND LIMITATIONS
 
@@ -120,10 +145,11 @@ David Nebauer (david at nebauer dot org)
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 2018 David Nebauer (david at nebauer dot org)
+Copyright (c) 2024 David Nebauer (david at nebauer dot org)
 
 This script is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.
 
 =cut
+
 # vim:foldmethod=marker:

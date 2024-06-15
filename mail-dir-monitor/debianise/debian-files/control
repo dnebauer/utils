@@ -7,25 +7,14 @@ Standards-Version: 4.1.3
 
 Package: mail-dir-monitor
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, perl (>= 5.26.2-7),
- libconfig-any-perl (>= 0.32-1),
+Depends: ${shlibs:Depends}, ${misc:Depends}, perl (>= 5.38.1-1),
  libconst-fast-perl (>= 0.014-1),
- libemail-sender-perl (>= 1.300031-2),
- libemail-simple-perl (>= 2.216-1),
- libfile-configdir-perl (>= 0.017-1),
- libfile-util-perl (>= 4.161950-1),
- libfile-which-perl (>= 1.22-1),
- liblogger-syslog-perl (>= 1.1-3),
+ libdaemon-control-perl (>= 0.001010-1),
+ libmail-dir-monitor-perl (>= 0.4),
  libmoo-perl (>= 2.003004-1),
- libmoox-handlesvia-perl (>= 0.001008-3),
  libmoox-options-perl (>= 4.023-1),
  libnamespace-clean-perl (>= 0.27-1),
- libpath-tiny-perl (>= 0.104-2),
- libperl6-slurp-perl (>= 0.051005-1),
  libstrictures-perl (>= 2.000005-1),
- libsys-hostname-long-perl (>= 1.5-1),
- libtype-tiny-perl (>= 1.004002-1),
- libtypes-path-tiny-perl (>= 0.006-1),
  libversion-perl (>= 1:0.9924-1)
 Description: monitor mail queue directories
  A daemon which monitors mail queue directories (defined in

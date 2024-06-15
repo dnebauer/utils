@@ -4,461 +4,22 @@
 use Moo;
 use strictures 2;
 use 5.006;
-use 5.036_001;
-use version; our $VERSION = qv('0.1');
-use Const::Fast;
-use Cwd;
-use English        qw(-no_match_vars);
-use File::Basename qw();
-use Sys::Hostname::Long;
+use 5.038_001;
+use version; our $VERSION = qv('0.4');
 use namespace::clean;
 
-const my @ARGS  => @ARGV;
-const my $TRUE  => 1;
-const my $FALSE => 0;
-const my $HOST  => Sys::Hostname::Long::hostname_long();
-const my $SCRIPT => (-l __FILE__)
-    ? Cwd::abs_path(readlink __FILE__)
-    : Cwd::abs_path(__FILE__);
-const my $INFO    => 'info';
-const my $WARN    => 'warn';
-const my $TIMEOUT => 10;
-const my $SPACE   => q{ };
-local $OUTPUT_AUTOFLUSH = $TRUE;    # }}}1
-
-# Dn::MDM::Comms - logging and notification methods    {{{1
-{
-
-  package Dn::MDM::Comms;
-
-  # preamble    # {{{2
-  use Moo::Role;
-  use strictures 2;
-  use namespace::clean;
-  use Carp qw(confess);
-  use Email::Sender::Simple;
-  use Email::Simple;
-  use English qw(-no_match_vars);
-  use File::Which;
-  use IPC::Run;
-  use Logger::Syslog;    # }}}2
-
-  # methods
-
-  # write_log($message[, $type])    {{{2
-  #
-  # does:   write message to system logs
-  # params: $message - message content [required]
-  #         $type    - message type ['info'|'warn'] [required]
-  # prints: nil
-  # return: nil
-  # note:   not all message types appear in all system logs -- on debian,
-  #         for example, /var/log/messages records only notice and warning
-  #         log messages while /var/log/syslog records all log messages
-  sub write_log ($self, $message, $type)
-  {    ## no critic (RequireInterpolationOfMetachars)
-
-    $type =~ s/(.*)/\L$1/gxsm;    # lowercase
-
-    for ($type) {
-      if    (/\Ainfo\Z/xsm) { Logger::Syslog::notice($message) }
-      elsif (/\Awarn\Z/xsm) { Logger::Syslog::warning($message) }
-      else                  { confess "Invalid type '$type'" }
-    }
-
-    return;
-  }
-
-  # mail_user($user, $title, $message)    {{{2
-  #
-  # does:   mail user a message
-  # params: $user    - name of user to notify
-  #         $title   - notification title [required]
-  #         $message - notification content [required]
-  # prints: nil
-  # return: nil
-  sub mail_user ($self, $user, $title, $message)
-  {    ## no critic (RequireInterpolationOfMetachars)
-
-    # check for mail utility
-    return if not File::Which::which('mail');
-
-    # assemble email
-    my $email = Email::Simple->create(
-      header => [
-        To      => "${user}\@${HOST}",
-        From    => "root\@${HOST}",
-        Subject => $title,
-      ],
-      body => $message,
-    );
-
-    # send email
-    # - appears to be no way to detect send failure for local mail
-    Email::Sender::Simple->send($email);
-
-    return;
-  }
-
-  # write_user($user, $title, $message)    {{{2
-  #
-  # does:   write user a message
-  # params: $user    - name of user to notify [required]
-  #         $title   - notification title [required]
-  #         $message - notification content [required]
-  # prints: title and message in target user's terminal
-  # return: nil
-  sub write_user ($self, $user, $title, $message)
-  {   ## no critic (RequireInterpolationOfMetachars, ProhibitDuplicateLiteral)
-
-    # check for write utility
-    return if not File::Which::which('write');
-
-    # user has to be active, i.e., logged in
-    return if not $self->_active_user($user);
-
-    # send message
-    my $in  = "$title\n$message";
-    my @cmd = ('write', $user);     ## no critic (ProhibitDuplicateLiteral)
-    my ($timeout, $out, $err) = (IPC::Run::timeout($TIMEOUT));
-    if (not IPC::Run::run([@cmd], \$in, \$out, \$err, $timeout)) {
-      my $msg = sprintf q{Could not run '%s': %s}, join($SPACE, @cmd),
-          "$OS_ERROR";
-      $self->write_log($msg, $WARN);
-      return;
-    }
-
-    if ($err) { $self->write_log(qq{Error running 'write': $err}, $WARN); }
-
-    return;
-  }
-
-  # _active_user($user)   {{{2
-  #
-  # does:   determine whether user is active, i.e., logged in
-  # params: $user - user login name
-  # prints: nil
-  # return: bool - whether user logged in
-  sub _active_user ($self, $user)
-  {    ## no critic (RequireInterpolationOfMetachars)
-    my @matches = grep {/\A$user\Z/xsm} $self->_active_users;
-    return @matches ? $TRUE : $FALSE;
-  }
-
-  # _active_users()   {{{2
-  #
-  # does:   gets list of active users with 'who' command
-  # params: nil
-  # prints: nil
-  # return: list of users currently logged in
-  sub _active_users ($self) {   ## no critic (RequireInterpolationOfMetachars)
-
-    # run 'who' and capture output
-    my @cmd = ('who');
-    my ($timeout, $in, $out, $err) = (IPC::Run::timeout($TIMEOUT));
-    if (not IPC::Run::run([@cmd], \$in, \$out, \$err, $timeout)) {
-      my $msg = sprintf
-          q{Could not run '%s': %s},   ## no critic (ProhibitDuplicateLiteral)
-          join($SPACE, @cmd), "$OS_ERROR";
-      $self->write_log($msg, $WARN);
-      return $FALSE;
-    }
-    if ($err) { $self->write_log(qq{Error running 'who': $err}, $WARN); }
-
-    # extract users from output
-    my @lines = split /\n/xsm, $out;
-    my %users;
-
-    foreach my $line (@lines) {
-      my ($username) = split $SPACE, $line;
-      $users{$username}++;
-    }
-
-    my @sorted_users = sort keys %users;
-    return @sorted_users;
-  }    # }}}2
-}
-
-# Dn::MDM::Dir   - each queue directory and how to check them    {{{1
-{
-
-  package Dn::MDM::Dir;    ## no critic (ProhibitMultiplePackages)
-
-  # preamble    # {{{2
-  use Moo;
-  use strictures 2;
-  use namespace::clean;
-  use Carp    qw(confess);
-  use English qw(-no_match_vars);
-  use File::Util;
-  use MooX::HandlesVia;
-  use Types::Path::Tiny;
-  use Types::Standard;
-
-  with qw(Dn::MDM::Comms);    # }}}2
-
-  # attributes
-
-  # dirpath    {{{2
-  has 'dirpath' => (
-    is       => 'ro',
-    isa      => Types::Path::Tiny::AbsPath,
-    coerce   => Types::Path::Tiny::AbsPath->coercion,
-    required => $TRUE,
-    doc      => 'Directory path',
-  );
-
-  # mail    {{{2
-  has 'mail' => (    ## no critic (ProhibitDuplicateLiteral)
-    is      => 'ro',
-    isa     => Types::Standard::Bool,
-    default => $FALSE,
-    doc     => 'Whether to report blocked mail by user email',
-  );
-
-  # mask    {{{2
-  has 'mask' => (
-    is      => 'ro',
-    isa     => Types::Standard::RegexpRef,
-    default => sub {qr/\A.*\Z/xsm},
-    doc     => 'Regexp for files to match; leave empty if matching all',
-  );
-
-  # name    {{{2
-  has 'name' => (
-    is       => 'ro',
-    isa      => Types::Standard::Str,
-    required => $TRUE,
-    doc      => 'Human-readable label for directory',
-  );
-
-  # user    {{{2
-  has 'user' => (
-    is       => 'ro',
-    isa      => Types::Standard::Str,
-    required => $TRUE,
-    doc      => 'Name of user that own mail queue',
-  );
-
-  # write    {{{2
-  has 'write' => (    ## no critic (ProhibitDuplicateLiteral)
-    is      => 'ro',
-    isa     => Types::Standard::Bool,
-    default => $FALSE,
-    doc     => 'Whether to report blocked mail by user message',
-  );
-
-  # _exists    {{{2
-  has '_exists' => (
-    is      => 'rw',
-    isa     => Types::Standard::Bool,
-    lazy    => $TRUE,
-    default => sub {
-      my $self = shift;
-      return -d $self->dirpath;
-    },
-    doc => 'Whether directory exists',
-  );
-
-  # [_add|_has|clear]_curr_files    {{{2
-  has '_curr_list' => (
-    is  => 'rw',
-    isa => Types::Standard::ArrayRef [
-      Types::Standard::InstanceOf ['Types::Path::Tiny::File'],
-    ],
-    default     => sub { [] },
-    handles_via => 'Array',
-    handles     => {
-      _curr_files       => 'elements',
-      _add_curr_files   => 'push',
-      _has_curr_files   => 'count',
-      _clear_curr_files => 'clear',
-    },
-    doc => 'Files found on current check',
-  );
-
-  # [_add|_has|clear]_prev_files, has_prev_file(name)    {{{2
-  has '_prev_list' => (
-    is  => 'rw',
-    isa => Types::Standard::ArrayRef [
-      Types::Standard::InstanceOf [
-        'Types::Path::Tiny::File',    ## no critic (ProhibitDuplicateLiteral)
-      ],
-    ],
-    default     => sub { [] },
-    handles_via => 'Array',
-    handles     => {
-      _prev_files       => 'elements',
-      _add_prev_files   => 'push',
-      _has_prev_file    => 'first',
-      _has_prev_files   => 'count',
-      _clear_prev_files => 'clear',    ## no critic (ProhibitDuplicateLiteral)
-    },
-    doc => 'Files found on previous check',
-  );                                   # }}}2
-
-  # methods
-
-  # check()    {{{2
-  #
-  # does:   compare current directory contents with previous contents
-  # params: nil
-  # prints: log message and notification if previous file still present
-  # return: n/a, dies on failure
-  sub check ($self) {    ## no critic (RequireInterpolationOfMetachars)
-
-    # skip if directory no longer exists
-    return if not $self->_dir_ok;
-
-    # get current files
-    $self->_reread_dir();
-
-    # look for stuck files, and report if any found
-    my @stuck = $self->_stuck_files;
-    if (@stuck) { $self->_report_stuck([@stuck]); }
-
-    return;
-  }
-
-  # _dir_files()    {{{2
-  #
-  # does:   gets list of matching files in mail directory
-  #
-  # params: nil
-  # prints: nil
-  # return: list of file names
-  sub _dir_files ($self) {    ## no critic (RequireInterpolationOfMetachars)
-
-    my $dirpath = $self->dirpath;
-    my $options = {
-      files_match => $self->mask,
-      files_only  => $TRUE,
-      recurse     => $FALSE,
-    };
-
-    return File::Util->new()->list_dir($dirpath => $options);
-  }
-
-  # _dir_ok()    {{{2
-  #
-  # does:   check directory still exists, and notify user if
-  #         directory status changes
-  #
-  # params: nil
-  # prints: nil
-  # return: boolean, whether dir exists
-  sub _dir_ok ($self) {    ## no critic (RequireInterpolationOfMetachars)
-
-    my $dir     = $self->dirpath;
-    my $existed = $self->_exists;
-    my $exists  = -d $dir;
-
-    # notify if status has changed
-    if ($existed and (not $exists)) {
-      $self->write_log("Directory has been deleted! ($dir)", $WARN);
-    }
-    if ((not $existed) and $exists) {
-      $self->write_log("Directory has been recreated! ($dir)", $INFO);
-    }
-
-    $self->_exists($exists);    # update to current status
-
-    return $exists;
-  }
-
-  # _report_stuck($files)    {{{2
-  #
-  # does:   find files in both current and previous file lists
-  # params: $files - arrayref of files 'stuck' in mail queue directory
-  # prints: send message to system log and desktop notification
-  # return: n/a
-  sub _report_stuck ($self, $files_ref)
-  {    ## no critic (RequireInterpolationOfMetachars)
-
-    my ($name, $dir, $user) = ($self->name, $self->dirpath, $self->user);
-    my $title = 'Blocked mail queue directory';
-
-    # log message
-    my @files    = @{$files_ref};
-    my $count    = @files;
-    my $msg_base = sprintf "$name ($dir) has %d stuck %s: ", $count,
-        ($count == 1) ? 'file' : 'files';
-    my $msg = "$title: $msg_base";
-    $msg .= join q{, }, @files;
-    $self->write_log($msg, $WARN);
-
-    # notify user by mail and, if logged in, direct message
-    $msg = join "\n", $msg_base, map {" - $_"} @files;
-    if ($self->mail)  { $self->mail_user($user, $title, $msg); }
-    if ($self->write) { $self->write_user($user, $title, $msg); }
-
-    return;
-  }
-
-  # _reread_dir()    {{{2
-  #
-  # does:   re-read directory contents
-  # params: nil
-  # prints: nil
-  # return: n/a, dies on failure
-  sub _reread_dir ($self) {    ## no critic (RequireInterpolationOfMetachars)
-
-    # cycle (old) current list to previous list
-    $self->_clear_prev_files;
-    $self->_add_prev_files($self->_curr_files);
-    $self->_clear_curr_files;
-
-    # get current files
-    $self->_add_curr_files($self->_dir_files);
-
-    return;
-  }
-
-  # _stuck_files()    {{{2
-  #
-  # does:   find files in both current and previous file lists
-  # params: nil
-  # prints: nil, except error messages
-  # return: list of file names
-  sub _stuck_files ($self) {    ## no critic (RequireInterpolationOfMetachars)
-
-    # no need to compare if previously or currently empty
-    return () if not $self->_has_prev_files;
-    return () if not $self->_has_curr_files;
-
-    # okay, now compare lists
-    return grep {
-      $self->_has_prev_file(sub {/\A$_\Z/xsm})
-    } $self->_curr_files;
-  }                             # }}}2
-}    # }}}1
+# }}}1
 
 {
 
-  package Dn::MDM::Main;    ## no critic (ProhibitMultiplePackages)
+  package Dn::Internal;
 
   # preamble    {{{1
   use Moo;
   use strictures 2;
   use namespace::clean -except => [ '_options_data', '_options_config' ];
-  use Config::Any;
-  use Carp qw(confess);
-  use Const::Fast;
-  use English qw(-no_match_vars);
-  use File::ConfigDir;
-  use File::Spec;
-  use File::Util;
-  use IO::File;
-  use MooX::HandlesVia;
-  use MooX::Options protect_argv => 0;
-  use Perl6::Slurp;
-  use POSIX qw(:signal_h);
-  use Types::Standard;
-  use User::pwent qw();    # prevent core overrides as per manpage
-
-  with qw(Dn::MDM::Comms);
-
-  const my $DEFAULT_UID => 1_000;    # }}}1
+  use Mail::Dir::Monitor;
+  use MooX::Options protect_argv => 0;    # }}}1
 
   # options
 
@@ -478,100 +39,6 @@ local $OUTPUT_AUTOFLUSH = $TRUE;    # }}}1
     doc     => 'Delay (secs) between checks (default: 300 [5 mins])',
   );    # }}}1
 
-  # attributes
-
-  # _min_uid    {{{1
-  has '_min_uid' => (
-    is      => 'ro',
-    isa     => Types::Standard::Int,
-    lazy    => $TRUE,
-    default => sub {
-      my $self = shift;
-
-      # default to 1,000 if no login definitions file
-      my $default = $DEFAULT_UID;
-      my $file    = '/etc/login.defs';
-      my $fh      = IO::File->new($file, 'r') or return $default;
-
-      # set to value in login definitions file, if defined
-      my @content = Perl6::Slurp::slurp $fh, { chomp => $TRUE };
-      $fh->close;
-      my $min_uid = $default;
-      for my $line (@content) {
-        if ($line =~ /\AUID_MIN/xsm) {
-          ($min_uid = $line) =~ s/UID_MIN.*[\s+|=](\d+).*/$1/xsm;
-        }
-      }
-
-      return $min_uid;
-    },
-    doc => 'Minimum UID for users',
-  );
-
-  # _restart    {{{1
-  has '_restart' => (
-    is       => 'rw',
-    isa      => Types::Standard::Bool,
-    required => $FALSE,
-    default  => $FALSE,
-    doc      => 'Flag for hangup interrupt (SIGHUP)',
-  );
-
-  # _terminate    {{{1
-  has '_terminate' => (
-    is       => 'rw',
-    isa      => Types::Standard::Bool,
-    required => $FALSE,
-    default  => $FALSE,
-    doc      => 'Flag for terminate interrupt (SIGTERM)',
-  );
-
-  # _valid_user    {{{1
-  has '_user_list' => (
-    is      => 'ro',
-    isa     => Types::Standard::ArrayRef [Types::Standard::Str],
-    lazy    => $TRUE,
-    default => sub {
-      my $self = shift;
-      my @users;
-      my $min_uid = $self->_min_uid;
-      while (defined(my $user = User::pwent::getpwent)) {
-        if ($user->uid >= $min_uid) {
-          push @users, $user->name;
-        }
-      }
-      my @sort_users = sort @users;
-      return [@sort_users];
-    },
-    handles_via => 'Array',
-    handles     => {
-      _users    => 'elements',
-      _has_user => 'first',
-    },
-    doc => 'Array of users',
-  );
-
-  sub _valid_user ($self, $user)
-  {   ## no critic (RequireInterpolationOfMetachars, ProhibitDuplicateLiteral)
-    return $self->_has_user(sub {/\A$user\Z/xsm});
-  }
-
-  # _add_dir, _has_dirs, _dirs    {{{1
-  has '_dirs_list' => (
-    is  => 'rw',
-    isa => Types::Standard::ArrayRef [
-      Types::Standard::InstanceOf ['Dn::MDM::Dir'],
-    ],
-    default     => sub { [] },
-    handles_via => 'Array',
-    handles     => {
-      _dirs     => 'elements',
-      _add_dir  => 'push',
-      _has_dirs => 'count',
-    },
-    doc => 'Array of mail queue directories',
-  );    # }}}1
-
   # methods
 
   # main()    {{{1
@@ -582,195 +49,24 @@ local $OUTPUT_AUTOFLUSH = $TRUE;    # }}}1
   # return: n/a, dies on failure
   sub main ($self) {    ## no critic (RequireInterpolationOfMetachars)
 
-    # if requested, show config directory and exit
-    if ($self->conf_dir) {
-      printf "%s\n", $self->_conf_dir;
-      return;
-    }
-
-    # discover mail queue directories, and return if none
-    return if not $self->_discover_dirs;
-
-    # continual loop checking mail queue directories
-    $self->_main_loop;
+    my $monitor = Mail::Dir::Monitor->new(
+      config_dir     => $self->conf_dir,
+      check_interval => $self->delay,
+    );
+    $monitor->run;
 
     return;
-  }
+  }                     # }}}1
 
-  # _conf_dir()    {{{1
-  #
-  # does:   determine configuration directory
-  #
-  # params: nil
-  # prints: nil
-  # return: string, configuration directory path
-  sub _conf_dir ($self) {    ## no critic (RequireInterpolationOfMetachars)
-    my $sys_cfg_dir = (File::ConfigDir::system_cfg_dir())[0];
-    return File::Spec->catdir($sys_cfg_dir, 'mail-dir-monitor.d');
-  }
-
-  # _discover_dirs()    {{{1
-  #
-  # does:   discover mail queue directories that have been configured
-  #
-  # params: nil
-  # prints: nil
-  # return: boolean, whether any directories recovered
-  sub _discover_dirs ($self) {  ## no critic (RequireInterpolationOfMetachars)
-
-    # locate config dir ('/etc/mail-dir-monitor.d')
-    my $conf_dir = $self->_conf_dir;
-    $self->write_log("Configuration directory is: $conf_dir", $INFO);
-    if (not -d $conf_dir) {
-      $self->write_log('Cannot locate configuration directory', $WARN);
-      return $FALSE;
-    }
-
-    # get list of config files
-    my $opts;
-    $opts = {
-      files_only      => $TRUE,
-      onfail          => $WARN,
-      flatten_to_hash => $TRUE,
-    };
-    my @conf_files = File::Util->new()->list_dir($conf_dir => $opts);
-    if (not @conf_files) {
-      $self->write_log('No files in configuration directory', $INFO);
-      return $FALSE;
-    }
-    my @conf_fps = map { File::Spec->catfile($conf_dir, $_) } @conf_files;
-
-    # read config files
-    $opts = { files => [@conf_fps], use_ext => $FALSE };
-    my $cfg = Config::Any->load_files($opts);
-
-    # extract mail directories to monitor
-    for my $file_item (@{$cfg}) {
-      my ($file, $file_confs) = %{$file_item};
-      my ($dir, $name, $user, $msg);
-      my ($mask) = (qr/\A.*\Z/xsm);
-      my ($mail, $write) = ($FALSE, $FALSE);
-      for my $key (keys %{$file_confs}) {
-        for ($key) {
-          ## no critic (ProhibitDuplicateLiteral, ProhibitCascadingIfElse)
-          if    (/\Adir\Z/xsm)   { $dir   = $file_confs->{'dir'}; }
-          elsif (/\Aname\Z/xsm)  { $name  = $file_confs->{'name'}; }
-          elsif (/\Amail\Z/xsm)  { $mail  = $file_confs->{'mail'}; }
-          elsif (/\Auser\Z/xsm)  { $user  = $file_confs->{'user'}; }
-          elsif (/\Awrite\Z/xsm) { $write = $file_confs->{'write'}; }
-          elsif (/\Amask\Z/xsm) {
-            my $mask_str = $file_confs->{'mask'};
-            $mask = qr/$mask_str/xsm;
-          }
-          else {
-            $msg = "Ignoring key '$key' in config file $file";
-            $self->write_log($msg, $INFO);
-          }
-          ## use critic
-        }
-      }
-
-      # abort processing of this file if invalid user
-      if ($user and not $self->_valid_user($user)) {
-        $msg = "Ignoring config file $file: invalid user '$user'";
-        $self->write_log($msg, $WARN);
-        next;    # abort this loop
-      }
-
-      # add directory if all required values provided
-      if ($name and $dir and $user) {
-
-        # add directory
-        $self->_add_dir(
-          Dn::MDM::Dir->new(
-            dirpath => $dir,
-            mail    => $mail,
-            mask    => $mask,
-            name    => $name,
-            user    => $user,
-            write   => $write,
-          ),
-        );
-
-        # log this addition
-        $msg = "Config directory $name, owned by $user, is $dir";
-        $self->write_log($msg, $INFO);
-        $msg = "Will monitor files matching regexp '$mask'";
-        $self->write_log($msg, $INFO);
-      }
-      else {
-        $msg = "No mail queue directory defined in $file";
-        $self->write_log($msg, $WARN);
-      }
-    }
-
-    # warning message if no mail queue directories discovered
-    if (not $self->_has_dirs) {
-      my $msg = 'No mail queue directories discovered, exiting';
-      $self->write_log($msg, $WARN);
-    }
-
-    # return bool indicating whether any queue dirs discovered
-    return $self->_has_dirs;
-  }
-
-  # _main_loop()    {{{1
-  #
-  # does:   main loop checking queue directories periodically
-  # params: nil
-  # prints: feedback
-  # return: n/a, dies on failure
-  sub _main_loop ($self) {    ## no critic (RequireInterpolationOfMetachars)
-
-    # set restart and exit handlers
-    local $SIG{'HUP'}  = sub { $self->_restart($TRUE) };
-    local $SIG{'TERM'} = sub { $self->_terminate($TRUE) };
-
-    # check mail queue directories until SIGTERM or SIGHUP
-    my ($loop, $delay) = (0, $self->delay);
-    while ($TRUE) {
-
-      # exit if requested with SIGTERM
-      if ($self->_terminate) {
-        $self->write_log('Received terminate signal, closing...', $INFO);
-        last;
-      }
-
-      # restart if requested with SIGHUP
-      # - use method from Perl Cookbook (edn 2, s 17.18)
-      if ($self->_restart) {
-        $self->write_log('Received hangup signal, restarting...', $INFO);
-        for my $type (qw(ALRM CHLD HUP INT PIPE TERM)) {
-          local $SIG{$type} = sub { };
-        }
-        POSIX::sigprocmask(POSIX::SIG_BLOCK, POSIX::SigSet->new,
-          POSIX::SigSet->new);
-        exec $SCRIPT, @ARGS or confess "Could not restart: $OS_ERROR";
-      }
-
-      $loop++;
-
-      if ($loop > $delay) {
-        for my $dir ($self->_dirs) { $dir->check; }
-        $loop = 0;
-      }
-      sleep 1;
-    }
-    return;
-  }    # }}}1
 }
 
-my $p = Dn::MDM::Main->new_with_options->main;
+my $p = Dn::Internal->new_with_options->main;
 
 1;
 
 # POD    {{{1
 
-## no critic (RequirePodSections)
-
 __END__
-
-=encoding utf8
 
 =head1 NAME
 
@@ -781,30 +77,6 @@ mail-dir-monitor - daemon to monitor mail queue directories
 B<mail-dir-monitor> [B<-c>] [B<-d>]
 
 B<mail-dir-monitor> B<-h>
-
-=head1 OPTIONS
-
-=over
-
-=item B<-c>  B<--conf_dir>
-
-Display path to configuration directory and exit.
-
-Boolean. Optional. Default: false.
-
-=item B<-d>  B<--delay>
-
-Delay in seconds between checking mail queue directories. Do not make this too
-short or false errors may be generated by large emails which take a significant
-amount of time to send.
-
-Integer. Optional. Default: 300 (5 minutes).
-
-=item B<-h>
-
-Display help and exit.
-
-=back
 
 =head1 DESCRIPTION
 
@@ -833,17 +105,7 @@ ENVIRONMENT"> for further details). Log messages are also written during
 startup when configuration files are read (also discussed in
 L</"CONFIGURATION AND ENVIRONMENT">).
 
-=head1 DEPENDENCIES
-
-=head2 Perl modules
-
-Carp, Config::Any, Const::Fast, Cwd, Email::Sender::Simple, Email::Simple,
-English, File::Basename, File::ConfigDir, File::Spec, File::Util, File::Which,
-IO::File, IPC::Run, Logger::Syslog, Moo, Moo::Role, MooX::HandlesVia,
-MooX::Options, namespace::clean, Perl6::Slurp, POSIX, strictures,
-Sys::Hostname::Long, Types::Path::Tiny, Types::Standard, User::pwent, version.
-
-=head1 CONFIGURATION AND ENVIRONMENT
+=head1 CONFIGURATION
 
 =head2 Configuration directory and files
 
@@ -965,9 +227,59 @@ F</var/log/syslog> records messages of all levels.
 
 This script generates only info and warning level messages.
 
+=head1 REQUIRED ARGUMENTS
+
+None.
+
+=head1 OPTIONS
+
+=over
+
+=item B<-c>  B<--conf_dir>
+
+Display path to configuration directory and exit.
+
+Boolean. Optional. Default: false.
+
+=item B<-d>  B<--delay>
+
+Delay in seconds between checking mail queue directories. Do not make this too
+short or false errors may be generated by large emails which take a significant
+amount of time to send.
+
+Integer. Optional. Default: 300 (5 minutes).
+
+=item B<-h>
+
+Display help and exit.
+
+=back
+
+=head1 EXIT STATUS
+
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly the
+error code is that given by the system.
+
+=head1 DIAGNOSTICS
+
+This script emits no custom error or warning messages, but does daemonise the
+L<Mail::Dir::Monitor> module, so check its documentation for information on
+diagnostic messages.
+
+=head1 INCOMPATIBILITIES
+
+None reported.
+
 =head1 BUGS AND LIMITATIONS
 
 Please report any bugs to the author.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+Mail::Dir::Monitor, Moo, MooX::Options, namespace::clean, strictures, version.
 
 =head1 AUTHOR
 
@@ -975,10 +287,11 @@ David Nebauer (david at nebauer dot org)
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 2018 David Nebauer (david at nebauer dot org)
+Copyright (c) 2024 David Nebauer (david at nebauer dot org)
 
 This script is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.
 
 =cut
+
 # vim:foldmethod=marker:

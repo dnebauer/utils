@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.69])
 AC_INIT([Mail Directory Monitor],
-        [0.3],
+        [0.4],
         [david@nebauer.org],
         [mail-dir-monitor],
 )
@@ -15,70 +15,20 @@ AC_PATH_PROG(myperl, perl)
 test -z "${myperl}" && AC_MSG_ERROR([Perl not installed])
 
 # Checks for perl modules
-# - Carp
-DN_PERL_MODULE([Carp])
-# - Config::Any
-DN_PERL_MODULE([Config::Any])
 # - Const::Fast
 DN_PERL_MODULE([Const::Fast])
 # - Daemon::Control
 DN_PERL_MODULE([Daemon::Control])
-# - Email::Sender::Simple
-DN_PERL_MODULE([Email::Sender::Simple])
-# - Email::Simple
-DN_PERL_MODULE([Email::Simple])
-# - English
-DN_PERL_MODULE([English])
-# - experimental
-DN_PERL_MODULE([experimental])
-# - File::Basename
-DN_PERL_MODULE([File::Basename])
-# - File::ConfigDir
-DN_PERL_MODULE([File::ConfigDir])
-# - File::Spec
-DN_PERL_MODULE([File::Spec])
-# - File::Util
-DN_PERL_MODULE([File::Util])
-# - File::Which
-DN_PERL_MODULE([File::Which])
-# - FindBin
-DN_PERL_MODULE([FindBin])
-# - Function::Parameters
-DN_PERL_MODULE([Function::Parameters])
 # - Getopt::Long
 DN_PERL_MODULE([Getopt::Long])
-# - IO::File
-DN_PERL_MODULE([IO::File])
-# - IPC::Run
-DN_PERL_MODULE([IPC::Run])
-# - Logger::Syslog
-DN_PERL_MODULE([Logger::Syslog])
 # - Moo
 DN_PERL_MODULE([Moo])
-# - Moo::Role
-DN_PERL_MODULE([Moo::Role])
-# - MooX::HandlesVia
-DN_PERL_MODULE([MooX::HandlesVia])
 # - MooX::Options (don't know why this fails)
 #DN_PERL_MODULE([MooX::Options])
 # - namespace::clean
 DN_PERL_MODULE([namespace::clean])
-# - Path::Tiny
-DN_PERL_MODULE([Path::Tiny])
-# - Perl6::Slurp
-DN_PERL_MODULE([Perl6::Slurp])
-# - POSIX
-DN_PERL_MODULE([POSIX])
 # - strictures
 DN_PERL_MODULE([strictures])
-# - Sys::Hostname::Long
-DN_PERL_MODULE([Sys::Hostname::Long])
-# - Types::Path::Tiny
-DN_PERL_MODULE([Types::Path::Tiny])
-# - Types::Standard
-DN_PERL_MODULE([Types::Standard])
-# - User::pwent
-DN_PERL_MODULE([User::pwent])
 # - version
 DN_PERL_MODULE([version])
 

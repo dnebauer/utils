@@ -1,3 +1,9 @@
+mail-dir-monitor (0.4-1) unstable; urgency=medium
+
+  * Extract internal perl modules to Mail::Dir::Monitor
+
+ -- David Nebauer <david@nebauer.org>  Sat, 15 Jun 2024 14:38:03 +0930
+
 mail-dir-monitor (0.3-1) unstable; urgency=medium
 
   * Modernise
