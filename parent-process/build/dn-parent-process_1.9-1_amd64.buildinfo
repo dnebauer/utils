@@ -4,14 +4,14 @@ Binary: dn-parent-process
 Architecture: all
 Version: 1.9-1
 Checksums-Md5:
- 60d7853d37b17fb57ecdd5a3cb310a01 11404 dn-parent-process_1.9-1_all.deb
+ 23db3b234aa3c48c19122d74c8da8c63 11412 dn-parent-process_1.9-1_all.deb
 Checksums-Sha1:
- 7fee3841219ff2a12943f6f402261e7dc7843b5a 11404 dn-parent-process_1.9-1_all.deb
+ fb170251fe42a8512aad98fc1de7d7acbcb2813e 11412 dn-parent-process_1.9-1_all.deb
 Checksums-Sha256:
- faae772b618ee0be16f8dcdb5377550e9511b55bd8d94533840aad73c23f96c4 11404 dn-parent-process_1.9-1_all.deb
+ 55b1c7903dc5da0142f5fb19297dd4b93e377f247bd89de529757ca05b897fef 11412 dn-parent-process_1.9-1_all.deb
 Build-Origin: Debian
 Build-Architecture: amd64
-Build-Date: Sat, 15 Jun 2024 22:53:40 +0930
+Build-Date: Sun, 16 Jun 2024 09:14:24 +0930
 Build-Tainted-By:
  merged-usr-via-aliased-dirs
  usr-local-has-configs

@@ -18,11 +18,11 @@ Changes:
    * Initial release
    * Closes: 630925
 Checksums-Sha1:
- 7fee3841219ff2a12943f6f402261e7dc7843b5a 11404 dn-parent-process_1.9-1_all.deb
- ca95361f391f7d267f24f8e49f4451cc054a99b0 9211 dn-parent-process_1.9-1_amd64.buildinfo
+ fb170251fe42a8512aad98fc1de7d7acbcb2813e 11412 dn-parent-process_1.9-1_all.deb
+ 071e2b1c7f597e0a350abdc5ddbaa46f3c3a1a5e 9211 dn-parent-process_1.9-1_amd64.buildinfo
 Checksums-Sha256:
- faae772b618ee0be16f8dcdb5377550e9511b55bd8d94533840aad73c23f96c4 11404 dn-parent-process_1.9-1_all.deb
- 4012265102d5761b29fed9acce5ec147f25d280dbf16127e17f7c32657941cfc 9211 dn-parent-process_1.9-1_amd64.buildinfo
+ 55b1c7903dc5da0142f5fb19297dd4b93e377f247bd89de529757ca05b897fef 11412 dn-parent-process_1.9-1_all.deb
+ cdb9c1c6a203cd6364ea5ce17976a03690e8593cdc3c51f946790a3c4550808e 9211 dn-parent-process_1.9-1_amd64.buildinfo
 Files:
- 60d7853d37b17fb57ecdd5a3cb310a01 11404 utils optional dn-parent-process_1.9-1_all.deb
- 4fdb2bca550ce2ac7d5866e7e9a5a33a 9211 utils optional dn-parent-process_1.9-1_amd64.buildinfo
+ 23db3b234aa3c48c19122d74c8da8c63 11412 utils optional dn-parent-process_1.9-1_all.deb
+ 74be27dd134468c0d6619e95978df1a3 9211 utils optional dn-parent-process_1.9-1_amd64.buildinfo

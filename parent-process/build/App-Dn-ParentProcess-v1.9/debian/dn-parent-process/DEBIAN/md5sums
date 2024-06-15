@@ -5,6 +5,6 @@ a3c7b6f3dd36829980639408a9672018  usr/share/doc/dn-parent-process/changelog.Debi
 8d181001b8239b06cabe5b859652f30b  usr/share/man/man1/dn-parent-process.1p.gz
 43c4603c818c94aae55adad9c7372719  usr/share/man/man3/App::Dn::ParentProcess.3pm.gz
 208452b87332c151055aa99d561616c8  usr/share/man/man3/App::Dn::ParentProcess::Dyad.3pm.gz
-6c8c3561e11bfba90fbbd47c257609e2  usr/share/perl5/App/Dn/ParentProcess.pm
+2ff75f05c62c90fc80dcc53a87417b7d  usr/share/perl5/App/Dn/ParentProcess.pm
 e5b3c5d0c48c00f555e374faf3057136  usr/share/perl5/App/Dn/ParentProcess/Dyad.pm
 de63b8139c99d9fc124b1d7d41b79eca  usr/share/zsh/vendor-completions/_dn-parent-process

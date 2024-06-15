@@ -29,6 +29,7 @@ option 'pid' => (
   is       => 'ro',
   format   => 'i',
   required => $TRUE,
+  short    => 'a',
   doc      => 'Process ID (pid) to analyse',
 );                       # }}}1
 

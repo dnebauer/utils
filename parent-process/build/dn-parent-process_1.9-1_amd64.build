@@ -21,8 +21,8 @@ make[1]: Leaving directory '/home/david/data/computing/projects/utils/parent-pro
    dh_auto_build
 	/usr/bin/perl Build
 Unknown option: sharedstatedir
-cp lib/App/Dn/ParentProcess/Dyad.pm blib/lib/App/Dn/ParentProcess/Dyad.pm
 cp lib/App/Dn/ParentProcess.pm blib/lib/App/Dn/ParentProcess.pm
+cp lib/App/Dn/ParentProcess/Dyad.pm blib/lib/App/Dn/ParentProcess/Dyad.pm
 cp script/dn-parent-process blib/script/dn-parent-process
    dh_auto_test
 	/usr/bin/perl Build test --verbose 1
@@ -33,7 +33,7 @@ ok 1
 1..1
 ok
 All tests successful.
-Files=2, Tests=1,  0 wallclock secs ( 0.02 usr  0.00 sys +  0.48 cusr  0.07 csys =  0.57 CPU)
+Files=2, Tests=1,  0 wallclock secs ( 0.01 usr  0.01 sys +  0.49 cusr  0.06 csys =  0.57 CPU)
 Result: PASS
    create-stamp debian/debhelper-build-stamp
    dh_prep
