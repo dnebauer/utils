@@ -108,8 +108,7 @@ None reported.
 .IX Header "DEPENDENCIES"
 .SS "Perl modules"
 .IX Subsection "Perl modules"
-Const::Fast, App::Dn::AbcdeRename, Moo, MooX::HandlesVia, MooX::Options,
-namespace::clean, strictures, version.
+App::Dn::AbcdeRename, Moo, namespace::clean, strictures, version.
 .SH DIAGNOSTICS
 .IX Header "DIAGNOSTICS"
 This script is a wrapper for the App::Dn::AbcdeRename module.

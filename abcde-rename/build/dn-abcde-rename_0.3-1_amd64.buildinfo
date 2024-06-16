@@ -4,14 +4,14 @@ Binary: dn-abcde-rename
 Architecture: all
 Version: 0.3-1
 Checksums-Md5:
- 7429025d26487c20903ce07fb8d7938f 13132 dn-abcde-rename_0.3-1_all.deb
+ 5d7da77752bf047b9a74ccb2cd9241a2 13136 dn-abcde-rename_0.3-1_all.deb
 Checksums-Sha1:
- 91d2647feec64b326ea450b8bdfb2427eaaa9574 13132 dn-abcde-rename_0.3-1_all.deb
+ 3602e97774ee74d3d58d123adc41fa55b7994ca6 13136 dn-abcde-rename_0.3-1_all.deb
 Checksums-Sha256:
- 1209ec16324b7aa59405b86c14d8938ec613a528e8f69becf1594dd1622506f4 13132 dn-abcde-rename_0.3-1_all.deb
+ 5fdaae2d7a88ce41ca7735f6f230730d11e384ab7ee1bf6b9e3b486621e73078 13136 dn-abcde-rename_0.3-1_all.deb
 Build-Origin: Debian
 Build-Architecture: amd64
-Build-Date: Sun, 16 Jun 2024 09:16:30 +0930
+Build-Date: Sun, 16 Jun 2024 10:38:21 +0930
 Build-Tainted-By:
  merged-usr-via-aliased-dirs
  usr-local-has-configs

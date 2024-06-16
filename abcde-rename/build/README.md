@@ -127,8 +127,8 @@ No bugs have been reported.
 # DEPENDENCIES
 
 Carp, Const::Fast, App::Dn::AbcdeRename::Pair, English, File::Copy, Moo,
-MooX::HandlesVia, MooX::Options, Role::Utils::Dn, strictures, Text::Unaccent,
-Types::Standard, version.
+MooX::HandlesVia, MooX::Options, namespace::clean, Role::Utils::Dn, strictures,
+Text::Unaccent, Types::Standard, version.
 
 # LICENSE AND COPYRIGHT
 

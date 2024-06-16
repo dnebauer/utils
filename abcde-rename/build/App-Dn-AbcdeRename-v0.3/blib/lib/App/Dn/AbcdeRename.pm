@@ -3,8 +3,10 @@ package App::Dn::AbcdeRename;
 # modules    {{{1
 use Moo;
 use strictures 2;
+use 5.006;
 use 5.038_001;
 use version; our $VERSION = qv('0.3');
+use namespace::clean -except => [ '_options_data', '_options_config' ];
 use Carp qw(croak confess);
 use Const::Fast;
 use App::Dn::AbcdeRename::Pair;
@@ -447,8 +449,8 @@ No bugs have been reported.
 =head1 DEPENDENCIES
 
 Carp, Const::Fast, App::Dn::AbcdeRename::Pair, English, File::Copy, Moo,
-MooX::HandlesVia, MooX::Options, Role::Utils::Dn, strictures, Text::Unaccent,
-Types::Standard, version.
+MooX::HandlesVia, MooX::Options, namespace::clean, Role::Utils::Dn, strictures,
+Text::Unaccent, Types::Standard, version.
 
 =head1 LICENSE AND COPYRIGHT
 
