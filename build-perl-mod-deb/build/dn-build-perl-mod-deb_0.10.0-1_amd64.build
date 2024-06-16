@@ -24,8 +24,8 @@ Unknown option: sharedstatedir
 cp lib/App/Dn/BuildModule/DistroArchive.pm blib/lib/App/Dn/BuildModule/DistroArchive.pm
 cp script/dn-build-perl-mod-deb blib/script/dn-build-perl-mod-deb
 cp lib/App/Dn/BuildModule/Constants.pm blib/lib/App/Dn/BuildModule/Constants.pm
-cp lib/App/Dn/BuildModule/DistroFile.pm blib/lib/App/Dn/BuildModule/DistroFile.pm
 cp lib/App/Dn/BuildModule.pm blib/lib/App/Dn/BuildModule.pm
+cp lib/App/Dn/BuildModule/DistroFile.pm blib/lib/App/Dn/BuildModule/DistroFile.pm
    dh_auto_test
 	/usr/bin/perl Build test --verbose 1
 Unknown option: sharedstatedir
@@ -35,7 +35,7 @@ ok 1
 1..1
 ok
 All tests successful.
-Files=2, Tests=1,  0 wallclock secs ( 0.01 usr  0.01 sys +  0.70 cusr  0.09 csys =  0.81 CPU)
+Files=2, Tests=1,  1 wallclock secs ( 0.02 usr  0.00 sys +  0.53 cusr  0.09 csys =  0.64 CPU)
 Result: PASS
    create-stamp debian/debhelper-build-stamp
    dh_prep
@@ -52,6 +52,7 @@ Installing /home/david/data/computing/projects/utils/build-perl-mod-deb/build/Ap
 Installing /home/david/data/computing/projects/utils/build-perl-mod-deb/build/App-Dn-BuildModule-0.10.0/debian/dn-build-perl-mod-deb/usr/share/man/man3/App::Dn::BuildModule.3pm
 Installing /home/david/data/computing/projects/utils/build-perl-mod-deb/build/App-Dn-BuildModule-0.10.0/debian/dn-build-perl-mod-deb/usr/share/man/man3/App::Dn::BuildModule::Constants.3pm
 Installing /home/david/data/computing/projects/utils/build-perl-mod-deb/build/App-Dn-BuildModule-0.10.0/debian/dn-build-perl-mod-deb/usr/bin/dn-build-perl-mod-deb
+   dh_install
    dh_installdocs
    dh_installchangelogs
    dh_installman

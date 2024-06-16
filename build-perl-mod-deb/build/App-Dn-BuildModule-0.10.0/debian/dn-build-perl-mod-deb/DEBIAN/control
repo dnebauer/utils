@@ -1,0 +1,12 @@
+Package: dn-build-perl-mod-deb
+Version: 0.10.0-1
+Architecture: all
+Maintainer: David Nebauer <david@nebauer.org>
+Installed-Size: 95
+Depends: perl:any, devscripts, dh-make-perl, libconst-fast-perl, libfile-chdir-perl, libfile-copy-recursive-perl, libfile-dirsync-perl (>= 1.22), libgit-wrapper-perl, libmoo-perl (>= 2.005005), libmoox-handlesvia-perl, libmoox-options-perl, libnamespace-clean-perl, libpath-tiny-perl (>= 0.144), librole-utils-dn-perl (>= 0.4), libstrictures-perl, libtype-tiny-perl (>= 2.004000), libtypes-dn-perl (>= 0.1), libtypes-path-tiny-perl, libversion-perl, make, perl (>= 5.38.0)
+Section: perl
+Priority: optional
+Homepage: https://metacpan.org/release/App-Dn-BuildModule
+Description: build a debian package
+ Builds a debian package from a perl module and associated files in a custom.
+ Requires a customised environment of build files.

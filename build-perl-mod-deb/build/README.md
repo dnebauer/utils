@@ -221,7 +221,7 @@ Debian package maintainer email.
 
 Scalar. Optional. Default: <david@nebauer.org>.
 
-### dont\_check\_builddeps
+### no\_builddeps
 
 `debuild` default behaviour is to run `dpkg-checkbuilddeps` to check
 build dependencies and conflicts. Sometimes this check will declare that a
@@ -235,7 +235,7 @@ it may obscure other build problems.
 
 Boolean. Optional. Default: false.
 
-### dont\_install
+### no\_install
 
 Suppress installation of debian package after it is built.
 

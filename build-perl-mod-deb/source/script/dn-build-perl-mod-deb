@@ -1,88 +1,14 @@
 #!/usr/bin/perl
 
-# modules    {{{1
 use Moo;
 use strictures 2;
+use 5.008;
 use 5.038_001;
 use version; our $VERSION = qv('0.10.0');
-use namespace::clean;    # }}}1
+use namespace::clean;
+use App::Dn::BuildModule;
 
-{
-
-  package Dn::Internal;
-
-  # modules    # {{{1
-  use Moo;
-  use strictures 2;
-  use namespace::clean -except => [ '_options_data', '_options_config' ];
-  use MooX::Options;
-  use Const::Fast;
-  use App::Dn::BuildModule;
-  use Types::Standard;
-
-  const my $TRUE  => 1;
-  const my $FALSE => 0;    # }}}1
-
-  # options
-
-  # email        (-e)    {{{1
-  option 'email' => (
-    is       => 'ro',
-    format   => 's',
-    required => $FALSE,
-    short    => 'e',
-    default  => 'david@nebauer.org',
-    doc      => 'Package maintainer email (default: david@nebauer.org)',
-  );
-
-  # no_builddeps (-d)    {{{1
-  option 'no_builddeps' => (
-    is       => 'ro',
-    required => $FALSE,
-    short    => 'd',
-    doc      => 'Prevent debuild checking build dependencies',
-
-    # debuild's default behaviour is to run dpkg-checkbuilddeps to check
-    # build dependencies and conflicts;
-    # occasionally this check will declare that a locally installed
-    # module is an unmet dependency even if a suitable version of it is
-    # correctly installed;
-    # this option runs debuild with its '-d' option, which prevents it
-    # running dpkg-checkbuilddeps;
-    # this solves the immediate problem of the failed dependency check,
-    # but be aware it may obscure other build problems
-  );
-
-  # no_install   (-n)    {{{1
-  option 'no_install' => (
-    is       => 'ro',
-    required => $FALSE,
-    short    => 'n',
-    doc      => 'Suppress installation of debian package',
-  );    # }}}1
-
-  # methods
-
-  # main()  {{{1
-  #
-  # does:  builds debian package from module
-  # params: nil
-  # prints: nil
-  # return: n/a
-  sub main ($self) {    ## no critic (RequireInterpolationOfMetachars)
-    my $app = App::Dn::BuildModule->new(
-      email                => $self->email,
-      dont_check_builddeps => $self->no_builddeps,
-      dont_install         => $self->no_install,
-    );
-    $app->run;
-
-    return $TRUE;
-  }                     # }}}1
-
-}
-
-my $p = Dn::Internal->new_with_options->main;
+App::Dn::BuildModule->new_with_options->run;
 
 1;
 

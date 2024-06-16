@@ -1,0 +1,16 @@
+#compdef dn-build-perl-mod-deb
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-e --email)'{-e,--email}'[Package maintainer email (integer, optional, default=david@nebauer.org)]:email:' \
+    '(-d --no_builddeps)'{-d,--no_builddeps}'[Prevent debuildchecking build dependencies (flag)]:no_builddeps:' \
+    '(-n --no_install)'{-n,--no_install}'[Suppress installation of debian package (flag)]' \
+  && rc=0
+
+return rc

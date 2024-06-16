@@ -3,15 +3,16 @@ package App::Dn::BuildModule;
 # modules    {{{1
 use Moo;
 use strictures 2;
+use 5.008;
 use 5.038_001;
-use namespace::clean;
 use version; our $VERSION = qv('0.10.0');
+use namespace::clean -except => [ '_options_data', '_options_config' ];
 use App::Dn::BuildModule::Constants;
 use App::Dn::BuildModule::DistroArchive;
 use App::Dn::BuildModule::DistroFile;
 use Carp qw(confess);
 use Const::Fast;
-use English qw(-no_match_vars);
+use English;
 use File::Basename;
 use File::Copy::Recursive;
 use File::DirSync;
@@ -19,6 +20,7 @@ use File::chdir;    # provides $CWD
 use Git::Wrapper;
 use Path::Tiny;
 use MooX::HandlesVia;
+use MooX::Options;
 use Try::Tiny;
 use Types::Dn;      # custom subtypes
 use Types::Path::Tiny;
@@ -34,23 +36,23 @@ const my $SPACE             => q{ };
 const my $TO_READ           => q{<};
 const my $TO_WRITE          => q{>};    # }}}1
 
-# attributes - public
+# options
 
-# email    {{{1
-has 'email' => (
+# email        (-e)    {{{1
+option 'email' => (
   is       => 'ro',
-  isa      => Types::Dn::EmailAddress,
+  format   => 's',
   required => $FALSE,
+  short    => 'e',
   default  => 'david@nebauer.org',
-  doc      => 'Package maintainer email',
+  doc      => 'Package maintainer email (default: david@nebauer.org)',
 );
 
-# dont_check_builddeps    {{{1
-has 'dont_check_builddeps' => (
+# no_builddeps (-d)    {{{1
+option 'no_builddeps' => (
   is       => 'ro',
-  isa      => Types::Standard::Bool,
   required => $FALSE,
-  default  => $FALSE,
+  short    => 'd',
   doc      => 'Prevent debuild checking build dependencies',
 
   # debuild's default behaviour is to run dpkg-checkbuilddeps to check
@@ -64,16 +66,15 @@ has 'dont_check_builddeps' => (
   # but be aware it may obscure other build problems
 );
 
-# dont_install    {{{1
-has 'dont_install' => (
+# no_install   (-n)    {{{1
+option 'no_install' => (
   is       => 'ro',
-  isa      => Types::Standard::Bool,
   required => $FALSE,
-  default  => $FALSE,
+  short    => 'n',
   doc      => 'Suppress installation of debian package',
 );    # }}}1
 
-# attributes - private
+# attributes
 
 # _build_dir    {{{1
 has '_build_dir_path' => (
@@ -803,7 +804,7 @@ sub _create_debian_package ($self)
   #                  -b  = binary build only - no source files
   #                  -d  = do not check building dependencies
   my @cmd = qw(debuild -i -us -uc -b);
-  if ($self->dont_check_builddeps) { push @cmd, '-d'; }
+  if ($self->no_builddeps) { push @cmd, '-d'; }
   local $File::chdir::CWD = $File::chdir::CWD;
   $File::chdir::CWD = $self->_module_dir;
   $self->_announce_cmd_run([@cmd]);
@@ -858,7 +859,7 @@ sub _retrieve_deb_file_name ($self)
 sub _install_package ($self) {  ## no critic (RequireInterpolationOfMetachars)
 
   # shall we install?
-  if ($self->dont_install) {
+  if ($self->no_install) {
     say $SPACE                                   or confess;
     say 'Not installing package at your request' or confess;
     return $FALSE;
@@ -1177,7 +1178,7 @@ Debian package maintainer email.
 
 Scalar. Optional. Default: E<lt>david@nebauer.orgE<gt>.
 
-=head3 dont_check_builddeps
+=head3 no_builddeps
 
 C<debuild> default behaviour is to run S<< C<dpkg-checkbuilddeps> >> to check
 build dependencies and conflicts. Sometimes this check will declare that a
@@ -1191,7 +1192,7 @@ it may obscure other build problems.
 
 Boolean. Optional. Default: false.
 
-=head3 dont_install
+=head3 no_install
 
 Suppress installation of debian package after it is built.
 

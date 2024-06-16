@@ -1,0 +1,7 @@
+dn-build-perl-mod-deb (0.10.0-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 800001
+
+ -- David Nebauer <david@nebauer.org>  Tue, 14 May 2024 22:09:35 +0930
