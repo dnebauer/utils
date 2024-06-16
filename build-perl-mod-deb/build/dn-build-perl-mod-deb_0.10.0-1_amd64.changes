@@ -18,11 +18,11 @@ Changes:
    * Initial release
    * Closes: 800001
 Checksums-Sha1:
- 783b0ea7dc26dd0d49e0208e1b152c83607ca3a6 29484 dn-build-perl-mod-deb_0.10.0-1_all.deb
- 507d71e52869bb78fd9826714fae9dbe36fa5e0a 14495 dn-build-perl-mod-deb_0.10.0-1_amd64.buildinfo
+ 1526741388d09dfdd170a21540a2ac6e3130d727 29480 dn-build-perl-mod-deb_0.10.0-1_all.deb
+ b5903cbd34f2d485aac4ed2b551ecd1f6c35cb30 14495 dn-build-perl-mod-deb_0.10.0-1_amd64.buildinfo
 Checksums-Sha256:
- 9624be134cd3e429f5b70a68a33f3d83cd04b4cf5694dc792d92e8505bc08091 29484 dn-build-perl-mod-deb_0.10.0-1_all.deb
- 3394a9dc550af8da5c3f840d086ca320c551b35f18cb2391d03e6353b29ebbba 14495 dn-build-perl-mod-deb_0.10.0-1_amd64.buildinfo
+ 6b63b3bb00ac3400b0ae23c7bcb168cd19e0744789c7371b383792d9e3bc7bd1 29480 dn-build-perl-mod-deb_0.10.0-1_all.deb
+ 41b5bef69d39aced28c13881fc8358f84257f6c99452c8f1df228bfeb6841d83 14495 dn-build-perl-mod-deb_0.10.0-1_amd64.buildinfo
 Files:
- abb20221cda4530e2392dd5ee1cb6ad2 29484 perl optional dn-build-perl-mod-deb_0.10.0-1_all.deb
- dce5e7519b995dca8dde9a560c316a04 14495 perl optional dn-build-perl-mod-deb_0.10.0-1_amd64.buildinfo
+ 71bc1db4372a04a54b40d7243bb384d7 29480 perl optional dn-build-perl-mod-deb_0.10.0-1_all.deb
+ 77287a91dc461d4497dcc41a359f3639 14495 perl optional dn-build-perl-mod-deb_0.10.0-1_amd64.buildinfo

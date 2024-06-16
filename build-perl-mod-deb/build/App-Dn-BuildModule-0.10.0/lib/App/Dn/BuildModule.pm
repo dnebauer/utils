@@ -3,7 +3,7 @@ package App::Dn::BuildModule;
 # modules    {{{1
 use Moo;
 use strictures 2;
-use 5.008;
+use 5.006;
 use 5.038_001;
 use version; our $VERSION = qv('0.10.0');
 use namespace::clean -except => [ '_options_data', '_options_config' ];

@@ -1,13 +1,13 @@
-4baca55619a7926c6cbb0a7f1ee3ae7e  usr/bin/dn-build-perl-mod-deb
+feddc2a753af64666eb1440e660bad27  usr/bin/dn-build-perl-mod-deb
 594326a6485b88b16d822b046bbbaea8  usr/share/doc/dn-build-perl-mod-deb/changelog.Debian.gz
 f376296f110cc5cf5efce47f0cf38d91  usr/share/doc/dn-build-perl-mod-deb/changelog.gz
 2231237db7e46dddf333340dc8782982  usr/share/doc/dn-build-perl-mod-deb/copyright
-d0cc9f140f40399a630d0da7d67cde83  usr/share/man/man1/dn-build-perl-mod-deb.1p.gz
+1dd7cb9079d3f6c3190d0efec43874b4  usr/share/man/man1/dn-build-perl-mod-deb.1p.gz
 e8d92c6b732c305a9274f7976afe30e2  usr/share/man/man3/App::Dn::BuildModule.3pm.gz
 03f01609fa789ecf17a7d9a02d1bcde6  usr/share/man/man3/App::Dn::BuildModule::Constants.3pm.gz
 27a63bc537ebe8330f64d739da7cf13f  usr/share/man/man3/App::Dn::BuildModule::DistroArchive.3pm.gz
 33bc136a2a2a6721bcb59bf677486a80  usr/share/man/man3/App::Dn::BuildModule::DistroFile.3pm.gz
-9c1b6e66391d31ada5bb3e900eac2678  usr/share/perl5/App/Dn/BuildModule.pm
+1608cdf1e8ed18243611b326c558c583  usr/share/perl5/App/Dn/BuildModule.pm
 157752ab8e70878249cff874c26888bf  usr/share/perl5/App/Dn/BuildModule/Constants.pm
 cd1643906ef27b81f27b4bb7a892eaef  usr/share/perl5/App/Dn/BuildModule/DistroArchive.pm
 51518bd1856f2cefbf69dd53fca9b41d  usr/share/perl5/App/Dn/BuildModule/DistroFile.pm

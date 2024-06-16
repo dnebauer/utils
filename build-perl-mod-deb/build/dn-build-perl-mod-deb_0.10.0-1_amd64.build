@@ -21,11 +21,11 @@ make[1]: Leaving directory '/home/david/data/computing/projects/utils/build-perl
    dh_auto_build
 	/usr/bin/perl Build
 Unknown option: sharedstatedir
+cp lib/App/Dn/BuildModule.pm blib/lib/App/Dn/BuildModule.pm
 cp lib/App/Dn/BuildModule/DistroArchive.pm blib/lib/App/Dn/BuildModule/DistroArchive.pm
 cp script/dn-build-perl-mod-deb blib/script/dn-build-perl-mod-deb
-cp lib/App/Dn/BuildModule/Constants.pm blib/lib/App/Dn/BuildModule/Constants.pm
-cp lib/App/Dn/BuildModule.pm blib/lib/App/Dn/BuildModule.pm
 cp lib/App/Dn/BuildModule/DistroFile.pm blib/lib/App/Dn/BuildModule/DistroFile.pm
+cp lib/App/Dn/BuildModule/Constants.pm blib/lib/App/Dn/BuildModule/Constants.pm
    dh_auto_test
 	/usr/bin/perl Build test --verbose 1
 Unknown option: sharedstatedir
@@ -35,7 +35,7 @@ ok 1
 1..1
 ok
 All tests successful.
-Files=2, Tests=1,  1 wallclock secs ( 0.02 usr  0.00 sys +  0.53 cusr  0.09 csys =  0.64 CPU)
+Files=2, Tests=1,  1 wallclock secs ( 0.02 usr  0.00 sys +  0.52 cusr  0.09 csys =  0.63 CPU)
 Result: PASS
    create-stamp debian/debhelper-build-stamp
    dh_prep

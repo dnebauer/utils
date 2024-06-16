@@ -4,14 +4,14 @@ Binary: dn-build-perl-mod-deb
 Architecture: all
 Version: 0.10.0-1
 Checksums-Md5:
- abb20221cda4530e2392dd5ee1cb6ad2 29484 dn-build-perl-mod-deb_0.10.0-1_all.deb
+ 71bc1db4372a04a54b40d7243bb384d7 29480 dn-build-perl-mod-deb_0.10.0-1_all.deb
 Checksums-Sha1:
- 783b0ea7dc26dd0d49e0208e1b152c83607ca3a6 29484 dn-build-perl-mod-deb_0.10.0-1_all.deb
+ 1526741388d09dfdd170a21540a2ac6e3130d727 29480 dn-build-perl-mod-deb_0.10.0-1_all.deb
 Checksums-Sha256:
- 9624be134cd3e429f5b70a68a33f3d83cd04b4cf5694dc792d92e8505bc08091 29484 dn-build-perl-mod-deb_0.10.0-1_all.deb
+ 6b63b3bb00ac3400b0ae23c7bcb168cd19e0744789c7371b383792d9e3bc7bd1 29480 dn-build-perl-mod-deb_0.10.0-1_all.deb
 Build-Origin: Debian
 Build-Architecture: amd64
-Build-Date: Sun, 16 Jun 2024 09:40:53 +0930
+Build-Date: Sun, 16 Jun 2024 10:41:05 +0930
 Build-Tainted-By:
  merged-usr-via-aliased-dirs
  usr-local-has-configs

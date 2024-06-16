@@ -2,7 +2,7 @@
 
 use Moo;
 use strictures 2;
-use 5.008;
+use 5.006;
 use 5.038_001;
 use version; our $VERSION = qv('0.10.0');
 use namespace::clean;
@@ -400,6 +400,22 @@ F<build/required/> to F<build/DIST_SOURCE_BASE/debian>.
 These errors occur when attempting to locate the debian package file built by
 the script.
 
+=head1 CONFIGURATION
+
+There is no script configuration.
+
+=head1 EXIT STATUS
+
+Exits with zero if successful or one if not.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
 =head1 DEPENDENCIES
 
 These dependencies include those of subsidiary module App::Dn::BuildModule.
@@ -421,22 +437,6 @@ debuild, dh-make-perl, make, milla, prove, tar.
 
 The executable 'milla' is part of the Dist::Milla perl module, but that module
 is not available from standard debian repositories.
-
-=head1 CONFIGURATION
-
-There is no script configuration.
-
-=head1 EXIT STATUS
-
-Exits with zero if successful or one if not.
-
-=head1 INCOMPATIBILITIES
-
-There are no known incompatibilities.
-
-=head1 BUGS AND LIMITATIONS
-
-Please report any bugs to the author.
 
 =head1 AUTHOR
 

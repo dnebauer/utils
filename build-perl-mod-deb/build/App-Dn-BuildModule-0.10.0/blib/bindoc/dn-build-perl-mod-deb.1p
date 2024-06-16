@@ -389,6 +389,18 @@ Occurs when attempting to copy required debian control files from
 .IX Subsection "Multiple distribution files detected: ..."
 These errors occur when attempting to locate the debian package file built by
 the script.
+.SH CONFIGURATION
+.IX Header "CONFIGURATION"
+There is no script configuration.
+.SH "EXIT STATUS"
+.IX Header "EXIT STATUS"
+Exits with zero if successful or one if not.
+.SH INCOMPATIBILITIES
+.IX Header "INCOMPATIBILITIES"
+There are no known incompatibilities.
+.SH "BUGS AND LIMITATIONS"
+.IX Header "BUGS AND LIMITATIONS"
+Please report any bugs to the author.
 .SH DEPENDENCIES
 .IX Header "DEPENDENCIES"
 These dependencies include those of subsidiary module App::Dn::BuildModule.
@@ -407,18 +419,6 @@ debuild, dh-make-perl, make, milla, prove, tar.
 .IX Subsection "Debian packaging"
 The executable 'milla' is part of the Dist::Milla perl module, but that module
 is not available from standard debian repositories.
-.SH CONFIGURATION
-.IX Header "CONFIGURATION"
-There is no script configuration.
-.SH "EXIT STATUS"
-.IX Header "EXIT STATUS"
-Exits with zero if successful or one if not.
-.SH INCOMPATIBILITIES
-.IX Header "INCOMPATIBILITIES"
-There are no known incompatibilities.
-.SH "BUGS AND LIMITATIONS"
-.IX Header "BUGS AND LIMITATIONS"
-Please report any bugs to the author.
 .SH AUTHOR
 .IX Header "AUTHOR"
 David Nebauer <david@nebauer.org>
