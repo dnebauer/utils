@@ -101,6 +101,20 @@ This documentation refers to dn-mp3file-rename version 0.5.
 Role providing methods to L<App::Dn::Mp3Rename> and
 L<App::Dn::Mp3Rename::AudioFile> modules.
 
+=head1 CONFIGURATION AND ENVIRONMENT
+
+=head2 Properties
+
+None.
+
+=head2 Configuration files
+
+None used.
+
+=head2 Environment variables
+
+None used.
+
 =head1 SUBROUTINES/METHODS
 
 =head2 _make_ascii($string)
@@ -183,30 +197,9 @@ Nothing.
 
 Scalar string.
 
-=head1 CONFIGURATION AND ENVIRONMENT
-
-=head2 Properties
-
-None.
-
-=head2 Configuration files
-
-None used.
-
-=head2 Environment variables
-
-None used.
-
 =head1 DIAGNOSTICS
 
 This module emits no custom errors or warnings.
-
-=head1 DEPENDENCIES
-
-=head2 Perl modules
-
-charnames, Const::Fast, Moo::Role, namespace::clean, strictures,
-Text::Unidecode, version.
 
 =head1 INCOMPATIBILITIES
 
@@ -215,6 +208,13 @@ There are no known incompatibilities.
 =head1 BUGS AND LIMITATIONS
 
 Please report any bugs to the author.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+charnames, Const::Fast, Moo::Role, namespace::clean, strictures,
+Text::Unidecode, version.
 
 =head1 AUTHOR
 

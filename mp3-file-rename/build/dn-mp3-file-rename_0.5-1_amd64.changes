@@ -18,11 +18,11 @@ Changes:
    * Initial release
    * Closes: 604945
 Checksums-Sha1:
- 3ae1d7a9145b4cf2e0a21f0eb6cebad7310d04db 19456 dn-mp3-file-rename_0.5-1_all.deb
- 4302a6d6ef1f5dc2e41316ba32b3e02a2c8907c1 13116 dn-mp3-file-rename_0.5-1_amd64.buildinfo
+ 282a76d49cc98ee4589c53303771d835bd48f12c 19116 dn-mp3-file-rename_0.5-1_all.deb
+ 2fee5fab8d518fc8d32f8ccdb9224388e19f2d52 13116 dn-mp3-file-rename_0.5-1_amd64.buildinfo
 Checksums-Sha256:
- 875c075794b1758db5858385539aad1fbaa8decd1852f0acf605c9e88c41873e 19456 dn-mp3-file-rename_0.5-1_all.deb
- a6e8f1ebca2a90cd23079b422a65f9586c235d28a03ae5df718a08041dda8c83 13116 dn-mp3-file-rename_0.5-1_amd64.buildinfo
+ 39177b30ab38e0887d53496f2b2e1badb0a1908f1fb8f516f6b597790feb116f 19116 dn-mp3-file-rename_0.5-1_all.deb
+ 3b7f6f0dee2668c44f2e79281d0ccf7b6ffaa6975bd683df13d671a702c934dd 13116 dn-mp3-file-rename_0.5-1_amd64.buildinfo
 Files:
- 2a239cafcd217e9b4da85f60cb38ef9e 19456 utils optional dn-mp3-file-rename_0.5-1_all.deb
- a2f8d8489e5aece4032eaf6e96ef2faa 13116 utils optional dn-mp3-file-rename_0.5-1_amd64.buildinfo
+ dedc3f2e23d73d53f7257bfe126df00f 19116 utils optional dn-mp3-file-rename_0.5-1_all.deb
+ 187e51e212bf1cb4d73fa5d6833ee657 13116 utils optional dn-mp3-file-rename_0.5-1_amd64.buildinfo

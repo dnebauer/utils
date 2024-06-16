@@ -16,7 +16,7 @@ use Types::Path::Tiny qw(AbsFile);
 use Types::Standard;
 
 with qw(
-    Dn::MP3Rename::Role
+    App::Dn::Mp3Rename::Role
     Role::Utils::Dn
 );
 
@@ -240,13 +240,29 @@ This documentation refers to dn-mp3file-rename version 0.5.
 
 =head1 SYNOPSIS
 
-      my $audiofile = Dn::MP3Rename::AudioFile->new(filepath => $file);
+      my $audiofile = App::Dn::Mp3Rename::AudioFile->new(filepath => $file);
       $audiofile->initialise;
 
 =head1 DESCRIPTION
 
 This is a helper module for L<App::Dn::Mp3Rename>.
 It models some properties and behaviours of an mp3 audio file.
+
+=head1 CONFIGURATION AND ENVIRONMENT
+
+=head2 Properties
+
+=head3 filepath
+
+File path of audio track. Required.
+
+=head2 Configuration files
+
+None used.
+
+=head2 Environment variables
+
+None used.
 
 =head1 SUBROUTINES/METHODS
 
@@ -319,22 +335,6 @@ Nothing.
 Scalar string. The value for track album, track artist, disk number,
 track number, track title, and track year, respectively.
 
-=head1 CONFIGURATION AND ENVIRONMENT
-
-=head2 Properties
-
-=head3 filepath
-
-File path of audio track. Required.
-
-=head2 Configuration files
-
-None used.
-
-=head2 Environment variables
-
-None used.
-
 =head1 DIAGNOSTICS
 
 =head2 No valid track number in file 'FILE'
@@ -354,6 +354,14 @@ two positive non-zero integers separated by a slash, e.g., '6/10'.
 
 =back
 
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
 =head1 DEPENDENCIES
 
 =head2 Perl modules
@@ -361,20 +369,6 @@ two positive non-zero integers separated by a slash, e.g., '6/10'.
 App::Dn::Mp3Rename::Role, autodie, Carp, Const::Fast, English, MP3::Info, Moo,
 namespace::clean, Role::Utils::Dn, strictures, Types::Path::Tiny,
 Types::Standard, version.
-
-=head1 INCOMPATIBILITIES
-
-There are no known incompatibilities.
-
-=head1 EXIT STATUS
-
-There are no script-specific exit status values set. Any non-zero exit value is
-the exit value of the operation whose failure caused the script to exit, or of
-the C<die> command that caused a premature end to execution.
-
-=head1 BUGS AND LIMITATIONS
-
-Please report any bugs to the author.
 
 =head1 AUTHOR
 

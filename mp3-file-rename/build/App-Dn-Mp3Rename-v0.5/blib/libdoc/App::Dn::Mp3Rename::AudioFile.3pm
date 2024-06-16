@@ -68,13 +68,27 @@ This documentation refers to dn\-mp3file\-rename version 0.5.
 .SH SYNOPSIS
 .IX Header "SYNOPSIS"
 .Vb 2
-\&      my $audiofile = Dn::MP3Rename::AudioFile\->new(filepath => $file);
+\&      my $audiofile = App::Dn::Mp3Rename::AudioFile\->new(filepath => $file);
 \&      $audiofile\->initialise;
 .Ve
 .SH DESCRIPTION
 .IX Header "DESCRIPTION"
 This is a helper module for App::Dn::Mp3Rename.
 It models some properties and behaviours of an mp3 audio file.
+.SH "CONFIGURATION AND ENVIRONMENT"
+.IX Header "CONFIGURATION AND ENVIRONMENT"
+.SS Properties
+.IX Subsection "Properties"
+\fIfilepath\fR
+.IX Subsection "filepath"
+.PP
+File path of audio track. Required.
+.SS "Configuration files"
+.IX Subsection "Configuration files"
+None used.
+.SS "Environment variables"
+.IX Subsection "Environment variables"
+None used.
 .SH SUBROUTINES/METHODS
 .IX Header "SUBROUTINES/METHODS"
 .SS \fBinitialise()\fP
@@ -151,20 +165,6 @@ Nothing.
 .PP
 Scalar string. The value for track album, track artist, disk number,
 track number, track title, and track year, respectively.
-.SH "CONFIGURATION AND ENVIRONMENT"
-.IX Header "CONFIGURATION AND ENVIRONMENT"
-.SS Properties
-.IX Subsection "Properties"
-\fIfilepath\fR
-.IX Subsection "filepath"
-.PP
-File path of audio track. Required.
-.SS "Configuration files"
-.IX Subsection "Configuration files"
-None used.
-.SS "Environment variables"
-.IX Subsection "Environment variables"
-None used.
 .SH DIAGNOSTICS
 .IX Header "DIAGNOSTICS"
 .SS "No valid track number in file 'FILE'"
@@ -175,6 +175,12 @@ number. A valid track number is either:
 a single positive non-zero integer, e.g., '6', or
 .IP \(bu 4
 two positive non-zero integers separated by a slash, e.g., '6/10'.
+.SH INCOMPATIBILITIES
+.IX Header "INCOMPATIBILITIES"
+There are no known incompatibilities.
+.SH "BUGS AND LIMITATIONS"
+.IX Header "BUGS AND LIMITATIONS"
+Please report any bugs to the author.
 .SH DEPENDENCIES
 .IX Header "DEPENDENCIES"
 .SS "Perl modules"
@@ -182,17 +188,6 @@ two positive non-zero integers separated by a slash, e.g., '6/10'.
 App::Dn::Mp3Rename::Role, autodie, Carp, Const::Fast, English, MP3::Info, Moo,
 namespace::clean, Role::Utils::Dn, strictures, Types::Path::Tiny,
 Types::Standard, version.
-.SH INCOMPATIBILITIES
-.IX Header "INCOMPATIBILITIES"
-There are no known incompatibilities.
-.SH "EXIT STATUS"
-.IX Header "EXIT STATUS"
-There are no script-specific exit status values set. Any non-zero exit value is
-the exit value of the operation whose failure caused the script to exit, or of
-the \f(CW\*(C`die\*(C'\fR command that caused a premature end to execution.
-.SH "BUGS AND LIMITATIONS"
-.IX Header "BUGS AND LIMITATIONS"
-Please report any bugs to the author.
 .SH AUTHOR
 .IX Header "AUTHOR"
 David Nebauer (david at nebauer dot org)
