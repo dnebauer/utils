@@ -67,27 +67,6 @@ dn\-id3v2\-output\-to\-script \- converts id3v2 output to a script
 \&\fBdn\-id3v2\-output\-to\-script\fR [ \fB\-i\fR \fIfile\fR ] [ \fB\-o\fR \fIfile\fR ]
 .PP
 \&\fBdn\-id3v2\-output\-to\-script \-h\fR
-.SH "REQUIRED ARGUMENTS"
-.IX Header "REQUIRED ARGUMENTS"
-Nil.
-.SH "REQUIRED OPTIONS"
-.IX Header "REQUIRED OPTIONS"
-Nil.
-.SH OPTIONS
-.IX Header "OPTIONS"
-.IP "\fB\-i\fR  \fB\-\-input\-file\fR" 4
-.IX Item "-i --input-file"
-Path to input file containing id3v2 output. Must exist.
-.Sp
-Optional. Default: use stdin.
-.IP "\fB\-o\fR  \fB\-\-output\-file\fR" 4
-.IX Item "-o --output-file"
-Path to bash script output file. Need not exist.
-.Sp
-Optional. Default: use stdout.
-.IP "\fB\-h\fR  \fB\-\-help\fR" 4
-.IX Item "-h --help"
-Display help and exit.
 .SH DESCRIPTION
 .IX Header "DESCRIPTION"
 Convert id3v2 output (created using the \f(CW\*(C`\-\-list\*(C'\fR option) to a bash script. The
@@ -110,6 +89,31 @@ the mp3 file, with an extension determined by the image format (e.g.,
 \&\fI.jpeg\fR).  Existing image files with the same name and extensions are silently
 overwritten. An extra \f(CW\*(C`eyeD3\*(C'\fR command is added to the script file for each
 image file generated. This command adds the image to the mp3 file.
+.SH CONFIGURATION
+.IX Header "CONFIGURATION"
+There is no configuration file and no configuration settings.
+.SH "REQUIRED ARGUMENTS"
+.IX Header "REQUIRED ARGUMENTS"
+Nil.
+.SH OPTIONS
+.IX Header "OPTIONS"
+.IP "\fB\-i\fR  \fB\-\-input\-file\fR" 4
+.IX Item "-i --input-file"
+Path to input file containing id3v2 output. Must exist.
+.Sp
+Optional. Default: use stdin.
+.IP "\fB\-o\fR  \fB\-\-output\-file\fR" 4
+.IX Item "-o --output-file"
+Path to bash script output file. Need not exist.
+.Sp
+Optional. Default: use stdout.
+.IP "\fB\-h\fR  \fB\-\-help\fR" 4
+.IX Item "-h --help"
+Display help and exit.
+.SH "EXIT STATUS"
+.IX Header "EXIT STATUS"
+The script exits with a zero value if successful and a non-zero value if a
+fatal error occurs.
 .SH DIAGNOSTICS
 .IX Header "DIAGNOSTICS"
 .SS "Cannot extract COMM value from: FILEPATH"
@@ -161,25 +165,17 @@ the regular expression matcher is unable to match the filepath.
 After the script file is generated (if the \f(CW\*(C`\-o\*(C'\fR option is used) it is set to
 the permissions 0755, i.e., executable. This error occurs if that operation
 fails.
+.SH INCOMPATIBILITIES
+.IX Header "INCOMPATIBILITIES"
+There are no known incompatibilities.
+.SH "BUGS AND LIMITATIONS"
+.IX Header "BUGS AND LIMITATIONS"
+Please report any bugs to the author.
 .SH DEPENDENCIES
 .IX Header "DEPENDENCIES"
 .SS "Perl modules"
 .IX Subsection "Perl modules"
-App::Dn::Id3v2CreateScript, Const::Fast, English, Moo, MooX::Options,
-namespace::clean, strictures, Types::Path::Tiny, version.
-.SH CONFIGURATION
-.IX Header "CONFIGURATION"
-There is no configuration file and no configuration settings.
-.SH INCOMPATIBILITIES
-.IX Header "INCOMPATIBILITIES"
-There are no known incompatibilities.
-.SH "EXIT STATUS"
-.IX Header "EXIT STATUS"
-The script exits with a zero value if successful and a non-zero value if a
-fatal error occurs.
-.SH "BUGS AND LIMITATIONS"
-.IX Header "BUGS AND LIMITATIONS"
-Please report any bugs to the author.
+App::Dn::Id3v2CreateScript, Moo, namespace::clean, strictures, version.
 .SH AUTHOR
 .IX Header "AUTHOR"
 David Nebauer (david at nebauer dot org)

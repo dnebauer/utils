@@ -40,13 +40,7 @@ image file generated. This command adds the image to the mp3 file.
 
 ## Properties
 
-### id3v2\_output\_file
-
-Path to input file containing id3v2 output. Scalar string.
-
-### bash\_script
-
-Path to bash script output file. Scalar string.
+None.
 
 ## Configuration files
 
@@ -55,6 +49,17 @@ None used.
 ## Environment variables
 
 None used.
+
+# OPTIONS
+
+- input\_file
+
+    Path to input file containing id3v2 output. Scalar string. Optional.
+    Default: stdin.
+
+- output\_file
+
+    Path to bash script output file. Scalar string. Optional. Default: stdout.
 
 # SUBROUTINES/METHODS
 
@@ -122,6 +127,14 @@ After the script file is generated (if the `-o` option is used) it is set to
 the permissions 0755, i.e., executable. This error occurs if that operation
 fails.
 
+# INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+# BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
 # DEPENDENCIES
 
 ## Perl modules
@@ -129,29 +142,12 @@ fails.
 App::Dn::Id3v2CreateScript::FileProperties,
 App::Dn::Id3v2CreateScript::TagProperties, autodie, Carp, charnames,
 Const::Fast, English, File::Basename, List::SomeUtils, MP3::Tag, Moo,
-MooX::HandlesVia, Path::Tiny, namespace::clean, strictures, Types::Standard,
-version.
+MooX::HandlesVia, MooX::Options, Path::Tiny, namespace::clean, strictures,
+Types::Standard, version.
 
 ## Executables
 
 eyeD3, id3v2.
-
-# CONFIGURATION
-
-There is no configuration file and no configuration settings.
-
-# INCOMPATIBILITIES
-
-There are no known incompatibilities.
-
-# EXIT STATUS
-
-The script exits with a zero value if successful and a non-zero value if a
-fatal error occurs.
-
-# BUGS AND LIMITATIONS
-
-Please report any bugs to the author.
 
 # AUTHOR
 

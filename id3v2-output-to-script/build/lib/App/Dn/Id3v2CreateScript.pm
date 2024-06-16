@@ -3,12 +3,13 @@ package App::Dn::Id3v2CreateScript;
 # TODO: BUGFIX: outputs empty template if no tags found, instead print
 #               warning message and abort before writing output
 
-use Moo;                 # {{{1
+# use modules
+use Moo;
 use strictures 2;
 use 5.006;
 use 5.038_001;
 use version; our $VERSION = qv('0.6');
-use namespace::clean;    # }}}1
+use namespace::clean -except => [ '_options_data', '_options_config' ];
 use App::Dn::Id3v2CreateScript::FileProperties;
 use App::Dn::Id3v2CreateScript::TagProperties;
 use autodie   qw(open close);
@@ -19,6 +20,7 @@ use English;
 use File::Basename;
 use List::SomeUtils;
 use MooX::HandlesVia;
+use MooX::Options;
 use MP3::Tag;
 use Path::Tiny;
 use Types::Standard;
@@ -35,27 +37,45 @@ const my $RE_TAG_GET => qr{\A ( [TCA] [\p{Upper}\p{Digit}]{3} )
 
 # options
 
-# id3v2_output_file    {{{1
-has 'id3v2_output_file' => (
-  is  => 'ro',
-  isa =>
-      Types::Standard::Maybe [ Types::Standard::InstanceOf ['Path::Tiny'] ],
+# input_file  (-i)    {{{1
+option 'input_file' => (
+  is       => 'ro',
+  format   => 's@',
   required => $FALSE,
-  default  => undef,
-  doc      => 'Input file containing id3v2 output (empty if stdin)',
+  default  => sub { [] },
+  short    => 'i',
+  doc      => 'Input file',
 );
 
-# bash_script    {{{1
-has 'bash_script' => (
-  is => 'ro',
-  ## no critic (ProhibitDuplicateLiteral)
-  isa =>
-      Types::Standard::Maybe [ Types::Standard::InstanceOf ['Path::Tiny'] ],
-  ## use critic
+sub _input_file ($self) {    ## no critic (RequireInterpolationOfMetachars)
+
+  my $input_file;            # set to undef if no input file specified
+  my @input_files = @{ $self->input_file };
+  if (@input_files) {
+    $input_file = Path::Tiny::path($input_files[0])->absolute;
+  }
+  return $input_file;
+}
+
+# output_file (-o)    {{{1
+option 'output_file' => (
+  is       => 'ro',
+  format   => 's@',            ## no critic (ProhibitDuplicateLiteral)
   required => $FALSE,
-  default  => undef,
-  doc      => 'Bash script output file (empty if stdout)',
-);
+  default  => sub { [] },
+  short    => 'o',
+  doc      => 'Output file',
+);                             # }}}1
+
+sub _output_file ($self) {    ## no critic (RequireInterpolationOfMetachars)
+
+  my $output_file;            # set to undef if no input file specified
+  my @output_files = @{ $self->output_file };
+  if (@output_files) {
+    $output_file = Path::Tiny::path($output_files[0])->absolute;
+  }
+  return $output_file;
+}    # }}}1
 
 # attributes
 
@@ -310,7 +330,7 @@ sub _get_input ($self) {    ## no critic (RequireInterpolationOfMetachars)
 
   # get input source (stdin or file)
   my $source;
-  my $file = $self->id3v2_output_file;
+  my $file = $self->_input_file;
   if ($file) {
     if (-e $file) { $source = 'file'; }
     else          { croak "Cannot find file '$file'"; }
@@ -497,7 +517,7 @@ sub _write_script ($self)
   for my $fp (@fps) { push @output, "id3v2 --delete-v1 \"$fp\""; }
 
   # get output destination (stdin or file)
-  my $file = $self->bash_script;
+  my $file = $self->_output_file;
   my $dest =
       ($file) ? 'file' : 'stdin';    ## no critic (ProhibitDuplicateLiteral)
 
@@ -573,13 +593,7 @@ image file generated. This command adds the image to the mp3 file.
 
 =head2 Properties
 
-=head3 id3v2_output_file
-
-Path to input file containing id3v2 output. Scalar string.
-
-=head3 bash_script
-
-Path to bash script output file. Scalar string.
+None.
 
 =head2 Configuration files
 
@@ -588,6 +602,21 @@ None used.
 =head2 Environment variables
 
 None used.
+
+=head1 OPTIONS
+
+=over
+
+=item input_file
+
+Path to input file containing id3v2 output. Scalar string. Optional.
+Default: stdin.
+
+=item output_file
+
+Path to bash script output file. Scalar string. Optional. Default: stdout.
+
+=back
 
 =head1 SUBROUTINES/METHODS
 
@@ -655,6 +684,14 @@ After the script file is generated (if the C<-o> option is used) it is set to
 the permissions 0755, i.e., executable. This error occurs if that operation
 fails.
 
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
 =head1 DEPENDENCIES
 
 =head2 Perl modules
@@ -662,29 +699,12 @@ fails.
 App::Dn::Id3v2CreateScript::FileProperties,
 App::Dn::Id3v2CreateScript::TagProperties, autodie, Carp, charnames,
 Const::Fast, English, File::Basename, List::SomeUtils, MP3::Tag, Moo,
-MooX::HandlesVia, Path::Tiny, namespace::clean, strictures, Types::Standard,
-version.
+MooX::HandlesVia, MooX::Options, Path::Tiny, namespace::clean, strictures,
+Types::Standard, version.
 
 =head2 Executables
 
 eyeD3, id3v2.
-
-=head1 CONFIGURATION
-
-There is no configuration file and no configuration settings.
-
-=head1 INCOMPATIBILITIES
-
-There are no known incompatibilities.
-
-=head1 EXIT STATUS
-
-The script exits with a zero value if successful and a non-zero value if a
-fatal error occurs.
-
-=head1 BUGS AND LIMITATIONS
-
-Please report any bugs to the author.
 
 =head1 AUTHOR
 

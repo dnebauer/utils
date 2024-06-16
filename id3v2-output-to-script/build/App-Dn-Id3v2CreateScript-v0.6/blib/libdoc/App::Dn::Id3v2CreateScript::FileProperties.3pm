@@ -75,6 +75,20 @@ This documentation is for App::Dn::Id3v2CreateScript::FileProperties version
 .IX Header "DESCRIPTION"
 This module models the properties of an mp3 file: its file path and tag
 properties.
+.SH "CONFIGURATION AND ENVIRONMENT"
+.IX Header "CONFIGURATION AND ENVIRONMENT"
+.SS Properties
+.IX Subsection "Properties"
+\fIfile_path\fR
+.IX Subsection "file_path"
+.PP
+Mp3 file path.
+.SS "Configuration files"
+.IX Subsection "Configuration files"
+None used.
+.SS "Environment variables"
+.IX Subsection "Environment variables"
+None used.
 .SH SUBROUTINES/METHODS
 .IX Header "SUBROUTINES/METHODS"
 .SS \fBcanon_path()\fP
@@ -98,42 +112,21 @@ Returns a scalar string.
 .SS \fBtags()\fP
 .IX Subsection "tags()"
 Gets the names of all defined tags in the module object. Returns a list.
-.SH "CONFIGURATION AND ENVIRONMENT"
-.IX Header "CONFIGURATION AND ENVIRONMENT"
-.SS Properties
-.IX Subsection "Properties"
-\fIfile_path\fR
-.IX Subsection "file_path"
-.PP
-Mp3 file path.
-.SS "Configuration files"
-.IX Subsection "Configuration files"
-None used.
-.SS "Environment variables"
-.IX Subsection "Environment variables"
-None used.
 .SH DIAGNOSTICS
 .IX Header "DIAGNOSTICS"
 This module emits no custom error messages.
+.SH INCOMPATIBILITIES
+.IX Header "INCOMPATIBILITIES"
+There are no known incompatibilities.
+.SH "BUGS AND LIMITATIONS"
+.IX Header "BUGS AND LIMITATIONS"
+Please report any bugs to the author.
 .SH DEPENDENCIES
 .IX Header "DEPENDENCIES"
 .SS "Perl modules"
 .IX Subsection "Perl modules"
 Const::Fast, Moo, MooX::HandlesVia, namespace::clean, strictures,
 Types::Standard, version.
-.SH CONFIGURATION
-.IX Header "CONFIGURATION"
-There is no configuration file and no configuration settings.
-.SH INCOMPATIBILITIES
-.IX Header "INCOMPATIBILITIES"
-There are no known incompatibilities.
-.SH "EXIT STATUS"
-.IX Header "EXIT STATUS"
-The script exits with a zero value if successful and a non-zero value if a
-fatal error occurs.
-.SH "BUGS AND LIMITATIONS"
-.IX Header "BUGS AND LIMITATIONS"
-Please report any bugs to the author.
 .SH AUTHOR
 .IX Header "AUTHOR"
 David Nebauer (david at nebauer dot org)

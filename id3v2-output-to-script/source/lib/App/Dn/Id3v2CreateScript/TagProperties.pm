@@ -55,10 +55,6 @@ This documentation is for App::Dn::Id3v2CreateScript::TagProperties version
 
 This module models the properties of an mp3 tag.
 
-=head1 SUBROUTINES/METHODS
-
-None.
-
 =head1 CONFIGURATION AND ENVIRONMENT
 
 =head2 Properties
@@ -76,28 +72,27 @@ Preferred frame name to use for tag. Scalar string.
 
 Regex for extracting tag value from id3v2 output. Regex.
 
+=head1 SUBROUTINES/METHODS
+
+None.
+
 =head1 DIAGNOSTICS
 
 This module emits no custom error messages.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
 
 =head1 DEPENDENCIES
 
 =head2 Perl modules
 
 Moo, namespace::clean, strictures, Types::Standard, version.
-
-=head1 INCOMPATIBILITIES
-
-There are no known incompatibilities.
-
-=head1 EXIT STATUS
-
-The script exits with a zero value if successful and a non-zero value if a
-fatal error occurs.
-
-=head1 BUGS AND LIMITATIONS
-
-Please report any bugs to the author.
 
 =head1 AUTHOR
 

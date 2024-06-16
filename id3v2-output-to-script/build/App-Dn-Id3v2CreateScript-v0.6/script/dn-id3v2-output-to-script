@@ -1,93 +1,14 @@
 #!/usr/bin/perl
 
-# use modules    {{{1
 use Moo;
 use strictures 2;
 use 5.006;
 use 5.038_001;
 use version; our $VERSION = qv('0.6');
-use namespace::clean;    # }}}1
+use namespace::clean;
+use App::Dn::Id3v2CreateScript;
 
-{
-
-  package Dn::Internal;
-
-  # modules    {{{1
-  use Moo;
-  use strictures 2;
-  use namespace::clean -except => [ '_options_data', '_options_config' ];
-  use App::Dn::Id3v2CreateScript;
-  use Const::Fast;
-  use English;
-  use MooX::Options protect_argv => 0;
-  use Path::Tiny;
-
-  const my $TRUE  => 1;
-  const my $FALSE => 0;    # }}}1
-
-  # options
-
-  # input_file  (-i)    {{{1
-  option 'input_file' => (
-    is       => 'ro',
-    format   => 's@',
-    required => $FALSE,
-    default  => sub { [] },
-    short    => 'i',
-    doc      => 'Input file',
-  );
-
-  sub _input_file ($self) {    ## no critic (RequireInterpolationOfMetachars)
-
-    my $input_file;            # set to undef if no input file specified
-    my @input_files = @{ $self->input_file };
-    if (@input_files) {
-      $input_file = Path::Tiny::path($input_files[0])->absolute;
-    }
-    return $input_file;
-  }
-
-  # output_file (-o)    {{{1
-  option 'output_file' => (
-    is       => 'ro',
-    format   => 's@',            ## no critic (ProhibitDuplicateLiteral)
-    required => $FALSE,
-    default  => sub { [] },
-    short    => 'o',
-    doc      => 'Output file',
-  );                             # }}}1
-
-  sub _output_file ($self) {    ## no critic (RequireInterpolationOfMetachars)
-
-    my $output_file;            # set to undef if no input file specified
-    my @output_files = @{ $self->output_file };
-    if (@output_files) {
-      $output_file = Path::Tiny::path($output_files[0])->absolute;
-    }
-    return $output_file;
-  }    # }}}1
-
-  # methods
-
-  # main()    {{{1
-  #
-  # does:   main method
-  # params: nil
-  # prints: feedback
-  # return: n/a, dies on failure
-  sub main ($self) {    ## no critic (RequireInterpolationOfMetachars)
-
-    my $creator = App::Dn::Id3v2CreateScript->new(
-      id3v2_output_file => $self->_input_file,
-      bash_script       => $self->_output_file,
-    );
-    $creator->run;
-
-    return;
-  }                     # }}}1
-}
-
-my $p = Dn::Internal->new_with_options->main;
+App::Dn::Id3v2CreateScript->new_with_options->run;
 
 1;
 
@@ -105,11 +26,34 @@ B<dn-id3v2-output-to-script> [ B<-i> I<file> ] [ B<-o> I<file> ]
 
 B<dn-id3v2-output-to-script -h>
 
+=head1 DESCRIPTION
+
+Convert id3v2 output (created using the C<--list> option) to a bash script. The
+bash script contains an C<id3v2> command for each mp3 file which sets its tags
+to those present in the initial output. Any id3v1 tag information in the input
+is ignored. The id3v2 output can be provided to this script as stdin (default)
+or as a file. The bash script output produced can be sent to stdout (default)
+or to a file. If output is sent to a file the created file is set to executable
+(permissions 0755).
+
+This may seem to be a pointless script: when would it ever be necessary to set
+mp3 file tags to the values they already have? One applicable scenario, and the
+impetus for this script, is that on some occasions the id3v2 utility is unable
+to modify existing tags on some mp3 files. In those cases it is necessary to
+remove all tags and set them anew.
+
+Warning: for any mp3 files containing an album image the image is extracted to
+the same directory as the mp3 file.  The image file has the same base name as
+the mp3 file, with an extension determined by the image format (e.g.,
+F<.jpeg>).  Existing image files with the same name and extensions are silently
+overwritten. An extra C<eyeD3> command is added to the script file for each
+image file generated. This command adds the image to the mp3 file.
+
+=head1 CONFIGURATION
+
+There is no configuration file and no configuration settings.
+
 =head1 REQUIRED ARGUMENTS
-
-Nil.
-
-=head1 REQUIRED OPTIONS
 
 Nil.
 
@@ -135,28 +79,10 @@ Display help and exit.
 
 =back
 
-=head1 DESCRIPTION
+=head1 EXIT STATUS
 
-Convert id3v2 output (created using the C<--list> option) to a bash script. The
-bash script contains an C<id3v2> command for each mp3 file which sets its tags
-to those present in the initial output. Any id3v1 tag information in the input
-is ignored. The id3v2 output can be provided to this script as stdin (default)
-or as a file. The bash script output produced can be sent to stdout (default)
-or to a file. If output is sent to a file the created file is set to executable
-(permissions 0755).
-
-This may seem to be a pointless script: when would it ever be necessary to set
-mp3 file tags to the values they already have? One applicable scenario, and the
-impetus for this script, is that on some occasions the id3v2 utility is unable
-to modify existing tags on some mp3 files. In those cases it is necessary to
-remove all tags and set them anew.
-
-Warning: for any mp3 files containing an album image the image is extracted to
-the same directory as the mp3 file.  The image file has the same base name as
-the mp3 file, with an extension determined by the image format (e.g.,
-F<.jpeg>).  Existing image files with the same name and extensions are silently
-overwritten. An extra C<eyeD3> command is added to the script file for each
-image file generated. This command adds the image to the mp3 file.
+The script exits with a zero value if successful and a non-zero value if a
+fatal error occurs.
 
 =head1 DIAGNOSTICS
 
@@ -217,29 +143,19 @@ After the script file is generated (if the C<-o> option is used) it is set to
 the permissions 0755, i.e., executable. This error occurs if that operation
 fails.
 
-=head1 DEPENDENCIES
-
-=head2 Perl modules
-
-App::Dn::Id3v2CreateScript, Const::Fast, English, Moo, MooX::Options,
-namespace::clean, strictures, Types::Path::Tiny, version.
-
-=head1 CONFIGURATION
-
-There is no configuration file and no configuration settings.
-
 =head1 INCOMPATIBILITIES
 
 There are no known incompatibilities.
 
-=head1 EXIT STATUS
-
-The script exits with a zero value if successful and a non-zero value if a
-fatal error occurs.
-
 =head1 BUGS AND LIMITATIONS
 
 Please report any bugs to the author.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+App::Dn::Id3v2CreateScript, Moo, namespace::clean, strictures, version.
 
 =head1 AUTHOR
 

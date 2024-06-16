@@ -91,6 +91,22 @@ This documentation is for App::Dn::Id3v2CreateScript::FileProperties version
 This module models the properties of an mp3 file: its file path and tag
 properties.
 
+=head1 CONFIGURATION AND ENVIRONMENT
+
+=head2 Properties
+
+=head3 file_path
+
+Mp3 file path.
+
+=head2 Configuration files
+
+None used.
+
+=head2 Environment variables
+
+None used.
+
 =head1 SUBROUTINES/METHODS
 
 =head2 canon_path()
@@ -119,25 +135,17 @@ Returns a scalar string.
 
 Gets the names of all defined tags in the module object. Returns a list.
 
-=head1 CONFIGURATION AND ENVIRONMENT
-
-=head2 Properties
-
-=head3 file_path
-
-Mp3 file path.
-
-=head2 Configuration files
-
-None used.
-
-=head2 Environment variables
-
-None used.
-
 =head1 DIAGNOSTICS
 
 This module emits no custom error messages.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
 
 =head1 DEPENDENCIES
 
@@ -145,23 +153,6 @@ This module emits no custom error messages.
 
 Const::Fast, Moo, MooX::HandlesVia, namespace::clean, strictures,
 Types::Standard, version.
-
-=head1 CONFIGURATION
-
-There is no configuration file and no configuration settings.
-
-=head1 INCOMPATIBILITIES
-
-There are no known incompatibilities.
-
-=head1 EXIT STATUS
-
-The script exits with a zero value if successful and a non-zero value if a
-fatal error occurs.
-
-=head1 BUGS AND LIMITATIONS
-
-Please report any bugs to the author.
 
 =head1 AUTHOR
 

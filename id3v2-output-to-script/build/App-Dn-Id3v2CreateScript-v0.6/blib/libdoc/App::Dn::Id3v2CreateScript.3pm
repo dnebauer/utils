@@ -99,21 +99,22 @@ image file generated. This command adds the image to the mp3 file.
 .IX Header "CONFIGURATION AND ENVIRONMENT"
 .SS Properties
 .IX Subsection "Properties"
-\fIid3v2_output_file\fR
-.IX Subsection "id3v2_output_file"
-.PP
-Path to input file containing id3v2 output. Scalar string.
-.PP
-\fIbash_script\fR
-.IX Subsection "bash_script"
-.PP
-Path to bash script output file. Scalar string.
+None.
 .SS "Configuration files"
 .IX Subsection "Configuration files"
 None used.
 .SS "Environment variables"
 .IX Subsection "Environment variables"
 None used.
+.SH OPTIONS
+.IX Header "OPTIONS"
+.IP input_file 4
+.IX Item "input_file"
+Path to input file containing id3v2 output. Scalar string. Optional.
+Default: stdin.
+.IP output_file 4
+.IX Item "output_file"
+Path to bash script output file. Scalar string. Optional. Default: stdout.
 .SH SUBROUTINES/METHODS
 .IX Header "SUBROUTINES/METHODS"
 .SS \fBrun()\fP
@@ -171,6 +172,12 @@ the regular expression matcher is unable to match the filepath.
 After the script file is generated (if the \f(CW\*(C`\-o\*(C'\fR option is used) it is set to
 the permissions 0755, i.e., executable. This error occurs if that operation
 fails.
+.SH INCOMPATIBILITIES
+.IX Header "INCOMPATIBILITIES"
+There are no known incompatibilities.
+.SH "BUGS AND LIMITATIONS"
+.IX Header "BUGS AND LIMITATIONS"
+Please report any bugs to the author.
 .SH DEPENDENCIES
 .IX Header "DEPENDENCIES"
 .SS "Perl modules"
@@ -178,24 +185,11 @@ fails.
 App::Dn::Id3v2CreateScript::FileProperties,
 App::Dn::Id3v2CreateScript::TagProperties, autodie, Carp, charnames,
 Const::Fast, English, File::Basename, List::SomeUtils, MP3::Tag, Moo,
-MooX::HandlesVia, Path::Tiny, namespace::clean, strictures, Types::Standard,
-version.
+MooX::HandlesVia, MooX::Options, Path::Tiny, namespace::clean, strictures,
+Types::Standard, version.
 .SS Executables
 .IX Subsection "Executables"
 eyeD3, id3v2.
-.SH CONFIGURATION
-.IX Header "CONFIGURATION"
-There is no configuration file and no configuration settings.
-.SH INCOMPATIBILITIES
-.IX Header "INCOMPATIBILITIES"
-There are no known incompatibilities.
-.SH "EXIT STATUS"
-.IX Header "EXIT STATUS"
-The script exits with a zero value if successful and a non-zero value if a
-fatal error occurs.
-.SH "BUGS AND LIMITATIONS"
-.IX Header "BUGS AND LIMITATIONS"
-Please report any bugs to the author.
 .SH AUTHOR
 .IX Header "AUTHOR"
 David Nebauer (david at nebauer dot org)
