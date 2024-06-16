@@ -21,10 +21,10 @@ make[1]: Leaving directory '/home/david/data/computing/projects/utils/mp3-file-r
    dh_auto_build
 	/usr/bin/perl Build
 Unknown option: sharedstatedir
-cp lib/App/Dn/Mp3Rename.pm blib/lib/App/Dn/Mp3Rename.pm
 cp script/dn-mp3-file-rename blib/script/dn-mp3-file-rename
 cp lib/App/Dn/Mp3Rename/AudioFile.pm blib/lib/App/Dn/Mp3Rename/AudioFile.pm
 cp lib/App/Dn/Mp3Rename/Role.pm blib/lib/App/Dn/Mp3Rename/Role.pm
+cp lib/App/Dn/Mp3Rename.pm blib/lib/App/Dn/Mp3Rename.pm
    dh_auto_test
 	/usr/bin/perl Build test --verbose 1
 Unknown option: sharedstatedir
@@ -34,7 +34,7 @@ ok 1
 1..1
 ok
 All tests successful.
-Files=2, Tests=1,  1 wallclock secs ( 0.02 usr  0.00 sys +  0.67 cusr  0.07 csys =  0.76 CPU)
+Files=2, Tests=1,  1 wallclock secs ( 0.02 usr  0.00 sys +  0.48 cusr  0.04 csys =  0.54 CPU)
 Result: PASS
    create-stamp debian/debhelper-build-stamp
    dh_prep
