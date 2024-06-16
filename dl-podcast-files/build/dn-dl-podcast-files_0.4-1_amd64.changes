@@ -18,11 +18,11 @@ Changes:
    * Initial release
    * Closes: 590000
 Checksums-Sha1:
- 3f1f0083382769a6a45c6637eed2eaca053f44c0 15008 dn-dl-podcast-files_0.4-1_all.deb
- 3bc92d38ca5c6adb3d73bd1e1b331e3a3dc22d3e 13182 dn-dl-podcast-files_0.4-1_amd64.buildinfo
+ 2f4019fb0566732ef436f55412e98400fb74097f 15064 dn-dl-podcast-files_0.4-1_all.deb
+ 5495c79c228bc073df74356b6fce9d238afaaf08 13177 dn-dl-podcast-files_0.4-1_amd64.buildinfo
 Checksums-Sha256:
- d2d6aa02e1b6762f4eadcd7edcf1269c02f0a7808fdc8763f905ad30aa9075d6 15008 dn-dl-podcast-files_0.4-1_all.deb
- 4b413ee9534ddb1b5865ea8ddf001e1e09738e67e72de24b436f4d1fa8cd41fb 13182 dn-dl-podcast-files_0.4-1_amd64.buildinfo
+ f97d0a1a6685c31b968b2bf6fb05e15c332b3d15a5acb90100b0bc005e74e097 15064 dn-dl-podcast-files_0.4-1_all.deb
+ 1bd8f0d498c72a3af5175a02ca4d7c087f83ae4a720b199d9776fd842bbedc90 13177 dn-dl-podcast-files_0.4-1_amd64.buildinfo
 Files:
- f9ea52fdbd4eb09e443925996246f2f3 15008 utils optional dn-dl-podcast-files_0.4-1_all.deb
- 484d4a839c266aa47c285e1b3f7c29c9 13182 utils optional dn-dl-podcast-files_0.4-1_amd64.buildinfo
+ 1ba700fb0a162737986c29b1c877849f 15064 utils optional dn-dl-podcast-files_0.4-1_all.deb
+ afe8a9ad212ebcbd9b949ce907a91073 13177 utils optional dn-dl-podcast-files_0.4-1_amd64.buildinfo

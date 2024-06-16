@@ -62,7 +62,7 @@ podcast files.
 
 ## Properties
 
-### import\_file
+### file
 
 YAML import file. See ["DESCRIPTION"](#description) for the file format.
 

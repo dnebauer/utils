@@ -2,7 +2,7 @@ Package: dn-dl-podcast-files
 Version: 0.4-1
 Architecture: all
 Maintainer: David Nebauer <david@nebauer.org>
-Installed-Size: 47
+Installed-Size: 49
 Depends: perl:any, libconst-fast-perl, libmoo-perl (>= 2.005005), libmoox-handlesvia-perl, libmoox-options-perl, libnamespace-clean-perl, librole-utils-dn-perl (>= 0.4), libstrictures-perl, libtime-simple-perl (>= 0.06), libtype-tiny-perl (>= 2.004000), libtypes-datetime-perl, libtypes-uri-perl, libversion-perl, libyaml-perl (>= 1.31), perl (>= 5.38.0)
 Section: utils
 Priority: optional

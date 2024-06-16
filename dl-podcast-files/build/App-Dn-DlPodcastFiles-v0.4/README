@@ -63,7 +63,7 @@ CONFIGURATION AND ENVIRONMENT
 
  Properties
 
-  import_file
+  file
 
     YAML import file. See "DESCRIPTION" for the file format.
 

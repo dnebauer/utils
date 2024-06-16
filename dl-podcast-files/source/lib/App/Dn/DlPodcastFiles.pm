@@ -6,7 +6,7 @@ use strictures 2;
 use 5.006;
 use 5.038_001;
 use version; our $VERSION = qv('0.4');
-use namespace::clean;
+use namespace::clean -except => [ '_options_data', '_options_config' ];
 use autodie qw(open close);
 binmode STDOUT, ':encoding(UTF-8)';
 use App::Dn::DlPodcastFiles::Constants;
@@ -26,15 +26,18 @@ const my $TRUE      => 1;
 const my $FALSE     => 0;
 const my $DIV_WIDTH => 20;    # }}}1
 
-# attributes
+# options
 
-# file    {{{1
-has 'import_file' => (
-  is       => 'ro',
-  isa      => Types::Standard::Str,
-  required => $TRUE,
-  doc      => 'YAML import file',
-);
+# file (-f)    {{{1
+option 'file' => (
+  is            => 'ro',
+  format        => 's',
+  required      => $TRUE,
+  short         => 'f',
+  documentation => 'YAML import file',
+);    # }}}1
+
+# attributes
 
 # _episodes, _add_episode[s], _has_episode    {{{1
 has '_episode_list' => (
@@ -78,8 +81,8 @@ sub run ($self) {    ## no critic (RequireInterpolationOfMetachars)
 sub _import ($self) {    ## no critic (RequireInterpolationOfMetachars)
 
   # import file must be valid
-  if (not $self->import_file) { die "No import file specified\n"; }
-  my $file = $self->import_file;
+  if (not $self->file) { die "No import file specified\n"; }
+  my $file = $self->file;
   if (not -e $file) { die "Cannot find '$file'\n"; }
 
   # import the file
@@ -212,7 +215,7 @@ podcast files.
 
 =head2 Properties
 
-=head3 import_file
+=head3 file
 
 YAML import file. See L</DESCRIPTION> for the file format.
 

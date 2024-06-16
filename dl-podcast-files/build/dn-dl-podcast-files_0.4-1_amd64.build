@@ -21,10 +21,10 @@ make[1]: Leaving directory '/home/david/data/computing/projects/utils/dl-podcast
    dh_auto_build
 	/usr/bin/perl Build
 Unknown option: sharedstatedir
-cp script/dn-dl-podcast-files blib/script/dn-dl-podcast-files
-cp lib/App/Dn/DlPodcastFiles/Constants.pm blib/lib/App/Dn/DlPodcastFiles/Constants.pm
-cp lib/App/Dn/DlPodcastFiles/Episode.pm blib/lib/App/Dn/DlPodcastFiles/Episode.pm
 cp lib/App/Dn/DlPodcastFiles.pm blib/lib/App/Dn/DlPodcastFiles.pm
+cp lib/App/Dn/DlPodcastFiles/Constants.pm blib/lib/App/Dn/DlPodcastFiles/Constants.pm
+cp script/dn-dl-podcast-files blib/script/dn-dl-podcast-files
+cp lib/App/Dn/DlPodcastFiles/Episode.pm blib/lib/App/Dn/DlPodcastFiles/Episode.pm
    dh_auto_test
 	/usr/bin/perl Build test --verbose 1
 Unknown option: sharedstatedir
@@ -34,7 +34,7 @@ ok 1
 1..1
 ok
 All tests successful.
-Files=2, Tests=1,  1 wallclock secs ( 0.02 usr  0.01 sys +  0.68 cusr  0.07 csys =  0.78 CPU)
+Files=2, Tests=1,  0 wallclock secs ( 0.00 usr  0.01 sys +  0.52 cusr  0.03 csys =  0.56 CPU)
 Result: PASS
    create-stamp debian/debhelper-build-stamp
    dh_prep
@@ -49,6 +49,7 @@ Installing /home/david/data/computing/projects/utils/dl-podcast-files/build/App-
 Installing /home/david/data/computing/projects/utils/dl-podcast-files/build/App-Dn-DlPodcastFiles-v0.4/debian/dn-dl-podcast-files/usr/share/man/man3/App::Dn::DlPodcastFiles::Episode.3pm
 Installing /home/david/data/computing/projects/utils/dl-podcast-files/build/App-Dn-DlPodcastFiles-v0.4/debian/dn-dl-podcast-files/usr/share/man/man3/App::Dn::DlPodcastFiles.3pm
 Installing /home/david/data/computing/projects/utils/dl-podcast-files/build/App-Dn-DlPodcastFiles-v0.4/debian/dn-dl-podcast-files/usr/bin/dn-dl-podcast-files
+   dh_install
    dh_installdocs
    dh_installchangelogs
    dh_installman

@@ -1,0 +1,14 @@
+#compdef dn-dl-podcast-files
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-f --file)'{-f,--file}'[YAML import file (required)]:file:_files' \
+  && rc=0
+
+return rc
