@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.69])
 AC_INIT([Mail Directory Monitor],
-        [0.4],
+        [0.5],
         [david@nebauer.org],
         [mail-dir-monitor],
 )

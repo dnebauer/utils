@@ -10,7 +10,7 @@ Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, perl (>= 5.38.1-1),
  libconst-fast-perl (>= 0.014-1),
  libdaemon-control-perl (>= 0.001010-1),
- libmail-dir-monitor-perl (>= 0.4),
+ libmail-dir-monitor-perl (>= 0.5),
  libmoo-perl (>= 2.003004-1),
  libmoox-options-perl (>= 4.023-1),
  libnamespace-clean-perl (>= 0.27-1),

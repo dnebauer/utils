@@ -1,3 +1,9 @@
+mail-dir-monitor (0.5-1) unstable; urgency=medium
+
+  * Move options from script to perl module Mail::Dir::Monitor
+
+ -- David Nebauer <david@nebauer.org>  Sun, 16 Jun 2024 14:02:00 +0930
+
 mail-dir-monitor (0.4-1) unstable; urgency=medium
 
   * Extract internal perl modules to Mail::Dir::Monitor
