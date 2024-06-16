@@ -7,4 +7,4 @@ a1de45cd81f9fdf041d878b0fac626c3  usr/share/man/man3/App::Dn::Html2Ebooks.3pm.gz
 dd2de7bbd56e07537c83bbd91aa2e09c  usr/share/man/man3/App::Dn::Html2Ebooks::Format.3pm.gz
 b1b1723fe02e86f7f7e3af5a782cf8a5  usr/share/perl5/App/Dn/Html2Ebooks.pm
 3b58e86a5e7b9815c9da7cc7a03ae749  usr/share/perl5/App/Dn/Html2Ebooks/Format.pm
-260659a09bcc0bcef68a8b8f70d433aa  usr/share/zsh/vendor-completions/_dn-html2ebooks
+964d6b7d478a1c2f7e686e17d46a965a  usr/share/zsh/vendor-completions/_dn-html2ebooks

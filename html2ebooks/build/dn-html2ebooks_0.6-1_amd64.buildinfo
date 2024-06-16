@@ -4,14 +4,14 @@ Binary: dn-html2ebooks
 Architecture: all
 Version: 0.6-1
 Checksums-Md5:
- d0d695b513b7647719c24ff8743038dd 11884 dn-html2ebooks_0.6-1_all.deb
+ 00bfb27b5c48db43f7c2d1699a1737b5 11888 dn-html2ebooks_0.6-1_all.deb
 Checksums-Sha1:
- 66022ac46765d4903dbd9c95db39152bad6e428e 11884 dn-html2ebooks_0.6-1_all.deb
+ d5b599f60b8526ee57b64f496613f609283d5ad0 11888 dn-html2ebooks_0.6-1_all.deb
 Checksums-Sha256:
- 6a7e315e5a7c66f680fb674d9a27f45e41958fd18b8a1a288f50fdc1879926ec 11884 dn-html2ebooks_0.6-1_all.deb
+ 3a2eb253cb1c46954a5d5a7edf6f5cb31adcba46ad2c8b08b0a4180b0fe2ca41 11888 dn-html2ebooks_0.6-1_all.deb
 Build-Origin: Debian
 Build-Architecture: amd64
-Build-Date: Sun, 16 Jun 2024 10:24:15 +0930
+Build-Date: Sun, 16 Jun 2024 10:28:02 +0930
 Build-Tainted-By:
  merged-usr-via-aliased-dirs
  usr-local-has-configs
