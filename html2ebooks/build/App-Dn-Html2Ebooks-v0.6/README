@@ -8,7 +8,7 @@ VERSION
 
 SYNOPSIS
 
-    dn-html2ebooks -b --file_base_name -t book_title -a book_author
+    dn-html2ebooks -b --base_name -t title -a author
 
     dn-html2ebooks -h
 
@@ -31,6 +31,23 @@ DESCRIPTION
     The conversions are performed by ebook-convert, part of the Calibre
     suite on debian systems.
 
+OPTIONS
+
+    All options are scalar strings and required. Enclose options values in
+    quotes if they contains spaces.
+
+    base_name
+
+      Basename (file name without extension) of source html file.
+
+      item title
+
+      Book title.
+
+      item author
+
+      Book author (or authors).
+
 SUBROUTINES/METHODS
 
  run()
@@ -42,17 +59,7 @@ CONFIGURATION AND ENVIRONMENT
 
  Properties
 
-  file_base_name
-
-    Basename (file name without extension) of source html file.
-
-  book_title
-
-    Title of book. Enclose in quotes if it contains spaces.
-
-  book_author
-
-    Author (or authors) of book. Enclose in quotes if it contains spaces.
+    None.
 
  Configuration
 
@@ -81,7 +88,8 @@ DEPENDENCIES
  Perl modules
 
     App::Dn::Html2Ebooks::Format, Carp, Const::Fast, Moo, MooX::HandlesVia,
-    namespace::clean, Path::Tiny, strictures, Types::Standard, version.
+    MooX::Options, namespace::clean, Path::Tiny, strictures,
+    Types::Standard, version.
 
  Executables
 

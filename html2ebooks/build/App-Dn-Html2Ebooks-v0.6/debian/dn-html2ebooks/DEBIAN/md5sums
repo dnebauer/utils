@@ -1,10 +1,10 @@
-0196efe3d1583276cdd951e6134c374c  usr/bin/dn-html2ebooks
+ebeecfe646a017f7920aca6afa139805  usr/bin/dn-html2ebooks
 921c803baad4eb8eebdaf36419b25377  usr/share/doc/dn-html2ebooks/changelog.Debian.gz
 cc64bccbb5956f4f615c608cd3fc2a14  usr/share/doc/dn-html2ebooks/changelog.gz
 a5711c06bc4eba31fd223b45c1df13af  usr/share/doc/dn-html2ebooks/copyright
-c8e9b2f5c77d8d761587e91434342a1a  usr/share/man/man1/dn-html2ebooks.1p.gz
-05be6dc2149ba6dca468e6294011c918  usr/share/man/man3/App::Dn::Html2Ebooks.3pm.gz
+a74554902d4eb591f846fb0e12142f0b  usr/share/man/man1/dn-html2ebooks.1p.gz
+a1de45cd81f9fdf041d878b0fac626c3  usr/share/man/man3/App::Dn::Html2Ebooks.3pm.gz
 dd2de7bbd56e07537c83bbd91aa2e09c  usr/share/man/man3/App::Dn::Html2Ebooks::Format.3pm.gz
-654a964c6d170f8122c0c9f218d01784  usr/share/perl5/App/Dn/Html2Ebooks.pm
+b1b1723fe02e86f7f7e3af5a782cf8a5  usr/share/perl5/App/Dn/Html2Ebooks.pm
 3b58e86a5e7b9815c9da7cc7a03ae749  usr/share/perl5/App/Dn/Html2Ebooks/Format.pm
 74307b526c0df445bc0dd9f1ae090dad  usr/share/zsh/vendor-completions/_dn-html2ebooks

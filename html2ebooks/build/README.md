@@ -8,7 +8,7 @@ This documentation is for App::Dn::Html2Ebooks version 0.6.
 
 # SYNOPSIS
 
-**dn-html2ebooks** **-b** _--file\_base\_name_ **-t** _book\_title_ **-a** _book\_author_
+**dn-html2ebooks** **-b** _--base\_name_ **-t** _title_ **-a** _author_
 
 **dn-html2ebooks -h**
 
@@ -30,6 +30,23 @@ will be used as a cover image for the ebooks.
 The conversions are performed by `ebook-convert`, part of the Calibre suite on
 debian systems.
 
+# OPTIONS
+
+All options are scalar strings and required.
+Enclose options values in quotes if they contains spaces.
+
+- base\_name
+
+    Basename (file name without extension) of source html file.
+
+    item title
+
+    Book title.
+
+    item author
+
+    Book author (or authors).
+
 # SUBROUTINES/METHODS
 
 ## run()
@@ -41,17 +58,7 @@ described in ["DESCRIPTION"](#description).
 
 ## Properties
 
-### file\_base\_name
-
-Basename (file name without extension) of source html file.
-
-### book\_title
-
-Title of book. Enclose in quotes if it contains spaces.
-
-### book\_author
-
-Author (or authors) of book. Enclose in quotes if it contains spaces.
+None.
 
 ## Configuration
 
@@ -80,7 +87,8 @@ Occurs when the script is unable to locate `ebook-convert` on the system.
 ## Perl modules
 
 App::Dn::Html2Ebooks::Format, Carp, Const::Fast, Moo, MooX::HandlesVia,
-namespace::clean, Path::Tiny, strictures, Types::Standard, version.
+MooX::Options, namespace::clean, Path::Tiny, strictures, Types::Standard,
+version.
 
 ## Executables
 

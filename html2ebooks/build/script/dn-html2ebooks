@@ -1,79 +1,14 @@
 #!/usr/bin/env perl
 
-# modules    {{{1
 use Moo;
 use strictures 2;
 use 5.006;
 use 5.038_001;
 use version; our $VERSION = qv('0.6');
-use namespace::clean;    # }}}1
+use namespace::clean;
+use App::Dn::Html2Ebooks;
 
-{
-
-  package Dn::Internal;
-
-  # modules    {{{1
-  use Moo;
-  use strictures 2;
-  use namespace::clean -except => [ '_options_data', '_options_config' ];
-  use App::Dn::Html2Ebooks;
-  use Const::Fast;
-  use MooX::Options protect_argv => 0;
-
-  const my $TRUE => 1;    # }}}1
-
-  # options
-
-  # base_name (-b)    {{{1
-  option 'base_name' => (
-    is       => 'ro',
-    format   => 's',
-    required => $TRUE,
-    short    => 'b',
-    doc      => 'Basename of input and output files',
-  );
-
-  # title    (-t)    {{{1
-  option 'title' => (
-    is       => 'ro',
-    format   => 's',               ## no critic (ProhibitDuplicateLiteral)
-    required => $TRUE,
-    short    => 't',
-    doc      => 'Title of book',
-  );
-
-  # author   (-a)    {{{1
-  option 'author' => (
-    is       => 'ro',
-    format   => 's',                   ## no critic (ProhibitDuplicateLiteral)
-    required => $TRUE,
-    short    => 'a',
-    doc      => 'Author(s) of book',
-  );                                   # }}}1
-
-  # methods
-
-  # main()    {{{1
-  #
-  # does:   main method
-  # params: nil
-  # prints: feedback
-  # return: n/a, dies on failure
-  sub main ($self) {    ## no critic (RequireInterpolationOfMetachars)
-
-    my $html2ebooks = App::Dn::Html2Ebooks->new(
-      file_base_name => $self->base_name,
-      book_title     => $self->title,
-      book_author    => $self->author,
-    );
-    $html2ebooks->run;
-
-    return;
-  }                     # }}}1
-
-}
-
-my $p = Dn::Internal->new_with_options->main;
+App::Dn::Html2Ebooks->new_with_options->run;
 
 1;
 
@@ -174,7 +109,7 @@ error code is that given by the system.
 
 =head2 Perl modules
 
-Const::Fast, Moo, MooX::Options, namespace::clean, strictures.
+App::Dn::Html2Ebooks, Moo, namespace::clean, strictures, version.
 
 =head2 Executables
 

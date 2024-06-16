@@ -6,11 +6,12 @@ use strictures 2;
 use 5.006;
 use 5.036_001;
 use version; our $VERSION = qv('0.6');
-use namespace::clean;
+use namespace::clean -except => [ '_options_data', '_options_config' ];
 use App::Dn::Html2Ebooks::Format;
 use Carp qw(croak);
 use Const::Fast;
 use MooX::HandlesVia;
+use MooX::Options;
 use Path::Tiny;
 use Types::Standard;
 
@@ -19,31 +20,36 @@ with qw(Role::Utils::Dn);
 const my $TRUE  => 1;
 const my $FALSE => 0;    # }}}1
 
-# attributes
+# options
 
-# file_base_name    {{{1
-has 'file_base_name' => (
+# base_name (-b)    {{{1
+option 'base_name' => (
   is       => 'ro',
-  isa      => Types::Standard::Str,
+  format   => 's',
   required => $TRUE,
+  short    => 'b',
   doc      => 'Basename of input and output files',
 );
 
-# book_title    {{{1
-has 'book_title' => (
+# title     (-t)    {{{1
+option 'title' => (
   is       => 'ro',
-  isa      => Types::Standard::Str,
+  format   => 's',               ## no critic (ProhibitDuplicateLiteral)
   required => $TRUE,
+  short    => 't',
   doc      => 'Title of book',
 );
 
-# book_author    {{{1
-has 'book_author' => (
+# author    (-a)    {{{1
+option 'author' => (
   is       => 'ro',
-  isa      => Types::Standard::Str,
+  format   => 's',                   ## no critic (ProhibitDuplicateLiteral)
   required => $TRUE,
+  short    => 'a',
   doc      => 'Author(s) of book',
-);    # }}}1
+);                                   # }}}1
+
+# attributes
 
 # _converter    {{{1
 has '_converter' => (
@@ -72,7 +78,7 @@ has '_source' => (
 
     # abort if no source file
     my $self     = shift;
-    my $basename = $self->file_base_name;
+    my $basename = $self->base_name;
     my $source;
     for my $ext (qw(html htm)) {
       my $filename = $basename . q[.] . $ext;
@@ -99,7 +105,7 @@ has '_cover' => (
   lazy    => $TRUE,
   default => sub {
     my $self     = shift;
-    my $filename = $self->file_base_name . '.png';
+    my $filename = $self->base_name . '.png';
     my $file     = Path::Tiny::path($filename);
     return $file->is_file ? $file : undef;
   },
@@ -134,8 +140,8 @@ has '_formats_list' => (
     my $base      = $self->file_base($source);
     my $cover     = $self->_cover ? $self->_cover->stringify : undef;
     my $date      = $self->_today;
-    my $title     = $self->book_title;
-    my $author    = $self->book_author;                                 # }}}2
+    my $title     = $self->title;
+    my $author    = $self->author;                                      # }}}2
 
     my @formats;
 
@@ -217,7 +223,7 @@ This documentation is for App::Dn::Html2Ebooks version 0.6.
 
 =head1 SYNOPSIS
 
-B<dn-html2ebooks> B<-b> I<--file_base_name> B<-t> I<book_title> B<-a> I<book_author>
+B<dn-html2ebooks> B<-b> I<--base_name> B<-t> I<title> B<-a> I<author>
 
 B<dn-html2ebooks -h>
 
@@ -244,6 +250,27 @@ will be used as a cover image for the ebooks.
 The conversions are performed by F<ebook-convert>, part of the Calibre suite on
 debian systems.
 
+=head1 OPTIONS
+
+All options are scalar strings and required.
+Enclose options values in quotes if they contains spaces.
+
+=over
+
+=item base_name
+
+Basename (file name without extension) of source html file.
+
+item title
+
+Book title.
+
+item author
+
+Book author (or authors).
+
+=back
+
 =head1 SUBROUTINES/METHODS
 
 =head2 run()
@@ -255,17 +282,7 @@ described in L</DESCRIPTION>.
 
 =head2 Properties
 
-=head3 file_base_name
-
-Basename (file name without extension) of source html file.
-
-=head3 book_title
-
-Title of book. Enclose in quotes if it contains spaces.
-
-=head3 book_author
-
-Author (or authors) of book. Enclose in quotes if it contains spaces.
+None.
 
 =head2 Configuration
 
@@ -294,7 +311,8 @@ Occurs when the script is unable to locate F<ebook-convert> on the system.
 =head2 Perl modules
 
 App::Dn::Html2Ebooks::Format, Carp, Const::Fast, Moo, MooX::HandlesVia,
-namespace::clean, Path::Tiny, strictures, Types::Standard, version.
+MooX::Options, namespace::clean, Path::Tiny, strictures, Types::Standard,
+version.
 
 =head2 Executables
 

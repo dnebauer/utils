@@ -4,14 +4,14 @@ Binary: dn-html2ebooks
 Architecture: all
 Version: 0.6-1
 Checksums-Md5:
- 8808418bf69701db20ee32d9539dfbf3 11992 dn-html2ebooks_0.6-1_all.deb
+ cd8ec3332293e9c0749b92388995ec98 11880 dn-html2ebooks_0.6-1_all.deb
 Checksums-Sha1:
- 5647cd3d03507fbd1fe68797d57139f12932d207 11992 dn-html2ebooks_0.6-1_all.deb
+ d144df146e30abb6d31891148766d367d8ce655c 11880 dn-html2ebooks_0.6-1_all.deb
 Checksums-Sha256:
- 1e8a8e0216c934c47f787011b3bab4215baedffadcf69c1bf83ac19cc3484ddc 11992 dn-html2ebooks_0.6-1_all.deb
+ ac93de0a05c81bb87d3fc396a5303867691a72aca03f27d9c7756e26772e0ffa 11880 dn-html2ebooks_0.6-1_all.deb
 Build-Origin: Debian
 Build-Architecture: amd64
-Build-Date: Tue, 11 Jun 2024 22:53:09 +0930
+Build-Date: Sun, 16 Jun 2024 10:18:52 +0930
 Build-Tainted-By:
  merged-usr-via-aliased-dirs
  usr-local-has-configs
@@ -22,15 +22,15 @@ Installed-Build-Depends:
  automake (= 1:1.16.5-1.3),
  autopoint (= 0.21-14),
  autotools-dev (= 20220109.1),
- base-files (= 13.2),
+ base-files (= 13.3),
  base-passwd (= 3.6.3),
- bash (= 5.2.21-2+b1),
+ bash (= 5.2.21-2.1),
  binutils (= 2.42-4),
  binutils-common (= 2.42-4),
  binutils-x86-64-linux-gnu (= 2.42-4),
- bsdextrautils (= 2.40.1-8),
+ bsdextrautils (= 2.40.1-8.1),
  bsdmainutils (= 12.1.8),
- bsdutils (= 1:2.40.1-8),
+ bsdutils (= 1:2.40.1-8.1),
  build-essential (= 12.10),
  bzip2 (= 1.0.8-5.1),
  clang-13 (= 1:13.0.1-13),
@@ -45,10 +45,10 @@ Installed-Build-Depends:
  cpp-13 (= 13.2.0-25),
  cpp-13-x86-64-linux-gnu (= 13.2.0-25),
  cpp-x86-64-linux-gnu (= 4:13.2.0-7),
- dash (= 0.5.12-8),
+ dash (= 0.5.12-9),
  debconf (= 1.5.86),
  debhelper (= 13.15.3),
- debianutils (= 5.18),
+ debianutils (= 5.19),
  dh-autoreconf (= 20),
  dh-strip-nondeterminism (= 1.14.0-1),
  diffutils (= 1:3.10-1),
@@ -95,14 +95,14 @@ Installed-Build-Depends:
  libb-hooks-endofscope-perl (= 0.28-1),
  libb-hooks-op-check-perl (= 0.22-3+b1),
  libbinutils (= 2.42-4),
- libblkid1 (= 2.40.1-8),
+ libblkid1 (= 2.40.1-8.1),
  libbsd0 (= 0.12.2-1),
  libbz2-1.0 (= 1.0.8-5.1),
- libc-bin (= 2.38-12),
- libc-dev-bin (= 2.38-12),
- libc6 (= 2.38-12),
- libc6-dev (= 2.38-12),
- libc6-i386 (= 2.38-12),
+ libc-bin (= 2.38-13),
+ libc-dev-bin (= 2.38-13),
+ libc6 (= 2.38-13),
+ libc6-dev (= 2.38-13),
+ libc6-i386 (= 2.38-13),
  libcap-ng0 (= 0.8.5-1),
  libcap2 (= 1:2.66-5),
  libcc1-0 (= 14-20240330-1),
@@ -160,8 +160,8 @@ Installed-Build-Depends:
  libgcc-12-dev (= 12.3.0-17),
  libgcc-13-dev (= 13.2.0-25),
  libgcc-s1 (= 14-20240330-1),
- libgdbm-compat4t64 (= 1.23-5.1+b1),
- libgdbm6t64 (= 1.23-5.1+b1),
+ libgdbm-compat4t64 (= 1.23-6),
+ libgdbm6t64 (= 1.23-6),
  libgetopt-long-descriptive-perl (= 0.111-1),
  libgmp10 (= 2:6.3.0+dfsg-2+b1),
  libgomp1 (= 14-20240330-1),
@@ -199,7 +199,7 @@ Installed-Build-Depends:
  libmoox-handlesvia-perl (= 0.001009-2),
  libmoox-locale-passthrough-perl (= 0.001-2),
  libmoox-options-perl (= 4.103-4),
- libmount1 (= 2.40.1-8),
+ libmount1 (= 2.40.1-8.1),
  libmpc3 (= 1.3.1-1+b2),
  libmpfr6 (= 4.2.1-1+b1),
  libmro-compat-perl (= 0.15-2),
@@ -228,7 +228,7 @@ Installed-Build-Depends:
  libselinux1 (= 3.5-2+b2),
  libsframe1 (= 2.42-4),
  libsigsegv2 (= 2.14-1+b1),
- libsmartcols1 (= 2.40.1-8),
+ libsmartcols1 (= 2.40.1-8.1),
  libsombok3 (= 2.4.0-2+b1),
  libssl3t64 (= 3.2.1-3),
  libstdc++-13-dev (= 13.2.0-25),
@@ -241,7 +241,7 @@ Installed-Build-Depends:
  libsub-name-perl (= 0.27-1+b2),
  libsub-quote-perl (= 2.006008-1),
  libsub-uplevel-perl (= 0.2800-3),
- libsystemd0 (= 256~rc4-1),
+ libsystemd0 (= 256-1),
  libtext-glob-perl (= 0.11-3),
  libthai-data (= 0.1.29-2),
  libthai0 (= 0.1.29-2),
@@ -254,10 +254,10 @@ Installed-Build-Depends:
  libtypes-serialiser-perl (= 1.01-1),
  libubsan1 (= 14-20240330-1),
  libuchardet0 (= 0.0.8-1+b1),
- libudev1 (= 256~rc4-1),
+ libudev1 (= 256-1),
  libunicode-linebreak-perl (= 0.0.20190101-1+b7),
  libunistring5 (= 1.2-1),
- libuuid1 (= 2.40.1-8),
+ libuuid1 (= 2.40.1-8.1),
  libvariable-magic-perl (= 0.64-1),
  libversion-perl (= 1:0.9930-1+b2),
  libxml2 (= 2.9.14+dfsg-1.3+b3),
@@ -290,7 +290,7 @@ Installed-Build-Depends:
  tar (= 1.35+dfsg-3),
  usr-is-merged (= 39),
  usrmerge (= 39),
- util-linux (= 2.40.1-8),
+ util-linux (= 2.40.1-8.1),
  xz-utils (= 5.6.1+really5.4.5-1),
  zlib1g (= 1:1.3.dfsg+really1.3.1-1)
 Environment:

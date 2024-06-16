@@ -67,7 +67,7 @@ App::Dn::Html2Ebooks \- convert html file to ebook formats
 This documentation is for App::Dn::Html2Ebooks version 0.6.
 .SH SYNOPSIS
 .IX Header "SYNOPSIS"
-\&\fBdn\-html2ebooks\fR \fB\-b\fR \fI\-\-file_base_name\fR \fB\-t\fR \fIbook_title\fR \fB\-a\fR \fIbook_author\fR
+\&\fBdn\-html2ebooks\fR \fB\-b\fR \fI\-\-base_name\fR \fB\-t\fR \fItitle\fR \fB\-a\fR \fIauthor\fR
 .PP
 \&\fBdn\-html2ebooks \-h\fR
 .SH DESCRIPTION
@@ -90,6 +90,21 @@ will be used as a cover image for the ebooks.
 .PP
 The conversions are performed by \fIebook-convert\fR, part of the Calibre suite on
 debian systems.
+.SH OPTIONS
+.IX Header "OPTIONS"
+All options are scalar strings and required.
+Enclose options values in quotes if they contains spaces.
+.IP base_name 4
+.IX Item "base_name"
+Basename (file name without extension) of source html file.
+.Sp
+item title
+.Sp
+Book title.
+.Sp
+item author
+.Sp
+Book author (or authors).
 .SH SUBROUTINES/METHODS
 .IX Header "SUBROUTINES/METHODS"
 .SS \fBrun()\fP
@@ -100,20 +115,7 @@ described in "DESCRIPTION".
 .IX Header "CONFIGURATION AND ENVIRONMENT"
 .SS Properties
 .IX Subsection "Properties"
-\fIfile_base_name\fR
-.IX Subsection "file_base_name"
-.PP
-Basename (file name without extension) of source html file.
-.PP
-\fIbook_title\fR
-.IX Subsection "book_title"
-.PP
-Title of book. Enclose in quotes if it contains spaces.
-.PP
-\fIbook_author\fR
-.IX Subsection "book_author"
-.PP
-Author (or authors) of book. Enclose in quotes if it contains spaces.
+None.
 .SS Configuration
 .IX Subsection "Configuration"
 This module does not use configuration files.
@@ -136,7 +138,8 @@ Occurs when the script is unable to locate \fIebook-convert\fR on the system.
 .SS "Perl modules"
 .IX Subsection "Perl modules"
 App::Dn::Html2Ebooks::Format, Carp, Const::Fast, Moo, MooX::HandlesVia,
-namespace::clean, Path::Tiny, strictures, Types::Standard, version.
+MooX::Options, namespace::clean, Path::Tiny, strictures, Types::Standard,
+version.
 .SS Executables
 .IX Subsection "Executables"
 ebook-convert.
