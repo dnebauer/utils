@@ -166,7 +166,7 @@ error code is that given by the system.
 .IX Header "DEPENDENCIES"
 .SS "Perl modules"
 .IX Subsection "Perl modules"
-Carp, Const::Fast, Moo, MooX::Options, namespace::clean, strictures, version.
+App::Dn::DlPodcastFiles, Moo, namespace::clean, strictures, version.
 .SS Executables
 .IX Subsection "Executables"
 wget.

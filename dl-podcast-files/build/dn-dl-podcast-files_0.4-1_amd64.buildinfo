@@ -4,14 +4,14 @@ Binary: dn-dl-podcast-files
 Architecture: all
 Version: 0.4-1
 Checksums-Md5:
- 1ba700fb0a162737986c29b1c877849f 15064 dn-dl-podcast-files_0.4-1_all.deb
+ 51cc16e13206eb875dbdaf220b0f2bba 15040 dn-dl-podcast-files_0.4-1_all.deb
 Checksums-Sha1:
- 2f4019fb0566732ef436f55412e98400fb74097f 15064 dn-dl-podcast-files_0.4-1_all.deb
+ 08c3bec7f9464b822440766aa503871325a9e675 15040 dn-dl-podcast-files_0.4-1_all.deb
 Checksums-Sha256:
- f97d0a1a6685c31b968b2bf6fb05e15c332b3d15a5acb90100b0bc005e74e097 15064 dn-dl-podcast-files_0.4-1_all.deb
+ 2ecb9808c80f4e4aae2e55e39c58f36d8ed72d21bccc75d055103d11ff95aa3d 15040 dn-dl-podcast-files_0.4-1_all.deb
 Build-Origin: Debian
 Build-Architecture: amd64
-Build-Date: Sun, 16 Jun 2024 10:03:59 +0930
+Build-Date: Sun, 16 Jun 2024 10:43:23 +0930
 Build-Tainted-By:
  merged-usr-via-aliased-dirs
  usr-local-has-configs

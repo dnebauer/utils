@@ -1,8 +1,8 @@
-b637e918ae9f593be427839b211c362c  usr/bin/dn-dl-podcast-files
+f1a9264438ce10b62f8ff0c415df7430  usr/bin/dn-dl-podcast-files
 c990cc552ed9ad2efeb902cfcd2ee09c  usr/share/doc/dn-dl-podcast-files/changelog.Debian.gz
 9eabe51ad55d91a532a634abe54cba0d  usr/share/doc/dn-dl-podcast-files/changelog.gz
 95afc61cd0e2acca4487bf9148c6d7e1  usr/share/doc/dn-dl-podcast-files/copyright
-e828a752ce4c7214a495eaba9fb1060d  usr/share/man/man1/dn-dl-podcast-files.1p.gz
+66ddd55d956bca311d12b4bdd7033fc2  usr/share/man/man1/dn-dl-podcast-files.1p.gz
 0cbac2a350450852508f4557e1c73f03  usr/share/man/man3/App::Dn::DlPodcastFiles.3pm.gz
 55a44937be244e6978103c9c54e02828  usr/share/man/man3/App::Dn::DlPodcastFiles::Constants.3pm.gz
 6203880de0c25c8addb58f2e9bc79b28  usr/share/man/man3/App::Dn::DlPodcastFiles::Episode.3pm.gz

@@ -2,11 +2,11 @@
 
 use Moo;
 use strictures 2;
+use 5.006;
 use 5.038_001;
 use version; our $VERSION = qv('0.4');
 use namespace::clean;
 use App::Dn::DlPodcastFiles;
-use MooX::Options;
 
 App::Dn::DlPodcastFiles->new_with_options->run;
 
@@ -137,7 +137,7 @@ error code is that given by the system.
 
 =head2 Perl modules
 
-Carp, Const::Fast, Moo, MooX::Options, namespace::clean, strictures, version.
+App::Dn::DlPodcastFiles, Moo, namespace::clean, strictures, version.
 
 =head2 Executables
 
