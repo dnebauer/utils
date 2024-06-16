@@ -18,11 +18,11 @@ Changes:
    * Initial release
    * Closes: 506147
 Checksums-Sha1:
- 3619c595b2470087db6af3ebd69ae2ca44954457 18736 dn-id3v2-output-to-script_0.6-1_all.deb
- ee986531abc5ba74ce240121a5bb4beac7ad0f78 9269 dn-id3v2-output-to-script_0.6-1_amd64.buildinfo
+ 685a896e41985dc9f876b3bab22a2032d47483e5 18776 dn-id3v2-output-to-script_0.6-1_all.deb
+ 4ba504b33b6f91ef58c896127b9a69c2dcb51106 9269 dn-id3v2-output-to-script_0.6-1_amd64.buildinfo
 Checksums-Sha256:
- f7f96387718eaf3d61313f2b0c55228fa8273e0ba1fb411f8d0d1a5c86d859c3 18736 dn-id3v2-output-to-script_0.6-1_all.deb
- 95f54f4eaa9f7a1639a5389af18a54d0f1061dca5b2188101b9d49a661030e08 9269 dn-id3v2-output-to-script_0.6-1_amd64.buildinfo
+ 291b38a3d107af51b013b0eb46c1513a5fa156079c5cae2c9d0bfd3e0b2b4bc1 18776 dn-id3v2-output-to-script_0.6-1_all.deb
+ fcb4e798866fa8cdee42c0766fe8d32e9d0b43dd0a15b4c0775b3dc7b191a33f 9269 dn-id3v2-output-to-script_0.6-1_amd64.buildinfo
 Files:
- f40bfd61b74170f8bc0ac4f41060d900 18736 utils optional dn-id3v2-output-to-script_0.6-1_all.deb
- a318d7c3ec328bda2a09547532f66f6c 9269 utils optional dn-id3v2-output-to-script_0.6-1_amd64.buildinfo
+ 6d0c370cde4ce99233c3f53f79830efb 18776 utils optional dn-id3v2-output-to-script_0.6-1_all.deb
+ 5e429b8bdc181d3be470c83b94ede6aa 9269 utils optional dn-id3v2-output-to-script_0.6-1_amd64.buildinfo

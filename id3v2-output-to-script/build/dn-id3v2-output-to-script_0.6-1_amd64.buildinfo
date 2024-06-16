@@ -4,14 +4,14 @@ Binary: dn-id3v2-output-to-script
 Architecture: all
 Version: 0.6-1
 Checksums-Md5:
- f40bfd61b74170f8bc0ac4f41060d900 18736 dn-id3v2-output-to-script_0.6-1_all.deb
+ 6d0c370cde4ce99233c3f53f79830efb 18776 dn-id3v2-output-to-script_0.6-1_all.deb
 Checksums-Sha1:
- 3619c595b2470087db6af3ebd69ae2ca44954457 18736 dn-id3v2-output-to-script_0.6-1_all.deb
+ 685a896e41985dc9f876b3bab22a2032d47483e5 18776 dn-id3v2-output-to-script_0.6-1_all.deb
 Checksums-Sha256:
- f7f96387718eaf3d61313f2b0c55228fa8273e0ba1fb411f8d0d1a5c86d859c3 18736 dn-id3v2-output-to-script_0.6-1_all.deb
+ 291b38a3d107af51b013b0eb46c1513a5fa156079c5cae2c9d0bfd3e0b2b4bc1 18776 dn-id3v2-output-to-script_0.6-1_all.deb
 Build-Origin: Debian
 Build-Architecture: amd64
-Build-Date: Sun, 16 Jun 2024 11:07:20 +0930
+Build-Date: Sun, 16 Jun 2024 13:40:03 +0930
 Build-Tainted-By:
  merged-usr-via-aliased-dirs
  usr-local-has-configs
