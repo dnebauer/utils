@@ -18,11 +18,11 @@ Changes:
    * Initial release
    * Closes: 596000
 Checksums-Sha1:
- d5b599f60b8526ee57b64f496613f609283d5ad0 11888 dn-html2ebooks_0.6-1_all.deb
- 655b4d8c266a1cf240b8c42714849ccecbf87f9f 9117 dn-html2ebooks_0.6-1_amd64.buildinfo
+ 2bbfbf3b70031b00eec0ab94efb30a9fab348d65 11888 dn-html2ebooks_0.6-1_all.deb
+ af0c2af0126fb3ab0eb9ebbc1112e2cf46878ea0 9117 dn-html2ebooks_0.6-1_amd64.buildinfo
 Checksums-Sha256:
- 3a2eb253cb1c46954a5d5a7edf6f5cb31adcba46ad2c8b08b0a4180b0fe2ca41 11888 dn-html2ebooks_0.6-1_all.deb
- 9bf3141f11132f874982e0c50d37e8cd7ae5e42af99481167139ac6f1457aaa3 9117 dn-html2ebooks_0.6-1_amd64.buildinfo
+ 0c85b5c5c666f6f1c61d7e5bb902097e3c8e6970890ee3629f5c9c16ec29c882 11888 dn-html2ebooks_0.6-1_all.deb
+ 27a7f67450b5e5d25a7f915dc67c3333d8563c43fee178f5a3fa52a4f821d9bc 9117 dn-html2ebooks_0.6-1_amd64.buildinfo
 Files:
- 00bfb27b5c48db43f7c2d1699a1737b5 11888 utils optional dn-html2ebooks_0.6-1_all.deb
- 23ddf51594fba9b4472565a92fa5f6f7 9117 utils optional dn-html2ebooks_0.6-1_amd64.buildinfo
+ 21020c4d6682e15fcd67ad586bcba512 11888 utils optional dn-html2ebooks_0.6-1_all.deb
+ 38f7e581be4331f34ba318733484fe23 9117 utils optional dn-html2ebooks_0.6-1_amd64.buildinfo

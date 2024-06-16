@@ -30,6 +30,29 @@ B<dn-html2ebooks> B<-b> I<basename> B<-t> I<title> B<-a> I<author>
 
 B<dn-html2ebooks -h>
 
+=head1 DESCRIPTION
+
+Converts an html file in the current directory named F<basename.html> or
+F<basename.htm> where "basename" is the option provided to the C<-b> option.
+This source file is converted to the following formats and output files:
+
+=over
+
+=item Electronic publication (F<basename.epub>)
+
+=item Kindle Format 8 (F<basename.epub>)
+
+=back
+
+Output files are written to the current directory and silently overwrite any
+existing output files of the same name.
+
+If there is a png image file in the current directory called F<basename.png> it
+will be used as a cover image for the ebooks.
+
+The conversions are performed by F<ebook-convert>, part of the Calibre suite on
+debian systems.
+
 =head1 OPTIONS
 
 =over
@@ -57,29 +80,6 @@ Scalar string. Required.
 =head1 REQUIRED ARGUMENTS
 
 None.
-
-=head1 DESCRIPTION
-
-Converts an html file in the current directory named F<basename.html> or
-F<basename.htm> where "basename" is the option provided to the C<-b> option.
-This source file is converted to the following formats and output files:
-
-=over
-
-=item Electronic publication (F<basename.epub>)
-
-=item Kindle Format 8 (F<basename.epub>)
-
-=back
-
-Output files are written to the current directory and silently overwrite any
-existing output files of the same name.
-
-If there is a png image file in the current directory called F<basename.png> it
-will be used as a cover image for the ebooks.
-
-The conversions are performed by F<ebook-convert>, part of the Calibre suite on
-debian systems.
 
 =head1 CONFIGURATION
 

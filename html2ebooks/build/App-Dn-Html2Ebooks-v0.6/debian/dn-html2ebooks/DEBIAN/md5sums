@@ -1,8 +1,8 @@
-ebeecfe646a017f7920aca6afa139805  usr/bin/dn-html2ebooks
+8ea29f396be96f9f4a0a3d119ffcb686  usr/bin/dn-html2ebooks
 921c803baad4eb8eebdaf36419b25377  usr/share/doc/dn-html2ebooks/changelog.Debian.gz
 cc64bccbb5956f4f615c608cd3fc2a14  usr/share/doc/dn-html2ebooks/changelog.gz
 a5711c06bc4eba31fd223b45c1df13af  usr/share/doc/dn-html2ebooks/copyright
-a74554902d4eb591f846fb0e12142f0b  usr/share/man/man1/dn-html2ebooks.1p.gz
+4939606e2348511b47821ff2842b5213  usr/share/man/man1/dn-html2ebooks.1p.gz
 a1de45cd81f9fdf041d878b0fac626c3  usr/share/man/man3/App::Dn::Html2Ebooks.3pm.gz
 dd2de7bbd56e07537c83bbd91aa2e09c  usr/share/man/man3/App::Dn::Html2Ebooks::Format.3pm.gz
 b1b1723fe02e86f7f7e3af5a782cf8a5  usr/share/perl5/App/Dn/Html2Ebooks.pm

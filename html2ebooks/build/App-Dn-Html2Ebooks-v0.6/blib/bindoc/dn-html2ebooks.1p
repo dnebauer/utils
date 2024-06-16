@@ -70,26 +70,6 @@ This documentation is for dn\-html2ebooks version.
 \&\fBdn\-html2ebooks\fR \fB\-b\fR \fIbasename\fR \fB\-t\fR \fItitle\fR \fB\-a\fR \fIauthor\fR
 .PP
 \&\fBdn\-html2ebooks \-h\fR
-.SH OPTIONS
-.IX Header "OPTIONS"
-.IP "\fB\-b\fR  \fB\-\-basename\fR \fIbasename\fR" 4
-.IX Item "-b --basename basename"
-Basename (file name without extension) of source html file.
-.Sp
-Scalar string. Required.
-.IP "\fB\-t\fR  \fB\-\-title\fR \fItitle\fR" 4
-.IX Item "-t --title title"
-Title of book. Enclose in quotes if it contains spaces.
-.Sp
-Scalar string. Required.
-.IP "\fB\-a\fR  \fB\-\-author\fR \fIauthor\fR" 4
-.IX Item "-a --author author"
-Author (or authors) of book. Enclose in quotes if it contains spaces.
-.Sp
-Scalar string. Required.
-.SH "REQUIRED ARGUMENTS"
-.IX Header "REQUIRED ARGUMENTS"
-None.
 .SH DESCRIPTION
 .IX Header "DESCRIPTION"
 Converts an html file in the current directory named \fIbasename.html\fR or
@@ -110,6 +90,26 @@ will be used as a cover image for the ebooks.
 .PP
 The conversions are performed by \fIebook-convert\fR, part of the Calibre suite on
 debian systems.
+.SH OPTIONS
+.IX Header "OPTIONS"
+.IP "\fB\-b\fR  \fB\-\-basename\fR \fIbasename\fR" 4
+.IX Item "-b --basename basename"
+Basename (file name without extension) of source html file.
+.Sp
+Scalar string. Required.
+.IP "\fB\-t\fR  \fB\-\-title\fR \fItitle\fR" 4
+.IX Item "-t --title title"
+Title of book. Enclose in quotes if it contains spaces.
+.Sp
+Scalar string. Required.
+.IP "\fB\-a\fR  \fB\-\-author\fR \fIauthor\fR" 4
+.IX Item "-a --author author"
+Author (or authors) of book. Enclose in quotes if it contains spaces.
+.Sp
+Scalar string. Required.
+.SH "REQUIRED ARGUMENTS"
+.IX Header "REQUIRED ARGUMENTS"
+None.
 .SH CONFIGURATION
 .IX Header "CONFIGURATION"
 This script does not use configuration files or environmental variables.
