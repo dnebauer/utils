@@ -3,15 +3,14 @@
 local rc=1
 
 _arguments -S \
-  - '(help_options)' \
-    '-h[Show a compact help message]' \
-    '--help[Show a long help message]' \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
     '--usage[Show a short help message]' \
     '--man[Show the manual]' \
   - 'script_options' \
-    '(-b --basename)'{-b,--basename}'[Basename of input and output files]:base name:_files' \
-    '(-t --title)'{-t,--title}'[Title of book]:title:' \
-    '(-a --author)'{-a,--author}'[Author(s) of book]:author:' \
+    '(-b --basename)'{-b,--basename}'[Basename of input and output files (string, required)]:base:' \
+    '(-t --title)'{-t,--title}'[Title of book (string, required)]:title:' \
+    '(-a --author)'{-a,--author}'[Author(s) for book (string, required)]:author:' \
   && rc=0
 
 return rc
