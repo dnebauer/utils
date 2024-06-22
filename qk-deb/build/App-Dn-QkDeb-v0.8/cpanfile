@@ -1,0 +1,23 @@
+requires 'perl', '5.038';
+requires 'Archive::Tar', '2.40';
+requires 'autodie', '2.36';
+requires 'Carp', '1.54';
+requires 'Const::Fast', '0.014';
+requires 'Dpkg::Version', '1.22.6';
+requires 'English', '1.11';
+requires 'File::chdir', '0.1008';
+requires 'Moo', '2.005005';
+requires 'MooX::HandlesVia', '0.001009';
+requires 'MooX::Options', '4.103';
+requires 'namespace::clean', '0.27';
+requires 'Pod::Man', '5.01';
+requires 'strictures', '2.000006';
+requires 'Types::Dn::Debian', '0.1';
+requires 'Types::Dn', '0.1';
+requires 'Types::Path::Tiny', '0.006';
+requires 'Types::Standard', '2.004000';
+requires 'version', '0.9930';
+
+on test => sub {
+    requires 'Test::More', '0.96';
+};

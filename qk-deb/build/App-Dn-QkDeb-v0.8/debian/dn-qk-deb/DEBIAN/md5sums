@@ -1,0 +1,11 @@
+1f3048b94601f03bc52b359c66a3e486  usr/bin/dn-qk-deb
+a2ec3c47a5cb51b44937e75e538cbe50  usr/share/doc/dn-qk-deb/changelog.Debian.gz
+dfd27076c9536599e6375a77747adc61  usr/share/doc/dn-qk-deb/changelog.gz
+9aa1d9bf56e671d06b24516b1e70f731  usr/share/doc/dn-qk-deb/copyright
+7b2b48b1aefdbd1e90eacdc1780c24e3  usr/share/man/man1/dn-qk-deb.1p.gz
+d497cda5f2023989b89d495d3a2c5fdd  usr/share/man/man3/App::Dn::QkDeb.3pm.gz
+cc8739c73e2e5abf9e9561a6d115e610  usr/share/man/man3/App::Dn::QkDeb::File.3pm.gz
+a3f49f6e11aa1c335d1dcce285d13075  usr/share/man/man3/App::Dn::QkDeb::Path.3pm.gz
+524123d8ba9930dd2b56eef9ed189bf5  usr/share/perl5/App/Dn/QkDeb.pm
+2e19643f81027be96cf96dd3b676afda  usr/share/perl5/App/Dn/QkDeb/File.pm
+7b512661453e6f42b56b0d742f8455c7  usr/share/perl5/App/Dn/QkDeb/Path.pm

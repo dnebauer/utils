@@ -1,0 +1,71 @@
+ dpkg-buildpackage -us -uc -ui -i -b
+dpkg-buildpackage: info: source package dn-qk-deb
+dpkg-buildpackage: info: source version 0.8-1
+dpkg-buildpackage: info: source distribution UNRELEASED
+dpkg-buildpackage: info: source changed by David Nebauer <david@nebauer.org>
+ dpkg-source -i --before-build .
+dpkg-buildpackage: info: host architecture amd64
+ debian/rules clean
+dh clean
+   dh_clean
+ debian/rules binary
+dh binary
+   dh_update_autotools_config
+   dh_autoreconf
+   debian/rules override_dh_auto_configure
+make[1]: Entering directory '/home/david/data/computing/projects/utils/qk-deb/build/App-Dn-QkDeb-v0.8'
+dh_auto_configure -- --sharedstatedir=/var/lib
+	/usr/bin/perl Build.PL --installdirs vendor --config "optimize=-g -O2 -Werror=implicit-function-declaration -ffile-prefix-map=/home/david/data/computing/projects/utils/qk-deb/build/App-Dn-QkDeb-v0.8=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -Wdate-time -D_FORTIFY_SOURCE=2" --config "ld=x86_64-linux-gnu-gcc -g -O2 -Werror=implicit-function-declaration -ffile-prefix-map=/home/david/data/computing/projects/utils/qk-deb/build/App-Dn-QkDeb-v0.8=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -Wl,-z,relro" --sharedstatedir=/var/lib
+Creating new 'Build' script for 'App-Dn-QkDeb' version 'v0.8'
+make[1]: Leaving directory '/home/david/data/computing/projects/utils/qk-deb/build/App-Dn-QkDeb-v0.8'
+   dh_auto_build
+	/usr/bin/perl Build
+Unknown option: sharedstatedir
+cp lib/App/Dn/QkDeb.pm blib/lib/App/Dn/QkDeb.pm
+cp script/dn-qk-deb blib/script/dn-qk-deb
+cp lib/App/Dn/QkDeb/Path.pm blib/lib/App/Dn/QkDeb/Path.pm
+cp lib/App/Dn/QkDeb/File.pm blib/lib/App/Dn/QkDeb/File.pm
+   dh_auto_test
+	/usr/bin/perl Build test --verbose 1
+Unknown option: sharedstatedir
+t/author-pod-syntax.t .. skipped: these tests are for testing by the author
+t/basic.t .............. 
+ok 1
+1..1
+ok
+All tests successful.
+Files=2, Tests=1,  0 wallclock secs ( 0.01 usr  0.00 sys +  0.61 cusr  0.07 csys =  0.69 CPU)
+Result: PASS
+   create-stamp debian/debhelper-build-stamp
+   dh_prep
+   dh_auto_install --destdir=debian/dn-qk-deb/
+	/usr/bin/perl Build install --destdir /home/david/data/computing/projects/utils/qk-deb/build/App-Dn-QkDeb-v0.8/debian/dn-qk-deb --create_packlist 0
+Unknown option: sharedstatedir
+Installing /home/david/data/computing/projects/utils/qk-deb/build/App-Dn-QkDeb-v0.8/debian/dn-qk-deb/usr/share/man/man1/dn-qk-deb.1p
+Installing /home/david/data/computing/projects/utils/qk-deb/build/App-Dn-QkDeb-v0.8/debian/dn-qk-deb/usr/share/perl5/App/Dn/QkDeb.pm
+Installing /home/david/data/computing/projects/utils/qk-deb/build/App-Dn-QkDeb-v0.8/debian/dn-qk-deb/usr/share/perl5/App/Dn/QkDeb/File.pm
+Installing /home/david/data/computing/projects/utils/qk-deb/build/App-Dn-QkDeb-v0.8/debian/dn-qk-deb/usr/share/perl5/App/Dn/QkDeb/Path.pm
+Installing /home/david/data/computing/projects/utils/qk-deb/build/App-Dn-QkDeb-v0.8/debian/dn-qk-deb/usr/share/man/man3/App::Dn::QkDeb::Path.3pm
+Installing /home/david/data/computing/projects/utils/qk-deb/build/App-Dn-QkDeb-v0.8/debian/dn-qk-deb/usr/share/man/man3/App::Dn::QkDeb::File.3pm
+Installing /home/david/data/computing/projects/utils/qk-deb/build/App-Dn-QkDeb-v0.8/debian/dn-qk-deb/usr/share/man/man3/App::Dn::QkDeb.3pm
+Installing /home/david/data/computing/projects/utils/qk-deb/build/App-Dn-QkDeb-v0.8/debian/dn-qk-deb/usr/bin/dn-qk-deb
+   dh_installdocs
+   dh_installchangelogs
+   dh_installman
+   dh_perl
+   dh_link
+   dh_compress
+   dh_fixperms
+   dh_missing
+   dh_installdeb
+   dh_gencontrol
+   dh_md5sums
+   dh_builddeb
+dpkg-deb: building package 'dn-qk-deb' in '../dn-qk-deb_0.8-1_all.deb'.
+ dpkg-genbuildinfo --build=binary -O../dn-qk-deb_0.8-1_amd64.buildinfo
+ dpkg-genchanges --build=binary -O../dn-qk-deb_0.8-1_amd64.changes
+dpkg-genchanges: info: binary-only upload (no source code included)
+ dpkg-source -i --after-build .
+dpkg-buildpackage: info: binary-only upload (no source included)
+Now running lintian dn-qk-deb_0.8-1_amd64.changes ...
+Finished running lintian.

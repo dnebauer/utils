@@ -1,0 +1,55 @@
+Source: dn-qk-deb
+Maintainer: David Nebauer <david@nebauer.org>
+Section: utils
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               libmodule-build-tiny-perl,
+               perl (>= 5.38.0)
+Build-Depends-Indep: libconst-fast-perl <!nocheck>,
+                     libdpkg-perl (>= 1.22.6) <!nocheck>,
+                     libfile-chdir-perl <!nocheck>,
+                     libmoo-perl (>= 2.005005) <!nocheck>,
+                     libmoox-handlesvia-perl <!nocheck>,
+                     libmoox-options-perl <!nocheck>,
+                     libnamespace-clean-perl <!nocheck>,
+                     libstrictures-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libtype-tiny-perl (>= 2.004000) <!nocheck>,
+                     libtypes-dn-perl (>= 0.1) <!nocheck>,
+                     libtypes-path-tiny-perl <!nocheck>,
+                     libversion-perl <!nocheck>
+Standards-Version: 4.6.2
+Homepage: https://metacpan.org/release/App-Dn-QkDeb
+Rules-Requires-Root: no
+
+Package: dn-qk-deb
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         libconst-fast-perl,
+         libdpkg-perl (>= 1.22.6),
+         libfile-chdir-perl,
+         libmoo-perl (>= 2.005005),
+         libmoox-handlesvia-perl,
+         libmoox-options-perl,
+         libnamespace-clean-perl,
+         libstrictures-perl,
+         libtype-tiny-perl (>= 2.004000),
+         libtypes-dn-perl (>= 0.1),
+         libtypes-path-tiny-perl,
+         libversion-perl,
+         perl (>= 5.38.0)
+Description: quick and dirty debianisation of files
+ This script takes files and packages them into a deb. It will package script,
+ manpage, data, icon, desktop and configuration files. Only script and manpage
+ files are required. (Note: a manpage file is not required for a perl script
+  -- the manpage file is generated from perlscript pod.)
+ .
+ By default all the package files created by the build process will be saved:
+ deb, diff.gz, dsc and orig.tar.gz. Neither source package nor .changes file
+ will be cryptographically signed. Use of the '-d' option will result in only
+ the deb file being saved.
+ .
+ For a script library package the requirements for script and manpages files
+ are relaxed -- specify the library scripts as data files. They will be
+ installed to pkgdatadir, e.g., on Debian systems /usr/share/foo/.

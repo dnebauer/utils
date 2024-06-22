@@ -1,0 +1,7 @@
+dn-qk-deb (0.8-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 654082
+
+ -- David Nebauer <david@nebauer.org>  Sat, 22 Jun 2024 17:00:20 +0930

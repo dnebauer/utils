@@ -1,0 +1,23 @@
+Package: dn-qk-deb
+Version: 0.8-1
+Architecture: all
+Maintainer: David Nebauer <david@nebauer.org>
+Installed-Size: 146
+Depends: perl:any, libconst-fast-perl, libdpkg-perl (>= 1.22.6), libfile-chdir-perl, libmoo-perl (>= 2.005005), libmoox-handlesvia-perl, libmoox-options-perl, libnamespace-clean-perl, libstrictures-perl, libtype-tiny-perl (>= 2.004000), libtypes-dn-perl (>= 0.1), libtypes-path-tiny-perl, libversion-perl, perl (>= 5.38.0)
+Section: utils
+Priority: optional
+Homepage: https://metacpan.org/release/App-Dn-QkDeb
+Description: quick and dirty debianisation of files
+ This script takes files and packages them into a deb. It will package script,
+ manpage, data, icon, desktop and configuration files. Only script and manpage
+ files are required. (Note: a manpage file is not required for a perl script
+  -- the manpage file is generated from perlscript pod.)
+ .
+ By default all the package files created by the build process will be saved:
+ deb, diff.gz, dsc and orig.tar.gz. Neither source package nor .changes file
+ will be cryptographically signed. Use of the '-d' option will result in only
+ the deb file being saved.
+ .
+ For a script library package the requirements for script and manpages files
+ are relaxed -- specify the library scripts as data files. They will be
+ installed to pkgdatadir, e.g., on Debian systems /usr/share/foo/.
