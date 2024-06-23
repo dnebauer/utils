@@ -1,0 +1,8 @@
+46bf51b335bfdb7d8d621aaed54df5dc  usr/bin/dn-base64-image
+bef1275bcb7c1202f2023fcf18e3c0b8  usr/share/doc/dn-base64-image/changelog.Debian.gz
+9ffe305f1970e6b6ef81bc8423128914  usr/share/doc/dn-base64-image/changelog.gz
+0f7d67602c29fad9c665804f3d7ef874  usr/share/doc/dn-base64-image/copyright
+38ec84f42df621889456cc8234ade47a  usr/share/man/man1/dn-base64-image.1p.gz
+6c76742ea27874f6a54949777f35b2ac  usr/share/man/man3/App::Dn::Base64Image.3pm.gz
+ca7b7c3a91b2445da2211eb4f5dc5ff6  usr/share/perl5/App/Dn/Base64Image.pm
+fcee1e75032dc977ffa866a75746151b  usr/share/zsh/vendor-completions/_dn-base64-image

@@ -1,0 +1,15 @@
+#compdef dn-base64-image
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-f --image_file)'{-f,--image_file}'[Path to image file (string, required)]:file:_files' \
+    '(-m --mime_type)'{-m,--mime_type}'[Override autodetected mimetype (string, optional)]:mimetype:' \
+  && rc=0
+
+return rc

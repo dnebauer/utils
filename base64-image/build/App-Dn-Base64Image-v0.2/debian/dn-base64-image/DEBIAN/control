@@ -1,0 +1,12 @@
+Package: dn-base64-image
+Version: 0.2-1
+Architecture: all
+Maintainer: David Nebauer <david@nebauer.org>
+Installed-Size: 32
+Depends: perl:any, libconst-fast-perl, libfile-mimeinfo-perl (>= 0.35), libmoo-perl (>= 2.005005), libmoox-options-perl, libnamespace-clean-perl, libpath-tiny-perl (>= 0.144), libstrictures-perl, libtype-tiny-perl (>= 2.004000), libversion-perl, perl (>= 5.38.0)
+Section: utils
+Priority: optional
+Homepage: https://metacpan.org/release/App-Dn-Base64Image
+Description: provide data uri for an image
+ Create html element 'img' for an image using data uri with base64 encoding.
+ Encoded data is printed to stdout.

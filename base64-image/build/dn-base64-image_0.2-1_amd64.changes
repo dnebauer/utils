@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Sun, 23 Jun 2024 14:59:10 +0930
+Source: dn-base64-image
+Binary: dn-base64-image
+Architecture: all
+Version: 0.2-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-base64-image - provide data uri for an image
+Closes: 653897
+Changes:
+ dn-base64-image (0.2-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 653897
+Checksums-Sha1:
+ 20b9a3f0a9f7bef1e9e8637489252916469eace4 8372 dn-base64-image_0.2-1_all.deb
+ d4c8b4be0f08a8ed2b5c58a755c9eeda199989b6 9366 dn-base64-image_0.2-1_amd64.buildinfo
+Checksums-Sha256:
+ b7dfdd97cbf5e939404707afdf1436feef21450ca882b0e78aced0d31dcb7385 8372 dn-base64-image_0.2-1_all.deb
+ b3174b42724757a20d05cde60d5c58a358fd5e5c035431b388aab489b5c52f4c 9366 dn-base64-image_0.2-1_amd64.buildinfo
+Files:
+ 589a17f075ff0fc210443ed9f3dc5ea0 8372 utils optional dn-base64-image_0.2-1_all.deb
+ 4310b6f836eacff4da7a06eeaae197ff 9366 utils optional dn-base64-image_0.2-1_amd64.buildinfo

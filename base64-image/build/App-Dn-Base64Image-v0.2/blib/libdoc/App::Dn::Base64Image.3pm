@@ -54,22 +54,46 @@
 .rr rF
 .\" ========================================================================
 .\"
-.IX Title "DN-BASE64-IMAGE 1"
-.TH DN-BASE64-IMAGE 1 2024-03-09 "perl v5.38.2" "User Contributed Perl Documentation"
+.IX Title "App::Dn::Base64Image 3pm"
+.TH App::Dn::Base64Image 3pm 2024-06-23 "perl v5.38.2" "User Contributed Perl Documentation"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
 .nh
 .SH NAME
-dn\-base64\-image \- provide data uri for an image
-.SH USAGE
-.IX Header "USAGE"
-dn\-base64\-image [ \-m mime_type ] image_file
+App::Dn::Base64Image \- provide data uri for an image
+.SH VERSION
+.IX Header "VERSION"
+This documentation applies to App::Dn::Base64Image version 0.2.
+.SH SYNOPSIS
+.IX Header "SYNOPSIS"
+.Vb 1
+\&    use App::Dn::Base64Image;
+\&
+\&    App::Dn::Base64Image\->new_with_options\->run;
+.Ve
+.SH DESCRIPTION
+.IX Header "DESCRIPTION"
+Create html element 'img' for an image using data uri with base64 encoding.
+Encoded data is printed to stdout.
+.SH "CONFIGURATION AND ENVIRONMENT"
+.IX Header "CONFIGURATION AND ENVIRONMENT"
+.SS Properties
+.IX Subsection "Properties"
+None.
+.SS "Configuration files"
+.IX Subsection "Configuration files"
+None used.
+.PP
+\fIEnvironment variables\fR
+.IX Subsection "Environment variables"
+.PP
+None used.
 .SH OPTIONS
 .IX Header "OPTIONS"
-.IP "\fB\-i\fR | \fB\-\-image\fR image_file" 4
-.IX Item "-i | --image image_file"
-Image to convert. Filepath.
+.IP "\fB\-f\fR | \fB\-\-image_file\fR image_file" 4
+.IX Item "-f | --image_file image_file"
+Image to convert. Filepath (must exist).
 .Sp
 Required.
 .IP "\fB\-m\fR | \fB\-\-mime_type\fR mime_type" 4
@@ -80,19 +104,37 @@ Optional. Default: false.
 .IP \fB\-h\fR 4
 .IX Item "-h"
 Display help and exit.
-.SH DESCRIPTION
-.IX Header "DESCRIPTION"
-Create html element 'img' for an image using data uri with base64 encoding.
-.SH DEPENDENCIES
-.IX Header "DEPENDENCIES"
-autodie, Carp, Const::Fast, Cwd, File::MimeInfo, MIME::Base64, Moo,
-MooX::Options, namespace::clean, strictures, version.
+.SH SUBROUTINES/METHODS
+.IX Header "SUBROUTINES/METHODS"
+This is the only public method. It writes the html element to stdout.
+.SH DIAGNOSTICS
+.IX Header "DIAGNOSTICS"
+.SS "Invalid file path: FILEPATH"
+.IX Subsection "Invalid file path: FILEPATH"
+Occurs when an invalid image file path has been provided.
+.SS "Unable to determine image file mime type"
+.IX Subsection "Unable to determine image file mime type"
+Occurs when the module File::MimeInfo is unable to determine the mime type
+of the image file.
+.SS "Unable to encode image file"
+.IX Subsection "Unable to encode image file"
+Occurs when the module MIME::Base64 is unable to encode the raw content of
+the image file as <base\ 64.
+.SH INCOMPATIBILITIES
+.IX Header "INCOMPATIBILITIES"
+None known.
 .SH "BUGS AND LIMITATIONS"
 .IX Header "BUGS AND LIMITATIONS"
 Please report any bugs to the author.
+.SH DEPENDENCIES
+.IX Header "DEPENDENCIES"
+.SS "Perl modules"
+.IX Subsection "Perl modules"
+autodie, Carp, Const::Fast, File::MimeInfo, MIME::Base64, Moo, MooX::Options,
+namespace::clean, Path::Tiny, strictures, Types::Standard, version.
 .SH AUTHOR
 .IX Header "AUTHOR"
-David Nebauer <davidnebauer@hotkey.net.au>
+David Nebauer <david@nebauer.org>
 .SH "LICENSE AND COPYRIGHT"
 .IX Header "LICENSE AND COPYRIGHT"
 Copyright (c) 2024 David Nebauer <david@nebauer.org>
