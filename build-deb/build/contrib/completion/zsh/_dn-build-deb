@@ -1,0 +1,19 @@
+#compdef dn-build-deb
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-d --dist_build)'{-d,--dist_build}'[Skip distro build (flag)]' \
+    '(-e --maint_email)'{-e,--maint_email}'[Package maintainer email address (required if using -t)]:email:' \
+    '(-p --pkg_name)'{-p,--pkg_name}'[Package name (required if using -t)]:name:' \
+    '(-r --root_dir)'{-r,--root_dir}'[Build tree root dir (required if using -t)]:build tree root:root:_files -/' \
+    '(-t --template)'{-t,--template}'[Create empty project template (flag)]' \
+    '(-u --update)'{-u,--update}'[Update pkg versions in deb control file (flag)]' \
+  && rc=0
+
+return rc

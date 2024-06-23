@@ -1,0 +1,57 @@
+---
+abstract: 'generate deb package for project'
+author:
+  - 'David Nebauer (david at nebauer dot org)'
+build_requires:
+  Test::More: '0.96'
+configure_requires:
+  Module::Build::Tiny: '0.034'
+dynamic_config: 0
+generated_by: 'Dist::Milla version v1.0.22, Dist::Zilla version 6.031, CPAN::Meta::Converter version 2.150010'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: '1.4'
+name: App-Dn-BuildDeb
+no_index:
+  directory:
+    - eg
+    - examples
+    - inc
+    - share
+    - t
+    - xt
+requires:
+  Archive::Tar: '2.40'
+  Carp: '1.54'
+  Const::Fast: '0.014'
+  Dpkg::Version: v1.22.6
+  Email::Date::Format: '1.008'
+  Email::Valid: '1.204'
+  English: '1.11'
+  Feature::Compat::Try: '0.05'
+  File::Basename: '2.86'
+  File::Copy::Recursive: '0.45'
+  File::Find::Rule: '0.34'
+  File::Spec: '3.88'
+  File::chdir: '0.1008'
+  Moo: '2.005005'
+  MooX::HandlesVia: '0.001009'
+  MooX::Options: '4.103'
+  Path::Tiny: '0.144'
+  Term::Clui: '1.76'
+  Term::ReadKey: '2.38'
+  Types::Standard: '2.004000'
+  autodie: '2.36'
+  charnames: '1.50'
+  namespace::clean: '0.27'
+  perl: '5.038'
+  strictures: '2.000006'
+  version: '0.9930'
+version: v3.3
+x_contributors:
+  - 'David Nebauer <david@nebauer.org>'
+x_generated_by_perl: v5.38.2
+x_serialization_backend: 'YAML::Tiny version 1.74'
+x_spdx_expression: 'Artistic-1.0-Perl OR GPL-1.0-or-later'
+x_static_install: 1

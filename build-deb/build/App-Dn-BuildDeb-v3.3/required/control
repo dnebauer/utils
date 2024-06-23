@@ -1,0 +1,65 @@
+Source: dn-build-deb
+Maintainer: David Nebauer <david@nebauer.org>
+Section: perl
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               libmodule-build-tiny-perl,
+               perl (>= 5.38.0)
+Build-Depends-Indep: libconst-fast-perl <!nocheck>,
+                     libdpkg-perl (>= 1.22.6) <!nocheck>,
+                     libemail-date-format-perl (>= 1.008) <!nocheck>,
+                     libemail-valid-perl (>= 1.204) <!nocheck>,
+                     libfeature-compat-try-perl <!nocheck>,
+                     libfile-chdir-perl <!nocheck>,
+                     libfile-copy-recursive-perl <!nocheck>,
+                     libfile-find-rule-perl <!nocheck>,
+                     libmoo-perl (>= 2.005005) <!nocheck>,
+                     libmoox-handlesvia-perl <!nocheck>,
+                     libmoox-options-perl <!nocheck>,
+                     libnamespace-clean-perl <!nocheck>,
+                     libpath-tiny-perl (>= 0.144) <!nocheck>,
+                     libstrictures-perl <!nocheck>,
+                     libterm-clui-perl <!nocheck>,
+                     libterm-readkey-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libtype-tiny-perl (>= 2.004000) <!nocheck>,
+                     libversion-perl <!nocheck>
+Standards-Version: 4.6.2
+Homepage: https://metacpan.org/release/App-Dn-BuildDeb
+Rules-Requires-Root: no
+
+Package: dn-build-deb
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         autoconf (>= 2.71-3),
+         dh-make (>= 2.202402),
+         dpkg (>= 1.22.6),
+         dpkg-dev (>= 1.22.6),
+         libconst-fast-perl,
+         libdpkg-perl (>= 1.22.6),
+         libemail-date-format-perl (>= 1.008),
+         libemail-valid-perl (>= 1.204),
+         libfeature-compat-try-perl,
+         libfile-chdir-perl,
+         libfile-copy-recursive-perl,
+         libfile-find-rule-perl,
+         libmoo-perl (>= 2.005005),
+         libmoox-handlesvia-perl,
+         libmoox-options-perl,
+         libnamespace-clean-perl,
+         libpath-tiny-perl (>= 0.144),
+         libstrictures-perl,
+         libterm-clui-perl,
+         libterm-readkey-perl,
+         libtype-tiny-perl (>= 2.004000),
+         libversion-perl,
+         make (>= 4.3-4.1),
+         perl (>= 5.38.0),
+         sudo (>= 1.9.15p5-3+b1),
+         util-linux (>= 2.40.1-8.1)
+Description: generate deb package for project
+ This script builds a standard autotools project and then debianises it to
+ produce a .deb package file. It relies on the autotools project files and
+ debianisation files structured in a particular way (see /Source Project for
+ details).

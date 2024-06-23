@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Sun, 23 Jun 2024 23:50:41 +0930
+Source: dn-build-deb
+Binary: dn-build-deb
+Architecture: all
+Version: 3.3-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-build-deb - generate deb package for project
+Closes: 635635
+Changes:
+ dn-build-deb (3.3-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 635635
+Checksums-Sha1:
+ 79b4fd08f6344acedb5faeb3c1b6d1ad45f76b42 30336 dn-build-deb_3.3-1_all.deb
+ f58791fc90179e210fd46ee6ae5643cc0f32a9b1 9932 dn-build-deb_3.3-1_amd64.buildinfo
+Checksums-Sha256:
+ 0a788583bd5ae147961a2f2fcfd29c37b4c1b414d17557313dbf34a9453bec95 30336 dn-build-deb_3.3-1_all.deb
+ 9d5f6f87af5bd9ef23f64623d6307efca2fa6f6d375bb5c4fcdb9223325a92da 9932 dn-build-deb_3.3-1_amd64.buildinfo
+Files:
+ 30bebcc1dcda4c6bdb7be2ad70dea39c 30336 perl optional dn-build-deb_3.3-1_all.deb
+ a20109351e69ffeca7b81b1da60d5b5e 9932 perl optional dn-build-deb_3.3-1_amd64.buildinfo

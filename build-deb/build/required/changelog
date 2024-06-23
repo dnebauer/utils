@@ -1,0 +1,7 @@
+dn-build-deb (3.3-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 635635
+
+ -- David Nebauer <david@nebauer.org>  Sun, 23 Jun 2024 23:50:41 +0930

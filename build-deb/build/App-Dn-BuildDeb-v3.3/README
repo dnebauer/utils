@@ -1,0 +1,547 @@
+NAME
+
+    App::Dn::BuildDeb - generate deb package for project
+
+VERSION
+
+    This documentation is for App::Dn::BuildDeb version 3.3.
+
+SYNOPSIS
+
+        use App::Dn::BuildDeb;
+    
+        App::Dn::BuildDeb->new_with_options->run;
+
+DESCRIPTION
+
+    This script builds a standard autotools project and then debianises it
+    to produce a .deb package file. It relies on the autotools project
+    files and debianisation files structured in a particular way (see
+    "Source Project" for details).
+
+ Calling modes
+
+    This script can be called in three 'modes':
+
+    build
+
+      The default mode builds the project and debianises it. The -e and -p
+      options are required for this mode. The -r option is required unless
+      the script is run from the project's root directory, in which case it
+      can be omitted.
+
+    template
+
+      The template mode is activated by the -t option. In this mode a
+      project skeleton is created in the specified root directory. The -e
+      and -p options are required for this mode. The -r option is required
+      unless the script is run from the project's root directory, in which
+      case it can be omitted. The root directory must be empty.
+
+    update
+
+      The update mode is activated by the -u option. In this mode the
+      following versions in the debian-files/control file are updated to
+      the current versions:
+
+	* debian compatibility level (debhelper-compat), which is derived
+	from the current version of the debhelper package
+
+	* debian standards version, which is derived from the current
+	version of the debian-policy package
+
+	* any package versions in the Build-Depends and Depends fields.
+
+ Source Project
+
+    This script is intended to work with standard autotools-compliant
+    projects. The following directory structure is required:
+
+        <root>
+         |
+         |-- debianise
+         |   |
+         |   |-- debian-files
+         |   |
+         |   |-- scripts
+         |   |
+         |   `-- source
+         |
+         `-- tarball
+             |
+             |-- autotools
+             |
+             |-- build
+             |
+             |-- archive
+             |
+             `-- source
+
+    debianise
+
+      The debian build files.
+
+    debian
+
+      Debian control files to be copied in to the debian project file tree
+      when it is created. Some common files copied include changelog,
+      control, copyright and rules.
+
+    scripts
+
+      Any scripts required by the build process.
+
+      Traditionally contains a script called build-deb which invokes this
+      utility with the appropriate arguments.
+
+      Can also contain either or both of two customisation files that this
+      script will look for during the build process (see "Customising the
+      build process").
+
+    source
+
+      The source project is copied here, suitably altered and then the
+      debian package is built. The final debian package will be created in
+      this directory.
+
+    tarball
+
+      The source project files.
+
+    autotools
+
+      Files required by autotools.
+
+      These files are copied or symlinked to the build directory.
+
+      Some common autotools files include ChangeLog, Makefile.am and
+      configure.ac.
+
+    build
+
+      Where the distribution tarball is built.
+
+      This directory is emptied at the start of the debian build process.
+      Autotools files and source files are copied or symlinked from their
+      respective directories. Then the autotools are used to build the
+      tarball.
+
+    archive
+
+      Each time a distribution tarball is built a copy is stored in this
+      directory. The idea is to keep an archive of all versions of the
+      project.
+
+    source
+
+      Here the project source files are kept.
+
+ Build Process
+
+  Default build process
+
+    In the default build process the following steps are followed:
+
+      * Build a targzipped project distribution in the tarball/build
+      directory with the commands autoreconf, ./configure, and make dist.
+
+      * Copy the newly-created tarball to the debianise/source directory
+      and extract it in place.
+
+      * Perform initial initial debianisation with the command dh_make
+      --single --email <email> --file ../<targzip>.
+
+      where <email> is the email address provided as an argument to this
+      script and <targzip> is the project distribution file.
+
+      * The default debian control files in the debian subdirectory are
+      deleted and any customised debian control files in the
+      debianise/debian-files are copied into the debian subdirectory.
+
+      * The final package is built with the command dpkg-buildpackage
+      -rfakeroot -us -uc.
+
+  Customising the build process
+
+    The default build process provides no opportunities for performing
+    project-specific actions on the initial project source or debian
+    package source aside from controlling what control files are present in
+    a project's debianise/debian-files directory.
+
+    To enable this sort of customisation this script looks in the
+    debianise/scripts directory for the files tar-dir-prepare and
+    deb-dir-prepare:
+
+      * tar-dir-prepare: if this script is found and executable it will be
+      executed just before the autoreconf command is executed. The script
+      is executed in the tarball/build directory.
+
+      * deb-dir-prepare: if this script is found and executable it will be
+      executed immediately after any customised debian control files are
+      copied into the package source. The script is executed in the
+      debianise/source/<archive> directory, where <archive> is the top
+      level directory of the extracted tarball source distribution.
+
+CONFIGURATION AND ENVIRONMENT
+
+    There is no configuration of this script.
+
+    There are ways to customise the build process for a given project. See
+    "Customising the build process" for further details.
+
+OPTIONS
+
+    -d|--dist_build
+
+      Skip building of the targzipped project distribution and copying it
+      to the debianise/source directory (see "Build Process"). Instead
+      assume there is a single such file in that directory.
+
+      This option is designed for use when building a previous version of a
+      project from an archived distribution targzip file. If reverting to
+      an earlier version of the project, make sure debian control files
+      such as debian-files/changelog are consistent.
+
+      This option is ignored if the -t or -u options are used.
+
+      Boolean. Optional. Default: false.
+
+    -e|--maint_email val
+
+      Email address of the package maintainer.
+
+      Scalar string. Ignored if called with '-u' option, otherwise
+      required. No default.
+
+    -p|--pkg_name val
+
+      Package name.
+
+      Scalar string. Ignored if called with '-u' option, otherwise
+      required. No default.
+
+    -r|--root_dir val
+
+      The root directory of the source project.
+
+      Scalar string. Optional. Default: current working directory.
+
+    -t|--template
+
+      Create empty project template consisting of the required directories
+      (see "Source Project").
+
+      Also creates empty customisation files and a wrapper for this script.
+
+      Note the root directory must be empty if a project template is to be
+      created in it.
+
+      This option cannot be used with the -u option.
+
+      Boolean. Optional. Default: false.
+
+    -u|--update
+
+      Update package versions in the debian-files/control file.
+
+      This option cannot be used with the -t option.
+
+      Boolean. Optional. Default: false.
+
+    -h
+
+      Display help and exit.
+
+SUBROUTINES/METHODS
+
+ run()
+
+    This is the only public method. It builds the debian package.
+
+DIAGNOSTICS
+
+ Unable to archive tarball: ERROR
+
+    Occurs when an attempt to copy the distribution targzip archive to the
+    tarball/archive directory fails.
+
+ Unable to copy tarball to deb source dir: ERROR
+
+    Occurs when an attempt to copy the distribution targzip archive to the
+    debianise/source directory fails.
+
+ Expected 1 file in debianise/source, got X
+
+    Occurs when the script attempts to locate the distribution targzip
+    archive in the debianise/source directory. Because the directory was
+    cleared before the archive file was copied to it, it should contain
+    only one file.
+
+ Unable to extract source: ERROR
+
+    Occurs when an attempt to unarchive the targzip distribution archive
+    fails.
+
+ Expected 1 directory, got X
+
+    After extracting the targzip distribution archive there should be a
+    single project directory in debianise/source containing the extracted
+    project files. This error occurs if debianise/source contains more than
+    one subdirectory or contains no subdirectories.
+
+ Expected 1 'debian' child, got X
+
+ 'debian' is not a directory
+
+ Unable to copy custom debian files: ERROR
+
+    These errors occur during the script's attempt to copy custom control
+    files from the debianise/debian directory to the debian subdirectory of
+    the project files extracted into the debianise/source directory. An
+    error can occur if no debian subdirectory is located (or is a file
+    instead of a directory). An error can also occur if the copying
+    operation fails.
+
+ Expected 1 package file, got X
+
+ PKG_NAME is not a file
+
+    After building the debian package there should be a single .deb file in
+    the debianise/source directory. An error occurs if there is no such
+    file or there are multiple such files. An error also occurs if the file
+    is present but it is not a regular/plain file.
+
+ Invalid directory: is OBJECT_TYPE
+
+ Invalid directory: is REF_TYPE
+
+ Unable to determine directory path
+
+    During the build process the script deletes the contents of both the
+    tarball/build and debianise/source directories. These errors occur if
+    the parameter passed to the method performing the deletion cannot be
+    interpreted as a valid directory. These errors occur because of
+    programming mistakes rather than system errors.
+
+ Tried to delete X items, deleted Y
+
+    During the build process the script deletes the contents of both the
+    tarball/build and debianise/source directories. This error occurs if,
+    in either case, the number of files and subdirectories deleted is less
+    than the total number of files and subdirectories initially detected.
+
+ No command provided
+
+    Occurs if the role method that runs shell commands, run_command, is
+    called without a command parameter. This reflects a programming mistake
+    rather than a system error.
+
+ Terminal < TERM_MIN_WIDTH chars(X)
+
+    Occurs if the terminal width is less than ten columns.
+
+ No content provided
+
+ Content not an array
+
+ No file provided
+
+ Invalid file: is OBJECT_TYPE
+
+ Invalid file: is REF_TYPE
+
+ Unable to determine destination file path
+
+    There are numerous occasions when this script writes a file to
+    permanent storage. All such tasks are delegated to a single method.
+    These errors occur when the parameters passed to the method are
+    invalid. They are most likely cause by programming mistakes rather than
+    system errors or data malformation.
+
+ Unable to write to 'FILEPATH': ERROR
+
+ Unable to modify permissions of 'FILEPATH': ERROR
+
+    There are numerous occasions when this script writes a file to
+    permanent storage. These errors occur when the file write or permission
+    change operations fail.
+
+ Unable to copy into build directory: ERROR
+
+    Occurs when an attempt to copy the contents of the tarball/source and
+    tarball/autotools directories into the tarball/build directory fails.
+
+ Cannot locate 'build/configure' file
+
+    During the project build a configure file should be created in the
+    tarball/build directory. This error occurs if that file cannot be
+    located.
+
+ Expected 1 '.tar.gz' file, got X
+
+    The autotools project build process should create a single .tar.gz
+    distribution archive in the tarball/build directory. This error occurs
+    if more than one such file is found, or if no such file is found.
+
+ Version mismatch between configure.ac and changelog
+
+ Unable to extract version from configure.ac and changelog
+
+ Extracted version 'VERSION' from changelog, but unable...
+
+ Extracted version 'VERSION' from configure.ac, but unable...
+
+ Help! Current version VERSION is invalid!
+
+ Unable to extract version from configure.ac
+
+ Unable to extract version from changelog
+
+    When the script 'bumps' the package version number it must be changed
+    in the tarball/autotools/configure.ac and
+    debianise/debian-files-changelog files. This involves extracting the
+    existing versions from both files before changing them in place. These
+    errors occur when extracting and comparing the existing package
+    versions in these files.
+
+ Invalid version: VERSION
+
+ New version cannot be lower than current version
+
+    When the script 'bumps' the package version number the user enters the
+    new version number. These errors occur if the new version is invalid,
+    or less than or equal to the current version.
+
+ Project root directory is not empty: DIR
+
+    Occurs if the script is called in template mode but the specified
+    project root directory is not empty.
+
+ Project root 'DIR' is not a directory
+
+    Occurs if an invalid project root directory is specified.
+
+ Invalid maintainer email address: EMAIL
+
+    Occurs if no maintainer email value is provided or if an invalid email
+    address is provided.
+
+ Cannot use both -t and -u
+
+    Occurs if both -t and -u options are used. Only one of these options
+    can be used when calling this script.
+
+ -t option requires OPTS
+
+    If the -t option is used then both the -e and -p options must be used
+    as well. This error occurs if either or both options are omitted.
+
+ Building debian package requires OPTS
+
+    If the script is called in 'build' mode it requires both the -e and -p
+    options be used. This error occurs if either or both options are
+    omitted.
+
+ Missing tarball/archive directory, perhaps '-t' is missing?
+
+ Missing tarball/autotools directory, perhaps '-t' is missing?
+
+ Missing tarball/build directory, perhaps '-t' is missing?
+
+ Missing tarball/source directory, perhaps '-t' is missing?
+
+ Missing debianise/debian-files directory, perhaps '-t' is missing?
+
+ Missing debianise/scripts directory, perhaps '-t' is missing?
+
+ Missing debianise/source directory, perhaps '-t' is missing?
+
+    Occurs if this directory cannot be located and the script was called in
+    'build' or 'update' mode.
+
+ Missing BUILD-DEB_PATH, perhaps '-t' is missing?
+
+ Missing CHANGELOG_PATH, perhaps '-t' is missing?
+
+ Missing CONFIGURE.AC_PATH, perhaps '-t' is missing?
+
+    Occurs if this file cannot be located and the script was called in
+    'build' or 'update' mode.
+
+ Unable to get version of package: PKG
+
+ Unable to get version of package PKG: ERROR
+
+ Unable to extract version information for package PKG
+
+ Unable to extract PKG version from OUTPUT
+
+ Package PKG has invalid version: VERSION
+
+    These errors can occur when attempting to extract package version
+    number from dpkg output.
+
+ Unable to extract debhelper major version number from version: VERSION
+
+    Occurs if the major version number of the debhelper debian package
+    cannot be extracted from its full version number.
+
+ Unable to extract 3-part version from VERSION
+
+    Occurs if a 3-part version (X.Y.Z) cannot be extracted from the full
+    version of the debian-policy debian package.
+
+ Unable to extract 'Build-Depends' field value
+
+ Unable to extract 'Depends' field value
+
+    Occurs when the script is unable to extract data fields from the debian
+    control file using regular expression matching.
+
+ Unable to extract package name and version from control file data...
+
+    Occurs when the script is unable to parse extracted data fields from
+    the debian control file in order to extract package names and versions.
+
+ Invalid existing standards version: VERSION
+
+ Invalid current standards version: VERSION
+
+    These errors occur when the debian standards version extracted from the
+    debian control file or the debian-policy package are found to be
+    invalid.
+
+INCOMPATIBILITIES
+
+    There are no known incompatibilities.
+
+BUGS AND LIMITATIONS
+
+    Please report any bugs to the author.
+
+DEPENDENCIES
+
+ Perl modules
+
+    Archive::Tar, autodie, Carp, charnames, Const::Fast, Dpkg::Version,
+    Email::Date::Format, Email::Valid, English, Feature::Compat::Try,
+    File::Basename, File::Copy::Recursive, File::Find::Rule, File::Spec,
+    File::chdir, Moo, MooX::HandlesVia, MooX::Options, namespace::clean,
+    Path::Tiny, strictures, Term::Clui, Term::ReadKey, Types::Standard,
+    version.
+
+ Executables
+
+    autoreconf, dh_make, dpkg, dpkg-buildpackage, make, su, sudo.
+
+AUTHOR
+
+    David Nebauer (david at nebauer dot org)
+
+LICENSE AND COPYRIGHT
+
+    Copyright (c) 2024 David Nebauer (david at nebauer dot org)
+
+    This script is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
