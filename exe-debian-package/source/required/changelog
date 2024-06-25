@@ -1,0 +1,7 @@
+dn-exe-debian-package (0.4-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 682443
+
+ -- David Nebauer <david@nebauer.org>  Tue, 25 Jun 2024 22:12:30 +0930

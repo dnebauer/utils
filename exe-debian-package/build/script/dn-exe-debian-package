@@ -1,0 +1,122 @@
+#!/usr/bin/perl
+
+use Moo;
+use strictures 2;
+use 5.006;
+use 5.038_001;
+use version; our $VERSION = qv('0.4');
+use namespace::clean;
+use App::Dn::ExeDebPkg;
+
+App::Dn::ExeDebPkg->new_with_options->run;
+
+# POD
+
+__END__
+
+=head1 NAME
+
+dn-exe-debian-package - find debian package providing executable
+
+=head1 USAGE
+
+B<dn-exe-debian-package > -e executable
+
+B<dn-exe-debian-package -h>
+
+=head1 DESCRIPTION
+
+Finds the debian package providing the executable file name and displays
+information about the executable file and debian package.
+
+The output of a successful invocation looks like:
+
+    Executable name:     EXE_NAME
+    Executable filepath: /EXE/FILE/PATH
+    Debian package:      DEBIAN_PACKAGE_NAME
+
+=head1 CONFIGURATION
+
+This script uses no configuration files or environmental variables.
+
+=head1 REQUIRED ARGUMENTS
+
+None.
+
+=head1 OPTIONS
+
+=head2 -e | --exe S<< <exe_name> >>
+
+The executable to analyse. Scalar string executable file name (must exist).
+Required.
+
+=head2 -h | --help
+
+Display help and exit.
+
+=head1 EXIT STATUS
+
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly
+the error code is that given by the system.=head1 DEPENDENCIES
+
+=head1 DIAGNOSTICS
+
+=head2 Command 'CMD' failed
+
+If the C<dpkg> command used to find the debian package name fails, one of two
+things will happen:
+
+=over
+
+=item *
+
+If the command failed without an error message then this message is displayed
+
+=item *
+
+If the command failed with an error message that error message is displayed.
+
+=back
+
+=head2 Unexpected output 'OUTPUT'
+
+If the C<dpkg> command used to find the debian package name succeeds but
+produces more than 1 line of standard output, the program display the output
+and halts with an error status.
+
+Before displaying the output all newlines in it are converted to vertical bars
+("|").
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+App::Dn::ExeDebPkg, Moo, namespace::clean, strictures, version.
+
+=head2 Executables
+
+dpkg.
+
+=head1 AUTHOR
+
+David Nebauer S<< <david at nebauer dot org> >>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2024 David Nebauer S<< <david at nebauer dot org> >>
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+# vim:foldmethod=marker:

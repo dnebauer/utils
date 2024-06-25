@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Tue, 25 Jun 2024 22:12:30 +0930
+Source: dn-exe-debian-package
+Binary: dn-exe-debian-package
+Architecture: all
+Version: 0.4-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-exe-debian-package - find debian package providing executable
+Closes: 682443
+Changes:
+ dn-exe-debian-package (0.4-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 682443
+Checksums-Sha1:
+ d2b4fdc6444cab232db4ab57aae3895802a4de39 8840 dn-exe-debian-package_0.4-1_all.deb
+ fba65e533730fedf4920adc07e9c301422a0bd05 12914 dn-exe-debian-package_0.4-1_amd64.buildinfo
+Checksums-Sha256:
+ f1a7081a519e0c5ff18e585f2eab2b060f7c890eb6080ec1f07fa955a31dab97 8840 dn-exe-debian-package_0.4-1_all.deb
+ 4a8a7891157ff74d6dba69c74d43928cf7aba5ab747bcfbbd73aca9a875a1dc0 12914 dn-exe-debian-package_0.4-1_amd64.buildinfo
+Files:
+ d4c72fbe55b5a928a11380c1e7b22b06 8840 utils optional dn-exe-debian-package_0.4-1_all.deb
+ a40c9879785ba965adeace36e2b7c663 12914 utils optional dn-exe-debian-package_0.4-1_amd64.buildinfo

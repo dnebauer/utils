@@ -1,0 +1,44 @@
+Source: dn-exe-debian-package
+Maintainer: David Nebauer <david@nebauer.org>
+Section: utils
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               libmodule-build-tiny-perl,
+               perl (>= 5.38.0)
+Build-Depends-Indep: libconst-fast-perl <!nocheck>,
+                     libmoo-perl (>= 2.005005) <!nocheck>,
+                     libmoox-options-perl <!nocheck>,
+                     libnamespace-clean-perl <!nocheck>,
+                     librole-utils-dn-perl (>= 0.4) <!nocheck>,
+                     libstrictures-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libtype-tiny-perl (>= 2.004000) <!nocheck>,
+                     libversion-perl <!nocheck>
+Standards-Version: 4.6.2
+Homepage: https://metacpan.org/release/App-Dn-ExeDebPkg
+Rules-Requires-Root: no
+
+Package: dn-exe-debian-package
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         libconst-fast-perl,
+         libmoo-perl (>= 2.005005),
+         libmoox-options-perl,
+         libnamespace-clean-perl,
+         librole-utils-dn-perl (>= 0.4),
+         libstrictures-perl,
+         libtype-tiny-perl (>= 2.004000),
+         libversion-perl,
+         perl (>= 5.38.0)
+Description: find debian package providing executable
+ Finds the debian package providing the executable file name and displays
+ information about the executable file and debian package.
+ .
+ The output of a successful invocation looks like:
+ .
+ Executable name: EXE_NAME
+ .
+ Executable filepath: /EXE/FILE/PATH
+ .
+ Debian package: DEBIAN_PACKAGE_NAME
