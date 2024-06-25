@@ -1,8 +1,8 @@
-041438a965b490cd2b6e1895ad0e5f4f  usr/bin/dn-exe-debian-package
+4695618b37c120759644d17eea047b6f  usr/bin/dn-exe-debian-package
 9e9dd4a043d8561c4cafb81be745ddee  usr/share/doc/dn-exe-debian-package/changelog.Debian.gz
 13311b94659776789e119329a95f4d2c  usr/share/doc/dn-exe-debian-package/changelog.gz
 9d096ca4a5c502d9a247a442de6938f1  usr/share/doc/dn-exe-debian-package/copyright
-b08c88320a0c578fa25a12b93cb8c33b  usr/share/man/man1/dn-exe-debian-package.1p.gz
-8d7abca66d5dd913cdb2283eec38cf85  usr/share/man/man3/App::Dn::ExeDebPkg.3pm.gz
-0355edfdbd1491b481247e2b3422b3a4  usr/share/perl5/App/Dn/ExeDebPkg.pm
+47119d04d38fdeb8b88a245654ce2349  usr/share/man/man1/dn-exe-debian-package.1p.gz
+35749d8c708e579cac228f7dca6432a7  usr/share/man/man3/App::Dn::ExeDebPkg.3pm.gz
+ba2b7cf08f68bbe4d2a375804aba7e9a  usr/share/perl5/App/Dn/ExeDebPkg.pm
 e82a373562c9fc9d501bcb255adcfdd1  usr/share/zsh/vendor-completions/_dn-exe-debian-package

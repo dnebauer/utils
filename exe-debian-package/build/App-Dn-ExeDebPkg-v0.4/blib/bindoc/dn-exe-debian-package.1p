@@ -89,8 +89,7 @@ None.
 .IX Header "OPTIONS"
 .SS "\-e | \-\-exe <exe_name>"
 .IX Subsection "-e | --exe <exe_name>"
-The executable to analyse. Scalar string executable file name (must exist).
-Required.
+The executable to analyse. Scalar string executable file name. Required.
 .SS "\-h | \-\-help"
 .IX Subsection "-h | --help"
 Display help and exit.

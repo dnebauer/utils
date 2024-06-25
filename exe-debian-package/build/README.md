@@ -41,8 +41,7 @@ None used.
 
 ## -e | --exe &lt;exe\_name>
 
-The executable to analyse. Scalar string executable file name (must exist).
-Required.
+The executable to analyse. Scalar string executable file name. Required.
 
 ## -h | --help
 

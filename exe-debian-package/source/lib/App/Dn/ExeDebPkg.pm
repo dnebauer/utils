@@ -181,8 +181,7 @@ None used.
 
 =head2 -e | --exe S<< <exe_name> >>
 
-The executable to analyse. Scalar string executable file name (must exist).
-Required.
+The executable to analyse. Scalar string executable file name. Required.
 
 =head2 -h | --help
 
