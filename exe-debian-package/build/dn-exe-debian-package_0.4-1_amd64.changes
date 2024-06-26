@@ -18,11 +18,11 @@ Changes:
    * Initial release
    * Closes: 682443
 Checksums-Sha1:
- 7883f7afa2ee4031b1e608fcc7e9ae1bdb5cb16f 8816 dn-exe-debian-package_0.4-1_all.deb
- b80cab5ca67d57ab12452c65048dbabe154a024e 12914 dn-exe-debian-package_0.4-1_amd64.buildinfo
+ 11ef929e7d150b53e859a1e7eaa49c280bc9477d 8828 dn-exe-debian-package_0.4-1_all.deb
+ 17a717e064623f95ee01f4b44611ebe9383e5eec 12928 dn-exe-debian-package_0.4-1_amd64.buildinfo
 Checksums-Sha256:
- 5f5890ce187d46e1604aad047c0d3e9ef16b49539e69d581bdb97d3cfb14affd 8816 dn-exe-debian-package_0.4-1_all.deb
- ff4a7d46c5e60d7cf8b36beb8038fcb63c25e1e01fb4c9f9964107830d1d10dd 12914 dn-exe-debian-package_0.4-1_amd64.buildinfo
+ a36ebc6af1ad8ab05067669f1189c1bdf14a0706f572ff0f49b75134dae6dc94 8828 dn-exe-debian-package_0.4-1_all.deb
+ 801a9a41a2aebd9318f7208bfbfc5f6431f41765b9e0d2feb777c79da7a34c18 12928 dn-exe-debian-package_0.4-1_amd64.buildinfo
 Files:
- 55faa5066afeae3c0ae1e080dd395fd3 8816 utils optional dn-exe-debian-package_0.4-1_all.deb
- 62ae5106aeb51732ad5a44a863a81085 12914 utils optional dn-exe-debian-package_0.4-1_amd64.buildinfo
+ dc4b98237fd752a8c5d323875a422072 8828 utils optional dn-exe-debian-package_0.4-1_all.deb
+ 3f5437171b4108393d51adc5fbf5573f 12928 utils optional dn-exe-debian-package_0.4-1_amd64.buildinfo

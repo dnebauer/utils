@@ -22,6 +22,7 @@ Package: dn-exe-debian-package
 Architecture: all
 Depends: ${misc:Depends},
          ${perl:Depends},
+         dpkg (>= 1.22.6),
          libconst-fast-perl,
          libmoo-perl (>= 2.005005),
          libmoox-options-perl,
