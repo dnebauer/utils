@@ -1,0 +1,53 @@
+Source: dn-mp3-library-analyse
+Maintainer: David Nebauer <david@nebauer.org>
+Section: utils
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               libmodule-build-tiny-perl,
+               perl (>= 5.38.0)
+Build-Depends-Indep: libconst-fast-perl <!nocheck>,
+                     libencode-perl (>= 3.21) <!nocheck>,
+                     liblog-log4perl-perl (>= 1.57) <!nocheck>,
+                     libmoo-perl (>= 2.005005) <!nocheck>,
+                     libmoox-options-perl <!nocheck>,
+                     libnamespace-clean-perl <!nocheck>,
+                     libpath-iterator-rule-perl (>= 1.015) <!nocheck>,
+                     librole-utils-dn-perl (>= 0.4) <!nocheck>,
+                     libstrictures-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libtype-tiny-perl (>= 2.004000) <!nocheck>,
+                     libversion-perl <!nocheck>
+Standards-Version: 4.6.2
+Homepage: https://metacpan.org/release/App-Dn-Mp3LibAnalyse
+Rules-Requires-Root: no
+
+Package: dn-mp3-library-analyse
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         id3v2 (>= 0.1.12+dfsg-7),
+         libconst-fast-perl,
+         libencode-perl (>= 3.21),
+         liblog-log4perl-perl (>= 1.57),
+         libmoo-perl (>= 2.005005),
+         libmoox-options-perl,
+         libnamespace-clean-perl,
+         libpath-iterator-rule-perl (>= 1.015),
+         librole-utils-dn-perl (>= 0.4),
+         libstrictures-perl,
+         libtype-tiny-perl (>= 2.004000),
+         libversion-perl,
+         perl (>= 5.38.0)
+Description: analyse mp3 files recursively
+ Search the current directory recursively for subdirectories that contain mp3
+ audio files. For each of those (sub)directories perform an analysis
+ determined by the -a option. All subdirectories meeting the criteria of the
+ analysis are printed to stdout, one per line.
+ .
+ If the -l flag is used then feedback is logged to a log file. A file path to
+ the log file can be specified with the -f option. If no file path is
+ provided, the default log file path ~/tmp/dn-mp3-library-analyse.log is used.
+ If the directory component of the log file path is not present, the script
+ exits with a fatal error.
+ .
+ The exact feedback written to the log file depends on the analysis performed.

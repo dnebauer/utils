@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Wed, 26 Jun 2024 21:45:49 +0930
+Source: dn-mp3-library-analyse
+Binary: dn-mp3-library-analyse
+Architecture: all
+Version: 0.6-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-mp3-library-analyse - analyse mp3 files recursively
+Closes: 624308
+Changes:
+ dn-mp3-library-analyse (0.6-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 624308
+Checksums-Sha1:
+ 6e88cd043953aecebd00a044c908f2517d1e5f42 12096 dn-mp3-library-analyse_0.6-1_all.deb
+ 5caa319fd3ff0dbc936dd689ce90cd593ceef111 13011 dn-mp3-library-analyse_0.6-1_amd64.buildinfo
+Checksums-Sha256:
+ 569776669b988262b0f784871da3334654b1eb49a76c54f9077ca5a1029acb5f 12096 dn-mp3-library-analyse_0.6-1_all.deb
+ 3beead1c0afc8cc7a8a5a09ac20475b1b24f6d96516d36a1d5dec905dbb12455 13011 dn-mp3-library-analyse_0.6-1_amd64.buildinfo
+Files:
+ 04d805242fd44373bbcd7397170f42dc 12096 utils optional dn-mp3-library-analyse_0.6-1_all.deb
+ 05964c58397f3fb1f5d1e2b5285c71dd 13011 utils optional dn-mp3-library-analyse_0.6-1_amd64.buildinfo

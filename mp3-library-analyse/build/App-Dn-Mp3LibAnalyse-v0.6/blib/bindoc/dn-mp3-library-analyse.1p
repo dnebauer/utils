@@ -54,8 +54,8 @@
 .rr rF
 .\" ========================================================================
 .\"
-.IX Title "DN-MP3-LIBRARY-ANALYSE 1"
-.TH DN-MP3-LIBRARY-ANALYSE 1 2024-03-16 "perl v5.38.2" "User Contributed Perl Documentation"
+.IX Title "DN-MP3-LIBRARY-ANALYSE 1p"
+.TH DN-MP3-LIBRARY-ANALYSE 1p 2024-06-26 "perl v5.38.2" "User Contributed Perl Documentation"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -67,36 +67,17 @@ dn\-mp3\-library\-analyse \- analyse mp3 files recursively
 \&\fBdn\-mp3\-library\-analyse\fR \fB\-a\fR \fIanalysis\fR [\fB\-l\fR] [\fB\-f\fR \fIlogfile\fR]
 .PP
 \&\fBdn\-mp3\-library\-analyse \-h\fR
-.SH "REQUIRED ARGUMENTS"
-.IX Header "REQUIRED ARGUMENTS"
-There are no required arguments.
-.SH OPTIONS
-.IX Header "OPTIONS"
-.IP "\fB\-a\fR  \fB\-\-analyse\fR" 4
-.IX Item "-a --analyse"
-The analysis to perform on the mp3 audio files. Valid keywords:
-\&'missing_key_tags'. Required.
-.IP "\fB\-f\fR  \fB\-\-log_file\fR" 4
-.IX Item "-f --log_file"
-Path to log file. Directory part of path must exist. Optional.
-.IP "\fB\-l\fR  \fB\-\-use_logger\fR" 4
-.IX Item "-l --use_logger"
-Output feedback to a log file. Default: \fI~/tmp/dn\-mp3\-library\-analyse.log\fR.
-Optional.
-.IP \fB\-h\fR 4
-.IX Item "-h"
-Display help and exit.
 .SH DESCRIPTION
 .IX Header "DESCRIPTION"
 Search the current directory recursively for subdirectories that contain mp3
 audio files. For each of those (sub)directories perform an analysis determined
 by the \f(CW\*(C`\-a\*(C'\fR option. All subdirectories meeting the criteria of the analysis
-are printed to STDOUT, one per line.
+are printed to stdout, one per line.
 .PP
 If the \f(CW\*(C`\-l\*(C'\fR flag is used then feedback is logged to a log file. A file path to
 the log file can be specified with the \f(CW\*(C`\-f\*(C'\fR option. If no file path is
-provided, the default log file path \fI~/tmp/dn\-mp3\-library\-analyse.log\fR is
-used. If the directory component of the log file path is not present, the
+provided, the default log file path \fI~/tmp/dn\-mp3\-library\-analyse.log\fR
+is used. If the directory component of the log file path is not present, the
 script exits with a fatal error.
 .PP
 The exact feedback written to the log file depends on the analysis performed.
@@ -115,10 +96,38 @@ form:
 \&      \- d2_11_audio\-file\-name.mp3
 \&        . genre, track
 .Ve
+.SH CONFIGURATION
+.IX Header "CONFIGURATION"
+There is no configuration for this script.
+.SH "REQUIRED ARGUMENTS"
+.IX Header "REQUIRED ARGUMENTS"
+There are no required arguments.
+.SH OPTIONS
+.IX Header "OPTIONS"
+.SS "\-a | \-\-analyse <ANALYSIS>"
+.IX Subsection "-a | --analyse <ANALYSIS>"
+The analysis to perform on the mp3 audio files. Valid analysis types:
+\&'missing_key_tags'. Required.
+.SS "\-f | \-\-log_file <LOG_FILE_PATH>"
+.IX Subsection "-f | --log_file <LOG_FILE_PATH>"
+Path to log file. Directory part of path must exist. Optional. Default:
+\&\fI~/tmp/dn\-mp3\-library\-analyse.log\fR
+.SS "\-l | \-\-use_logger"
+.IX Subsection "-l | --use_logger"
+Output feedback to a log file. Optional. Default:
+\&\fI~/tmp/dn\-mp3\-library\-analyse.log\fR.
+.SS "\-h | \-\-help"
+.IX Subsection "-h | --help"
+Display help and exit. Optional.
+.SH "EXIT STATUS"
+.IX Header "EXIT STATUS"
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly
+the error code is that given by the system.
 .SH DIAGNOSTICS
 .IX Header "DIAGNOSTICS"
-.SS "Invalid analysis: \fIanalysis\fP"
-.IX Subsection "Invalid analysis: analysis"
+.SS "Invalid analysis: ANALYSIS"
+.IX Subsection "Invalid analysis: ANALYSIS"
 Occurs when an invalid analysis keyword is provided to the \f(CW\*(C`\-a\*(C'\fR option.
 .SS "No analysis specified"
 .IX Subsection "No analysis specified"
@@ -129,6 +138,12 @@ Occurs when no argument is provided to an option that requires one.
 .SS "Unknown option: \fIx\fP"
 .IX Subsection "Unknown option: x"
 Occurs when an invalid option is supplied.
+.SH INCOMPATIBILITIES
+.IX Header "INCOMPATIBILITIES"
+There are no known incompatibilities.
+.SH "BUGS AND LIMITATIONS"
+.IX Header "BUGS AND LIMITATIONS"
+Please report any bugs to the author.
 .SH DEPENDENCIES
 .IX Header "DEPENDENCIES"
 .SS "Perl modules"
@@ -139,30 +154,12 @@ strictures, Types::Standard, version.
 .SS Executables
 .IX Subsection "Executables"
 id3v2.
-.SH CONFIGURATION
-.IX Header "CONFIGURATION"
-There is no configuration for this script.
-.SH "EXIT STATUS"
-.IX Header "EXIT STATUS"
-This script exits with a successful status unless a fatal error has been
-thrown by:
-.IP \(bu 4
-the script, in which case it exits with error code 1
-.IP \(bu 4
-an underlying module or by the operating system, in which case it exits
-with the underlying error code.
-.SH "BUGS AND LIMITATIONS"
-.IX Header "BUGS AND LIMITATIONS"
-Please report any bugs to the author.
-.SH INCOMPATIBILITIES
-.IX Header "INCOMPATIBILITIES"
-There are no known incompatibilities.
 .SH AUTHOR
 .IX Header "AUTHOR"
-David Nebauer (david at nebauer dot org)
+David Nebauer <david\ at\ nebauer\ dot\ org>
 .SH "LICENSE AND COPYRIGHT"
 .IX Header "LICENSE AND COPYRIGHT"
-Copyright (c) 2021 David Nebauer (david at nebauer dot org)
+Copyright (c) 2024 David Nebauer <david\ at\ nebauer\ dot\ org>
 .PP
 This script is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.

@@ -1,0 +1,23 @@
+#compdef dn-mp3-library-analyse
+
+_analyses() {
+    local -a _analyses
+    _analyses=(missing_key_tags)
+    _values 'Mp3 file analyses' "${_analyses[@]}"
+}
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '-h[Show a compact help message]' \
+    '--help[Show a long help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-a --analysis)'{-a,--analysis}'[Mp3 file analysis (string, required)]:analyses:_analyses' \
+    '(-f --log_file)'{-f,--log_file}'[Log file path (filepath, optional)]:files:_files' \
+    '(-l --use_logger)'{-l,--use_logger}'[Output to log file (flag)]' \
+  && rc=0
+
+return rc

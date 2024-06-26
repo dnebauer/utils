@@ -1,0 +1,142 @@
+#!/usr/bin/perl
+
+use Moo;
+use strictures 2;
+use 5.006;
+use 5.038_001;
+use version; our $VERSION = qv('0.6');
+use namespace::clean;
+use App::Dn::Mp3LibAnalyse;
+
+App::Dn::Mp3LibAnalyse->new_with_options->run;
+
+# POD    {{{1
+
+__END__
+
+=head1 NAME
+
+dn-mp3-library-analyse - analyse mp3 files recursively
+
+=head1 USAGE
+
+B<dn-mp3-library-analyse> B<-a> I<analysis> [B<-l>] [B<-f> I<logfile>]
+
+B<dn-mp3-library-analyse -h>
+
+=head1 DESCRIPTION
+
+Search the current directory recursively for subdirectories that contain mp3
+audio files. For each of those (sub)directories perform an analysis determined
+by the C<-a> option. All subdirectories meeting the criteria of the analysis
+are printed to stdout, one per line.
+
+If the C<-l> flag is used then feedback is logged to a log file. A file path to
+the log file can be specified with the C<-f> option. If no file path is
+provided, the default log file path S<< F<~/tmp/dn-mp3-library-analyse.log> >>
+is used. If the directory component of the log file path is not present, the
+script exits with a fatal error.
+
+The exact feedback written to the log file depends on the analysis performed.
+
+=head2 Analysis: missing_key_tags
+
+If this analysis is selected each (sub)directory is scanned for mp3 audio files
+missing any of the following id3v2 tags: album art (APIC), album (TALB), genre
+(TCON), title (TIT2), artist (TPE1), and track (TRCK). Directories meeting this
+criteria are output to stdout. The feedback written to the log file is of the
+form:
+
+    /full/path/to/directory:
+      - d1_01_audio-file-name.mp3
+        . album_art, album, artist, genre, title, track
+      - d2_11_audio-file-name.mp3
+        . genre, track
+
+=head1 CONFIGURATION
+
+There is no configuration for this script.
+
+=head1 REQUIRED ARGUMENTS
+
+There are no required arguments.
+
+=head1 OPTIONS
+
+=head2 -a | --analyse S<< <ANALYSIS> >>
+
+The analysis to perform on the mp3 audio files. Valid analysis types:
+'missing_key_tags'. Required.
+
+=head2 -f | --log_file S<< <LOG_FILE_PATH> >>
+
+Path to log file. Directory part of path must exist. Optional. Default:
+S<< F<~/tmp/dn-mp3-library-analyse.log> >>
+
+=head2 -l | --use_logger
+
+Output feedback to a log file. Optional. Default:
+S<< F<~/tmp/dn-mp3-library-analyse.log> >>.
+
+=head2 -h | --help
+
+Display help and exit. Optional.
+
+=head1 EXIT STATUS
+
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly
+the error code is that given by the system.
+
+=head1 DIAGNOSTICS
+
+=head2 Invalid analysis: ANALYSIS
+
+Occurs when an invalid analysis keyword is provided to the C<-a> option.
+
+=head2 No analysis specified
+
+Occurs when no analysis keyword is provided.
+
+=head2 Option I<x> requires and argument
+
+Occurs when no argument is provided to an option that requires one.
+
+=head2 Unknown option: I<x>
+
+Occurs when an invalid option is supplied.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+Carp, Const::Fast, Cwd, Encode, English, Env, File::Spec, Log::Log4perl, Moo,
+MooX::Options, namespace::clean, Path::Iterator::Rule, Role::Utils::Dn,
+strictures, Types::Standard, version.
+
+=head2 Executables
+
+id3v2.
+
+=head1 AUTHOR
+
+David Nebauer S<< <david at nebauer dot org> >>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2024 David Nebauer S<< <david at nebauer dot org> >>
+
+This script is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
+
+# vim:foldmethod=marker:

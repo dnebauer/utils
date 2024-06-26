@@ -1,0 +1,8 @@
+e5c8bd44081eeb0031f56a232c393633  usr/bin/dn-mp3-library-analyse
+f4efdcf4130a2b8431ab9e40565ea124  usr/share/doc/dn-mp3-library-analyse/changelog.Debian.gz
+def6bd2417f3d2284eed4dcce1f3ac7f  usr/share/doc/dn-mp3-library-analyse/changelog.gz
+b8ff96720cec1aeaefa0fec2250a8d0a  usr/share/doc/dn-mp3-library-analyse/copyright
+ea677b1fddb3958f2751303197606f9d  usr/share/man/man1/dn-mp3-library-analyse.1p.gz
+42d18d985eaee31b4525b3bb9a4c96a9  usr/share/man/man3/App::Dn::Mp3LibAnalyse.3pm.gz
+13bbef7f215239e4d8c68d248e7d35a6  usr/share/perl5/App/Dn/Mp3LibAnalyse.pm
+6c81a0f508cff2be9331f99da71cb7ea  usr/share/zsh/vendor-completions/_dn_mp3_library_analyse

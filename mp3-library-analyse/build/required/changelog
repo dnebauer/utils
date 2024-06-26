@@ -1,0 +1,7 @@
+dn-mp3-library-analyse (0.6-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 624308
+
+ -- David Nebauer <david@nebauer.org>  Wed, 26 Jun 2024 21:45:49 +0930
