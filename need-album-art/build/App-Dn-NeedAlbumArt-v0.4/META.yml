@@ -1,0 +1,46 @@
+---
+abstract: 'find directories needing album cover art'
+author:
+  - 'David Nebauer S<< L<mailto:david@nebauer.org> >>'
+build_requires:
+  Test::More: '0.96'
+configure_requires:
+  Module::Build::Tiny: '0.034'
+dynamic_config: 0
+generated_by: 'Dist::Milla version v1.0.22, Dist::Zilla version 6.031, CPAN::Meta::Converter version 2.150010'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: '1.4'
+name: App-Dn-NeedAlbumArt
+no_index:
+  directory:
+    - eg
+    - examples
+    - inc
+    - share
+    - t
+    - xt
+requires:
+  Carp: '1.54'
+  Const::Fast: '0.014'
+  English: '1.11'
+  File::Find::Rule: '0.34'
+  File::Spec: '3.88'
+  File::chdir: '0.1008'
+  List::SomeUtils: '0.59'
+  Moo: '2.005005'
+  MooX::Options: '4.103'
+  Path::Tiny: '0.144'
+  Types::Path::Tiny: '0.006'
+  namespace::clean: '0.27'
+  perl: '5.038'
+  strictures: '2.000006'
+  version: '0.9930'
+version: v0.4
+x_contributors:
+  - 'David Nebauer <david@nebauer.org>'
+x_generated_by_perl: v5.38.2
+x_serialization_backend: 'YAML::Tiny version 1.74'
+x_spdx_expression: 'Artistic-1.0-Perl OR GPL-1.0-or-later'
+x_static_install: 1

@@ -1,0 +1,14 @@
+#compdef dn-need-album-art
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-d --dir)'{-d,--dir}'[Directory to search (dirpath, required)]:dir:_files -/' \
+  && rc=0
+
+return rc

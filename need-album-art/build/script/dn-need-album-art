@@ -1,0 +1,99 @@
+#!/usr/bin/perl
+
+use Moo;
+use strictures 2;
+use 5.006;
+use 5.038_001;
+use version; our $VERSION = qv('0.4');
+use namespace::clean;
+use App::Dn::NeedAlbumArt;
+
+App::Dn::NeedAlbumArt->new_with_options->run;
+
+1;
+
+# POD    {{{1
+
+__END__
+
+=head1 NAME
+
+dn-need-album-art - find directories needing album cover art
+
+=head1 USAGE
+
+B<dn-need-album-art> [B<-d> I<dirpath>]
+
+B<dn-need-album-art -h>
+
+=head1 DESCRIPTION
+
+Search a directory recursively for subdirectories that need album
+cover art. More specifically, it searches for subdirectories containing mp3
+files but no album cover art file. An album cover art file is one named
+F<album.png>, F<album.jpg>, F<cover.png>, or F<cover.png>.
+
+If a directory is not specified, the current directory is searched.
+
+The subdirectories matching these conditions are printed to stdout, one per
+line.
+
+=head1 CONFIGURATION
+
+There is no configuration for this script.
+
+=head1 REQUIRED ARGUMENTS
+
+Nil.
+
+=head1 OPTIONS
+
+=head2 -d | --dir DIRPATH
+
+Root directory of directory tree to analyse.
+Scalar string directory path (must exist).
+Optional. Default: current directory.
+
+=head2 -h | --help
+
+Display help and exit.
+
+=head1 EXIT STATUS
+
+This script always exits with a successful status unless a fatal error has been
+thrown by an underlying module or by the operating system.
+
+=head1 DIAGNOSTICS
+
+=head2 Invalid directory path: DIR
+
+The specified directory cannot be located. Fatal.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+App::Dn::NeedAlbumArt, Moo, namespace::clean, strictures, version.
+
+=head1 AUTHOR
+
+David Nebauer S<< L<mailto:david@nebauer.org> >>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2024 David Nebauer S<< L<mailto:david@nebauer.org> >>
+
+This script is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
+
+# vim:foldmethod=marker:

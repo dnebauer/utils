@@ -1,0 +1,8 @@
+3838a23978e13a9eb083a14c6e5a4beb  usr/bin/dn-need-album-art
+c15fa8ce4e71b3d68f407e2b334c2ff7  usr/share/doc/dn-need-album-art/changelog.Debian.gz
+de40fedcfc5c3657febc8bc1b6163b31  usr/share/doc/dn-need-album-art/changelog.gz
+93acbf44c1a0e4e7650ae06e456dc9c6  usr/share/doc/dn-need-album-art/copyright
+350759464306984c75a850ef67531fb6  usr/share/man/man1/dn-need-album-art.1p.gz
+709d7cc4b581161589ed90b59dc78d52  usr/share/man/man3/App::Dn::NeedAlbumArt.3pm.gz
+1997a3806ea9298f0528043602f8933e  usr/share/perl5/App/Dn/NeedAlbumArt.pm
+e8c702b7adb454d2d8a4250b1bcce41e  usr/share/zsh/vendor-completions/_dn-need-album-art

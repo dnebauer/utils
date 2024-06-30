@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Sun, 30 Jun 2024 21:06:06 +0930
+Source: dn-need-album-art
+Binary: dn-need-album-art
+Architecture: all
+Version: 0.4-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-need-album-art - find directories needing album cover art
+Closes: 634308
+Changes:
+ dn-need-album-art (0.4-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 634308
+Checksums-Sha1:
+ 32b6e176e727cedeab90f6994b79793de166f24d 8536 dn-need-album-art_0.4-1_all.deb
+ 34f7f3bce0f0bd7450311b069fe8ad1570aa03a4 9189 dn-need-album-art_0.4-1_amd64.buildinfo
+Checksums-Sha256:
+ c9cccd02513b943a1c536dbbcba59ea502fcf470e557ff516229d5c6f90add00 8536 dn-need-album-art_0.4-1_all.deb
+ 4eebebbec52f492e1706e4dd645f56b0fe8ac334c3688fde2a44de4615ae5a7d 9189 dn-need-album-art_0.4-1_amd64.buildinfo
+Files:
+ 301a0a8f5cf5b1028279bf9644a5b8f6 8536 utils optional dn-need-album-art_0.4-1_all.deb
+ 2ba420a57bffa13cab6ab0140e75b8ff 9189 utils optional dn-need-album-art_0.4-1_amd64.buildinfo

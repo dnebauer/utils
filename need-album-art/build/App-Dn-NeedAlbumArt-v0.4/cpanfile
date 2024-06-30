@@ -1,0 +1,19 @@
+requires 'perl', '5.038';
+requires 'Carp', '1.54';
+requires 'Const::Fast', '0.014';
+requires 'English', '1.11';
+requires 'File::Find::Rule', '0.34';
+requires 'File::Spec', '3.88';
+requires 'File::chdir', '0.1008';
+requires 'List::SomeUtils', '0.59';
+requires 'Moo', '2.005005';
+requires 'MooX::Options', '4.103';
+requires 'namespace::clean', '0.27';
+requires 'Path::Tiny', '0.144';
+requires 'strictures', '2.000006';
+requires 'Types::Path::Tiny', '0.006';
+requires 'version', '0.9930';
+
+on test => sub {
+    requires 'Test::More', '0.96';
+};

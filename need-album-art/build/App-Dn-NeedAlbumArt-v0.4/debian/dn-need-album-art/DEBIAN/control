@@ -1,0 +1,19 @@
+Package: dn-need-album-art
+Version: 0.4-1
+Architecture: all
+Maintainer: David Nebauer <david@nebauer.org>
+Installed-Size: 31
+Depends: perl:any, libconst-fast-perl, libfile-chdir-perl, libfile-find-rule-perl, liblist-someutils-perl (>= 0.59), libmoo-perl (>= 2.005005), libmoox-options-perl, libnamespace-clean-perl, libpath-tiny-perl (>= 0.144), libstrictures-perl, libtypes-path-tiny-perl, libversion-perl, perl (>= 5.38.0)
+Section: utils
+Priority: optional
+Homepage: https://metacpan.org/release/App-Dn-NeedAlbumArt
+Description: find directories needing album cover art
+ Search a directory recursively for subdirectories that need album cover art.
+ More specifically, it searches for subdirectories containing mp3 files but no
+ album cover art file. An album cover art file is one named album.png,
+ album.jpg, cover.png, or cover.png.
+ .
+ If a directory is not specified, the current directory is searched.
+ .
+ The subdirectories matching these conditions are printed to stdout, one per
+ line.

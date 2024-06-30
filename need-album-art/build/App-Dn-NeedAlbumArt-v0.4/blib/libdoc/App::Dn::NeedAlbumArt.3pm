@@ -54,64 +54,77 @@
 .rr rF
 .\" ========================================================================
 .\"
-.IX Title "DN-NEED-ALBUM-ART 1"
-.TH DN-NEED-ALBUM-ART 1 2024-03-16 "perl v5.38.2" "User Contributed Perl Documentation"
+.IX Title "App::Dn::NeedAlbumArt 3pm"
+.TH App::Dn::NeedAlbumArt 3pm 2024-06-30 "perl v5.38.2" "User Contributed Perl Documentation"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
 .nh
 .SH NAME
-dn\-need\-album\-art \- find directories needing album cover art
-.SH USAGE
-.IX Header "USAGE"
-\&\fBdn-need-album-art\fR
-.PP
-\&\fBdn-need-album-art \-h\fR
-.SH "REQUIRED ARGUMENTS"
-.IX Header "REQUIRED ARGUMENTS"
-Nil.
-.SH OPTIONS
-.IX Header "OPTIONS"
-.IP \fB\-h\fR 4
-.IX Item "-h"
-Display help and exit.
+App::Dn::NeedAlbumArt \- find directories needing album cover art
+.SH VERSION
+.IX Header "VERSION"
+This documentation is for \f(CW\*(C`App::Dn::NeedAlbumArt\*(C'\fR version 0.4.
+.SH SYNOPSIS
+.IX Header "SYNOPSIS"
+.Vb 2
+\&    use App::Dn::NeedAlbumArt;
+\&    App::Dn::NeedAlbumArt\->new_with_options\->run;
+.Ve
 .SH DESCRIPTION
 .IX Header "DESCRIPTION"
-Search the current directory recursively for subdirectories that need album
+Search a directory recursively for subdirectories that need album
 cover art. More specifically, it searches for subdirectories containing mp3
 files but no album cover art file. An album cover art file is one named
 \&\fIalbum.png\fR, \fIalbum.jpg\fR, \fIcover.png\fR, or \fIcover.png\fR.
 .PP
-The subdirectories matching these conditions are printed to STDOUT, one per
+If a directory is not specified, the current directory is searched.
+.PP
+The subdirectories matching these conditions are printed to stdout, one per
 line.
+.SH "CONFIGURATION AND ENVIRONMENT"
+.IX Header "CONFIGURATION AND ENVIRONMENT"
+There is no configuration for this script.
+.SH OPTIONS
+.IX Header "OPTIONS"
+.SS "\-d | \-\-dir DIRPATH"
+.IX Subsection "-d | --dir DIRPATH"
+Root directory of directory tree to analyse.
+Scalar string directory path (must exist).
+Optional. Default: current directory.
+.SS "\-h | \-\-help"
+.IX Subsection "-h | --help"
+Display help and exit.
+.SH SUBROUTINES/METHODS
+.IX Header "SUBROUTINES/METHODS"
+.SS \fBrun()\fP
+.IX Subsection "run()"
+This is the only public method. It conducts the subdirectory search described
+in DESCRIPTION.
 .SH DIAGNOSTICS
 .IX Header "DIAGNOSTICS"
-This script does not emit any specific errors. Any errors that occur are thrown
-by an underlying module or by the operating system.
+.SS "Invalid directory path: DIR"
+.IX Subsection "Invalid directory path: DIR"
+The specified directory cannot be located. Fatal.
+.SH INCOMPATIBILITIES
+.IX Header "INCOMPATIBILITIES"
+There are no known incompatibilities.
+.SH "BUGS AND LIMITATIONS"
+.IX Header "BUGS AND LIMITATIONS"
+Please report any bugs to the author.
 .SH DEPENDENCIES
 .IX Header "DEPENDENCIES"
 .SS "Perl modules"
 .IX Subsection "Perl modules"
-Carp, Const::Fast, Cwd, English, File::Find::Rule, File::Spec, List::SomeUtils, Moo, MooX::Options, namespace::clean, strictures, utf8, version.
-.SH CONFIGURATION
-.IX Header "CONFIGURATION"
-There is no configuration for this script.
-.SH "EXIT STATUS"
-.IX Header "EXIT STATUS"
-This script always exits with a successful status unless a fatal error has been
-thrown by an underlying module or by the operating system.
-.SH "BUGS AND LIMITATIONS"
-.IX Header "BUGS AND LIMITATIONS"
-Please report any bugs to the author.
-.SH INCOMPATIBILITIES
-.IX Header "INCOMPATIBILITIES"
-There are no known incompatibilities.
+Carp, Const::Fast, English, File::Find::Rule, File::Spec, File::chdir,
+List::SomeUtils, Moo, MooX::Options, namespace::clean, Path::Tiny, strictures,
+Types::Path::Tiny, version.
 .SH AUTHOR
 .IX Header "AUTHOR"
-David Nebauer (david at nebauer dot org)
+David Nebauer <mailto:david@nebauer.org>
 .SH "LICENSE AND COPYRIGHT"
 .IX Header "LICENSE AND COPYRIGHT"
-Copyright (c) 2020 David Nebauer (david at nebauer dot org)
+Copyright (c) 2024 David Nebauer <mailto:david@nebauer.org>
 .PP
 This script is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.

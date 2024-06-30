@@ -1,0 +1,7 @@
+dn-need-album-art (0.4-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 634308
+
+ -- David Nebauer <david@nebauer.org>  Sun, 30 Jun 2024 21:06:06 +0930
