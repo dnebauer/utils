@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Tue, 2 Jul 2024 20:42:18 +0930
+Source: dn-numeric-prefix
+Binary: dn-numeric-prefix
+Architecture: all
+Version: 0.6-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-numeric-prefix - add numeric prefix to file names
+Closes: 623098
+Changes:
+ dn-numeric-prefix (0.6-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 623098
+Checksums-Sha1:
+ ba1eb2ccec96540fd963ab6c277bee63db2dff25 9508 dn-numeric-prefix_0.6-1_all.deb
+ c9a8a3f52bd3b1bb11fe19ecd40b76f4af95a62f 13047 dn-numeric-prefix_0.6-1_amd64.buildinfo
+Checksums-Sha256:
+ 489884dea7a461d29bbaf2a6ec6b58c0522c85299396a082b6527deb2fe74c32 9508 dn-numeric-prefix_0.6-1_all.deb
+ c9f72f647c2cac4c22f99b4f038ac798595c7f39a0b0626372df045909dfa3e3 13047 dn-numeric-prefix_0.6-1_amd64.buildinfo
+Files:
+ f68f19d9066374c109962017c2807d9f 9508 perl optional dn-numeric-prefix_0.6-1_all.deb
+ 804a26de0bff8498d6c993b1a9d3dd1d 13047 perl optional dn-numeric-prefix_0.6-1_amd64.buildinfo

@@ -1,0 +1,17 @@
+#compdef dn-numeric-prefix
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-c --current)'{-c,--current}'[List current paths of specified files (flag)]' \
+    '(-f --force)'{-f,--force}'[Overwrite existing files without warning (flag)]' \
+    '(-r --renamed)'{-r,--renamed}'[List paths that specified files will have after renaming (flag)]' \
+    '*:Glob(s) of files to rename:_files' \
+  && rc=0
+
+return rc

@@ -1,0 +1,17 @@
+Package: dn-numeric-prefix
+Version: 0.6-1
+Architecture: all
+Maintainer: David Nebauer <david@nebauer.org>
+Installed-Size: 35
+Depends: perl:any, libconst-fast-perl, liblist-someutils-perl (>= 0.59), libmoo-perl (>= 2.005005), libmoox-handlesvia-perl, libmoox-options-perl, libnamespace-clean-perl, librole-utils-dn-perl (>= 0.4), libstrictures-perl, libtype-tiny-perl (>= 2.004000), libversion-perl, perl (>= 5.38.0)
+Section: perl
+Priority: optional
+Homepage: https://metacpan.org/release/App-Dn-NumerixPrefix
+Description: add numeric prefix to file names
+ Add an incrementing numeric prefix to the file names of a group of files. For
+ example, files 'a' and 'b' are renamed to '1_a' and '2_b'. File order is
+ standard shell ascii order.
+ .
+ If there are more than nine files to be processed, the numeric prefixes are
+ left zero-padded. For example, if there were over a hundred files, files 'a'
+ and 'b' may be renamed '001_a' and '002_b'.

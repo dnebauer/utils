@@ -1,0 +1,8 @@
+2c43313c69d596d6e8402d6a93cd8731  usr/bin/dn-numeric-prefix
+7e43368ad2221dd11c8635e5563e4f75  usr/share/doc/dn-numeric-prefix/changelog.Debian.gz
+5cc93a67831c6041b78db8c21b0aeb52  usr/share/doc/dn-numeric-prefix/changelog.gz
+5b2b80c09f2db5dc9e3fe40431278c9e  usr/share/doc/dn-numeric-prefix/copyright
+527d7ef13437540c75c1df9f2012a024  usr/share/man/man1/dn-numeric-prefix.1p.gz
+35eca84f7df0cfdaabf70d4c30294a6f  usr/share/man/man3/App::Dn::NumericPrefix.3pm.gz
+b81385a3796c7344177856c5d615af86  usr/share/perl5/App/Dn/NumericPrefix.pm
+1f8b0b719dd3c1cb02ab8049a4efe048  usr/share/zsh/vendor-completions/_dn-numeric-prefix

@@ -1,0 +1,111 @@
+#!/usr/bin/perl
+
+# modules    {{{1
+use Moo;
+use strictures 2;
+use 5.006;
+use 5.038_001;
+use version; our $VERSION = qv('0.6');
+use namespace::clean;
+use App::Dn::NumericPrefix;
+
+App::Dn::NumericPrefix->new_with_options->run;
+
+1;
+
+# POD    {{{1
+
+__END__
+
+=head1 NAME
+
+dn-numeric-prefix - add numeric prefix to file names
+
+=head1 USAGE
+
+B<dn-numeric-prefix> [ B<-c> ] [ B<-r> ] [ B<-f> ] I<glob> [I<glob> ...]
+
+B<dn-numeric-prefix -h>
+
+=head1 DESCRIPTION
+
+Add an incrementing numeric prefix to the file names of a group of files. For
+example, files F<a> and F<b> are renamed to F<1_a> and F<2_b>. File order is
+standard shell ascii order.
+
+If there are more than nine files to be processed, the numeric prefixes are
+left zero-padded. For example, if there were over a hundred files, files F<a>
+and F<b> may be renamed F<001_a> and F<002_b>.
+
+=head1 CONFIGURATION
+
+This module does not use any configurations files or environment variables.
+
+=head1 REQUIRED ARGUMENTS
+
+=head2 glob
+
+Glob specifying paths of files to which numeric prefixes will be added.
+String. Required.
+
+=head1 OPTIONS
+
+=head2 -c | --current
+
+List paths of files to which numeric prefixes will be added. No files are
+actually renamed when this option is used. Flag. Optional. Default: false.
+
+=head2 -r | --renamed
+
+Show paths of files that will result after numeric prefixes are added. No files
+are actually renamed when this option is used. Flag. Optional. Default:
+false.
+
+=head2 -f | --force
+
+Proceed with file renaming even if existing files will be overwritten. Flag.
+Optional. Default: false.
+
+=head2 -h | --help
+
+Display help and exit.
+
+=head1 EXIT STATUS
+
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly
+the error code is that given by the system.
+
+=head1 DIAGNOSTICS
+
+This script does not emit custom warnings or errors, although used modules may
+do so.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+App::Dn::NumericPrefix, Moo, namespace::clean, strictures, version.
+
+=head1 AUTHOR
+
+David Nebauer S<< L<mailto:david@nebauer.org> >>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2024 David Nebauer S<< L<mailto:david@nebauer.org> >>
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+# vim:fdm=marker

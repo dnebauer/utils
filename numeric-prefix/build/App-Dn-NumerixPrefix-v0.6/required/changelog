@@ -1,0 +1,7 @@
+dn-numeric-prefix (0.6-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 623098
+
+ -- David Nebauer <david@nebauer.org>  Tue, 2 Jul 2024 20:42:18 +0930
