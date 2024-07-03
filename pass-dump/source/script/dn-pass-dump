@@ -1,0 +1,182 @@
+#!/usr/bin/perl
+
+use Moo;
+use strictures 2;
+use 5.006;
+use 5.038_001;
+use version; our $VERSION = qv('0.5');
+use namespace::clean;
+use App::Dn::PassDump;
+
+App::Dn::PassDump->new_with_options->run;
+
+1;
+
+# POD    {{{1
+
+__END__
+
+=head1 NAME
+
+dn-pass-dump - write passwords to file
+
+=head1 USAGE
+
+B<dn-pass-dump> [B<-a> I<author>] [B<-d> I<file>] [B<-f> I<format>] [B<-r>
+I<dir>] [B<-p>]
+
+B<dn-pass-dump -h>
+
+=head1 DESCRIPTION
+
+This script accesses password information stored by
+L<Pass|https://www.passwordstore.org/>, "the standard unix password manager",
+and dumps (writes) it to an output file. The output format can be plain text or
+markdown.
+
+=head2 Pass configuration
+
+The script accesses all password files stored in the password file tree. It
+does this one at a time. It is not possible for the user to enter their
+password for accessing these files because all console output is being
+captured. For that reason the script initially accesses just one password file
+without capturing the output, i.e., the user is able to enter the password for
+this file. Pass must be configured to stay authenticated for a few minutes;
+this can be done using
+L<gpg-agent|https://www.gnupg.org/documentation/manuals/gnupg/>.
+
+=head2 Output format
+
+The output file has a header which includes a title, author and date of
+writing. The file has a footer which states 'END OF FILE'.
+
+In between the header and footer is a section for each password file, listed
+alphabetically and with a horizontal line between them.
+
+Here is the layout for each password section:
+
+    url
+
+    password
+
+    field_1: value_1
+    field_2: value_2
+    etc.
+
+In markdown-formatted output:
+
+=over
+
+=item *
+
+The url is a second-level header.
+
+=item *
+
+The password is placed within a code fence.
+
+=item *
+
+Values which include a '/' or '\' can cause fatal errors during pdf generation.
+For this reason any values containing either of these characters are enclosed
+in backticks to ensure they are rendered as code spans. (This prevents their
+interference with pdf production.) Unfortunately, most pdf generation processes
+do not wrap code spans, so if they are long these values may extend beyond the
+pdf page edge.
+
+=item *
+
+Lines whose values do I<not> include '\' or '/' will be split across multiple
+lines if they are more than 70 characters long. Split lines have a four-space
+hanging indent.
+
+=back
+
+In text output the password and field lines are indented by two spaces. There
+is no line splitting as occurs with markdown output.
+
+=head1 CONFIGURATION
+
+This script does not use configuration files or environment variables.
+
+=head1 REQUIRED ARGUMENTS
+
+None.
+
+=head1 OPTIONS
+
+=head2 -a | --author AUTHOR
+
+Author to put in header of dump file.
+
+String. Optional. Default: 'David Nebauer'.
+
+=head2 -d | --dump_file /FILE/PATH
+
+Path of dump file.
+
+File path. Optional. Default: F<~/.password-store/dump.{md,txt}> where the
+extension depends on output format - 'md' for markdown output and 'txt' for
+text output.
+
+=head2 -f | --format FORMAT
+
+Format of output.
+
+String. Optional. Must be either 'markdown' or 'text'. Default: 'markdown'.
+
+=head2 -p | --preserve
+
+Whether to preserve an existing dump file.
+
+Flag. Optional. Default: false.
+
+=head2 -r | --root /DIR/PATH
+
+Root passwords directory.
+
+Directory path. Optional. Default: F<~/.password-store>.
+
+=head2 -h | --help
+
+Display help and exit.
+
+=head1 EXIT STATUS
+
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly
+the error code is that given by the system.
+
+=head1 DIAGNOSTICS
+
+This script does not emit custom warning or error messages, although dependent
+modules may.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+App::Dn::PassDump, Moo, namespace::clean, strictures, version.
+
+=head1 AUTHOR
+
+David Nebauer S<< L<mailto:david@nebauer.org> >>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2024 David Nebauer S<< L<mailto:david@nebauer.org> >>
+
+This script is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
+
+# vim:foldmethod=marker:

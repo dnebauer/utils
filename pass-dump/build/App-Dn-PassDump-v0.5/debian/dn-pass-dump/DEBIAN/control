@@ -1,0 +1,14 @@
+Package: dn-pass-dump
+Version: 0.5-1
+Architecture: all
+Maintainer: David Nebauer <david@nebauer.org>
+Installed-Size: 53
+Depends: perl:any, libconst-fast-perl, libdate-simple-perl, libfile-find-rule-perl, libipc-run-perl (>= 20231003), libmoo-perl (>= 2.005005), libmoox-handlesvia-perl, libmoox-options-perl, libnamespace-clean-perl, libstrictures-perl, libterm-progressbar-simple-perl, libtype-tiny-perl (>= 2.004000), libtypes-path-tiny-perl, libversion-perl, perl (>= 5.38.0)
+Section: utils
+Priority: optional
+Homepage: https://metacpan.org/release/App-Dn-PassDump
+Description: write passwords to file
+ App::Dn::PassDump accesses password information stored by
+ Pass|https://www.passwordstore.org/, "the standard unix password manager",
+ and dumps (writes) it to an output file. The output format can be plain text
+ or markdown.

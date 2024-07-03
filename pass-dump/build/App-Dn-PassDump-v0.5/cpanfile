@@ -1,0 +1,23 @@
+requires 'perl', '5.038';
+requires 'Carp', '1.54';
+requires 'Const::Fast', '0.014';
+requires 'Date::Simple', '3.0300';
+requires 'English', '1.11';
+requires 'Env', '1.06';
+requires 'File::Find::Rule', '0.34';
+requires 'IPC::Run', '20231003';
+requires 'Moo', '2.005005';
+requires 'MooX::HandlesVia', '0.001009';
+requires 'MooX::Options', '4.103';
+requires 'namespace::clean', '0.27';
+requires 'strictures', '2.000006';
+requires 'Term::ProgressBar::Simple', '0.03';
+requires 'Text::Wrap', '2021.0814';
+requires 'Type::Tiny', '2.004000';
+requires 'Types::Path::Tiny', '0.006';
+requires 'Types::Standard', '2.004000';
+requires 'version', '0.9930';
+
+on test => sub {
+    requires 'Test::More', '0.96';
+};

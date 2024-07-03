@@ -1,0 +1,48 @@
+Source: dn-pass-dump
+Maintainer: David Nebauer <david@nebauer.org>
+Section: utils
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               libmodule-build-tiny-perl,
+               perl (>= 5.38.0)
+Build-Depends-Indep: libconst-fast-perl <!nocheck>,
+                     libdate-simple-perl <!nocheck>,
+                     libfile-find-rule-perl <!nocheck>,
+                     libipc-run-perl (>= 20231003) <!nocheck>,
+                     libmoo-perl (>= 2.005005) <!nocheck>,
+                     libmoox-handlesvia-perl <!nocheck>,
+                     libmoox-options-perl <!nocheck>,
+                     libnamespace-clean-perl <!nocheck>,
+                     libstrictures-perl <!nocheck>,
+                     libterm-progressbar-simple-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libtype-tiny-perl (>= 2.004000) <!nocheck>,
+                     libtypes-path-tiny-perl <!nocheck>,
+                     libversion-perl <!nocheck>
+Standards-Version: 4.6.2
+Homepage: https://metacpan.org/release/App-Dn-PassDump
+Rules-Requires-Root: no
+
+Package: dn-pass-dump
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         libconst-fast-perl,
+         libdate-simple-perl,
+         libfile-find-rule-perl,
+         libipc-run-perl (>= 20231003),
+         libmoo-perl (>= 2.005005),
+         libmoox-handlesvia-perl,
+         libmoox-options-perl,
+         libnamespace-clean-perl,
+         libstrictures-perl,
+         libterm-progressbar-simple-perl,
+         libtype-tiny-perl (>= 2.004000),
+         libtypes-path-tiny-perl,
+         libversion-perl,
+         perl (>= 5.38.0)
+Description: write passwords to file
+ App::Dn::PassDump accesses password information stored by
+ Pass|https://www.passwordstore.org/, "the standard unix password manager",
+ and dumps (writes) it to an output file. The output format can be plain text
+ or markdown.

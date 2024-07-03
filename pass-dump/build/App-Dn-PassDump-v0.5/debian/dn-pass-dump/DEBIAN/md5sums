@@ -1,0 +1,8 @@
+6f27d7c42088b853b8b47c4a9ddafeb3  usr/bin/dn-pass-dump
+092f1ff17bedbcbf7f3628b662970925  usr/share/doc/dn-pass-dump/changelog.Debian.gz
+40184fd19e7cf0fa5eea06282c85b53e  usr/share/doc/dn-pass-dump/changelog.gz
+9eebb98ca587428f413a65670056fc49  usr/share/doc/dn-pass-dump/copyright
+650b7721b3fa7b31c98a674618a2d09a  usr/share/man/man1/dn-pass-dump.1p.gz
+2a9d2d11c9723fbeef6a1677c4b1bd3b  usr/share/man/man3/App::Dn::PassDump.3pm.gz
+527276ff8f0686c04a22c042537330fa  usr/share/perl5/App/Dn/PassDump.pm
+d0904dbfd3e14b5bbcf3cfbc42090108  usr/share/zsh/vendor-completions/_dn-pass-dump

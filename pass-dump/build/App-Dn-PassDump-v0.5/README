@@ -1,0 +1,211 @@
+NAME
+
+    App::Dn::PassDump - write passwords to file
+
+VERSION
+
+    This documentation is for App::Dn::PassDump version 0.5.
+
+SYNOPSIS
+
+        use App::Dn::PassDump;
+    
+        App::Dn::PassDump->new_with_options->run;
+
+DESCRIPTION
+
+    This module accesses password information stored by Pass
+    <https://www.passwordstore.org/>, "the standard unix password manager",
+    and dumps (writes) it to an output file. The output format can be plain
+    text or markdown.
+
+ Pass configuration
+
+    The module accesses all password files stored in the password file
+    tree. It does this one at a time. It is not possible for the user to
+    enter their password for accessing these files because all console
+    output is being captured. For that reason the module initially accesses
+    just one password file without capturing the output, i.e., the user is
+    able to enter the password for this file. Pass must be configured to
+    stay authenticated for a few minutes; this can be done using gpg-agent
+    <https://www.gnupg.org/documentation/manuals/gnupg/>.
+
+ Output format
+
+    The output file has a header which includes a title, author and date of
+    writing. The file has a footer which states 'END OF FILE'.
+
+    In between the header and footer is a section for each password file,
+    listed alphabetically and with a horizontal line between them.
+
+    Here is the layout for each password section:
+
+        url
+    
+        password
+    
+        field_1: value_1
+        field_2: value_2
+        etc.
+
+    In markdown-formatted output:
+
+      * The url is a second-level header.
+
+      * The password is placed within a code fence.
+
+      * Values which include a '/' or '\' can cause fatal errors during pdf
+      generation. For this reason any values containing either of these
+      characters are enclosed in backticks to ensure they are rendered as
+      code spans. (This prevents their interference with pdf production.)
+      Unfortunately, most pdf generation processes do not wrap code spans,
+      so if they are long these values may extend beyond the pdf page edge.
+
+      * Lines whose values do not include '\' or '/' will be split across
+      multiple lines if they are more than 70 characters long. Split lines
+      have a four-space hanging indent.
+
+    In text output the password and field lines are indented by two spaces.
+    There is no line splitting as occurs with markdown output.
+
+CONFIGURATION AND ENVIRONMENT
+
+ Options
+
+  -a | --author AUTHOR
+
+    Author to put in header of dump file.
+
+    String. Optional. Default: 'David Nebauer'.
+
+  -d | --dump_file /FILE/PATH
+
+    Path of dump file.
+
+    File path. Optional. Default: ~/.password-store/dump.{md,txt} where the
+    extension depends on output format - 'md' for markdown output and 'txt'
+    for text output.
+
+  -f | --format FORMAT
+
+    Format of output.
+
+    String. Optional. Must be either 'markdown' or 'text'. Default:
+    'markdown'.
+
+  -p | --preserve
+
+    Whether to preserve an existing dump file.
+
+    Flag. Optional. Default: false.
+
+  -r | --root /DIR/PATH
+
+    Root passwords directory.
+
+    Directory path. Optional. Default: ~/.password-store.
+
+  -h | --help
+
+    Display help and exit.
+
+ Attributes
+
+    None.
+
+ Configuration files
+
+    None used.
+
+ Environment variables
+
+    None used.
+
+SUBROUTINES/METHODS
+
+ run()
+
+    The only public method. It dumps passwords to file as described in
+    "DESCRIPTION".
+
+DIAGNOSTICS
+
+ Dump file 'FILE' already exists
+
+    Occurs when the -p option to preserve any existing dump file of the
+    same name, and such a file exists. Fatal.
+
+ Invalid format 'FORMAT'
+
+    An invalid format has been provided with the -f option. Fatal.
+
+ Multiple author names provided
+
+    Occurs when multiple author names are provided using the -a option.
+    Fatal.
+
+ Multiple dump file paths provided
+
+    Occurs when multiple dump file names are provided using the -d option.
+    Fatal.
+
+ Multiple formats provided
+
+    Occurs when multiple formats are provided using the -f option. Fatal.
+
+ Multiple root passwords directories provided
+
+    Occurs when multiple root directories are provided using the -r option.
+    Fatal.
+
+ No *.gpg files found in ROOT
+
+    Occurs when no .gpg (password) files are found in the specified root
+    directory. Fatal.
+
+ pass: ERROR
+
+    Occurs when pass fails to retrieve a password from a password file.
+    Fatal.
+
+ Unable to create 'FILE'
+
+    The operating system was unable to write the password dump file. Fatal.
+
+ Unable to delete existing dump file 'FILE'
+
+    Occurs when the operating system is unable to delete an existing dump
+    file. The system error is displayed after this message. Fatal.
+
+INCOMPATIBILITIES
+
+    There are no known incompatibilities.
+
+BUGS AND LIMITATIONS
+
+    Please report any bugs to the author.
+
+DEPENDENCIES
+
+ Perl modules
+
+    Carp, Const::Fast, Date::Simple, English, Env, File::Find::Rule,
+    IPC::Run, Moo, MooX::HandlesVia, MooX::Options, namespace::clean,
+    strictures, Term::ProgressBar::Simple, Text::Wrap, Type::Tiny,
+    Types::Path::Tiny, Types::Standard, version.
+
+ Executables
+
+    pass.
+
+AUTHOR
+
+    David Nebauer mailto:david@nebauer.org
+
+LICENSE AND COPYRIGHT
+
+    Copyright (c) 2024 David Nebauer mailto:david@nebauer.org
+
+    This script is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+

@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Wed, 3 Jul 2024 21:43:29 +0930
+Source: dn-pass-dump
+Binary: dn-pass-dump
+Architecture: all
+Version: 0.5-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-pass-dump - write passwords to file
+Closes: 634989
+Changes:
+ dn-pass-dump (0.5-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 634989
+Checksums-Sha1:
+ 5748359470ef7a09a9ef1751cf53f74b20fdc75d 15372 dn-pass-dump_0.5-1_all.deb
+ 87e7924016561bddbb0930963227b0b189ded1a0 9701 dn-pass-dump_0.5-1_amd64.buildinfo
+Checksums-Sha256:
+ b92c4c999b0800b0ca97b5b462c878feb2cb74c6c94eb3ad25fa2ba1e54f6db7 15372 dn-pass-dump_0.5-1_all.deb
+ fb1525a8aea832c970e584e733b39ff975c161785acd29dd737929ec09ee82b2 9701 dn-pass-dump_0.5-1_amd64.buildinfo
+Files:
+ 805073d41ebcd6a3bcc56ce31e6e52bf 15372 utils optional dn-pass-dump_0.5-1_all.deb
+ 247354886920bcb6cef0296bc1c131fd 9701 utils optional dn-pass-dump_0.5-1_amd64.buildinfo

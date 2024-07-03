@@ -1,0 +1,7 @@
+dn-pass-dump (0.5-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 634989
+
+ -- David Nebauer <david@nebauer.org>  Wed, 3 Jul 2024 21:43:29 +0930
