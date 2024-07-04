@@ -1,0 +1,8 @@
+8f458db4945c76e710db4dec67434765  usr/bin/dn-search-dirs
+2cc0799fca7afdad0abe1b03072fb6dd  usr/share/doc/dn-search-dirs/changelog.Debian.gz
+b785ab6ff14526735f92733bd3a94118  usr/share/doc/dn-search-dirs/changelog.gz
+f37d44ddf1a8f5e97633798664f5c0c9  usr/share/doc/dn-search-dirs/copyright
+97341550b6d278360cff994d52aa8f41  usr/share/man/man1/dn-search-dirs.1p.gz
+b7828621441ba6c5cde0e83b738a470d  usr/share/man/man3/App::Dn::SearchDirs.3pm.gz
+7e06e9bf812444736514f4956df9749b  usr/share/perl5/App/Dn/SearchDirs.pm
+c1d80d49ccdcdeabf2c8537737e71656  usr/share/zsh/vendor-completions/_dn-search-dirs

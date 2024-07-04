@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Thu, 4 Jul 2024 20:53:46 +0930
+Source: dn-search-dirs
+Binary: dn-search-dirs
+Architecture: all
+Version: 0.5-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-search-dirs - repeatedly search a set of directories
+Closes: 632987
+Changes:
+ dn-search-dirs (0.5-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 632987
+Checksums-Sha1:
+ d0cf541905e597a5e31c543b1f6cfb424e515b4d 9496 dn-search-dirs_0.5-1_all.deb
+ 36a58e9aec8b28d3e1e86fd03002a06c7e331979 13058 dn-search-dirs_0.5-1_amd64.buildinfo
+Checksums-Sha256:
+ 4f2c9b3ff90269aef2aeb28c3dbeef2d0701e879ca24aeafade4fec9ec5ba7e9 9496 dn-search-dirs_0.5-1_all.deb
+ eab24f847d62e6815602257b43a3fa36464f87a289af8b5d490ac2e4511d3cd1 13058 dn-search-dirs_0.5-1_amd64.buildinfo
+Files:
+ 9af0c2ef2259b095fd071dcabf063d36 9496 utils optional dn-search-dirs_0.5-1_all.deb
+ e9663862b3fcf31325b58cc9e62701c6 13058 utils optional dn-search-dirs_0.5-1_amd64.buildinfo

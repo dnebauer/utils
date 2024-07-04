@@ -54,8 +54,8 @@
 .rr rF
 .\" ========================================================================
 .\"
-.IX Title "DN-SEARCH-DIRS 1"
-.TH DN-SEARCH-DIRS 1 2024-04-13 "perl v5.38.2" "User Contributed Perl Documentation"
+.IX Title "DN-SEARCH-DIRS 1p"
+.TH DN-SEARCH-DIRS 1p 2024-07-04 "perl v5.38.2" "User Contributed Perl Documentation"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -64,31 +64,9 @@
 dn\-search\-dirs \- repeatedly search a set of directories
 .SH USAGE
 .IX Header "USAGE"
-\&\fBdn-search-dirs\fR
-.PP
-\&\fBdn-search-dirs \-l\fR
-.PP
-\&\fBdn-search-dirs \-e\fR
+\&\fBdn-search-dirs\fR [\fB\-l\fR] [\fB\-e\fR] [\fBe\fR]
 .PP
 \&\fBdn-search-dirs \-h\fR
-.SH "REQUIRED ARGUMENTS"
-.IX Header "REQUIRED ARGUMENTS"
-There are no required arguments.
-.SH OPTIONS
-.IX Header "OPTIONS"
-.IP \fB\-l\fR 4
-.IX Item "-l"
-List configured directories. Boolean.
-.Sp
-Optional. Default: false.
-.IP \fB\-e\fR 4
-.IX Item "-e"
-Edit configured directories. Boolean.
-.Sp
-Optional. Default: false.
-.IP \fB\-h\fR 4
-.IX Item "-h"
-Display help and exit.
 .SH DESCRIPTION
 .IX Header "DESCRIPTION"
 A list of directories is kept in a configuration file
@@ -103,42 +81,51 @@ another file name fragment.
 .PP
 To exit the user presses enter without entering a search fragment, i.e., an
 empty search string.
-.SH DIAGNOSTICS
-.IX Header "DIAGNOSTICS"
-.SS "Unable to create directory 'DIR'"
-.IX Subsection "Unable to create directory 'DIR'"
-Occurs when system is unable to create the specified directory.
-.SS "No directories configured"
-.IX Subsection "No directories configured"
-Occurs when no search directories are configured.
 .SH CONFIGURATION
 .IX Header "CONFIGURATION"
 A list of directories is kept in a configuration file
 (\fI~/.config/dn\-search\-dirs/dir\-list\fR) that can be listed on screen (option
 \&\f(CW\*(C`\-l\*(C'\fR) and edited (option \f(CW\*(C`\-e\*(C'\fR).
+.SH "REQUIRED ARGUMENTS"
+.IX Header "REQUIRED ARGUMENTS"
+There are no required arguments.
+.SH OPTIONS
+.IX Header "OPTIONS"
+.SS "\-e | \-\-edit_dirs"
+.IX Subsection "-e | --edit_dirs"
+Edit configured directories. Flag. Optional. Default: false.
+.SS "\-l | \-\-list_dirs"
+.IX Subsection "-l | --list_dirs"
+List configured directories. Flag. Optional. Default: false.
+.SS "\-h | \-\-help"
+.IX Subsection "-h | --help"
+Display help and exit. Flag. Optional. Default: false.
 .SH "EXIT STATUS"
 .IX Header "EXIT STATUS"
-If the script fails it exits with an exit value determined by the \f(CW\*(C`die\*(C'\fR
-function.
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly
+the error code is that given by the system.
+.SH DIAGNOSTICS
+.IX Header "DIAGNOSTICS"
+This script emits no custom warning or error messages, although dependent
+modules may do so.
 .SH INCOMPATIBILITIES
 .IX Header "INCOMPATIBILITIES"
 There are no known significant incompatibilities.
+.SH "BUGS AND LIMITATIONS"
+.IX Header "BUGS AND LIMITATIONS"
+Please report any bugs to the author.
 .SH DEPENDENCIES
 .IX Header "DEPENDENCIES"
 .SS "Perl modules"
 .IX Subsection "Perl modules"
-autodie, Const::Fast, File::HomeDir, File::Path, Moo, MooX::HandlesVia,
-MooX::Options, namespace::clean, strictures, Term::Clui, Types::Standard,
-version.
-.SH "BUGS AND LIMITATIONS"
-.IX Header "BUGS AND LIMITATIONS"
-Please report any bugs to the author.
+App::Dn::SearchDirs, Moo, namespace::clean, strictures, version.
 .SH AUTHOR
 .IX Header "AUTHOR"
-David Nebauer <davidnebauer@hotkey.net.au>
+David Nebauer <david@nebauer.org>
 .SH "LICENSE AND COPYRIGHT"
 .IX Header "LICENSE AND COPYRIGHT"
-Copyright (c) 2015 David Nebauer <davidnebauer@hotkey.net.au>
+Copyright (c) 2024 David Nebauer <david@nebauer.org>
 .PP
 This script is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

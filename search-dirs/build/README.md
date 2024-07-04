@@ -1,0 +1,102 @@
+# NAME
+
+App::Dn::SearchDirs - repeatedly search a set of directories
+
+# VERSION
+
+This documentation is for `App::Dn::SearchDirs` version 0.5.
+
+# SYNOPSIS
+
+    use App::Dn::SearchDirs;
+
+    App::Dn::SearchDirs->new_with_options->run;
+
+# DESCRIPTION
+
+A list of directories is kept in a configuration file
+(`~/.config/dn-search-dirs/dir-list`) that can be listed on screen (option
+`-l`) and edited (option `-e`).
+
+When run without an option the user is prompted for a file name fragment. All
+configured directories are then searched for matching files. Note that these
+directory searches are not recursive. When the search is complete a total match
+count and all matching file paths are displayed. The user is then prompted for
+another file name fragment.
+
+To exit the user presses enter without entering a search fragment, i.e., an
+empty search string.
+
+# CONFIGURATION AND ENVIRONMENT
+
+## Options
+
+## -e | --edit\_dirs
+
+Edit configured directories. Flag. Optional. Default: false.
+
+## -l | --list\_dirs
+
+List configured directories. Flag. Optional. Default: false.
+
+## -h | --help
+
+Display help and exit. Flag. Optional. Default: false.
+
+## Attributes
+
+None.
+
+## Configuration files
+
+A list of directories is kept in a configuration file
+(`~/.config/dn-search-dirs/dir-list`) that can be listed on screen (option
+`-l`) and edited (option `-e`).
+
+## Environment variables
+
+None used.
+
+# SUBROUTINES/METHODS
+
+## run()
+
+The only public method. It searches predefined directories as described in
+["DESCRIPTION"](#description).
+
+# DIAGNOSTICS
+
+## Unable to create directory 'DIR'
+
+Occurs when system is unable to create the specified directory.
+
+## No directories configured
+
+Occurs when no search directories are configured.
+
+# INCOMPATIBILITIES
+
+There are no known significant incompatibilities.
+
+# BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+# DEPENDENCIES
+
+## Perl modules
+
+autodie, Carp, Const::Fast, File::HomeDir, File::Path, Moo, MooX::HandlesVia,
+MooX::Options, namespace::clean, Role::Utils::Dn, strictures, Term::Clui,
+Types::Standard, version.
+
+# AUTHOR
+
+David Nebauer <david@nebauer.org>
+
+# LICENSE AND COPYRIGHT
+
+Copyright (c) 2024 David Nebauer <david@nebauer.org>
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.

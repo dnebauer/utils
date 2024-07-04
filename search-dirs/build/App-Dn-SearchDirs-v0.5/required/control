@@ -1,0 +1,52 @@
+Source: dn-search-dirs
+Maintainer: David Nebauer <david@nebauer.org>
+Section: utils
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               libmodule-build-tiny-perl,
+               perl (>= 5.38.0)
+Build-Depends-Indep: libconst-fast-perl <!nocheck>,
+                     libfile-homedir-perl <!nocheck>,
+                     libmoo-perl (>= 2.005005) <!nocheck>,
+                     libmoox-handlesvia-perl <!nocheck>,
+                     libmoox-options-perl <!nocheck>,
+                     libnamespace-clean-perl <!nocheck>,
+                     librole-utils-dn-perl <!nocheck>,
+                     libstrictures-perl <!nocheck>,
+                     libterm-clui-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libtype-tiny-perl (>= 2.004000) <!nocheck>,
+                     libversion-perl <!nocheck>
+Standards-Version: 4.6.2
+Homepage: https://metacpan.org/release/App-Dn-SearchDirs
+Rules-Requires-Root: no
+
+Package: dn-search-dirs
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         libconst-fast-perl,
+         libfile-homedir-perl,
+         libmoo-perl (>= 2.005005),
+         libmoox-handlesvia-perl,
+         libmoox-options-perl,
+         libnamespace-clean-perl,
+         librole-utils-dn-perl,
+         libstrictures-perl,
+         libterm-clui-perl,
+         libtype-tiny-perl (>= 2.004000),
+         libversion-perl,
+         perl (>= 5.38.0)
+Description: repeatedly search a set of directories
+ A list of directories is kept in a configuration file
+ (~/.config/dn-search-dirs/dir-list) that can be listed on screen (option -l)
+ and edited (option -e).
+ .
+ When run without an option the user is prompted for a file name fragment. All
+ configured directories are then searched for matching files. Note that these
+ directory searches are not recursive. When the search is complete a total
+ match count and all matching file paths are displayed. The user is then
+ prompted for another file name fragment.
+ .
+ To exit the user presses enter without entering a search fragment, i.e., an
+ empty search string.

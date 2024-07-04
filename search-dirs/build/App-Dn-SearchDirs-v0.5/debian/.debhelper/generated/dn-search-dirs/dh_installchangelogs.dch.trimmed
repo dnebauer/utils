@@ -1,0 +1,7 @@
+dn-search-dirs (0.5-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 632987
+
+ -- David Nebauer <david@nebauer.org>  Thu, 4 Jul 2024 20:53:46 +0930

@@ -1,0 +1,106 @@
+#!/usr/bin/perl
+
+use Moo;
+use strictures 2;
+use 5.006;
+use 5.038_001;
+use version; our $VERSION = qv('0.5');
+use namespace::clean;
+use App::Dn::SearchDirs;
+
+App::Dn::SearchDirs->new_with_options->run;
+
+1;
+
+# POD    {{{1
+
+__END__
+
+=head1 NAME
+
+dn-search-dirs - repeatedly search a set of directories
+
+=head1 USAGE
+
+B<dn-search-dirs> [B<-l>] [B<-e>] [B<e>]
+
+B<dn-search-dirs -h>
+
+=head1 DESCRIPTION
+
+A list of directories is kept in a configuration file
+(F<~/.config/dn-search-dirs/dir-list>) that can be listed on screen (option
+C<-l>) and edited (option C<-e>).
+
+When run without an option the user is prompted for a file name fragment. All
+configured directories are then searched for matching files. Note that these
+directory searches are not recursive. When the search is complete a total match
+count and all matching file paths are displayed. The user is then prompted for
+another file name fragment.
+
+To exit the user presses enter without entering a search fragment, i.e., an
+empty search string.
+
+=head1 CONFIGURATION
+
+A list of directories is kept in a configuration file
+(F<~/.config/dn-search-dirs/dir-list>) that can be listed on screen (option
+C<-l>) and edited (option C<-e>).
+
+=head1 REQUIRED ARGUMENTS
+
+There are no required arguments.
+
+=head1 OPTIONS
+
+=head2 -e | --edit_dirs
+
+Edit configured directories. Flag. Optional. Default: false.
+
+=head2 -l | --list_dirs
+
+List configured directories. Flag. Optional. Default: false.
+
+=head2 -h | --help
+
+Display help and exit. Flag. Optional. Default: false.
+
+=head1 EXIT STATUS
+
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly
+the error code is that given by the system.
+
+=head1 DIAGNOSTICS
+
+This script emits no custom warning or error messages, although dependent
+modules may do so.
+
+=head1 INCOMPATIBILITIES
+
+There are no known significant incompatibilities.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+App::Dn::SearchDirs, Moo, namespace::clean, strictures, version.
+
+=head1 AUTHOR
+
+David Nebauer S<< <david@nebauer.org> >>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2024 David Nebauer S<< <david@nebauer.org> >>
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+# vim:fdm=marker
