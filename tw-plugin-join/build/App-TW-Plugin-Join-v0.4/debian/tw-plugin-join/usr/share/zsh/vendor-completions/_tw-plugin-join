@@ -1,0 +1,21 @@
+#compdef tw-plugin-join
+
+_formats() {
+  local -a _formats
+  _formats=(json tid)
+  _values 'formats' "${_formats[@]}"
+}
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-f --format)'{-f,--format}'[Plugin file format (default\: "tid")]:formats:_formats' \
+    '*:Plugin directory:_files -/' \
+  && rc=0
+
+return rc

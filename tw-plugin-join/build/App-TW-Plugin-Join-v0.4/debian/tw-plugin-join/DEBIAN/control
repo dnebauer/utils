@@ -1,0 +1,11 @@
+Package: tw-plugin-join
+Version: 0.4-1
+Architecture: all
+Maintainer: David Nebauer <david@nebauer.org>
+Installed-Size: 88
+Depends: perl:any, libconst-fast-perl, libfile-find-rule-perl, libfile-which-perl (>= 1.27), libjson-maybexs-perl (>= 1.004005), libmoo-perl (>= 2.005005), libmoox-handlesvia-perl, libmoox-options-perl, libnamespace-clean-perl, libpath-tiny-perl (>= 0.144), libstrictures-perl, libterm-clui-perl, libtype-tiny-perl (>= 2.004000), libtypes-path-tiny-perl, libversion-perl, perl (>= 5.38.0)
+Section: utils
+Priority: optional
+Homepage: https://metacpan.org/release/App-TW-Plugin-Join
+Description: compact server-type TiddlyWiki plugin to a single file
+ See the man page for a full description.

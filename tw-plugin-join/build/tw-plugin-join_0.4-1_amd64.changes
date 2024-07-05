@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Fri, 5 Jul 2024 22:07:09 +0930
+Source: tw-plugin-join
+Binary: tw-plugin-join
+Architecture: all
+Version: 0.4-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ tw-plugin-join - compact server-type TiddlyWiki plugin to a single file
+Closes: 642087
+Changes:
+ tw-plugin-join (0.4-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 642087
+Checksums-Sha1:
+ f0455d477830e3be6f57e1435784603cf04c27e5 26512 tw-plugin-join_0.4-1_all.deb
+ 14e6657fa520b1ee3ec87e817afc59468b0de075 9296 tw-plugin-join_0.4-1_amd64.buildinfo
+Checksums-Sha256:
+ 58160069b6440756579749e3d0029137ad80b0dcad2b9d82b2e28a209dbd2a97 26512 tw-plugin-join_0.4-1_all.deb
+ 9c25ccff2e81e2d9faad06c498315d244b210bdb36755898bbf4b2394e517dd4 9296 tw-plugin-join_0.4-1_amd64.buildinfo
+Files:
+ 257f2a7a0f420e85d0dd775b1d869d64 26512 utils optional tw-plugin-join_0.4-1_all.deb
+ c6a808dc2b8db699900cac8e1ecdf216 9296 utils optional tw-plugin-join_0.4-1_amd64.buildinfo

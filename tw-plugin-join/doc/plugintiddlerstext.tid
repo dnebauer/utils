@@ -1,7 +1,0 @@
-title: $:/core/templates/.dtn/plugin-tiddlers-text
-
-<!--
-
-This template is for saving tiddlers for use in a plugin tiddler's text field
-
---><$text text=<<plugintiddlerstext "[prefix[$:/plugins/.dtn/insert-table/]]">>/>

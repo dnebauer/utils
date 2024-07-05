@@ -1,0 +1,363 @@
+#!/usr/bin/perl
+
+use Moo;
+use strictures 2;
+use 5.006;
+use 5.038_001;
+use version; our $VERSION = qv('0.4');
+use namespace::clean;
+use App::TW::Plugin::Join;
+
+App::TW::Plugin::Join->new_with_options->run;
+
+# POD    {{{1
+
+__END__
+
+=head1 NAME
+
+tw-plugin-join - compact server-type TiddlyWiki plugin to a single file
+
+=head1 USAGE
+
+B<tw-plugin-join> [B<-f> I<format>] B<plugin_directory>
+
+B<tw-unplug-join -h>
+
+=head1 DESCRIPTION
+
+There are, broadly speaking, two type of L<TiddlyWiki5|https://tiddlywiki.com/>
+wikis:
+
+=over
+
+=item *
+
+Single-file html wikis which are directly opened in web browsers. This was the
+first type of wiki developed and is still the most used type.
+
+=item *
+
+Client-server wikis in which wiki content is served from a node.js server while
+the client uses a web-browser interface.
+
+=back
+
+There are also two types of tiddlywiki plugins:
+
+=over
+
+=item *
+
+Single-file plugins in which a single file contains all tiddler for a plugin.
+This file can either be in C<tid> or C<json> format.
+
+This is the only plugin format compatible with single-file wikis, but they can
+also be used in client wikis in a client-server installation.
+
+=item *
+
+Multiple-file wikis in which each tiddler in a plugin has its own file. Each
+plugin has a dedicated directory, and may contain multiple levels of
+subdirectories. In a client-server configuration this style of plugin can be
+installed in a client wiki or in the server installation; in the latter case it
+is available to all client wikis served by the server. There is a nominated
+F<plugins> directory in each client wiki, and in the server installation, under
+which these plugins are installed.
+
+This plugin format is not compatible with single-file wikis.
+
+=back
+
+This script accepts a base directory for a multiple-file plugin. It joins these
+files (and their contained tiddlers) into a single plugin tiddler which is
+output as a single file.
+
+The format of the outputted file can be C<tid> (default) or C<json>, and is
+specified with the C<-f> (C<--format>) option.
+
+The output file is written to the current directory. The file name is the
+plugin name converted according to tiddlywiki conventions, i.e., slashes and
+colons converted to underscores. For example, the F<$:/plugins/kookma/shiraz>
+plugin would be output to the F<$__plugins_kookma_shiraz> file. If the file
+already exists in the current directory, the user is asked whether or not to
+overwrite it. The script aborts if the user elects not to overwrite the
+existing file.
+
+=head2 Conversion details
+
+This section provides details of the conversion process to assist in
+troubleshooting.
+
+=head3 Extract tiddler titles from files
+
+In addition to extracting tiddler titles from each file, an attempt is also
+made to work out which deserializer is needed for each file. Unfortunately,
+this was not entirely successful; for example, none of the available
+deserializers work with F<css> files. So, instead of using the C<--import>
+command, which requires a deserializer to be specified for each file, the
+C<--load> command is used. The C<--load> command infers from a file's extension
+which deserializer to use for it. (Presumably it has access to more
+deserializers than C<--import>, since it is able to handle F<css> files.)
+
+=head3 Create custom macro
+
+The custom macro C<plugintiddlerstext> outputs a set of tiddlers in a format
+suitable for use in a parent plugin file's text field. The macro is provided by
+the file F<plugintiddlerstext.js>, which is created in a temporary directory.
+Here is the content of the file which defines tiddler
+F<$:/.dtn/modules/macros/plugintiddlerstext.js>:
+
+    /*\
+    title: $:/.dtn/modules/macros/plugintiddlerstext.js
+    type: application/javascript
+    module-type: macro
+
+    Macro to output tiddlers matching a filter to JSON in a format
+    usable for plugin tiddler 'text' fields
+
+    \*/
+    (function(){
+
+    /*jslint node: true, browser: true */
+    /*global $tw: false */
+    "use strict";
+
+    /*
+    Information about this macro
+    */
+
+    exports.name = "plugintiddlerstext";
+
+    exports.params = [
+        {name: "filter"}
+    ];
+
+    /*
+    Run the macro
+    */
+    exports.run = function(filter) {
+        var tiddlers = this.wiki.filterTiddlers(filter),
+            tiddlers_data = new Object(),
+            data = new Object();
+        for(var t=0;t<tiddlers.length; t++) {
+            var tiddler = this.wiki.getTiddler(tiddlers[t]);
+            if(tiddler) {
+                var fields = new Object();
+                for(var field in tiddler.fields) {
+                    fields[field] = tiddler.getFieldString(field);
+                }
+                var title = tiddler.getFieldString('title');
+                tiddlers_data[title] = fields;
+            }
+        }
+        data['tiddlers'] = tiddlers_data;
+        return JSON.stringify(data,null,$tw.config.preferences.jsonSpaces);
+    };
+
+    })();
+
+=head3 Customised templates for setfield commands
+
+These templates are used by the C<--setfield> command to create and populate
+"type" and "text" fields in the plugin tiddler file.
+
+One template is standard for all conversions: adding a "type" field set to
+"application/json". This template is called
+F<$:/.dtn/templates/plugin-tiddlers-type>. It is provided by the file
+F<plugintiddlerstext.tid>, which is written to a temporary directory and has
+the content:
+
+    title: $:/core/templates/.dtn/plugin-tiddlers-type
+
+    <!--
+
+    This template is for setting plugin field 'type' to 'application/json'
+
+    --><$text text='application/json'/>
+
+Another template needs to be customised for each conversion project as it needs
+to specify the tiddlers included in the plugin. It does this by calling the
+macro F<$:/.dtn/modules/macros/plugintiddlerstext.js> discussed above. This
+template is called F<$:/.dtn/templates/plugin-tiddlers-text>. It is provided by
+the file F<plugintiddlerstext.tid> and has the content:
+
+    title: $:/core/templates/.dtn/plugin-tiddlers-text
+
+    <!--
+
+    This template is for saving tiddlers for use in a plugin tiddler's text field
+
+    --><$text text=<<plugintiddlerstext "[prefix[$:/plugins/.dtn/insert-table/]] =[[$:/config/plugin/.dtn/insert-table/style-sets]]">>/>
+
+Plugin tiddlers are customarily prefixed with the plugin name. These plugin
+tiddlers are specified using the C<prefix> filter operator. Any plugin tiddlers
+not prefixed with the plugin name are added to the filter individually using
+the C<=> filter prefix.
+
+=head3 Import server plugin files
+
+All server plugin files and custom files are imported into a new wiki with a
+single C<tiddlywiki> command using multiple commands: the C<--load> command for
+all import files except F<plugin.info>, for which an F<--import> command is
+used with the "application/json" deserializer. The files defining the custom
+macro F<plugintiddlerstext.js>, and custom templates F<plugin-tiddlers-type>
+and F<plugin-tiddlers-text>, are also imported with C<--load> commands.
+
+This C<tiddlywiki> command creates a new wiki in memory. It is not possible to
+perform any more operations on this wiki in the same command that loads the
+files, so the wiki is saved to a temporary directory. This saved version of the
+wiki will be further altered with more C<tiddlywiki> commands.
+
+Here is a sample C<tiddlywiki> command in which plugin files are located in
+F<$PLUG_DIR>, custom files are located in F<$EXTRA>, and the wiki is saved to
+the F<$TMP> directory:
+
+    tiddlywiki \
+        --load $PLUG_DIR/macros.tid \
+        --load $PLUG_DIR/macros-helper.tid \
+        --load $PLUG_DIR/style-sets.tid \
+        --load $PLUG_DIR/plugin.info \
+        --load $PLUG_DIR/doc/credits.tid \
+        --load $PLUG_DIR/doc/dependencies.tid \
+        --load $PLUG_DIR/doc/license.tid \
+        --load $PLUG_DIR/doc/readme.tid \
+        --load $PLUG_DIR/doc/usage.tid \
+        --load $PLUG_DIR/js/enlist-operator.js \
+        --load $PLUG_DIR/js/uuid-macro.js \
+        --load $EXTRA/plugintiddlerstype.tid \
+        --load $EXTRA/plugintiddlerstext.tid \
+        --load $EXTRA/plugintiddlerstext.js \
+        --savewikifolder $TMP
+
+=head3 Add plugin tiddlers to parent plugin tiddler
+
+When a plugin is created in tiddlywiki a "parent" plugin tiddler is created
+having the same name as the plugin, e.g., F<$:/plugins/AUTHOR/PLUGIN>. In this
+step the plugin files are added to the "text" field of the "parent" tiddler as
+a stringified json object. This is done using the F<plugintiddlerstext> macro
+and F<plugin-tiddlers-text> template imported earlier.
+
+In addition, the "parent" plugin tiddler "type" is set to "application/json"
+using the F<plugin-tiddlers-type> template imported earlier.
+
+Here is an example command used in this step. Once again it is not possible to
+performs any further operations on the wiki in this command other than the
+C<--setfield> operations. There is no way to save the altered wiki in place, so
+it is saved to another temporary directory, in this example the one specified
+in F<$FINAL>.
+
+    tiddlywiki $TMP \
+        --setfield \
+            "[[$:/plugins/.dtn/insert-table]]" \
+            "text" \
+            "$:/.dtn/templates/plugin-tiddlers-text" \
+            "text/plain" \
+        --setfield \
+            "[[$:/plugins/.dtn/insert-table]]" \
+            "type" \
+            "$:/.dtn/templates/plugin-tiddlers-type" \
+            "text/plain" \
+        --savewikifolder \
+            $FINAL
+
+=head3 Write plugin file to disk
+
+In this step the "parent" plugin tiddler, which now contains all the plugin
+tiddlers in its "text" field, is exported to disk. It can be exported in "tid"
+or "json" format. The name of the file is derived from the plugin tiddler title
+using standard tiddlywiki conventions, i.e., any C</> and C<:> characters are
+converted to C<_>.
+
+This is an example command outputting to "tid" format:
+
+    tiddlywiki $FINAL \
+        --render \
+            "[[$:/plugins/.dtn/insert-table]]" \
+            "\$__plugins_.dtn_insert-table.tid" \
+            "text/plain" \
+            "$:/core/templates/tid-tiddler"
+
+This is an example command outputting to "json" format:
+
+    tiddlywiki $FINAL \
+        --render \
+            "[[$:/plugins/.dtn/insert-table]]" \
+            '$__plugins_.dtn_insert-table.json' \
+            "text/plain" \
+            "$:/core/templates/json-tiddler"
+
+Note the filename given as the second parameter to the C<--render> command. The
+C<$> requires special care: if using double quotes it must be
+backslash-escaped, but escaping is unnecessary if using single quotes.
+
+The file is written to the F<output> subdirectory of the wiki. In the example
+above, the output plugin file would be written to F<$FINAL/output>.
+
+=head3 Copy the output file to the current directory
+
+If the current directory already contains a file with the same name as the
+output plugin file, the user is asked whether or not to overwrite it.
+
+=head1 CONFIGURATION
+
+This script does not use configuration files or environment variables.
+
+=head1 REQUIRED ARGUMENTS
+
+=head2 plugin_directory
+
+Path of the plugin's root directory. Directory path. Required.
+
+=head1 OPTIONS
+
+=head2 -f | --format FORMAT
+
+Format of output plugin file. Allowed values: 'tid', 'json'. String. Optional.
+Default: 'tid'.
+
+=head2 -h | --help
+
+Display help and exit. Flag. Optional. Default: false.
+
+=head1 EXIT STATUS
+
+Exits with a success value (shell 0) if it extracts and writes all output files
+successfully. If any error prevents this successful conclusion, the script
+exits with an error code (shell 1), unless the failure is caused by an
+underlying operating system error, in which case the shell error code is
+returned.
+
+=head1 DIAGNOSTICS
+
+This script emits no custom warnings or errors, though dependent modules may
+do so.
+
+=head1 INCOMPATIBILITIES
+
+None known.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+App::TW::Plugin::Join, Moo, namespace::clean, strictures, version.
+
+=head1 AUTHOR
+
+David Nebauer S<< <david@nebauer.org> >>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2024 David Nebauer S<< <david@nebauer.org> >>
+
+This script is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
+
+# vim:foldmethod=marker:

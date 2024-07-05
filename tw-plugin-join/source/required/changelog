@@ -1,0 +1,7 @@
+tw-plugin-join (0.4-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 642087
+
+ -- David Nebauer <david@nebauer.org>  Fri, 5 Jul 2024 22:07:09 +0930

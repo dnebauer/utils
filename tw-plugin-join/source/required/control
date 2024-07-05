@@ -1,0 +1,47 @@
+Source: tw-plugin-join
+Maintainer: David Nebauer <david@nebauer.org>
+Section: utils
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               libmodule-build-tiny-perl,
+               perl (>= 5.38.0)
+Build-Depends-Indep: libconst-fast-perl <!nocheck>,
+                     libfile-find-rule-perl <!nocheck>,
+                     libfile-which-perl (>= 1.27) <!nocheck>,
+                     libjson-maybexs-perl (>= 1.004005) <!nocheck>,
+                     libmoo-perl (>= 2.005005) <!nocheck>,
+                     libmoox-handlesvia-perl <!nocheck>,
+                     libmoox-options-perl <!nocheck>,
+                     libnamespace-clean-perl <!nocheck>,
+                     libpath-tiny-perl (>= 0.144) <!nocheck>,
+                     libstrictures-perl <!nocheck>,
+                     libterm-clui-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libtype-tiny-perl (>= 2.004000) <!nocheck>,
+                     libtypes-path-tiny-perl <!nocheck>,
+                     libversion-perl <!nocheck>
+Standards-Version: 4.6.2
+Homepage: https://metacpan.org/release/App-TW-Plugin-Join
+Rules-Requires-Root: no
+
+Package: tw-plugin-join
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         libconst-fast-perl,
+         libfile-find-rule-perl,
+         libfile-which-perl (>= 1.27),
+         libjson-maybexs-perl (>= 1.004005),
+         libmoo-perl (>= 2.005005),
+         libmoox-handlesvia-perl,
+         libmoox-options-perl,
+         libnamespace-clean-perl,
+         libpath-tiny-perl (>= 0.144),
+         libstrictures-perl,
+         libterm-clui-perl,
+         libtype-tiny-perl (>= 2.004000),
+         libtypes-path-tiny-perl,
+         libversion-perl,
+         perl (>= 5.38.0)
+Description: compact server-type TiddlyWiki plugin to a single file
+ See the man page for a full description.

@@ -1,0 +1,8 @@
+50c020be36c708cde7b06a68cf74c4e3  usr/bin/tw-plugin-join
+9cbf9bf9259800f60c18782f057945b5  usr/share/doc/tw-plugin-join/changelog.Debian.gz
+c3be633fba590a78575f30284fc58b49  usr/share/doc/tw-plugin-join/changelog.gz
+27fb3eb9dcd1e74fb346825f3d222ff0  usr/share/doc/tw-plugin-join/copyright
+2ce74c9920773537f31ba59befac305e  usr/share/man/man1/tw-plugin-join.1p.gz
+edf263eccf7bfcbedf43233f01e90023  usr/share/man/man3/App::TW::Plugin::Join.3pm.gz
+0311fb96ca039126fb6a5e5a80d45622  usr/share/perl5/App/TW/Plugin/Join.pm
+f177a1c0389b929763d71792a17e7a65  usr/share/zsh/vendor-completions/_tw-plugin-join
