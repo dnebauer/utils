@@ -1,0 +1,8 @@
+8bb7f897d1f3afb38b2f8c48ec29e85d  usr/bin/tw-plugin-split
+e0a20a937f77d10545aff2c1d12f5fb0  usr/share/doc/tw-plugin-split/changelog.Debian.gz
+522429be71d8786637792a48415f7263  usr/share/doc/tw-plugin-split/changelog.gz
+a4b25e22b704974f3ab33318f5278950  usr/share/doc/tw-plugin-split/copyright
+9395699a6c18b7ad7cca2bb3490a8868  usr/share/man/man1/tw-plugin-split.1p.gz
+7f78428b509b4e1f38ad593ba1796727  usr/share/man/man3/App::TW::Plugin::Split.3pm.gz
+f1d9cba5778bdfbbc837513744691338  usr/share/perl5/App/TW/Plugin/Split.pm
+72dab8e266ca1872aebcebfbe9769381  usr/share/zsh/vendor-completions/_tw-plugin-split

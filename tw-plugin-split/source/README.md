@@ -1,0 +1,255 @@
+# NAME
+
+App::TW::Plugin::Split - convert single json or tid TiddlyWiki plugin file
+
+# VERSION
+
+This documentation is for `App::TW::Plugin::Split` version 0.7.
+
+# SYNOPSIS
+
+    use App::TW::Plugin::Split;
+    App::TW::Plugin::Split->new_with_options->run;
+
+**tw-plugin-split -h**
+
+# DESCRIPTION
+
+This script converts a single `tid` or `json` plugin file for
+[TiddlyWiki](https://tiddlywiki.com/) into a group of files which can be used
+with a node.js server installation of TiddlyWiki. Each plugin tiddler is output
+into one or two files (depending on whether the metadata is contained in the
+main tiddler file or split out into a `meta` file), and the plugin also has a
+`plugin.info` file.
+
+The main work of plugin extraction is done by the node.js version of tiddlywiki
+which must be installed on the system. More specifically, the executable
+`tiddlywiki` must be available.
+
+The plugin extraction command is:
+
+    tiddlywiki --import PLUGIN_FILE DESERIALIZER --savewikifolder ./
+
+where DESERIALIZER is `application/x-tiddler` or `application/json` for
+`tid` or `json` plugin files, respectively
+
+## Output file names
+
+All files are output to the current working directory.
+
+Default tiddler file names are derived from tiddler title fields. Most plugin
+authors use the title schema `$:/plugins/AUTHOR/PLUGIN/name`, where AUTHOR is
+the plugin author's handle and PLUGIN is the plugin's name. After conversion to
+file names, this becomes `$__plugin_AUTHOR_PLUGIN_name`. For example, the
+files extracted from the plugin ContextSeach by danielo515 are:
+    $\_\_plugins\_danielo515\_ContextPlugin\_Caption.tid
+    $\_\_plugins\_danielo515\_ContextPlugin\_readme.tid
+    $\_\_plugins\_danielo515\_ContextPlugin\_Stylesheet\_results.css
+    $\_\_plugins\_danielo515\_ContextPlugin\_Stylesheet\_results.css.meta
+    $\_\_plugins\_danielo515\_ContextPlugin\_visualizer.tid
+    $\_\_plugins\_danielo515\_ContextPlugin\_widgets\_context.js
+    $\_\_plugins\_danielo515\_ContextPlugin\_widgets\_context.js.meta
+    Context Search.tid
+    plugin.info
+
+If the `-s` (`--simplify`) option is used, plugin files of the form
+`$__plugin_AUTHOR_PLUGIN_name` are changed to `name`. For the plugin above
+the extracted files become:
+    Caption.tid
+    readme.tid
+    Stylesheet\_results.css
+    Stylesheet\_results.css.meta
+    visualizer.tid
+    widgets\_context.js
+    widgets\_context.js.meta
+    Context Search.tid
+    plugin.info
+
+In order for the file names to be simplified at least two of the extracted
+files must begin with `$__plugins_`. The longest file stem shared by all files
+beginning with `$__plugins_` is then determined. This stem will be removed
+from these file names unless doing so would:
+
+- Result in duplicate file names, or
+- Leave only a file extension remaining. (Actually, the test is just whether the
+resulting file name begins with a period - `.`.)
+
+# CONFIGURATION AND ENVIRONMENT
+
+## Properties/attributes
+
+None used.
+
+## Required arguments
+
+### plugin\_file
+
+Path of the json plugin file to be converted. File path. Required.
+
+## Options
+
+### -f | --format FORMAT
+
+Plugin file format. Optional. Valid values: 'json', 'tid'.
+
+Default: `json` for files with a `.json` extension,
+`tid` for all other files.
+
+### -s | --simplify
+
+Whether to simplify the extracted plugin file names.
+
+Flag. Optional. Default: false.
+
+### -h | --help
+
+Display help and exit. Flag. Optional. Default: false.
+
+There are no configuration options for this script.
+
+## Configuration files
+
+None used.
+
+## Environment variables
+
+None used.
+
+# SUBROUTINES/METHODS
+
+## run()
+
+The only public method. It converts a single `tid` or `json` plugin file for
+[TiddlyWiki](https://tiddlywiki.com/) into a group of files which can be used
+with a node.js server installation of TiddlyWiki as described in
+["DESCRIPTION"](#description).
+
+# DIAGNOSTICS
+
+- Cannot read file 'FILE'
+
+    The specified file could not be read. This is usually because the wrong file
+    path is given, but could possibly occur if the file exists but the user does
+    not have permission to read it.
+
+- Expected 1 command line argument, got X
+
+    This occurs when too many command line arguments are provided. Be wary of using
+    wildcards which may inadvertently match more than one file.
+
+- Expected 1 plugin directory, got X: ...
+
+    If the extraction command is successful it should create a `plugins`
+    subdirectory which itself contains exactly one plugin-specific subdirectory. If
+    there are multiple plugin-specific subdirectories then something has gone wrong
+    with the plugin file extraction process.
+
+- Expected 1 plugin file format, got X
+
+    This error occurs if more than one plugin file format is specified using the
+    `-f` (`--format`) option.
+
+- Invalid plugin file format '...'
+
+    The only valid plugin file formats are "tid" and "json". Supplying any other
+    option to the `-f` (`--format`) option causes this error.
+
+- Missing executable 'tiddlywiki'
+
+    This script requires the node.js version of tiddlywiki which includes an
+    executable called `tiddlywiki`.
+
+- Missing plugin file format '...'
+
+    This indicates an internal logic error while determining the plugin file format
+    and matching deserializer. It should not occur during normal operation.
+
+- No 'plugins' directory in extracted plugin
+
+    If the extraction command is successful it should create a `plugins`
+    subdirectory which itself contains a plugin-specific subdirectory. If the
+    `plugins` subdirectory is not present then something has gone wrong with the
+    plugin file extraction process.
+
+- No file name provided
+
+    This occurs when no file name is provided on the command line.
+
+- No plugin directories in extracted content
+
+    If the extraction command is successful it should create a `plugins`
+    subdirectory which itself contains a plugin-specific subdirectory. If the
+    plugin-specific subdirectory is missing then something has gone wrong with the
+    plugin file extraction process.
+
+- No plugin files extracted
+
+    If the extraction command is successful it should create a `plugins`
+    subdirectory which itself contains a plugin-specific subdirectory. The
+    plugin-specific subdirectory should contains one or more plugin files - if it
+    does not then something has gone wrong with the plugin file extraction process.
+
+- Output directory must be empty
+
+    This script will abort if the current directory contains any files or
+    directories.
+
+- Plugin extraction command failed
+
+    If this command fails, the above error message is displayed along with the
+    system error message that was generated.
+
+- Stem = STEM, files = FILES at ...
+
+    This is a debugging error message that indicates something thought to be
+    impossible has occurred while analysing the extracted file names. Please report
+    the full content of this error to the script's author.
+
+- Unable to copy 'FROM' to 'CWD': ERROR
+
+    This error occurs if the operating system is unable to copy the extracted
+    plugin files from their temporary directory to the current directory. The error
+    message includes any error message generated by the operating system.
+
+- Unable to rename FROM to TO: ERROR
+
+    This error occurs if the operating system is unable to rename the extracted
+    plugin files in their temporary directory. The error message includes any error
+    message generated by the operating system.
+
+- Unable to write 'FILE'
+
+    This occurs when the file system is unable to write to the current directory.
+
+- Unable to write to console
+
+    The script has tried to write a warning or error message to the console but was
+    unable to do so.
+
+# INCOMPATIBILITIES
+
+None known.
+
+# BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+# DEPENDENCIES
+
+## Perl modules
+
+Carp, Const::Fast, English, File::Basename, File::Copy, File::Find::Rule,
+File::Spec, File::Which, IPC::Cmd, List::SomeUtils, Moo, MooX::HandlesVia,
+MooX::Options, namespace::clean, Path::Tiny, strictures, Types::Path::Tiny,
+Types::Standard, version.
+
+# AUTHOR
+
+David Nebauer <david@nebauer.org>
+
+# LICENSE AND COPYRIGHT
+
+Copyright (c) 2024 David Nebauer <david@nebauer.org>
+
+This script is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.

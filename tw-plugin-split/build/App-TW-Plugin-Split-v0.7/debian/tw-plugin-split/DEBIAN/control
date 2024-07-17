@@ -1,0 +1,24 @@
+Package: tw-plugin-split
+Version: 0.7-1
+Architecture: all
+Maintainer: David Nebauer <david@nebauer.org>
+Installed-Size: 55
+Depends: perl:any, libconst-fast-perl, libfile-find-rule-perl, libfile-which-perl (>= 1.27), liblist-someutils-perl (>= 0.59), libmoo-perl (>= 2.005005), libmoox-handlesvia-perl, libmoox-options-perl, libnamespace-clean-perl, libpath-tiny-perl (>= 0.146), libstrictures-perl, libtype-tiny-perl (>= 2.004000), libtypes-path-tiny-perl, libversion-perl, perl (>= 5.38.0)
+Section: utils
+Priority: optional
+Homepage: https://metacpan.org/release/App-TW-Plugin-Split
+Description: convert single json or tid TiddlyWiki plugin file
+ This script converts a single tid or json plugin file for
+ TiddlyWiki|https://tiddlywiki.com/ into a group of files which can be used
+ with a node.js server installation of TiddlyWiki. Each plugin tiddler is
+ output into one or two files (depending on whether the metadata is contained
+ in the main tiddler file or split out into a meta file), and the plugin also
+ has a plugin.info file.
+ .
+ The main work of plugin extraction is done by the node.js version of
+ tiddlywiki which must be installed on the system. More specifically, the
+ executable tiddlywiki must be available.
+ .
+ The plugin extraction command is:
+ .
+ tiddlywiki --import PLUGIN_FILE DESERIALIZER --savewikifolder ./

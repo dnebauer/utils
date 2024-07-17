@@ -1,0 +1,164 @@
+#!/usr/bin/perl
+
+use Moo;
+use strictures 2;
+use 5.006;
+use 5.038_001;
+use version; our $VERSION = qv('0.7');
+use namespace::clean;
+use App::TW::Plugin::Join;
+
+App::TW::Plugin::Join->new_with_options->run;
+
+# POD    {{{1
+
+__END__
+
+=head1 NAME
+
+tw-plugin-split - convert single json or tid TiddlyWiki plugin file
+
+=head1 USAGE
+
+B<tw-plugin-split> [B<-s>] B<plugin_file>
+
+B<tw-plugin-split -h>
+
+=head1 DESCRIPTION
+
+This script converts a single C<tid> or C<json> plugin file for
+L<TiddlyWiki|https://tiddlywiki.com/> into a group of files which can be used
+with a node.js server installation of TiddlyWiki. Each plugin tiddler is output
+into one or two files (depending on whether the metadata is contained in the
+main tiddler file or split out into a F<meta> file), and the plugin also has a
+F<plugin.info> file.
+
+The main work of plugin extraction is done by the node.js version of tiddlywiki
+which must be installed on the system. More specifically, the executable
+F<tiddlywiki> must be available.
+
+The plugin extraction command is:
+
+    tiddlywiki --import PLUGIN_FILE DESERIALIZER --savewikifolder ./
+
+where DESERIALIZER is C<application/x-tiddler> or C<application/json> for
+C<tid> or C<json> plugin files, respectively
+
+=head2 Output file names
+
+All files are output to the current working directory.
+
+Default tiddler file names are derived from tiddler title fields. Most plugin
+authors use the title schema F<$:/plugins/AUTHOR/PLUGIN/name>, where AUTHOR is
+the plugin author's handle and PLUGIN is the plugin's name. After conversion to
+file names, this becomes F<$__plugin_AUTHOR_PLUGIN_name>. For example, the
+files extracted from the plugin ContextSeach by danielo515 are:
+    $__plugins_danielo515_ContextPlugin_Caption.tid
+    $__plugins_danielo515_ContextPlugin_readme.tid
+    $__plugins_danielo515_ContextPlugin_Stylesheet_results.css
+    $__plugins_danielo515_ContextPlugin_Stylesheet_results.css.meta
+    $__plugins_danielo515_ContextPlugin_visualizer.tid
+    $__plugins_danielo515_ContextPlugin_widgets_context.js
+    $__plugins_danielo515_ContextPlugin_widgets_context.js.meta
+    Context Search.tid
+    plugin.info
+
+If the C<-s> (C<--simplify>) option is used, plugin files of the form
+F<$__plugin_AUTHOR_PLUGIN_name> are changed to F<name>. For the plugin above
+the extracted files become:
+    Caption.tid
+    readme.tid
+    Stylesheet_results.css
+    Stylesheet_results.css.meta
+    visualizer.tid
+    widgets_context.js
+    widgets_context.js.meta
+    Context Search.tid
+    plugin.info
+
+In order for the file names to be simplified at least two of the extracted
+files must begin with F<$__plugins_>. The longest file stem shared by all files
+beginning with F<$__plugins_> is then determined. This stem will be removed
+from these file names unless doing so would:
+
+=over
+
+=item
+
+Result in duplicate file names, or
+
+=item
+
+Leave only a file extension remaining. (Actually, the test is just whether the
+resulting file name begins with a period - C<.>.)
+
+=back
+
+=head1 CONFIGURATION
+
+This script does not use configuration files or environment variables.
+
+=head1 REQUIRED ARGUMENTS
+
+=head2 plugin_file
+
+Path of the json plugin file to be converted. File path. Required.
+
+=head1 OPTIONS
+
+=head2 -f | --format FORMAT
+
+Plugin file format. Optional. Valid values: 'json', 'tid'.
+
+Default: C<json> for files with a F<.json> extension,
+C<tid> for all other files.
+
+=head2 -s | --simplify
+
+Whether to simplify the extracted plugin file names.
+
+Flag. Optional. Default: false.
+
+=head2 -h | --help
+
+Display help and exit. Flag. Optional. Default: false.
+
+=head1 EXIT STATUS
+
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly
+the error code is that given by the system.
+
+=head1 DIAGNOSTICS
+
+This script emits no custom warning or error messages, although dependent
+modules may do so.
+
+=head1 INCOMPATIBILITIES
+
+None known.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+App::TW::Plugin::Join, Moo, namespace::clean, strictures, version.
+
+=head1 AUTHOR
+
+David Nebauer S<< <david@nebauer.org> >>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2024 David Nebauer S<< <david@nebauer.org> >>
+
+This script is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
+
+# vim:foldmethod=marker:

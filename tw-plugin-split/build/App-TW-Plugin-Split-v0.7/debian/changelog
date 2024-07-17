@@ -1,0 +1,7 @@
+tw-plugin-split (0.7-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 682495
+
+ -- David Nebauer <david@nebauer.org>  Wed, 17 Jul 2024 22:13:48 +0930
