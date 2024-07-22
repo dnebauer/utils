@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Mon, 22 Jul 2024 20:50:51 +0930
+Source: tw-select-plugins
+Binary: tw-select-plugins
+Architecture: all
+Version: 0.5-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ tw-select-plugins - interactive filter for selecting plugins
+Closes: 634079
+Changes:
+ tw-select-plugins (0.5-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 634079
+Checksums-Sha1:
+ b8733109e4cdb7fced8151096cee8b45127c5152 18000 tw-select-plugins_0.5-1_all.deb
+ 14da8594d42042bf0bdfe90b698b72a32a81bf37 10218 tw-select-plugins_0.5-1_amd64.buildinfo
+Checksums-Sha256:
+ db4a2fed63944db024d41a0df4671b4b6b4726052b6a920fb93b4e63b7eb380a 18000 tw-select-plugins_0.5-1_all.deb
+ a3820129a89e470771ac8d908448a962cbab8bfe04dddda919a6301191990381 10218 tw-select-plugins_0.5-1_amd64.buildinfo
+Files:
+ 048a28621d15bf4eac675dfe9daca49f 18000 utils optional tw-select-plugins_0.5-1_all.deb
+ 446bd28051b0925d884c8a9101d9aa9e 10218 utils optional tw-select-plugins_0.5-1_amd64.buildinfo

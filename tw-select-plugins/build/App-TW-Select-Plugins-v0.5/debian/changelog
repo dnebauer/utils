@@ -1,0 +1,7 @@
+tw-select-plugins (0.5-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 634079
+
+ -- David Nebauer <david@nebauer.org>  Mon, 22 Jul 2024 20:50:51 +0930

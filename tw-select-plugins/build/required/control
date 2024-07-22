@@ -1,0 +1,55 @@
+Source: tw-select-plugins
+Maintainer: David Nebauer <david@nebauer.org>
+Section: utils
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               libmodule-build-tiny-perl,
+               perl (>= 5.38.0)
+Build-Depends-Indep: libconst-fast-perl <!nocheck>,
+                     libfile-find-rule-perl <!nocheck>,
+                     liblist-someutils-perl (>= 0.59) <!nocheck>,
+                     libmoo-perl (>= 2.005005) <!nocheck>,
+                     libmoox-handlesvia-perl <!nocheck>,
+                     libmoox-options-perl <!nocheck>,
+                     libnamespace-clean-perl <!nocheck>,
+                     libstrictures-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libtype-tiny-perl (>= 2.004000) <!nocheck>,
+                     libtypes-path-tiny-perl <!nocheck>,
+                     libversion-perl <!nocheck>,
+                     perl-tk <!nocheck>
+Standards-Version: 4.6.2
+Homepage: https://metacpan.org/release/App-TW-Select-Plugins
+Rules-Requires-Root: no
+
+Package: tw-select-plugins
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         libconst-fast-perl,
+         libfile-find-rule-perl,
+         liblist-someutils-perl (>= 0.59),
+         libmoo-perl (>= 2.005005),
+         libmoox-handlesvia-perl,
+         libmoox-options-perl,
+         libnamespace-clean-perl,
+         libstrictures-perl,
+         libtype-tiny-perl (>= 2.004000),
+         libtypes-path-tiny-perl,
+         libversion-perl,
+         perl (>= 5.38.0),
+         perl-tk
+Description: interactive filter for selecting plugins
+ In client-server TiddlyWiki|https://tiddlywiki.com/ plugins are referred to
+ by the subdirectory path to plugin files within a plugins directory. The
+ customary practice is to use two levels of subdirectory:
+ PLUGIN_AUTHOR/PLUGIN_NAME.
+ .
+ This script is an interactive filter that accepts a newline-separated list of
+ enabled plugins via standard input. The user is then presented with a list
+ box containing all plugins in the specified plugins directories (the method
+ of plugins directory selection is discussed in /Plugins directory selection
+ below). The plugins provided via standard input are pre-selected. The user
+ can select additional plugins and deselect currently enabled plugins. When
+ the user presses the Set! button a newline-separated list of selected plugins
+ is sent to standard output.

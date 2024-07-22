@@ -1,0 +1,8 @@
+1024988f14c8589c01bdff9e76dfe2a0  usr/bin/tw-select-plugins
+845a987923ee04d8ca2b5bb7e673ec14  usr/share/doc/tw-select-plugins/changelog.Debian.gz
+005442cfc25277c8ccb9d466e494acd9  usr/share/doc/tw-select-plugins/changelog.gz
+c4a94a8eaff1eb1b08206576667db84e  usr/share/doc/tw-select-plugins/copyright
+e17426aa3645d4c083d3daf0c7ac23f5  usr/share/man/man1/tw-select-plugins.1p.gz
+2fa655829f47dbb1ea7b317e4bf242cf  usr/share/man/man3/App::TW::Select::Plugins.3pm.gz
+ea04731a6f5d3f2207f424291255da54  usr/share/perl5/App/TW/Select/Plugins.pm
+9e7a7634f8f2464fcdab7ea8f1d28911  usr/share/zsh/vendor-completions/_tw-select-plugins

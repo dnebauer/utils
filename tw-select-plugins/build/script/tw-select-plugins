@@ -1,0 +1,224 @@
+#!/usr/bin/perl
+
+use Moo;                 # {{{1
+use strictures 2;
+use 5.006;
+use 5.038_001;
+use version; our $VERSION = qv('0.5');
+use namespace::clean;    # }}}1
+use App::TW::Select::Plugins;
+
+App::TW::Select::Plugins->new_with_options->run;
+
+# POD    {{{1
+
+__END__
+
+=head1 NAME
+
+tw-select-plugins - interactive filter for selecting plugins
+
+=head1 USAGE
+
+B<tw-select-plugins> [B<-d> I<path>] [B<-f> I<font>] [B<-i> I<int>]
+
+B<tw-select-plugins -h>
+
+=head1 DESCRIPTION
+
+In client-server L<TiddlyWiki|https://tiddlywiki.com/> plugins are referred to
+by the subdirectory path to plugin files within a plugins directory. The
+customary practice is to use two levels of subdirectory:
+F<PLUGIN_AUTHOR/PLUGIN_NAME>.
+
+This script is an interactive filter that accepts a newline-separated list of
+enabled plugins via standard input. The user is then presented with a list box
+containing all plugins in the specified plugins directories (the method of
+plugins directory selection is discussed in L</Plugins directory selection>
+below). The plugins provided via standard input are pre-selected. The user can
+select additional plugins and deselect currently enabled plugins. When the user
+presses the C<Set!> button a newline-separated list of selected plugins is sent
+to standard output.
+
+If the user presses the C<Abort> button the list of plugins received via
+standard input is sent to standard output.
+
+=head2 Plugins directory selection
+
+The script follows these steps to determine which plugins directories to use.
+
+=over
+
+=over
+
+=item Supplied on command line
+
+The script tries first to obtain plugins directories from command line options
+(C<-d> or C<--plugins_directory>). If directories are provided via this method,
+and at least one of them is valid, they are used.
+
+=item Supplied by an environmental variable
+
+If no plugins directories are provided on the command line, the script tries to
+obtain them from the C<$TIDDLYWIKI_PLUGIN_PATH> environmental variable. If at
+least one valid directory is provided by this method, they are used.
+
+=item Default directory
+
+If no plugins directories are provided via either of the previous methods, the
+script attempts to use the default server plugins directory used by the debian
+C<npm> install, F</usr/local/lib/node_modules/tiddlywiki/plugins/>, if it is
+valid.
+
+=back
+
+=back
+
+In all the methods above, if an invalid directory is detected but the script
+proceeds, the user is warned of the missing directories via a gui message
+dialog.
+
+=head2 Vim users
+
+This script is intended for use with L<vim|https://www.vim.org/> and vim clones
+when editing a F<tiddlywiki.info> file. You can follow these steps to change
+the list of selected plugins:
+
+=over
+
+=item *
+
+Perform a line-wise selection of the plugin list.
+
+=item *
+
+Press the colon key. This causes the command line to display the selection
+marks '<,'> which indicate the following command will apply to the selected
+text.
+
+=item *
+
+Type an exclamation point followed by the script name and any necessary
+options. The command line will look something like:
+
+    :'<,'>!tw-select-plugins -f "Terminus,18"
+
+=item *
+
+Press Enter.
+
+=back
+
+A listbox widget will be displayed for the user to alter which plugins are
+selected. If the "Set!" button is pressed, the selected text in vim is replaced
+with a list of the newly selected plugins.
+
+If an error occurs the selected text in vim may be replaced with the error
+output. If this occurs the change can be easily reversed with the undo command,
+invoked in Normal mode with the C<u> key.
+
+=head2 When no standard input is provided
+
+If no standard input is provided when this script is invoked, it waits
+indefinitely for standard input. Pressing C<Ctrl-d> signals to the script that
+standard input is complete and it will continue execution.
+
+=head1 CONFIGURATION
+
+=head2 Standard input
+
+This script is an interactive filter that accepts a newline-separated list of
+enabled plugins via standard input. See L</DESCRIPTION> for more details.
+
+=head2 Configuration files
+
+None used.
+
+=head2 Environment variables
+
+=head3 TIDDLYWIKI_PLUGIN_PATH
+
+If no plugins directories are provided on the command line, the script tries to
+obtain them from the C<$TIDDLYWIKI_PLUGIN_PATH> environmental variable. If at
+least one valid directory is provided by this method, they are used.
+
+=head1 REQUIRED ARGUMENTS
+
+None.
+
+=head1 OPTIONS
+
+=head2 -d | plugins_directory PATH
+
+Server plugins directory.
+
+If specifying multiple directories, use a separate C<-d> option for each.
+
+If no directories are provided by the user with this option, the script will
+attempt to use any directories specified with the environmental variable
+C<$TIDDLYWIKI_PLUGIN_PATH>. If no directories are provided by command line
+option or environmental variable, the script will use the debian default plugin
+location of F</usr/local/lib/node_modules/tiddlywiki/plugins/> if it exists.
+
+Path. Optional. Default: [see discussion above].
+
+=head2 -f | --font FONT
+
+Font name and size. Format as a single string like "font,size" with a comma
+separating the elements and no extra spaces.
+
+Note: the script does not check the validity of this option value. A
+non-existent font name is ignored, while a non-numeric size causes a fatal
+error.
+
+String. Optional. Default: "LucidaSans,18".
+
+=head2 -i | --indent INDENT
+
+Size of indent used in output.
+
+Integer. Optional. Default: 8. Negative values are silently ignored.
+
+=head2 -h | --help
+
+Display help and exit. Flag. Optional. Default: false.
+
+=head1 EXIT STATUS
+
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly
+the error code is that given by the system.
+
+=head1 DIAGNOSTICS
+
+This script emits no custom errors or warnings, though dependent modules may do
+so.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+App::TW::Select::Plugins, Moo, namespace::clean, strictures, version.
+
+=head1 AUTHOR
+
+David Nebauer S<< <david@nebauer.org> >>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2024 David Nebauer S<< <david@nebauer.org> >>
+
+This script is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
+
+# vim:foldmethod=marker:

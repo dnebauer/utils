@@ -1,0 +1,16 @@
+#compdef tw-select-plugins
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-f --font)'{-f,--font}'[Font to use for listbox widget (string, optional, default\: LucidaSans,18)]:font:' \
+    '(-i --indent)'{-i,--indent}'[Size of indent in output (integer, optional, default\: 8)]:indent:' \
+    '(-d --plugin_directory)'{-d,--plugin_directory}'[Server plugin directory (path, multiple allowed, optional, default\: /usr/local/lib/node_modules/tiddlywiki/plugins/)]:dir:' \
+  && rc=0
+
+return rc
