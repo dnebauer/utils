@@ -54,8 +54,8 @@
 .rr rF
 .\" ========================================================================
 .\"
-.IX Title "DN-UPDATE-CONTEXT-MAILLIST 1"
-.TH DN-UPDATE-CONTEXT-MAILLIST 1 2024-04-14 "perl v5.38.2" "User Contributed Perl Documentation"
+.IX Title "DN-UPDATE-CONTEXT-MAILLIST 1p"
+.TH DN-UPDATE-CONTEXT-MAILLIST 1p 2024-07-28 "perl v5.38.2" "User Contributed Perl Documentation"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -67,20 +67,6 @@ dn\-update\-context\-maillist \- updates local copy of ntg\-context mailing list
 \&\fBdn-update-context-maillist\fR [ \fB\-l\fR ]
 .PP
 \&\fBdn-update-context-maillist \-h\fR
-.SH "REQUIRED ARGUMENTS"
-.IX Header "REQUIRED ARGUMENTS"
-There are no required arguments.
-.SH OPTIONS
-.IX Header "OPTIONS"
-.IP "\fB\-l\fR  \fB\-\-log\fR" 4
-.IX Item "-l --log"
-Log output rather than display on screen. Note that the Dn::MboxenSplit module
-will display some screen output regardless of this option.
-.Sp
-Boolean. Optional. Default: false.
-.IP \fB\-h\fR 4
-.IX Item "-h"
-Display help and exit.
 .SH DESCRIPTION
 .IX Header "DESCRIPTION"
 Download the ntg_context mailing list archive for the current year. (If
@@ -93,15 +79,6 @@ email message which is not already captured in the directory.
 .PP
 Displays feedback on screen unless the \f(CW\*(C`\-l\*(C'\fR option is used, in which case the
 result (and any errors or warnings) are written to the system log.
-.SH DIAGNOSTICS
-.IX Header "DIAGNOSTICS"
-.SS "Can't create config file 'FILE'"
-.IX Subsection "Can't create config file 'FILE'"
-Occurs when the system is unable to create the configuration file.
-.SS "Invalid type 'TYPE'"
-.IX Subsection "Invalid type 'TYPE'"
-Occurs when attempting to write a log message with an invalid type.
-Valid types are: EMERG ALERT CRIT ERR WARNING NOTICE INFO DEBUG.
 .SH CONFIGURATION
 .IX Header "CONFIGURATION"
 Uses a configuration file to save the year of the most recent update. When
@@ -116,29 +93,46 @@ and uses the first one it finds.
 If neither configuration file exists, it will create
 \&\fI~/.config/dn\-update\-context\-maillist.conf\fR if the \fI~/.config\fR directory
 exists, otherwise it creates \fI~/.dn\-update\-context\-maillistrc\fR.
+.SH "REQUIRED ARGUMENTS"
+.IX Header "REQUIRED ARGUMENTS"
+None.
+.SH OPTIONS
+.IX Header "OPTIONS"
+.SS "\-l | \-\-log"
+.IX Subsection "-l | --log"
+Log output rather than display on screen. Note that the Dn::MboxenSplit module
+will display some screen output regardless of this option.
+.PP
+Flag. Optional. Default: false.
+.SS "\-h | \-\-help"
+.IX Subsection "-h | --help"
+Display help and exit.
+.SH "EXIT STATUS"
+.IX Header "EXIT STATUS"
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly
+the error code is that given by the system.
+.SH DIAGNOSTICS
+.IX Header "DIAGNOSTICS"
+This script does not emit any custom warnings or errors, but dependent modules
+may do so.
+.SH INCOMPATIBILITIES
+.IX Header "INCOMPATIBILITIES"
+There are no known incomptibilities.
+.SH "BUGS AND LIMITATIONS"
+.IX Header "BUGS AND LIMITATIONS"
+Please report any bugs to the author.
 .SH DEPENDENCIES
 .IX Header "DEPENDENCIES"
 .SS "Perl modules"
 .IX Subsection "Perl modules"
-Config::Tiny, Const::Fast, Dn::MboxenSplit, English, experimental,
-File::Basename, File::HomeDir, File::Spec, File::Temp, File::Touch,
-File::Util, IO::Interactive, LWP::Simple, Moo, MooX::HandlesVia, MooX::Options,
-namespace::clean, strictures, Sys::Syslog, Types::Standard, version.
-.SH INCOMPATIBILITIES
-.IX Header "INCOMPATIBILITIES"
-There are no known incomptibilities.
-.SH "EXIT STATUS"
-.IX Header "EXIT STATUS"
-Exits with 0 if successful, 1 if an error is encountered.
-.SH "BUGS AND LIMITATIONS"
-.IX Header "BUGS AND LIMITATIONS"
-Please report any bugs to the author.
+App::Dn::UpdateContextMaillist, Moo, namespace::clean, strictures, version.
 .SH AUTHOR
 .IX Header "AUTHOR"
-David Nebauer <davidnebauer@hotkey.net.au>
+David Nebauer <david@nebauer.org>
 .SH "LICENSE AND COPYRIGHT"
 .IX Header "LICENSE AND COPYRIGHT"
-Copyright (c) 2016 David Nebauer <davidnebauer@hotkey.net.au>
+Copyright (c) 2024 David Nebauer <david@nebauer.org>
 .PP
 This script is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

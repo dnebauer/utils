@@ -1,0 +1,58 @@
+Source: dn-update-context-maillist
+Maintainer: David Nebauer <david@nebauer.org>
+Section: utils
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               libmodule-build-tiny-perl,
+               perl (>= 5.38.0)
+Build-Depends-Indep: libconfig-tiny-perl (>= 2.30) <!nocheck>,
+                     libconst-fast-perl <!nocheck>,
+                     libdn-mboxensplit-perl (>= 0.2) <!nocheck>,
+                     libfile-homedir-perl <!nocheck>,
+                     libfile-touch-perl (>= 0.12) <!nocheck>,
+                     libfile-util-perl <!nocheck>,
+                     libio-interactive-perl (>= 1.025) <!nocheck>,
+                     libmoo-perl (>= 2.005005) <!nocheck>,
+                     libmoox-handlesvia-perl <!nocheck>,
+                     libmoox-options-perl <!nocheck>,
+                     libnamespace-clean-perl <!nocheck>,
+                     libstrictures-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libtype-tiny-perl (>= 2.004000) <!nocheck>,
+                     libversion-perl <!nocheck>,
+                     libwww-perl (>= 6.77) <!nocheck>
+Standards-Version: 4.6.2
+Homepage: https://metacpan.org/release/App-Dn-UpdateContextMaillist
+Rules-Requires-Root: no
+
+Package: dn-update-context-maillist
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         libconfig-tiny-perl (>= 2.30),
+         libconst-fast-perl,
+         libdn-mboxensplit-perl (>= 0.2),
+         libfile-homedir-perl,
+         libfile-touch-perl (>= 0.12),
+         libfile-util-perl,
+         libio-interactive-perl (>= 1.025),
+         libmoo-perl (>= 2.005005),
+         libmoox-handlesvia-perl,
+         libmoox-options-perl,
+         libnamespace-clean-perl,
+         libstrictures-perl,
+         libtype-tiny-perl (>= 2.004000),
+         libversion-perl,
+         libwww-perl (>= 6.77),
+         perl (>= 5.38.0)
+Description: updates local copy of ntg-context mailing list
+ Download the ntg_context mailing list archive for the current year. (If
+ performing the first update of the year, also do a final update of the
+ previous year.)
+ .
+ Uses the Dn::MboxenSplit module to extract individual emails and writes to
+ ~/data/computing/text-processing/context/mail-list/ an mbox file for every
+ email message which is not already captured in the directory.
+ .
+ Displays feedback on screen unless the -l option is used, in which case the
+ result (and any errors or warnings) are written to the system log.

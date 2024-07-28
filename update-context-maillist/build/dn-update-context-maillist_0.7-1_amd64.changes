@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Sun, 28 Jul 2024 15:43:18 +0930
+Source: dn-update-context-maillist
+Binary: dn-update-context-maillist
+Architecture: all
+Version: 0.7-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-update-context-maillist - updates local copy of ntg-context mailing list
+Closes: 654098
+Changes:
+ dn-update-context-maillist (0.7-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 654098
+Checksums-Sha1:
+ 503ac808f399537818832fa00d26eda4155b1732 12636 dn-update-context-maillist_0.7-1_all.deb
+ 3c5efd70d308204f1068b644cb1f86da760c297f 14436 dn-update-context-maillist_0.7-1_amd64.buildinfo
+Checksums-Sha256:
+ 42e50a992cb1d6f4fbe4752e30a4ba47e88fafdd713fd131059e370044e984d9 12636 dn-update-context-maillist_0.7-1_all.deb
+ c3f4fa578ec31ccbb2385f28d07dae446cdc404804ccbd50992640a2f82824d5 14436 dn-update-context-maillist_0.7-1_amd64.buildinfo
+Files:
+ 15cd07dcd86675b6b8e6a23de395bca8 12636 utils optional dn-update-context-maillist_0.7-1_all.deb
+ 4276ae0b5220bf9f0374a207c617dda1 14436 utils optional dn-update-context-maillist_0.7-1_amd64.buildinfo

@@ -1,0 +1,27 @@
+requires 'perl', '5.038';
+requires 'Config::Tiny', '2.30';
+requires 'Const::Fast', '0.014';
+requires 'Dn::MboxenSplit', '0.2';
+requires 'English', '1.11';
+requires 'File::Basename', '2.86';
+requires 'File::HomeDir', '1.006';
+requires 'File::Spec', '3.88';
+requires 'File::Temp', '0.2311';
+requires 'File::Touch', '0.12';
+requires 'File::Util', '4.201720';
+requires 'IO::Interactive', '1.025';
+requires 'LWP::Simple', '6.77';
+requires 'Moo', '2.005005';
+requires 'MooX::HandlesVia', '0.001009';
+requires 'MooX::Options', '4.103';
+requires 'namespace::clean', '0.27';
+requires 'strictures', '2.000006';
+requires 'Sys::Syslog', '0.36';
+requires 'Types::Standard', '2.004000';
+requires 'version', '0.9930';
+
+# requires 'Some::Module', 'VERSION';
+
+on test => sub {
+    requires 'Test::More', '0.96';
+};

@@ -1,0 +1,20 @@
+Package: dn-update-context-maillist
+Version: 0.7-1
+Architecture: all
+Maintainer: David Nebauer <david@nebauer.org>
+Installed-Size: 47
+Depends: perl:any, libconfig-tiny-perl (>= 2.30), libconst-fast-perl, libdn-mboxensplit-perl (>= 0.2), libfile-homedir-perl, libfile-touch-perl (>= 0.12), libfile-util-perl, libio-interactive-perl (>= 1.025), libmoo-perl (>= 2.005005), libmoox-handlesvia-perl, libmoox-options-perl, libnamespace-clean-perl, libstrictures-perl, libtype-tiny-perl (>= 2.004000), libversion-perl, libwww-perl (>= 6.77), perl (>= 5.38.0)
+Section: utils
+Priority: optional
+Homepage: https://metacpan.org/release/App-Dn-UpdateContextMaillist
+Description: updates local copy of ntg-context mailing list
+ Download the ntg_context mailing list archive for the current year. (If
+ performing the first update of the year, also do a final update of the
+ previous year.)
+ .
+ Uses the Dn::MboxenSplit module to extract individual emails and writes to
+ ~/data/computing/text-processing/context/mail-list/ an mbox file for every
+ email message which is not already captured in the directory.
+ .
+ Displays feedback on screen unless the -l option is used, in which case the
+ result (and any errors or warnings) are written to the system log.

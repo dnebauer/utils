@@ -1,0 +1,14 @@
+#compdef dn-update-context-maillist
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-l --log)'{-l,--log}'[Send output to system log, not console (flag)]' \
+  && rc=0
+
+return rc

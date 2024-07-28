@@ -1,0 +1,118 @@
+#!/usr/bin/perl
+
+use Moo;
+use strictures 2;
+use 5.006;
+use 5.038_001;
+use version; our $VERSION = qv('0.7');
+use namespace::clean;
+use App::Dn::UpdateContextMaillist;
+
+App::Dn::UpdateContextMaillist->new_with_options->run;
+
+# POD    {{{1
+
+__END__
+
+=head1 NAME
+
+dn-update-context-maillist - updates local copy of ntg-context mailing list
+
+=head1 USAGE
+
+B<dn-update-context-maillist> [ B<-l> ]
+
+B<dn-update-context-maillist -h>
+
+=head1 DESCRIPTION
+
+Download the ntg_context mailing list archive for the current year. (If
+performing the first update of the year, also do a final update of the previous
+year.)
+
+Uses the C<Dn::MboxenSplit> module to extract individual emails and writes to
+F<~/data/computing/text-processing/context/mail-list/> an mbox file for every
+email message which is not already captured in the directory.
+
+Displays feedback on screen unless the C<-l> option is used, in which case the
+result (and any errors or warnings) are written to the system log.
+
+=head1 CONFIGURATION
+
+Uses a configuration file to save the year of the most recent update. When
+running the script looks in turn for the configuration files:
+
+=over
+
+=item *
+
+F<~/.config/dn-update-context-maillist.conf>
+
+=item *
+
+F<~/.dn-update-context-maillistrc>
+
+=back
+
+and uses the first one it finds.
+
+If neither configuration file exists, it will create
+F<~/.config/dn-update-context-maillist.conf> if the F<~/.config> directory
+exists, otherwise it creates F<~/.dn-update-context-maillistrc>.
+
+=head1 REQUIRED ARGUMENTS
+
+None.
+
+=head1 OPTIONS
+
+=head2 -l | --log
+
+Log output rather than display on screen. Note that the Dn::MboxenSplit module
+will display some screen output regardless of this option.
+
+Flag. Optional. Default: false.
+
+=head2 -h | --help
+
+Display help and exit.
+
+=head1 EXIT STATUS
+
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly
+the error code is that given by the system.
+
+=head1 DIAGNOSTICS
+
+This script does not emit any custom warnings or errors, but dependent modules
+may do so.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incomptibilities.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+App::Dn::UpdateContextMaillist, Moo, namespace::clean, strictures, version.
+
+=head1 AUTHOR
+
+David Nebauer S<< <david@nebauer.org> >>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2024 David Nebauer S<< <david@nebauer.org> >>
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+# vim:fdm=marker
