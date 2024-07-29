@@ -1,0 +1,126 @@
+# NAME
+
+App::Dn::PerlModuleDebianPackage - find debian package providing perl module
+
+# VERSION
+
+This documantation is for `App::Dn::PerlModuleDebianPackage` version 0.9.
+
+# SYNOPSIS
+
+    use App::Dn::PerlModuleDebianPackage;
+
+    App::Dn::PerlModuleDebianPackage->new_with_script->run;
+
+# DESCRIPTION
+
+Finds the file loaded when a specified module is loaded, and finds the debian
+package providing that file.
+
+It may be necessary to provide additional module names. See the notes for the
+`--additional_modules` option for more details.
+
+The debian package name is also copied to the system clipboard unless this is
+suppressed by the `--no_copy` option. On X-windows systems such as
+linux there are three _selections_ (the term for copied or cut text):
+_primary_, _secondary_ and _clipboard_. This script copies the package name
+to the _primary_ and _clipboard_ selections. These selections are pasted
+using the middle mouse button and ctrl+v keys, respectively. In terminals it
+may be necessary to paste with shift key + middle mouse button, and
+shift+ctrl+v keys, respectively.
+
+# CONFIGURATION AND ENVIRONMENT
+
+## Arguments
+
+### module
+
+The perl module to analyse. String. Required.
+
+## Options
+
+### -a | --additional\_modules MODULE ...
+
+Additional perl module(s) required to run perl command that discovers module
+file.
+
+To specify multiple additional modules:
+
+- Use the `-a` option for each additional module, or
+- Provide multiple modules to `-a` as a comma-delimited string (with no spaces),
+or
+- A combination of both approaches.
+
+The need for an additional module may suggested by an error message when
+running the script. For example, when analysing module `MooX::Options` the
+script returns the following error message:
+
+    Can't find the method <with> in <main> ! Ensure to load a Role::Tiny \
+    compatible module like Moo or Moose before using MooX::Options.\
+    at -e line 0.
+
+While the message is somewhat opaque, it is clearly asking for `Moo` or
+`Moose`. Providing either of these as an additional module results in
+successful execution.
+
+### -n | --no\_copy
+
+Do not copy the debian package name to the clipboard. Flag. Optional.
+Default: false.
+
+### -h | --help
+
+Display help and exit. Flag. Optional. Default: false.
+
+## Properties/attributes
+
+There are no public attributes.
+
+## Configuration files
+
+None used.
+
+## Environment variables
+
+None used.
+
+# SUBROUTINES/METHODS
+
+## run()
+
+This is the only public method. It finds the debian package providing a perl
+module, as described in ["DESCRIPTION"](#description).
+
+# DIAGNOSTICS
+
+## Can't find the method &lt;with> in &lt;main> ! Ensure to load ...
+
+While the message is somewhat opaque, it is clearly asking for `Moo` or
+`Moose`. Providing either of these as an additional module results in
+successful execution.
+
+# INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+# BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+# DEPENDENCIES
+
+## Perl modules
+
+Carp, Const::Fast, English, List::SomeUtils, Moo, MooX::Options,
+namespace::clean, Role::Utils::Dn, strictures, Types::Standard, version.
+
+# AUTHOR
+
+David Nebauer <david@nebauer.org>
+
+# LICENSE AND COPYRIGHT
+
+Copyright (c) 2024 David Nebauer <david@nebauer.org>
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.

@@ -1,0 +1,50 @@
+Source: dn-perl-module-debian-package
+Maintainer: David Nebauer <david@nebauer.org>
+Section: utils
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               libmodule-build-tiny-perl,
+               perl (>= 5.38.0)
+Build-Depends-Indep: libconst-fast-perl <!nocheck>,
+                     liblist-someutils-perl (>= 0.59) <!nocheck>,
+                     libmoo-perl (>= 2.005005) <!nocheck>,
+                     libmoox-options-perl <!nocheck>,
+                     libnamespace-clean-perl <!nocheck>,
+                     librole-utils-dn-perl (>= 0.4) <!nocheck>,
+                     libstrictures-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libtype-tiny-perl (>= 2.004000) <!nocheck>,
+                     libversion-perl <!nocheck>
+Standards-Version: 4.6.2
+Homepage: https://metacpan.org/release/App-Dn-PerlModuleDebianPackage
+Rules-Requires-Root: no
+
+Package: dn-perl-module-debian-package
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         libconst-fast-perl,
+         liblist-someutils-perl (>= 0.59),
+         libmoo-perl (>= 2.005005),
+         libmoox-options-perl,
+         libnamespace-clean-perl,
+         librole-utils-dn-perl (>= 0.4),
+         libstrictures-perl,
+         libtype-tiny-perl (>= 2.004000),
+         libversion-perl,
+         perl (>= 5.38.0)
+Description: find debian package providing perl module
+ Finds the file loaded when a specified module is loaded, and finds the debian
+ package providing that file.
+ .
+ It may be necessary to provide additional module names. See the notes for the
+  --additional_modules option for more details.
+ .
+ The debian package name is also copied to the system clipboard unless this is
+ suppressed by the --no_copy option. On X-windows systems such as linux there
+ are three selections (the term for copied or cut text): primary, secondary
+ and clipboard. This script copies the package name to the primary and
+ clipboard selections. These selections are pasted using the middle mouse
+ button and ctrl+v keys, respectively. In terminals it may be necessary to
+ paste with shift key + middle mouse button, and shift+ctrl+v keys,
+ respectively.

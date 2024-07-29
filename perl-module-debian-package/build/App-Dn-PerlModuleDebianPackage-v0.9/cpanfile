@@ -1,0 +1,16 @@
+requires 'perl', '5.038';
+requires 'Carp', '1.54';
+requires 'Const::Fast', '0.014';
+requires 'English', '1.11';
+requires 'List::SomeUtils', '0.59';
+requires 'Moo', '2.005005';
+requires 'MooX::Options', '4.103';
+requires 'namespace::clean', '0.27';
+requires 'Role::Utils::Dn', '0.4';
+requires 'strictures', '2.000006';
+requires 'Types::Standard', '2.004000';
+requires 'version', '0.9930';
+
+on test => sub {
+    requires 'Test::More', '0.96';
+};

@@ -1,0 +1,7 @@
+dn-perl-module-debian-package (0.9-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 643230
+
+ -- David Nebauer <david@nebauer.org>  Mon, 29 Jul 2024 14:02:37 +0930

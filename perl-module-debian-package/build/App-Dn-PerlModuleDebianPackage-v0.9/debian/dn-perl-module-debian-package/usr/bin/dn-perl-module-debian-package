@@ -1,0 +1,139 @@
+#!/usr/bin/perl
+
+use Moo;
+use strictures 2;
+use 5.006;
+use 5.038_001;
+use version; our $VERSION = qv('0.9');
+use namespace::clean;
+use App::Dn::PerlModuleDebianPackage;
+
+App::Dn::PerlModuleDebianPackage->new_with_options->run;
+
+# POD {{{1
+
+__END__
+
+=head1 NAME
+
+dn-perl-module-debian-package - find debian package providing perl module
+
+=head1 USAGE
+
+B<dn-perl-module-debian-package> [B<-a> I<module> ...] [I<-n>] module
+
+B<dn-perl-module-debian-package -h>
+
+=head1 DESCRIPTION
+
+Finds the file loaded when a specified module is loaded, and finds the debian
+package providing that file.
+
+It may be necessary to provide additional module names. See the notes for the
+S<< C<--additional_modules> >> option for more details.
+
+The debian package name is also copied to the system clipboard unless this is
+suppressed by the S<< C<--no_copy> >> option. On X-windows systems such as
+linux there are three I<selections> (the term for copied or cut text):
+I<primary>, I<secondary> and I<clipboard>. This script copies the package name
+to the I<primary> and I<clipboard> selections. These selections are pasted
+using the middle mouse button and ctrl+v keys, respectively. In terminals it
+may be necessary to paste with shift key + middle mouse button, and
+shift+ctrl+v keys, respectively.
+
+=head1 CONFIGURATION
+
+There is no configuration required for this script.
+
+=head1 REQUIRED ARGUMENTS
+
+=head2 module
+
+The perl module to analyse. String. Required.
+
+=head1 OPTIONS
+
+=head2 -a | --additional_modules MODULE ...
+
+Additional perl module(s) required to run perl command that discovers module
+file.
+
+To specify multiple additional modules:
+
+=over
+
+=item *
+
+Use the C<-a> option for each additional module, or
+
+=item *
+
+Provide multiple modules to C<-a> as a comma-delimited string (with no spaces),
+or
+
+=item *
+
+A combination of both approaches.
+
+=back
+
+The need for an additional module may suggested by an error message when
+running the script. For example, when analysing module C<MooX::Options> the
+script returns the following error message:
+
+    Can't find the method <with> in <main> ! Ensure to load a Role::Tiny \
+    compatible module like Moo or Moose before using MooX::Options.\
+    at -e line 0.
+
+While the message is somewhat opaque, it is clearly asking for C<Moo> or
+C<Moose>. Providing either of these as an additional module results in
+successful execution.
+
+=head2 -n | --no_copy
+
+Do not copy the debian package name to the clipboard. Flag. Optional.
+Default: false.
+
+=head2 -h | --help
+
+Display help and exit. Flag. Optional. Default: false.
+
+=head1 EXIT STATUS
+
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly
+the error code is that given by the system.
+
+=head1 DIAGNOSTICS
+
+This module emits no custom warnings or errors, though dependent modules may do
+so.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+App::Dn::PerlModuleDebianPackage, Moo, namespace::clean, strictures, version.
+
+=head1 AUTHOR
+
+David Nebauer S<< <david@nebauer.org> >>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2024 David Nebauer S<< <david@nebauer.org> >>
+
+This script is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+# vim:fdm=marker:

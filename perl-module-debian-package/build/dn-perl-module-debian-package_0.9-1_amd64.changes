@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Mon, 29 Jul 2024 14:02:37 +0930
+Source: dn-perl-module-debian-package
+Binary: dn-perl-module-debian-package
+Architecture: all
+Version: 0.9-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-perl-module-debian-package - find debian package providing perl module
+Closes: 643230
+Changes:
+ dn-perl-module-debian-package (0.9-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 643230
+Checksums-Sha1:
+ 152bd8fdcee4a3c23544afe45a4cd7fb048d9bda 11024 dn-perl-module-debian-package_0.9-1_all.deb
+ 9b48a3372637cd9a35a03d357bbdd7126993f160 12946 dn-perl-module-debian-package_0.9-1_amd64.buildinfo
+Checksums-Sha256:
+ a84ac9f5317fd17129dfda7def69dbad31461f47aee8882cbf539c0052dff887 11024 dn-perl-module-debian-package_0.9-1_all.deb
+ 3bdaa3020e7b9e26faa86efe3007019d9dd663ee838e94fa11c9d211f1179a16 12946 dn-perl-module-debian-package_0.9-1_amd64.buildinfo
+Files:
+ b24ba6447563d4677d43dc5bcbf7e0bf 11024 utils optional dn-perl-module-debian-package_0.9-1_all.deb
+ 6180d791a81f0bbedcc4917f33d71b72 12946 utils optional dn-perl-module-debian-package_0.9-1_amd64.buildinfo

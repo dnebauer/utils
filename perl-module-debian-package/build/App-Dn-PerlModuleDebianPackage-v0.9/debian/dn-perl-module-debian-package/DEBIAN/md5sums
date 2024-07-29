@@ -1,0 +1,8 @@
+21128ec99382305453d4a2b091858770  usr/bin/dn-perl-module-debian-package
+126afdd529965850b810f57dc72983e1  usr/share/doc/dn-perl-module-debian-package/changelog.Debian.gz
+361e0271eb6904b02eb3ea7c6aa8a592  usr/share/doc/dn-perl-module-debian-package/changelog.gz
+d00a9d3de067b71c131d05a0ba47de83  usr/share/doc/dn-perl-module-debian-package/copyright
+48401e712bc1861d8fc414d8039770e6  usr/share/man/man1/dn-perl-module-debian-package.1p.gz
+ab3e35db4145964782096ac15f6ca0a6  usr/share/man/man3/App::Dn::PerlModuleDebianPackage.3pm.gz
+c94416c109d09ef837eda8e66f81d92e  usr/share/perl5/App/Dn/PerlModuleDebianPackage.pm
+5592d97bb6870d232ab190614a9b4829  usr/share/zsh/vendor-completions/_dn-perl-module-debian-package
