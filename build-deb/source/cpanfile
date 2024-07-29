@@ -19,6 +19,7 @@ requires 'MooX::HandlesVia', '0.001009';
 requires 'MooX::Options', '4.103';
 requires 'namespace::clean', '0.27';
 requires 'Path::Tiny', '0.144';
+requires 'Role::Utils::Dn', '0.4';
 requires 'strictures', '2.000006';
 requires 'Term::Clui', '1.76';
 requires 'Term::ReadKey', '2.38';

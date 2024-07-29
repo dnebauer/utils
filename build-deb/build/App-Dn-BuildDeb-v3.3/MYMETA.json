@@ -54,6 +54,7 @@
             "MooX::HandlesVia" : "0.001009",
             "MooX::Options" : "4.103",
             "Path::Tiny" : "0.144",
+            "Role::Utils::Dn" : "0.4",
             "Term::Clui" : "1.76",
             "Term::ReadKey" : "2.38",
             "Types::Standard" : "2.004000",

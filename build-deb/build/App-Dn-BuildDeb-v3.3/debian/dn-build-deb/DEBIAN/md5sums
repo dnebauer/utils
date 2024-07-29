@@ -3,6 +3,6 @@ ccae5da2d9af4976e72598c0d33594d8  usr/share/doc/dn-build-deb/changelog.Debian.gz
 1880e64b1b04769f653347bc34b51a32  usr/share/doc/dn-build-deb/changelog.gz
 fd2507735bcb57be54d7bb8b05c4768d  usr/share/doc/dn-build-deb/copyright
 d89a890c3e19f71158e6c910ec559a28  usr/share/man/man1/dn-build-deb.1p.gz
-a48f57ed16d3c56467776f404b2c43d3  usr/share/man/man3/App::Dn::BuildDeb.3pm.gz
-2fd03257190e2f6c67fb8591399f47ef  usr/share/perl5/App/Dn/BuildDeb.pm
+55e3bb6dfc07bb8365803fd80f79498c  usr/share/man/man3/App::Dn::BuildDeb.3pm.gz
+f6204410ea82a669290349340ef37d44  usr/share/perl5/App/Dn/BuildDeb.pm
 73fe3e3f641a36b6ff56444bfcd2303a  usr/share/zsh/vendor-completions/_dn-build-deb

@@ -18,11 +18,11 @@ Changes:
    * Initial release
    * Closes: 623098
 Checksums-Sha1:
- ba1eb2ccec96540fd963ab6c277bee63db2dff25 9508 dn-numeric-prefix_0.6-1_all.deb
- c9a8a3f52bd3b1bb11fe19ecd40b76f4af95a62f 13047 dn-numeric-prefix_0.6-1_amd64.buildinfo
+ cc95401c9366bdd782c7aad4a72ea664b536f827 9532 dn-numeric-prefix_0.6-1_all.deb
+ 46bbc242021918c885a8475d02b6ba1d6968f9c5 13039 dn-numeric-prefix_0.6-1_amd64.buildinfo
 Checksums-Sha256:
- 489884dea7a461d29bbaf2a6ec6b58c0522c85299396a082b6527deb2fe74c32 9508 dn-numeric-prefix_0.6-1_all.deb
- c9f72f647c2cac4c22f99b4f038ac798595c7f39a0b0626372df045909dfa3e3 13047 dn-numeric-prefix_0.6-1_amd64.buildinfo
+ 1b84c0f0b4f75a77a331d8f69ff2d3d9ee59e2dc452207cb594a33438c30ede6 9532 dn-numeric-prefix_0.6-1_all.deb
+ f91b1f4a68ee215d57ad030259ddf411c12b7216cc7ca02a75b677a531bfdce1 13039 dn-numeric-prefix_0.6-1_amd64.buildinfo
 Files:
- f68f19d9066374c109962017c2807d9f 9508 perl optional dn-numeric-prefix_0.6-1_all.deb
- 804a26de0bff8498d6c993b1a9d3dd1d 13047 perl optional dn-numeric-prefix_0.6-1_amd64.buildinfo
+ 3aedc5572cee4a565c812aed0ebf85be 9532 perl optional dn-numeric-prefix_0.6-1_all.deb
+ 0cea81fa02565ab2a7bd5121b3eff195 13039 perl optional dn-numeric-prefix_0.6-1_amd64.buildinfo

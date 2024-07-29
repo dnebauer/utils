@@ -509,7 +509,8 @@ Archive::Tar, autodie, Carp, charnames, Const::Fast, Dpkg::Version,
 Email::Date::Format, Email::Valid, English, Feature::Compat::Try,
 File::Basename, File::Copy::Recursive, File::Find::Rule, File::Spec,
 File::chdir, Moo, MooX::HandlesVia, MooX::Options, namespace::clean,
-Path::Tiny, strictures, Term::Clui, Term::ReadKey, Types::Standard, version.
+Path::Tiny, Role::Utils::Dn, strictures, Term::Clui, Term::ReadKey,
+Types::Standard, version.
 
 ## Executables
 

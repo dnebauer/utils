@@ -3,6 +3,6 @@
 5cc93a67831c6041b78db8c21b0aeb52  usr/share/doc/dn-numeric-prefix/changelog.gz
 5b2b80c09f2db5dc9e3fe40431278c9e  usr/share/doc/dn-numeric-prefix/copyright
 527d7ef13437540c75c1df9f2012a024  usr/share/man/man1/dn-numeric-prefix.1p.gz
-35eca84f7df0cfdaabf70d4c30294a6f  usr/share/man/man3/App::Dn::NumericPrefix.3pm.gz
-b81385a3796c7344177856c5d615af86  usr/share/perl5/App/Dn/NumericPrefix.pm
+c78f8766f6779bba7b89a815751bd58a  usr/share/man/man3/App::Dn::NumericPrefix.3pm.gz
+e393afe4d8499ee98ede99dd297f2fd1  usr/share/perl5/App/Dn/NumericPrefix.pm
 1f8b0b719dd3c1cb02ab8049a4efe048  usr/share/zsh/vendor-completions/_dn-numeric-prefix

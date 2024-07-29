@@ -321,7 +321,8 @@ Please report any bugs to the author.
 =head2 Perl modules
 
 autodie, Carp, Const::Fast, English, List::SomeUtils, Moo, MooX::HandlesVia,
-MooX::Options, namespace::clean, strictures, Types::Standard, version.
+MooX::Options, namespace::clean, Role::Utils::Dn, strictures, Types::Standard,
+version.
 
 =head1 AUTHOR
 
