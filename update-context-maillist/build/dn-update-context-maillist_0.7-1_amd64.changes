@@ -18,11 +18,11 @@ Changes:
    * Initial release
    * Closes: 654098
 Checksums-Sha1:
- 503ac808f399537818832fa00d26eda4155b1732 12636 dn-update-context-maillist_0.7-1_all.deb
- 3c5efd70d308204f1068b644cb1f86da760c297f 14436 dn-update-context-maillist_0.7-1_amd64.buildinfo
+ bc21df6f0948aff2837ee21959a86ed92298039c 12644 dn-update-context-maillist_0.7-1_all.deb
+ 8b3eae650b0aac1ec52f42cb9ce95e728e41bf90 14436 dn-update-context-maillist_0.7-1_amd64.buildinfo
 Checksums-Sha256:
- 42e50a992cb1d6f4fbe4752e30a4ba47e88fafdd713fd131059e370044e984d9 12636 dn-update-context-maillist_0.7-1_all.deb
- c3f4fa578ec31ccbb2385f28d07dae446cdc404804ccbd50992640a2f82824d5 14436 dn-update-context-maillist_0.7-1_amd64.buildinfo
+ 7ffa6ad4ac7fb91b21c9a3639bcc9289f4e5ee6c7bac37e6b434bd8750095ca2 12644 dn-update-context-maillist_0.7-1_all.deb
+ 04ed777ecfc07420b5da40a21e91cff9522306fec269c2b931d0db8cf7123f93 14436 dn-update-context-maillist_0.7-1_amd64.buildinfo
 Files:
- 15cd07dcd86675b6b8e6a23de395bca8 12636 utils optional dn-update-context-maillist_0.7-1_all.deb
- 4276ae0b5220bf9f0374a207c617dda1 14436 utils optional dn-update-context-maillist_0.7-1_amd64.buildinfo
+ 7eaf417d4189a2084eb4db3e2bd82a8f 12644 utils optional dn-update-context-maillist_0.7-1_all.deb
+ a31a6ea776ef27a34e1a1bce8c5bd030 14436 utils optional dn-update-context-maillist_0.7-1_amd64.buildinfo

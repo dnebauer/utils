@@ -3,6 +3,6 @@ cb4c4e89cc24e116efbf1a02ce8b3392  usr/share/doc/dn-update-context-maillist/chang
 0dd222402725e6afb3a66dd11a1e2488  usr/share/doc/dn-update-context-maillist/changelog.gz
 fb063f7cf7b12422d6556ba4fa7769eb  usr/share/doc/dn-update-context-maillist/copyright
 9dd265656c1717d83d17e88b859e2871  usr/share/man/man1/dn-update-context-maillist.1p.gz
-88fa94eae4c8a64dcc54fbc73df2ab76  usr/share/man/man3/App::Dn::UpdateContextMaillist.3pm.gz
-e80bb99f6fe4dff3766cb9c96bc4794d  usr/share/perl5/App/Dn/UpdateContextMaillist.pm
+0b1264f199f5e233915ef790c56e9f30  usr/share/man/man3/App::Dn::UpdateContextMaillist.3pm.gz
+5ad06c24c67efa36a38728cd887353e9  usr/share/perl5/App/Dn/UpdateContextMaillist.pm
 5284e90085408690ef00baa24b4e2a8a  usr/share/zsh/vendor-completions/_dn-update-context-maillist

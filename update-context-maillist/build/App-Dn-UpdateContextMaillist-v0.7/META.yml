@@ -37,6 +37,7 @@ requires:
   Moo: '2.005005'
   MooX::HandlesVia: '0.001009'
   MooX::Options: '4.103'
+  Role::Utils::Dn: '0.4'
   Sys::Syslog: '0.36'
   Types::Standard: '2.004000'
   namespace::clean: '0.27'

@@ -4,14 +4,14 @@ Binary: dn-update-context-maillist
 Architecture: all
 Version: 0.7-1
 Checksums-Md5:
- 15cd07dcd86675b6b8e6a23de395bca8 12636 dn-update-context-maillist_0.7-1_all.deb
+ 7eaf417d4189a2084eb4db3e2bd82a8f 12644 dn-update-context-maillist_0.7-1_all.deb
 Checksums-Sha1:
- 503ac808f399537818832fa00d26eda4155b1732 12636 dn-update-context-maillist_0.7-1_all.deb
+ bc21df6f0948aff2837ee21959a86ed92298039c 12644 dn-update-context-maillist_0.7-1_all.deb
 Checksums-Sha256:
- 42e50a992cb1d6f4fbe4752e30a4ba47e88fafdd713fd131059e370044e984d9 12636 dn-update-context-maillist_0.7-1_all.deb
+ 7ffa6ad4ac7fb91b21c9a3639bcc9289f4e5ee6c7bac37e6b434bd8750095ca2 12644 dn-update-context-maillist_0.7-1_all.deb
 Build-Origin: Debian
 Build-Architecture: amd64
-Build-Date: Sun, 28 Jul 2024 15:47:56 +0930
+Build-Date: Mon, 29 Jul 2024 14:20:31 +0930
 Build-Tainted-By:
  merged-usr-via-aliased-dirs
  usr-local-has-configs
@@ -113,11 +113,11 @@ Installed-Build-Depends:
  libbrotli1 (= 1.1.0-2+b4),
  libbsd0 (= 0.12.2-1),
  libbz2-1.0 (= 1.0.8-5.1),
- libc-bin (= 2.39-4),
- libc-dev-bin (= 2.39-4),
- libc6 (= 2.39-4),
- libc6-dev (= 2.39-4),
- libc6-i386 (= 2.39-4),
+ libc-bin (= 2.39-6),
+ libc-dev-bin (= 2.39-6),
+ libc6 (= 2.39-6),
+ libc6-dev (= 2.39-6),
+ libc6-i386 (= 2.39-6),
  libcap-ng0 (= 0.8.5-1+b1),
  libcap2 (= 1:2.66-5),
  libcc1-0 (= 14-20240330-1),
@@ -231,10 +231,10 @@ Installed-Build-Depends:
  libgmp10 (= 2:6.3.0+dfsg-2+b1),
  libgomp1 (= 14-20240330-1),
  libgprofng0 (= 2.42.90.20240720-2),
- libheif-plugin-aomdec (= 1.17.6-4+b2),
- libheif-plugin-dav1d (= 1.17.6-4+b2),
- libheif-plugin-libde265 (= 1.17.6-4+b2),
- libheif1 (= 1.17.6-4+b2),
+ libheif-plugin-aomdec (= 1.17.6-4+b3),
+ libheif-plugin-dav1d (= 1.17.6-4+b3),
+ libheif-plugin-libde265 (= 1.17.6-4+b3),
+ libheif1 (= 1.17.6-4+b3),
  libhtml-parser-perl (= 3.82-1),
  libhtml-tagset-perl (= 3.24-1),
  libhtml-tree-perl (= 5.07-3),

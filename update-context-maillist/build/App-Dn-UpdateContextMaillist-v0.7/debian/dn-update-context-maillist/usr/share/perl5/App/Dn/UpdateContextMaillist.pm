@@ -638,7 +638,8 @@ Please report any bugs to the author.
 Config::Tiny, Const::Fast, Dn::MboxenSplit, English, File::Basename,
 File::HomeDir, File::Spec, File::Temp, File::Touch, File::Util,
 IO::Interactive, LWP::Simple, Moo, MooX::HandlesVia, MooX::Options,
-namespace::clean, strictures, Sys::Syslog, Types::Standard, version.
+namespace::clean, Role::Utils::Dn, strictures, Sys::Syslog, Types::Standard,
+version.
 
 =head1 AUTHOR
 
