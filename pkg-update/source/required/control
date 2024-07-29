@@ -1,0 +1,43 @@
+Source: dn-pkg-update
+Maintainer: David Nebauer <david@nebauer.org>
+Section: utils
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               libmodule-build-tiny-perl,
+               perl (>= 5.38.0)
+Build-Depends-Indep: libconst-fast-perl <!nocheck>,
+                     libmoo-perl (>= 2.005005) <!nocheck>,
+                     libmoox-handlesvia-perl <!nocheck>,
+                     libmoox-options-perl <!nocheck>,
+                     libnamespace-clean-perl <!nocheck>,
+                     librole-utils-dn-perl (>= 0.4) <!nocheck>,
+                     libstrictures-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libtype-tiny-perl (>= 2.004000) <!nocheck>,
+                     libversion-perl <!nocheck>
+Standards-Version: 4.6.2
+Homepage: https://metacpan.org/release/App-Dn-PkgUpdate
+Rules-Requires-Root: no
+
+Package: dn-pkg-update
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         aptitude (>= 0.8.13-6),
+         dn-update-local-apt-repository (>= 1.2-3),
+         libconst-fast-perl,
+         libmoo-perl (>= 2.005005),
+         libmoox-handlesvia-perl,
+         libmoox-options-perl,
+         libnamespace-clean-perl,
+         librole-utils-dn-perl (>= 0.4),
+         libstrictures-perl,
+         libtype-tiny-perl (>= 2.004000),
+         libversion-perl,
+         perl (>= 5.38.0),
+         sudo (>= 1.9.15p5-3+b1)
+Description: update existing, and install new, debian packages
+ Gives user an opportunity to update existing packages and potentially install
+ additional packages.
+ .
+ This script runs the following commands in sequence:

@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Mon, 29 Jul 2024 15:20:57 +0930
+Source: dn-pkg-update
+Binary: dn-pkg-update
+Architecture: all
+Version: 0.5-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-pkg-update - update existing, and install new, debian packages
+Closes: 623298
+Changes:
+ dn-pkg-update (0.5-1) UNRELEASED; urgency=low
+ .
+   * Local package
+   * Initial release
+   * Closes: 623298
+Checksums-Sha1:
+ 21caf6f4fb3c7ef69a5465681ad7d93e99835fd3 9224 dn-pkg-update_0.5-1_all.deb
+ 99f607f9ab1ded044b2b749ff29d3dbd33b02a95 13019 dn-pkg-update_0.5-1_amd64.buildinfo
+Checksums-Sha256:
+ af11bdf5f60ef4bc6626043618507ec9b6d220985f4c99049beb79f747892829 9224 dn-pkg-update_0.5-1_all.deb
+ daefacd39d4f70132cfa10a5fb820767ccbcf5bb133982034049d06068482aaa 13019 dn-pkg-update_0.5-1_amd64.buildinfo
+Files:
+ 41f06fcca99f7cee26f9c1018f3647d8 9224 utils optional dn-pkg-update_0.5-1_all.deb
+ b8419741b0fbd12b940ca7a7df25a32d 13019 utils optional dn-pkg-update_0.5-1_amd64.buildinfo

@@ -1,0 +1,8 @@
+1312f01e56a019fde57d3e9e35a0ef79  usr/bin/dn-pkg-update
+a4406dca9f779a0f0e8434f9efe2ad12  usr/share/doc/dn-pkg-update/changelog.Debian.gz
+5d548817006aee546afa17774b8b05d8  usr/share/doc/dn-pkg-update/changelog.gz
+a20796b2b40658a9482e67937d0edcc7  usr/share/doc/dn-pkg-update/copyright
+d36948f2f7ea721febb8219ec607b97d  usr/share/man/man1/dn-pkg-update.1p.gz
+ccf69ff67ad30ad1f3a5f262dc0f6626  usr/share/man/man3/App::Dn::PkgUpdate.3pm.gz
+6c07f328d8ffa350428253d06ba23f36  usr/share/perl5/App/Dn/PkgUpdate.pm
+e10091fe411487b211a956f4a73ed493  usr/share/zsh/vendor-completionsG/_dn-pkg-update

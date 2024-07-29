@@ -1,0 +1,7 @@
+dn-pkg-update (0.5-1) UNRELEASED; urgency=low
+
+  * Local package
+  * Initial release
+  * Closes: 623298
+
+ -- David Nebauer <david@nebauer.org>  Mon, 29 Jul 2024 15:20:57 +0930

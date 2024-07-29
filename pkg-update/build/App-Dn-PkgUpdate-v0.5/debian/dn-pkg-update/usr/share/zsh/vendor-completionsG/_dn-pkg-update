@@ -1,0 +1,15 @@
+#compdef dn-pkg-update
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+    '--usage[Show a short help message]' \
+    '--man[Show the manual]' \
+  - 'script_options' \
+    '(-i --ignore_failure)'{-i,--ignore_failure}'[Continue after failed command (flag)]' \
+    '(-p --final_prompt)'{-p,--final_prompt}'[Prompt when finished (flag)]' \
+  && rc=0
+
+return rc
