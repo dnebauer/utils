@@ -587,8 +587,8 @@ local keyword_data = {
 					["header-includes"] = {
 						"\\usepackage{xcolor}",
 						"\\usepackage{fontspec}",
-						"\\setmainfont{Junicode}",
-						"\\newfontfamily\\myregularfont{Junicode}",
+						"\\setmainfont{Libertinus Serif}",
+						"\\newfontfamily\\myregularfont{Libertinus Serif}",
 						"\\newfontfamily\\mychinesefont{IPAexMincho}",
 						"\\usepackage[CJK]{ucharclasses}",
 						"\\setTransitionsForCJK{\\mychinesefont}" .. "{\\myregularfont}",
@@ -618,8 +618,8 @@ local keyword_data = {
 					["header-includes"] = {
 						"\\usepackage{xcolor}",
 						"\\usepackage{fontspec}",
-						"\\setmainfont{Junicode}",
-						"\\newfontfamily\\myregularfont{Junicode}",
+						"\\setmainfont{Libertinus Serif}",
+						"\\newfontfamily\\myregularfont{Libertinus Serif}",
 						"\\newfontfamily\\mychinesefont{IPAexMincho}",
 						"\\usepackage[CJK]{ucharclasses}",
 						"\\setTransitionsForCJK{\\mychinesefont}" .. "{\\myregularfont}",
@@ -725,8 +725,8 @@ local keyword_data = {
 					["header-includes"] = {
 						"\\usepackage{xcolor}",
 						"\\usepackage{fontspec}",
-						"\\setmainfont{Junicode}",
-						"\\newfontfamily\\myregularfont{Junicode}",
+						"\\setmainfont{Libertinus Serif}",
+						"\\newfontfamily\\myregularfont{Libertinus Serif}",
 						"\\newfontfamily\\mychinesefont{IPAexMincho}",
 						"\\usepackage[CJK]{ucharclasses}",
 						"\\setTransitionsForCJK{\\mychinesefont}" .. "{\\myregularfont}",
