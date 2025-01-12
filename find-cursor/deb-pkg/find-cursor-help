@@ -1,0 +1,50 @@
+find-cursor highlights the cursor position by drawing circles around it.
+https://github.com/arp242/find-cursor
+
+Flags:
+  -h, --help          Show this help.
+
+Shape options:
+  -s, --size          Maximum size the circle will grow to in pixels.
+  -d, --distance      Distance between the circles in pixels.
+  -l, --line-width    Width of the lines in pixels.
+  -w, --wait          Time to wait before drawing the next circle in
+                      tenths of milliseconds.
+  -c, --color         Color as X11 color name or RGB (e.g. #ff0000)
+  -g, --grow          Grow the animation in size, rather than shrinking it.
+
+Extra options:
+  -f, --follow        Follow the cursor position as the cursor is moving.
+  -t, --transparent   Make the window truly 'transparent'. This helps with
+                      some display issues when following the cursor position,
+                      but it doesn't work well with all WMs, which is why
+                      it's disabled by default.
+  -o, --outline       Width in pixels of outline; uses 2px if no value is given.
+                      Helps visibility on all backgrounds.
+  -O, --outline-color Color of outline; if omitted it will automatically use
+                      the opposite color. No effect if -o isn't set.
+  -r, --repeat        Number of times to repeat the animation; use 0 to repeat
+                      indefinitely.
+
+Examples:
+  The defaults:
+    ./find-cursor --size 320 --distance 40 --wait 400 --line-width 4 --color black
+
+  Draw a solid circle:
+    ./find-cursor --size 100 --distance 1 --wait 20 --line-width 1
+
+  Always draw a full circle on top of the cursor:
+    ./find-cursor --repeat 0 --follow --distance 1 --wait 1 --line-width 16 --size 16
+
+Launching:
+  You will want to map a key in your window manager to run find-cursor.
+  You can also use xbindkeys, which should work with any window manager.
+
+  I run it with xcape:
+       xcape -e 'Control_L=Escape;Shift_L=KP_Add'
+
+  When Left Shift is tapped a Keypad Add is sent; I configured my window
+  manager to launch find-cursor with that.
+
+  I don't have a numpad on my keyboard; you can also use F13 or some
+  other unused key.
