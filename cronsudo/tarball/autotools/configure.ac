@@ -3,13 +3,16 @@
 
 AC_PREREQ([2.71])
 AC_INIT([Cron tasks and sudoers files],
-        [2.7],
+        [2.8],
         [david@nebauer.org],
         [dn-cronsudo],
 )
 AM_INIT_AUTOMAKE([foreign])
 
 # Checks for programs.
+# - g810-led
+AC_PATH_PROG(myg810_led, g810-led)
+test -z "${myg810_led}" && AC_MSG_ERROR([g810-led not installed])
 # - get_iplayer
 AC_PATH_PROG(myget_iplayer, get_iplayer)
 test -z "${myget_iplayer}" && AC_MSG_ERROR([get_iplayer not installed])
@@ -133,6 +136,7 @@ AC_CONFIG_FILES([
     dn-cronsudo.1
     dn-edit.sudoers
     dn-filesys.sudoers
+    dn-hardware.sudoers
     dn-logging.sudoers
     dn-network.sudoers
     dn-pkg-manage.sudoers

@@ -1,3 +1,9 @@
+dn-cronsudo (2.8-1) UNRELEASED; urgency=low
+
+  * add hardware with g810-led configured
+
+ -- David Nebauer <david@nebauer.org>  Tue, 7 Jan 2025 22:57:51 +0930
+
 dn-cronsudo (2.7-1) UNRELEASED; urgency=low
 
   * add editor and nvim.appimage as sudo editor apps

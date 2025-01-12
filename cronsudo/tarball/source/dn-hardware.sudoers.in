@@ -1,0 +1,5 @@
+# sudoers file supplied by package dn-cronsudo
+# do not edit directly but modify the package
+
+# hardware-related
+david ALL= NOPASSWD: /usr/bin/g810-led

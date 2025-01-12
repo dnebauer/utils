@@ -83,6 +83,7 @@ pkgvardir = @localstatedir@/lib/$(PACKAGE)
 pkgdata_DATA = dn-app-manage.sudoers \
 			   dn-edit.sudoers       \
 			   dn-filesys.sudoers    \
+			   dn-hardware.sudoers   \
 			   dn-logging.sudoers    \
 			   dn-network.sudoers    \
 			   dn-pkg-manage.sudoers \
