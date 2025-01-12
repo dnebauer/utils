@@ -158,6 +158,10 @@ Enables logging to a file in the current directory.
 Maximize the window on startup. Not equivalent to fullscreen. [env:
 NEOVIDE_MAXIMIZED=]
 .TP
+.BI "\-\-mouse-cursor-icon " "<MOUSE_CURSOR_ICON>"
+Which mouse cursor icon to use [env: NEOVIDE_MOUSE_CURSOR_ICON=]
+[default: arrow] [possible values: arrow, i-beam]
+.TP
 .BI "\-\-neovim\-bin " "<NEOVIM_BIN>"
 Which NeoVim binary to invoke headlessly instead of
 .B "nvim"
@@ -196,7 +200,7 @@ The size of the window in pixels.
 Request sRGB when initializing the window. May help with GPUs with weird pixel
 formats. Default on Windows. [env: NEOVIDE_SRGB=]
 .TP
-.B "tabs"
+.B "\-\-tabs"
 Enable opening multiple files in tabs. Default. [env: NEOVIDE_TABS=]
 .TP
 .B "\-\-title\-hidden"
@@ -210,7 +214,7 @@ The app ID to show to the compositor. Wayland only. Useful for setting WM
 rules. [env: NEOVIDE_APP_ID=] [default: neovide]
 .TP
 .B "\-\-wsl"
-Run neovim inside
+Run neovim in
 .URL "https://docs.microsoft.com/en-us/windows/wsl/" \
      "WSL (Windows Subsystem for Linux)"
 rather than on the host. [env: NEOVIDE_WSL=]
