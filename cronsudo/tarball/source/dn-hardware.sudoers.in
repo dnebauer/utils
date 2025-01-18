@@ -3,3 +3,8 @@
 
 # hardware-related
 david ALL= NOPASSWD: /usr/bin/g810-led
+david ALL= NOPASSWD: /usr/bin/g512-led
+david ALL= NOPASSWD: /usr/bin/apt
+david ALL= NOPASSWD: /usr/bin/apt-file
+david ALL= NOPASSWD: /usr/bin/apt-get
+david ALL= NOPASSWD: /usr/bin/aptitude

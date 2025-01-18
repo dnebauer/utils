@@ -2,61 +2,48 @@
 #
 # weekly cron script provided by package dn-cronsudo
 
-# PROCEDURES
+# ACCESSORY PROCEDURES
+
+# check_user
+#   intent: whether user is valid (has account and home directory)
+#   params: 1 - user
+#   prints: nil
+#   return: boolean (0|1 = true|false)
+check_user() {
+	local users="" user="${1}"
+	# get users
+	#users="$( for user in $( cut -d: -f1 < /etc/passwd ) ; do \
+	#             dir -1 /home/ | grep "\b${user}\b" ; \
+	#         done \
+	#)"
+	users="$(
+		while IFS= read -r line; do
+			usr=$(echo "${line}" | cut -d: -f1)
+			dir -1 /home/ | grep "\b${usr}\b"
+		done <"/etc/passwd"
+	)"
+	# check user
+	return "$(
+		toggle_bool "$(echo "${users}" | grep -c "\b${user}\b")"
+	)"
+}
 
 # toggle_bool
 #   intent: toggle boolean value, i.e., true->false and vice versa
 #   params: value
 #   prints: toggled value
 #   return: toggled value
-toggle_bool () {
-    case ${1} in
-        0 ) echo '1' ; return 1;;
-        * ) echo '0' ; return 0;;
-    esac
-}
-# check_user
-#   intent: whether user is valid (has account and home directory)
-#   params: 1 - user
-#   prints: nil
-#   return: boolean (0|1 = true|false)
-check_user () {
-    local users="" user="${1}"
-    # get users
-    #users="$( for user in $( cut -d: -f1 < /etc/passwd ) ; do \
-    #             dir -1 /home/ | grep "\b${user}\b" ; \
-    #         done \
-    #)"
-    users="$( while IFS= read -r line ; do \
-                  usr=$( echo "${line}" | cut -d: -f1 ) ; \
-                  dir -1 /home/ | grep "\b${usr}\b" ; \
-              done < "/etc/passwd" \
-    )"
-    # check user
-    return "$( \
-        toggle_bool "$( echo "${users}" | grep -c "\b${user}\b" )" \
-    )"
-
-}
-# vim_bundles
-#   intent: update local vim and nvim bundles
-#   params: nil
-#   prints: nil
-#   return: nil
-vim_bundles () {
-    # requires vim
-    test -x /usr/bin/vim || return
-    # performed as user david
-    local user="david"
-    check_user "${user}" || return
-    # perform update
-    su --login --command "/usr/bin/vim \"+PlugUpdate\" +qall" ${user} \
-        || return 0
-    su --login --command "/usr/bin/nvim \"+PlugUpdate\" +qall" ${user} \
-        || return 0
+toggle_bool() {
+	case ${1} in
+	0)
+		echo '1'
+		return 1
+		;;
+	*)
+		echo '0'
+		return 0
+		;;
+	esac
 }
 
 # CRON TASKS
-
-# Update vim bundles
-vim_bundles

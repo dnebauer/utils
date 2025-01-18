@@ -3,273 +3,54 @@
 
 # daily cron script provided by package dn-cronsudo
 
-# PROCEDURES
-
-# bbc_podcasts    {{{1
-#   intent: download new BBC Radio program podcasts
-#   params: nil
-#   prints: nil
-#   return: boolean (0|1 = true|false)
-bbc_podcasts () {
-
-    # logging
-    local task ; task="download of new BBC podcasts"
-    local prefix ; prefix="IPLAYER"
-
-    # requires get_iplayer
-    local exe ; exe="/usr/bin/get_iplayer"
-    if ! test -x ${exe} ; then
-        log "${prefix}" "Can't find iplayer" "err"
-        return
-    fi
-
-    # performed as user david
-    local user ; user="david"
-    if ! check_user "${user}" ; then
-        log "${prefix}" "Invalid user '${user}' - aborting ${task}" "err"
-        return
-    fi
-
-    # download new podcasts
-    local tmr ; tmr="$(timer)"
-    log "${prefix}" "Begin ${task}"
-    if ! su --login --command "${exe} --pvr 2>/dev/null" ${user} ; then
-        log "${prefix}" "FAILED ${task}" "err"
-        return
-    fi
-    log "${prefix}" "Finished ${task}"
-    local elapsed ; elapsed="$(timer "${tmr}")"
-    log "${prefix}" "Elapsed time ${elapsed}"
-}
+# ACCESSORY PROCEDURES
 
 # check_user    {{{1
 #   intent: whether user is valid (has account and home directory)
 #   params: 1 - user
 #   prints: nil
 #   return: boolean (0|1 = true|false)
-check_user () {
-    local user ; user="${1}"
-    local users
-    users="$( while IFS= read -r line ; do \
-                  usr=$( echo "${line}" | cut -d: -f1 ) ; \
-                  dir -1 /home/ | grep "\b${usr}\b" ; \
-              done < "/etc/passwd" \
-    )"
-    # check user
-    return "$( \
-        toggle_bool "$( echo "${users}" | grep -c "\b${user}\b" )" \
-    )"
-
-}
-
-# flush mail queue    {{{1
-#   intent: attempt to send any queued emails
-#   params: logs result in system log
-#   prints: nil
-#   return: nil
-flush_mail_queue () {
-
-    # logging
-    local task ; task="flushing mail queue"
-    local prefix ; prefix="MAIL_QUEUE"
-
-    # performed as user david
-    local user ; user="david"
-    if ! check_user "${user}" ; then
-        log "${prefix}" "Invalid user '${user}' - aborting ${task}" "err"
-        return
-    fi
-
-    # requires msmtp-queue and logger
-    local exe ; exe="/home/david/.local/bin/msmtp-queue"
-    if ! which "${exe}" &>/dev/null ; then
-        log "${prefix}" "Can't find ${exe}" "err"
-        return
-    fi
-
-    # flush queue
-    # - can send output directly to logger
-    local tmr ; tmr="$(timer)"
-    log "${prefix}" "Begin ${task}"
-    local logger="/usr/bin/logger"
-    if test -x ${logger} ; then
-        su --login --command \
-            "set -o pipefail ; ${exe} -r  | ${logger} -t ${prefix}" ${user}
-    else
-        su --login --command "${exe} -r" ${user}
-    fi
-    if test ${?} -ne 0 ; then log "${prefix}" "FAILED ${task}" "err" ; fi
-    log "${prefix}" "Finished ${task}"
-    local elapsed ; elapsed="$(timer "${tmr}")"
-    log "${prefix}" "Elapsed time ${elapsed}"
+check_user() {
+	local user
+	user="${1}"
+	local users
+	users="$(
+		while IFS= read -r line; do
+			usr=$(echo "${line}" | cut -d: -f1)
+			dir -1 /home/ | grep "\b${usr}\b"
+		done <"/etc/passwd"
+	)"
+	# check user
+	return "$(
+		toggle_bool "$(echo "${users}" | grep -c "\b${user}\b")"
+	)"
 }
 
 # log    {{{1
 #   intent: write message to system log
 #   params: 1 - prefix [required]
 #           2 - message [required]
-#           3 - priority [optional, default='info']
+#           3 - priority [required]
 #               can be emerg|alert|crit|err|warning|notice|info|debug
 #   prints: toggled value
 #   return: toggled value
-log () {
+log() {
 
-    # process parameters
-    local prefix ; prefix="${1}"
-    local message ; message="${2}"
-    local priority ; priority="${3}"
-    if test -z "${priority}" ; then priority="info" ; fi
+	# process parameters
+	local prefix
+	prefix="${1}"
+	local message
+	message="${2}"
+	local priority
+	priority="${3}"
+	if test -z "${priority}"; then priority="info"; fi
 
-    # log message if logger is available
-    local exe ; exe="/usr/bin/logger"
-    if test -x ${exe} ; then
-        ${exe} --priority "cron.${priority}" --tag "${prefix}" "${message}"
-    fi
-}
-
-# notmuch_addresses    {{{1
-#   intent: update notmuch email addresses cache file
-#   params: nil
-#   prints: nil
-#   return: boolean (0|1 = true|false)
-notmuch_addresses () {
-
-    # logging
-    local task ; task="updating email address cache"
-    local prefix ; prefix="EMAILCACHE"
-
-    echo 'Checking for notmuch'
-    # requires notmuch
-    local exe ; exe="/usr/bin/notmuch"
-    if ! test -x ${exe} ; then
-        log "${prefix}" "Can't find notmuch" "err"
-        return
-    fi
-
-    echo 'Checking user david'
-    # performed as user david
-    local user ; user="david"
-    if ! check_user "${user}" ; then
-        log "${prefix}" "Invalid user '${user}' - aborting ${task}" "err"
-        return
-    fi
-
-    local tmr ; tmr="$(timer)"
-    log "${prefix}" "Begin ${task}"
-
-    echo 'Create temp file'
-    # create temporary file
-    local temp_file
-    if ! temp_file="$(mktemp 2>/dev/null)" ; then
-        log "${prefix}" "FAILED ${task}: can't create temp file" "err"
-        return
-    fi
-    if ! chown ${user}:${user} $temp_file ; then
-        log "${prefix}" "FAILED ${task}: can't chown temp file" "err"
-        return
-    fi
-
-    echo 'Run notmuch'
-    # harvest email addresses
-    local cache_dir cache_file
-    cache_dir="/home/${user}/.cache/notmuch-addresses"
-    cache_file="${cache_dir}/email-address.cache"
-    if ! su --login --command "notmuch address --output=recipients \
-            --output=sender --deduplicate=address '*' \
-            2>/dev/null > ${temp_file}" ${user} ; then
-        log "${prefix}" "FAILED ${task}: can't capture notmuch output" "err"
-        return
-    fi
-
-    # overwrite cache file
-    echo 'Create cache path if necessary'
-    if ! su --login --command "mkdir -p ${cache_dir}" ${user} ; then
-        log "${prefix}" "FAILED ${task}: can't create cache directory" "err"
-        return
-    fi
-    echo 'Overwrite cache'
-    if ! su --login --command "mv ${temp_file} ${cache_file}" ${user} ; then
-        log "${prefix}" "FAILED ${task}: can't overwrite cache file" "err"
-        return
-    fi
-
-    log "${prefix}" "Finished ${task}"
-    local elapsed ; elapsed="$(timer "${tmr}")"
-    log "${prefix}" "Elapsed time ${elapsed}"
-}
-
-# rotate_logs    {{{1
-#   intent: rotate system logs to prevent VAR partition filling up
-#   params: nil
-#   prints: nil
-#   return: nil
-rotate_logs () {
-
-    # logging
-    local task ; task="rotating system logs"
-    local prefix ; prefix="ROTATELOGS"
-
-    # requires logrotate
-    local exe ; exe="/usr/sbin/logrotate"
-    if ! test -x ${exe} ; then
-        log "${prefix}" "Can't find ${exe}" "err"
-        return
-    fi
-
-    # requires logrotate configuration file
-    local conf ; conf="/etc/logrotate.conf"
-    if ! test -f ${conf} ; then
-        log "${prefix}" "Can't find ${conf}" "err"
-        return
-    fi
-
-    # perform rotation
-    local tmr ; tmr="$(timer)"
-    log "${prefix}" "Begin ${task}"
-    if ! ${exe} -f ${conf} ; then
-        log "${prefix}" "FAILED ${task}" "err"
-        return
-    fi
-    log "${prefix}" "Finished ${task}"
-    local elapsed ; elapsed="$(timer "${tmr}")"
-    log "${prefix}" "Elapsed time ${elapsed}"
-}
-
-# rss_feeds    {{{1
-#   intent: check rss feeds
-#   params: nil
-#   prints: nil
-#   return: boolean (0|1 = true|false)
-rss_feeds () {
-
-    # logging
-    local task ; task="checking rss feeds"
-    local prefix ; prefix="R2E"
-
-    # requires rss2email
-    local exe ; exe="/usr/bin/r2e"
-    if ! test -x ${exe} ; then
-        log "${prefix}" "Can't find r2e (rss2email)" "err"
-        return
-    fi
-
-    # performed as user david
-    local user ; user="david"
-    if ! check_user "${user}" ; then
-        log "${prefix}" "Invalid user '${user}' - aborting ${task}" "err"
-        return
-    fi
-
-    # check feeds
-    local tmr ; tmr="$(timer)"
-    log "${prefix}" "Begin ${task}"
-    if ! su --login --command "${exe} run 2>/dev/null" ${user} ; then
-        log "${prefix}" "FAILED ${task}" "err"
-        return
-    fi
-    log "${prefix}" "Finished ${task}"
-    local elapsed ; elapsed="$(timer "${tmr}")"
-    log "${prefix}" "Elapsed time ${elapsed}"
+	# log message if logger is available
+	local exe
+	exe="/usr/bin/logger"
+	if test -x ${exe}; then
+		${exe} --priority "cron.${priority}" --tag "${prefix}" "${message}"
+	fi
 }
 
 # timer    {{{1
@@ -282,18 +63,24 @@ rss_feeds () {
 #           # ...
 #           $elapsed="$(timer $tmr)"    # '12:34:56'
 timer() {
-    if test ${#} -eq 0 ; then    # no param - return seconds since epoch
-        date '+%s'
-    else    # time param - return elapsed time
-        local stime ; stime="${1}"
-        local etime ; etime="$(date '+%s')"
-        if test -z "${stime}" ; then stime="${etime}" ; fi
-        local dt ; dt="$((etime - stime))"
-        local ds ; ds="$((dt % 60))"
-        local dm ; dm="$(((dt / 60) % 60))"
-        local dh ; dh="$((dt / 3600))"
-        printf '%d:%02d:%02d' ${dh} ${dm} ${ds}
-    fi
+	if test ${#} -eq 0; then # no param - return seconds since epoch
+		date '+%s'
+	else # time param - return elapsed time
+		local stime
+		stime="${1}"
+		local etime
+		etime="$(date '+%s')"
+		if test -z "${stime}"; then stime="${etime}"; fi
+		local dt
+		dt="$((etime - stime))"
+		local ds
+		ds="$((dt % 60))"
+		local dm
+		dm="$(((dt / 60) % 60))"
+		local dh
+		dh="$((dt / 3600))"
+		printf '%d:%02d:%02d' ${dh} ${dm} ${ds}
+	fi
 }
 
 # toggle_bool    {{{1
@@ -301,11 +88,273 @@ timer() {
 #   params: value
 #   prints: toggled value
 #   return: toggled value
-toggle_bool () {
-    case ${1} in
-        0 ) echo '1' ; return 1;;
-        * ) echo '0' ; return 0;;
-    esac
+toggle_bool() {
+	case ${1} in
+	0)
+		echo '1'
+		return 1
+		;;
+	*)
+		echo '0'
+		return 0
+		;;
+	esac
+} # }}}1
+
+# TASK PROCEDURES
+
+# bbc_podcasts    {{{1
+#   intent: download new BBC Radio program podcasts
+#   params: nil
+#   prints: nil
+#   return: boolean (0|1 = true|false)
+bbc_podcasts() {
+
+	# logging
+	local task
+	task="download of new BBC podcasts"
+	local prefix
+	prefix="IPLAYER"
+
+	# requires get_iplayer
+	local exe
+	exe="/usr/bin/get_iplayer"
+	if ! test -x ${exe}; then
+		log "${prefix}" "Can't find iplayer" 'err'
+		return
+	fi
+
+	# performed as user david
+	local user
+	user="david"
+	if ! check_user "${user}"; then
+		log "${prefix}" "Invalid user '${user}' - aborting ${task}" 'err'
+		return
+	fi
+
+	# download new podcasts
+	local tmr
+	tmr="$(timer)"
+	log "${prefix}" "Begin ${task}" 'info'
+	if ! su --login --command "${exe} --pvr 2>/dev/null" ${user}; then
+		log "${prefix}" "FAILED ${task}" 'err'
+		return
+	fi
+	log "${prefix}" "Finished ${task}" 'info'
+	local elapsed
+	elapsed="$(timer "${tmr}")"
+	log "${prefix}" "Elapsed time ${elapsed}" 'info'
+}
+
+# mail queue flush    {{{1
+#   intent: attempt to send any queued emails
+#   params: logs result in system log
+#   prints: nil
+#   return: nil
+mail_queue_flush() {
+
+	# logging
+	local task
+	task="flushing mail queue"
+	local prefix
+	prefix="MAIL_QUEUE"
+
+	# performed as user david
+	local user
+	user="david"
+	if ! check_user "${user}"; then
+		log "${prefix}" "Invalid user '${user}' - aborting ${task}" 'err'
+		return
+	fi
+
+	# requires msmtp-queue and logger
+	local exe
+	exe="/home/david/.local/bin/msmtp-queue"
+	if ! which "${exe}" &>/dev/null; then
+		log "${prefix}" "Can't find ${exe}" 'err'
+		return
+	fi
+
+	# flush queue
+	# - can send output directly to logger
+	local tmr
+	tmr="$(timer)"
+	log "${prefix}" "Begin ${task}" 'info'
+	local logger="/usr/bin/logger"
+	if test -x ${logger}; then
+		su --login --command \
+			"set -o pipefail ; ${exe} -r  | ${logger} -t ${prefix}" ${user}
+	else
+		su --login --command "${exe} -r" ${user}
+	fi
+	if test ${?} -ne 0; then log "${prefix}" "FAILED ${task}" 'err'; fi
+	log "${prefix}" "Finished ${task}" 'info'
+	local elapsed
+	elapsed="$(timer "${tmr}")"
+	log "${prefix}" "Elapsed time ${elapsed}" 'info'
+}
+
+# notmuch_addresses    {{{1
+#   intent: update notmuch email addresses cache file
+#   params: nil
+#   prints: nil
+#   return: boolean (0|1 = true|false)
+notmuch_addresses() {
+
+	# logging
+	local task
+	task="updating email address cache"
+	local prefix
+	prefix="EMAILCACHE"
+
+	echo 'Checking for notmuch'
+	# requires notmuch
+	local exe
+	exe="/usr/bin/notmuch"
+	if ! test -x ${exe}; then
+		log "${prefix}" "Can't find notmuch" 'err'
+		return
+	fi
+
+	echo 'Checking user david'
+	# performed as user david
+	local user
+	user="david"
+	if ! check_user "${user}"; then
+		log "${prefix}" "Invalid user '${user}' - aborting ${task}" 'err'
+		return
+	fi
+
+	local tmr
+	tmr="$(timer)"
+	log "${prefix}" "Begin ${task}" 'info'
+
+	echo 'Create temp file'
+	# create temporary file
+	local temp_file
+	if ! temp_file="$(mktemp 2>/dev/null)"; then
+		log "${prefix}" "FAILED ${task}: can't create temp file" 'err'
+		return
+	fi
+	if ! chown ${user}:${user} "$temp_file"; then
+		log "${prefix}" "FAILED ${task}: can't chown temp file" 'err'
+		return
+	fi
+
+	echo 'Run notmuch'
+	# harvest email addresses
+	local cache_dir cache_file
+	cache_dir="/home/${user}/.cache/notmuch-addresses"
+	cache_file="${cache_dir}/email-address.cache"
+	if ! su --login --command "notmuch address --output=recipients \
+            --output=sender --deduplicate=address '*' \
+            2>/dev/null > ${temp_file}" ${user}; then
+		log "${prefix}" "FAILED ${task}: can't capture notmuch output" 'err'
+		return
+	fi
+
+	# overwrite cache file
+	echo 'Create cache path if necessary'
+	if ! su --login --command "mkdir -p ${cache_dir}" ${user}; then
+		log "${prefix}" "FAILED ${task}: can't create cache directory" 'err'
+		return
+	fi
+	echo 'Overwrite cache'
+	if ! su --login --command "mv ${temp_file} ${cache_file}" ${user}; then
+		log "${prefix}" "FAILED ${task}: can't overwrite cache file" 'err'
+		return
+	fi
+
+	log "${prefix}" "Finished ${task}"
+	local elapsed
+	elapsed="$(timer "${tmr}")"
+	log "${prefix}" "Elapsed time ${elapsed}" 'info'
+}
+
+# rotate_logs    {{{1
+#   intent: rotate system logs to prevent VAR partition filling up
+#   params: nil
+#   prints: nil
+#   return: nil
+rotate_logs() {
+
+	# logging
+	local task
+	task="rotating system logs"
+	local prefix
+	prefix="ROTATELOGS"
+
+	# requires logrotate
+	local exe
+	exe="/usr/sbin/logrotate"
+	if ! test -x ${exe}; then
+		log "${prefix}" "Can't find ${exe}" 'err'
+		return
+	fi
+
+	# requires logrotate configuration file
+	local conf
+	conf="/etc/logrotate.conf"
+	if ! test -f ${conf}; then
+		log "${prefix}" "Can't find ${conf}" 'err'
+		return
+	fi
+
+	# perform rotation
+	local tmr
+	tmr="$(timer)"
+	log "${prefix}" "Begin ${task}" 'info'
+	if ! ${exe} -f ${conf}; then
+		log "${prefix}" "FAILED ${task}" 'err'
+		return
+	fi
+	log "${prefix}" "Finished ${task}" 'info'
+	local elapsed
+	elapsed="$(timer "${tmr}")"
+	log "${prefix}" "Elapsed time ${elapsed}"
+}
+
+# rss_feeds    {{{1
+#   intent: check rss feeds
+#   params: nil
+#   prints: nil
+#   return: boolean (0|1 = true|false)
+rss_feeds() {
+
+	# logging
+	local task
+	task="checking rss feeds"
+	local prefix
+	prefix="R2E"
+
+	# requires rss2email
+	local exe
+	exe="/usr/bin/r2e"
+	if ! test -x ${exe}; then
+		log "${prefix}" "Can't find r2e (rss2email)" 'err'
+		return
+	fi
+
+	# performed as user david
+	local user
+	user="david"
+	if ! check_user "${user}"; then
+		log "${prefix}" "Invalid user '${user}' - aborting ${task}" 'err'
+		return
+	fi
+
+	# check feeds
+	local tmr
+	tmr="$(timer)"
+	log "${prefix}" "Begin ${task}" 'info'
+	if ! su --login --command "${exe} run 2>/dev/null" ${user}; then
+		log "${prefix}" "FAILED ${task}" 'err'
+		return
+	fi
+	log "${prefix}" "Finished ${task}" 'info'
+	local elapsed
+	elapsed="$(timer "${tmr}")"
+	log "${prefix}" "Elapsed time ${elapsed}" 'info'
 }
 
 # update_clock    {{{1
@@ -313,38 +362,44 @@ toggle_bool () {
 #   params: logs result in system log
 #   prints: nil
 #   return: nil
-update_clock () {
+update_clock() {
 
-    # logging
-    local task ; task="updating system clock"
-    local prefix ; prefix="NTP"
+	# logging
+	local task
+	task="updating system clock"
+	local prefix
+	prefix="NTP"
 
-    # requires rdate and logger
-    local exe ; exe="/usr/sbin/rdate"
-    if ! test -x ${exe} ; then
-        log "${prefix}" "Can't find ${exe}" "err"
-        return
-    fi
+	# requires rdate and logger
+	local exe
+	exe="/usr/sbin/rdate"
+	if ! test -x ${exe}; then
+		log "${prefix}" "Can't find ${exe}" 'err'
+		return
+	fi
 
-    # select from the many public time servers
-    local pts ; pts="ntp1.tpg.com.au"
+	# select from the many public time servers
+	local pts
+	pts="ntp1.tpg.com.au"
 
-    # perform synchronisation
-    # - can send output directly to logger
-    local tmr ; tmr="$(timer)"
-    log "${prefix}" "Begin ${task}"
-    local logger="/usr/bin/logger"
-    if test -x ${logger} ; then
-        ${exe} -ncav ${pts} | ${logger} -t ${prefix}
-    else
-        ${exe} -ncav ${pts}
-    fi
-    if test ${?} -ne 0 ; then log "${prefix}" "FAILED ${task}" "err" ; fi
-    log "${prefix}" "Finished ${task}"
-    local elapsed ; elapsed="$(timer "${tmr}")"
-    log "${prefix}" "Elapsed time ${elapsed}"
+	# perform synchronisation
+	# - can send output directly to logger
+	local tmr
+	tmr="$(timer)"
+	log "${prefix}" "Begin ${task}" 'info'
+	local logger="/usr/bin/logger"
+	if test -x ${logger}; then
+		${exe} -ncav ${pts} | ${logger} -t ${prefix}
+	else
+		${exe} -ncav ${pts}
+	fi
+	if test ${?} -ne 0; then log "${prefix}" "FAILED ${task}" 'err'; fi
+	log "${prefix}" "Finished ${task}" 'info'
+	local elapsed
+	elapsed="$(timer "${tmr}")"
+	log "${prefix}" "Elapsed time ${elapsed}" 'info'
 
-    # note that alternative is use ntpdate, e.g., 'ntpdate au.pool.ntp.org'
+	# note that alternative is use ntpdate, e.g., 'ntpdate au.pool.ntp.org'
 }
 
 # update_file_db    {{{1
@@ -352,29 +407,34 @@ update_clock () {
 #   params: nil
 #   prints: nil
 #   return: nil
-update_file_db () {
+update_file_db() {
 
-    # logging
-    local task ; task="updating system file database"
-    local prefix ; prefix="UPDATEDB"
+	# logging
+	local task
+	task="updating system file database"
+	local prefix
+	prefix="UPDATEDB"
 
-    # requires updatedb
-    local exe ; exe="/usr/bin/updatedb"
-    if ! test -x ${exe} ; then
-        log "${prefix}" "Can't find ${exe}" "err"
-        return
-    fi
+	# requires updatedb
+	local exe
+	exe="/usr/bin/updatedb"
+	if ! test -x ${exe}; then
+		log "${prefix}" "Can't find ${exe}" 'err'
+		return
+	fi
 
-    # perform update
-    local tmr ; tmr="$(timer)"
-    log "${prefix}" "Begin ${task}"
-    if ! ${exe} ; then
-        log "${prefix}" "FAILED ${task}" "err"
-        return
-    fi
-    log "${prefix}" "Finished ${task}"
-    local elapsed ; elapsed="$(timer "${tmr}")"
-    log "${prefix}" "Elapsed time ${elapsed}"
+	# perform update
+	local tmr
+	tmr="$(timer)"
+	log "${prefix}" "Begin ${task}" 'info'
+	if ! ${exe}; then
+		log "${prefix}" "FAILED ${task}" 'err'
+		return
+	fi
+	log "${prefix}" "Finished ${task}" 'info'
+	local elapsed
+	elapsed="$(timer "${tmr}")"
+	log "${prefix}" "Elapsed time ${elapsed}" 'info'
 }
 
 # update_ntg_context_archive    {{{1
@@ -386,68 +446,74 @@ update_file_db () {
 #           ~/data/computing/text-processing/context/mail-list using
 #           dn-update-context-maillist, and reindexes recoll index
 #           (configured in ~/.recoll-context-mail) using recollindex
-update_ntg_context_archive () {
+update_ntg_context_archive() {
 
-    # first, update archive files
-    local task ; task="updating ntg-context archive"
-    local prefix ; prefix="CONTEXT"
+	# first, update archive files
+	local task
+	task="updating ntg-context archive"
+	local prefix
+	prefix="CONTEXT"
 
-    # - requires 'dn-update-context-maillist' and collection directory
-    local exe ; exe="/usr/bin/dn-update-context-maillist"
-    if ! test -x ${exe} ; then
-        log "${prefix}" "Can't find ${exe}" "err"
-        return
-    fi
-    local dir
-    dir="/home/david/data/computing/text-processing/context/mail-list/"
-    if ! test -d ${dir} ; then
-        log "${prefix}" "Can't find ${dir}" "err"
-        return
-    fi
+	# - requires 'dn-update-context-maillist' and collection directory
+	local exe
+	exe="/usr/bin/dn-update-context-maillist"
+	if ! test -x ${exe}; then
+		log "${prefix}" "Can't find ${exe}" 'err'
+		return
+	fi
+	local dir
+	dir="/home/david/data/computing/text-processing/context/mail-list/"
+	if ! test -d ${dir}; then
+		log "${prefix}" "Can't find ${dir}" 'err'
+		return
+	fi
 
-    # performed as user david
-    local user ;  user="david"
-    if ! check_user "${user}" ; then
-        log "${prefix}" "Invalid user '${user}' - aborting ${task}" "err"
-        return
-    fi
+	# performed as user david
+	local user
+	user="david"
+	if ! check_user "${user}"; then
+		log "${prefix}" "Invalid user '${user}' - aborting ${task}" 'err'
+		return
+	fi
 
-    # - perform update
-    local tmr ; tmr="$(timer)"
-    log "${prefix}" "Begin ${task}"
-    if ! su --login --command "${exe} --log" ${user} ; then
-        log "${prefix}" "FAILED ${task}" "err"
-        return
-    fi
-    log "${prefix}" "Finished ${task}"
+	# - perform update
+	local tmr
+	tmr="$(timer)"
+	log "${prefix}" "Begin ${task}" 'info'
+	if ! su --login --command "${exe} --log" ${user}; then
+		log "${prefix}" "FAILED ${task}" 'err'
+		return
+	fi
+	log "${prefix}" "Finished ${task}" 'info'
 
-    # reindex if update succeeded
-    task="reindexing of ntg-context archive"
+	# reindex if update succeeded
+	task="reindexing of ntg-context archive"
 
-    # - requires recollindex and configuration directory
-    exe="/usr/bin/recollindex"
-    if ! test -x ${exe} ; then
-        log "${prefix}" "Can't find ${exe}" "err"
-        return
-    fi
-    dir="/home/david/.recoll-context-mail"
-    if ! test -d ${dir} ; then
-        log "${prefix}" "Can't find ${dir}" "err"
-        return
-    fi
+	# - requires recollindex and configuration directory
+	exe="/usr/bin/recollindex"
+	if ! test -x ${exe}; then
+		log "${prefix}" "Can't find ${exe}" 'err'
+		return
+	fi
+	dir="/home/david/.recoll-context-mail"
+	if ! test -d ${dir}; then
+		log "${prefix}" "Can't find ${dir}" 'err'
+		return
+	fi
 
-    # - do reindexing
-    log "${prefix}" "Begin ${task}"
-    if ! su --login --command "${exe} -c ${dir}" ${user} ; then
-        log "${prefix}" "FAILED ${task}" "err"
-        return
-    fi
-    log "${prefix}" "Finished ${task}"
-    local elapsed ; elapsed="$(timer "${tmr}")"
-    log "${prefix}" "Elapsed time ${elapsed}"
-}    # }}}1
+	# - do reindexing
+	log "${prefix}" "Begin ${task}" 'info'
+	if ! su --login --command "${exe} -c ${dir}" ${user}; then
+		log "${prefix}" "FAILED ${task}" 'err'
+		return
+	fi
+	log "${prefix}" "Finished ${task}" 'info'
+	local elapsed
+	elapsed="$(timer "${tmr}")"
+	log "${prefix}" "Elapsed time ${elapsed}" 'info'
+} # }}}1
 
-# CRON TASKS    {{{1
+# RUN CRON TASKS
 
 # Download new BBC radio program podcasts
 bbc_podcasts
@@ -471,6 +537,6 @@ update_file_db
 rotate_logs
 
 # Flush mail queue
-flush_mail_queue
+mail_queue_flush
 
 # vim:fdm=marker:
