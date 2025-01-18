@@ -1,0 +1,231 @@
+.\" Hey, EMACS: -*- nroff -*-
+
+.\" Filename: find-cursor.1
+.\" Author:   David Nebauer
+.\" History:  2025-01-10 - created
+
+.\" -----------------------------------------------------------------
+.\" NOTES
+.\" -----------------------------------------------------------------
+.ig
+
+For header (.TH), first parameter, NAME, should be all caps
+Second parameter, SECTION, should be 1-8, maybe w/ subsection
+Other parameters are allowed: see man(7), man(1)
+Please adjust the date whenever revising the manpage.
+
+Some roff macros, for reference:
+.nh        disable hyphenation
+.hy        enable hyphenation
+.ad l      left justify
+.ad b      justify to both left and right margins
+.nf        disable filling
+.fi        enable filling
+.br        insert line break
+.sp <n>    insert n+1 empty lines
+for manpage-specific macros, see groff_man(7) and man(7)
+
+Formatting [see groff_char (7) and man (7) for details]:
+\(aq  : escape sequence for (')
+\[dq] : plain double quote
+\[lq] : left/open double quote
+\[rq] : right/close double quote
+`     : left/open single quote
+'     : right/close single quote
+\(em  : escape sequence for em dash
+\(en  : escape sequence for en dash
+\.    : escape sequence for period/dot
+\(rg  : registration symbol
+\(tm  : trademark symbol
+\fX   : escape sequence that changes font, where 'X' can be 'R|I|B|BI'
+        (R = roman/normal | I = italic | B = bold | BI = bold-italic)
+\fP   : switch to previous font
+        in this case '\fR' could also have been used
+.B    : following arguments are boldened
+.I    : following arguments are italicised
+.BI   : following arguments are bold alternating with italics
+.BR   : following arguments are bold alternating with roman
+.IB   : following arguments are italics alternating with bold
+.IR   : following arguments are italics alternating with roman
+.RB   : following arguments are roman alternating with bold
+.RI   : following arguments are roman alternating with italics
+.SM   : following arguments are small (scaled 9/10 of the regular size)
+.SB   : following arguments are small bold (not small alternating with bold)
+        [note: if argument in alternating pattern contains whitespace,
+               enclose in whitespace]
+.RS x : indent following lines by x characters
+.RE   : end indent
+
+Bulleted list:
+   A bulleted list:
+   .IP \[bu] 2
+   lawyers
+   .IP \[bu]
+   guns
+   .IP \[bu]
+   money
+Numbered list:
+   A numbered list:
+   .nr step 1 1
+   .IP \n[step]. 3
+   lawyers
+   .IP \n+[step].
+   guns
+   .IP \n+[step].
+   money
+..
+
+.\" -----------------------------------------------------------------
+.\" SETUP
+.\" -----------------------------------------------------------------
+
+.\" Macro: Format URL
+.\"  usage:  .URL "http:\\www.gnu.org" "GNU Project" " of the"
+.\"  params: 1 = url
+.\"          2 = link text/name
+.\"          3 = postamble (optional)
+.\"  note:   The www.tmac macro provides a .URL macro package; this
+.\"          is a local fallback in case www.tmac is unavailable
+.\"  credit: man(7)
+.de URL
+\\$2 \(laURL: \\$1 \(ra\\$3
+..
+
+.\" Prefer .URL macro from www.tmac macro package if it is available
+.\"  note: In the conditional below the '\n' escape returns the value of
+.\"        a register, in this the '.g'
+.\"        The '.g' register is only found in GNU 'troff', and it is
+.\"        assumed that GNU troff will always include the www.tmac
+.\"        macro package
+.if \n[.g] .mso www.tmac
+
+.\" Macro: Ellipsis
+.\"  usage: .ellipsis
+.\"  note: only works at beginning of line
+.de ellipsis
+.cc ^
+...
+^cc
+..
+
+.\" String: Command name
+.ds self find-cursor
+
+.\" -----------------------------------------------------------------
+.\" MANPAGE CONTENT
+.\" -----------------------------------------------------------------
+
+.TH "FIND-CURSOR" "1" "2025-01-10" "" "FIND-CURSOR Manual"
+.SH "NAME"
+\*[self] \- highlights the cursor position by drawing circles around it
+.SH "SYNOPSIS"
+.B "\*[self] "
+.RB "[" "\-fgt" "]"
+.RB "[" "\-c"
+.IR "color" "]"
+.RB "[" "\-d"
+.IR "distance" "]"
+.RB "[" "\-l"
+.IR "width" "]"
+.RB "[" "\-o"
+.IR "width" "]"
+.RB "[" "\-O"
+.IR "color" "]"
+.RB "[" "\-r"
+.IR "repeat" "]"
+.RB "[" "\-s"
+.IR "size" "]"
+.RB "[" "\-w"
+.IR "wait" "]"
+.PP
+.B "\*[self] -h"
+.br
+.B "\*[self] --help"
+.SH "DESCRIPTION"
+\*[self] is a simple XLib program to highlight the cursor position. This is
+similar to the feature found in Windows.
+.SS Launching
+You will want to map a key in your window manager to run
+.IR "find-cursor" "."
+You can also use
+.IR "xbindkeys" ","
+which should work with any window manager.
+.PP
+The program's creator runs it with xcape:
+.PP
+.RS 4
+xcape -e 'Control_L=Escape;Shift_L=KP_Add'
+.RE
+.PP
+When Left Shift is tapped a Keypad Add is sent. The window manager is configured
+to launch
+.I "find-cursor"
+with that.
+.SH "OPTIONS"
+.TP
+.BI "\-c  \-\-color " "<name-or-RGB>"
+Color as X11 color name or RGB (e.g., #ff0000). Optional.
+Default: \(aqblack\(aq.
+.TP
+.BI "\-d  \-\-distance " "<int>"
+Distance between the circles in pixels. Optional. Default: \(aq40\(aq.
+.TP
+.B "\-f  \-\-follow"
+Follow the cursor position as the cursor is moving. Flag. Optional.
+Default: false.
+.TP
+.B "\-g  \-\-grow"
+Grow the animation in size, rather than shrinking it. Flag. Optional.
+Default: false.
+.TP
+.BI "\-l  \-\-line-width " "<int>"
+Width of the lines in pixels. Optional. Default: \(aq4\(aq.
+.TP
+.BI "\-o  \-\-outline " "<int>"
+Width in pixels of outline. Helps visibility on all backgrounds.
+Optional. Default: \(aq2\(aq.
+.TP
+.BI "\-O  \-\-outline-color " "<name-or-RGB>"
+Color of outline. If omitted it will automatically use the opposite color.
+No effect if
+.B "\-o"
+isn't set.
+.TP
+.BI "\-r  \-\-repeat " "<int>"
+Number of times to repeat the animation. Use 0 to repeat indefinitely.
+Optional. Default: no repeat.
+.TP
+.BI "\-s  \-\-size " "<int>"
+Maximum size the circle will grow to in pixels. Optional. Default: \(aq320\(aq.
+.TP
+.B "\-t  \-\-transparent"
+Make the window truly \(aqtransparent\(aq. Flag. Optional. Default: false.
+.br
+This helps with some display issues when following the cursor position, but it
+doesn't work well with all window managers, which is why it's disabled by
+default.
+.TP
+.BI "\-w  \-\-wait " "<int>"
+Time to wait before drawing the next circle in tenths of milliseconds.
+Optional. Default: \(aq400\(aq.
+.TP
+.B "\-h  \-\-help"
+Print help text and exit. Flag. Optional. Default: false.
+.SH "SEE ALSO"
+.B "Original project repository"
+.br
+Located at
+.URL "https://github.com/arp242/find-cursor" "github" "."
+.PP
+.B "Amended project repository"
+.br
+Located at
+.URL "https://github.com/dnebauer/find-cursor" "github" "."
+This is the version included in the debian package. It contains a bug fix
+documented in
+.URL "https://github.com/arp242/find-cursor/issues/28" "project issue #28" "."
+.SH "AUTHOR"
+\*[self] was written by Martin Tournoij (martin at arp242 dot net).
+.PP
+This manual page was written by David Nebauer (david at nebauer dot org)
+for the Debian project (but may be used by others).

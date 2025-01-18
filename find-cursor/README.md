@@ -10,6 +10,9 @@ This process involved the following subdirectories:
 This is a local copy of the github [dnebauer/find-cursor][dnebauer-repo]
 repository -- note it is a fork of [arp242/find-cursor][arp242-repo].
 
+Delete "git" files and subdirectories in this directory to avoid submodule
+warnings when updating the "utils" repository.
+
 ## `2_build`
 
 The repository files are copied here and `make` is run to create the
