@@ -1,24 +1,21 @@
----
-title: "find-cursor set up"
-author: "David Nebauer"
-date: "12 January 2025"
-style: [Standard, Latex14pt]
----
+# find-cursor set up
 
 This project was set up to create a debian package containing the `find-cursor`
-utility. This involved the following subdirectories:
+utility.
 
-## `repo-fork`
+This process involved the following subdirectories:
+
+## `1_repo-fork`
 
 This is a local copy of the github [dnebauer/find-cursor][dnebauer-repo]
 repository -- note it is a fork of [arp242/find-cursor][arp242-repo].
 
-## build
+## `2_build`
 
 The repository files are copied here and `make` is run to create the
 `find-cursor` executable file.
 
-## deb-pkg
+## `3_deb-pkg`
 
 The following build files are copied here:
 
@@ -26,9 +23,7 @@ The following build files are copied here:
 * `find-cursor.1`
 * `_find-cursor`
 
-Note the zsh completion file `_find-cursor` is copied to the subdirectory:
-
-| `contrib/completion/zsh`.
+Note the zsh completion file `_find-cursor` is copied to the subdirectory `contrib/completion/zsh`.
 
 The package is built using `dn-qk-deb`.
 
