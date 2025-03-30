@@ -1,0 +1,12 @@
+#compdef dn-print-keysyms
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+    '(-v --verbose)'{-v,--verbose}'[Print script lines after command expansion]' \
+    '(-d --debug)'{-d,--debug}'[Print script lines as they are read]' \
+  && rc=0
+
+return rc

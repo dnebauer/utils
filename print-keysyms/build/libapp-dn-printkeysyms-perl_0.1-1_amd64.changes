@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Fri, 28 Mar 2025 21:54:06 +0930
+Source: libapp-dn-printkeysyms-perl
+Binary: dn-print-keysyms
+Architecture: all
+Version: 0.1-1
+Distribution: UNRELEASED
+Urgency: medium
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-print-keysyms - print keysyms in terminal
+Closes: 896541
+Changes:
+ libapp-dn-printkeysyms-perl (0.1-1) UNRELEASED; urgency=medium
+ .
+   * Local package
+   * Initial release
+   * Closes: 896541
+Checksums-Sha1:
+ 226be01157cba6ae878084f437ebd2770ff9b3d2 7520 dn-print-keysyms_0.1-1_all.deb
+ 6f74485f71373601158bb6645c8e6bb3c0057963 10010 libapp-dn-printkeysyms-perl_0.1-1_amd64.buildinfo
+Checksums-Sha256:
+ 8118359357806a299d82fe0687b1561c984ac3bfca3b8e5b2699585a68db87ac 7520 dn-print-keysyms_0.1-1_all.deb
+ 90947cd0992f6b0396aebab9c96d8dc7fca69c26bac494cc374a7e186c26ddbe 10010 libapp-dn-printkeysyms-perl_0.1-1_amd64.buildinfo
+Files:
+ 8de7dc3d60e7ebc36712ddf53ae294d1 7520 perl optional dn-print-keysyms_0.1-1_all.deb
+ d4ee65cad35b2e283f88daef6ddaaef8 10010 perl optional libapp-dn-printkeysyms-perl_0.1-1_amd64.buildinfo

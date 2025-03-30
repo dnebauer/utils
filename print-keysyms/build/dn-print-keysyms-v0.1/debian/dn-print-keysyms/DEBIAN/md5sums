@@ -1,0 +1,8 @@
+1d366ed8691e5d5ab8da85b3e8915ccd  usr/bin/dn-print-keysyms
+c387e59e36d83f6ab6b18a7f4c918ee4  usr/share/doc/dn-print-keysyms/changelog.Debian.gz
+846aaab83ed2b4ed428a6447149aa77f  usr/share/doc/dn-print-keysyms/changelog.gz
+c07fbf7e788cf524ed26f0bb92ba05ef  usr/share/doc/dn-print-keysyms/copyright
+4ecf95db390dd51ef187fa8554fe7051  usr/share/man/man1/dn-print-keysyms.1p.gz
+ed85938abb3c56511c158060e839141f  usr/share/man/man3/App::Dn::PrintKeysyms.3pm.gz
+3b491fe529f04e8b8f3701a200f7ae61  usr/share/perl5/App/Dn/PrintKeysyms.pm
+15c038a84969fee2da7ba5fad360d80c  usr/share/zsh/vendor-completions/_dn-print-keysyms

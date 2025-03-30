@@ -1,0 +1,18 @@
+Package: dn-print-keysyms
+Source: libapp-dn-printkeysyms-perl
+Version: 0.1-1
+Architecture: all
+Maintainer: David Nebauer <david@nebauer.org>
+Installed-Size: 29
+Depends: perl:any, libmoo-perl (>= 2.005005), libmoox-options-perl, libnamespace-clean-perl, libstrictures-perl, libversion-perl, perl (>= 5.38.0), perl-tk
+Section: perl
+Priority: optional
+Homepage: https://metacpan.org/release/App-Dn-PrintKeysyms
+Description: print keysyms in terminal
+ When invoked in a terminal the user can press keys and their corresponding
+ keysyms are printed to the terminal.
+ .
+ To close it give focus to the terminal and press Ctrl+c.
+ .
+ The class part of the X11 WM_CLASS property for the displayed widget is set
+ to "Perl/Tk widget".

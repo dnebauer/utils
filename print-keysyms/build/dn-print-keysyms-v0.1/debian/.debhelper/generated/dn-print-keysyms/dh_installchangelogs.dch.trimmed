@@ -1,0 +1,7 @@
+libapp-dn-printkeysyms-perl (0.1-1) UNRELEASED; urgency=medium
+
+  * Local package
+  * Initial release
+  * Closes: 896541
+
+ -- David Nebauer <david@nebauer.org>  Fri, 28 Mar 2025 21:54:06 +0930
