@@ -118,10 +118,10 @@ Numbered list:
 
 .TH "NEOVIDE" "1" "2024-05-17" "" "NEOVIDE Manual"
 .SH "NAME"
-\*[self] \- a simple graphical user interface for Neovim
+\*[self] \- No Nonsense Neovim Gui
 .SH "SYNOPSIS"
 .B "\*[self] "
-.RI "[" "OPTIONS" "] [" "FILES_TO_OPEN..." "] [\-\- " "NEOVIM_ARGS..." "]"
+.RI "[" "OPTIONS" "] [" "FILES_TO_OPEN" "]... [\-\- [" "NEOVIM_ARGS" "]...]"
 .SH "DESCRIPTION"
 A simple, no\-nonsense, cross\-platform graphical user interface for
 Neovim (an aggressively refactored and updated Vim editor). Where possible
@@ -129,11 +129,11 @@ there are some graphical improvements, but functionally it should act like the
 terminal UI.
 .SH "ARGUMENTS"
 .TP
-.I FILES_TO_OPEN
+.I [FILES_TO_OPEN]...
 Files to open. Usually plainly appended to NeoVim args, except when \-\-wsl is
 used. Optional.
 .TP
-.I NEOVIM_ARGS
+.I [NEOVIM_ARGS]...
 Arguments to pass down to neovim without interpreting them. Optional.
 .SH "OPTIONS"
 .TP
@@ -155,8 +155,8 @@ inferred from the window size.
 Enables logging to a file in the current directory.
 .TP
 .B "\-\-maximized"
-Maximize the window on startup. Not equivalent to fullscreen. [env:
-NEOVIDE_MAXIMIZED=]
+Maximize the window on startup. Not equivalent to fullscreen.
+[env: NEOVIDE_MAXIMIZED=]
 .TP
 .BI "\-\-mouse-cursor-icon " "<MOUSE_CURSOR_ICON>"
 Which mouse cursor icon to use [env: NEOVIDE_MOUSE_CURSOR_ICON=]
@@ -168,8 +168,8 @@ Which NeoVim binary to invoke headlessly instead of
 found on $PATH. [env: NEOVIM_BIN=/usr/local/bin/nvim.appimage]
 .TP
 .B "\-\-no\-fork"
-Be "blocking" and let the shell persist as parent process. Takes precedence
-over \-\-fork. Default.
+Be "blocking" and let the shell persist as parent process.
+Takes precedence over \-\-fork. Default.
 .TP
 .B "\-\-no\-idle"
 Render every frame. Takes more power and cpu time but possibly helps with frame
@@ -185,7 +185,6 @@ pixel formats. Default on Linux and macOS.
 .TP
 .B "\-\-no\-tabs"
 Disable opening multiple files in tabs. They're still buffers.
-[env: NEOVIDE_SRGB=]
 .TP
 .B "\-\-no\-vsync"
 Do not try to request VSync on the window.
