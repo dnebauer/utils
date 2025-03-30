@@ -1,0 +1,14 @@
+Package: dn-font-viewer2
+Source: libdn-font-viewer2-perl
+Version: 0.1-1
+Architecture: all
+Maintainer: David Nebauer <david@nebauer.org>
+Installed-Size: 31
+Depends: perl:any, libmoo-perl (>= 2.005005), libmoox-options-perl, libnamespace-clean-perl, libstrictures-perl, libtk-fontdialog-perl (>= 0.19), libversion-perl, perl (>= 5.38.0), perl-tk
+Section: perl
+Priority: optional
+Homepage: https://metacpan.org/release/dn-font-viewer2
+Description: view font appearance
+ Invokes a font viewer that enables the user to view the effect of changing
+ the following font attributes: family, size, bolding, italicising,
+ underlining, and overstrike (aka strikethough).

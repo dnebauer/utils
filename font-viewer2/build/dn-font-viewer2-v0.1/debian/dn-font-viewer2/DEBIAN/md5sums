@@ -1,0 +1,8 @@
+8472cd7079962d1878a4df3404ae4bcc  usr/bin/dn-font-viewer2
+680b34101e66d2e9401f28f43b4bb67d  usr/share/doc/dn-font-viewer2/changelog.Debian.gz
+6baea4a9b7928ff4b9e3578366bcd891  usr/share/doc/dn-font-viewer2/changelog.gz
+7f99e38141adb59d77bc10cea590b102  usr/share/doc/dn-font-viewer2/copyright
+5d559ad396391bf9f89889c16f5c4666  usr/share/man/man1/dn-font-viewer2.1p.gz
+f0768a7836a50700f2023cb281c65ece  usr/share/man/man3/App::Dn::FontViewer2.3pm.gz
+db7f2681b63aba094dc0e74abc13a126  usr/share/perl5/App/Dn/FontViewer2.pm
+3653066f7d1f5ccdbf17ebaa407e5d4d  usr/share/zsh/vendor-completions/_dn-font-viewer2

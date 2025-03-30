@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Sun, 30 Mar 2025 11:01:02 +0930
+Source: libdn-font-viewer2-perl
+Binary: dn-font-viewer2
+Architecture: all
+Version: 0.1-1
+Distribution: UNRELEASED
+Urgency: medium
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-font-viewer2 - view font appearance
+Closes: 843215
+Changes:
+ libdn-font-viewer2-perl (0.1-1) UNRELEASED; urgency=medium
+ .
+   * Local package
+   * Initial release
+   * Closes: 843215
+Checksums-Sha1:
+ f1e3b4a3d765a7c8902c353374aecba75816d7d0 8488 dn-font-viewer2_0.1-1_all.deb
+ 6878310f7f36953d6a4d2afed4c4b86a33a38f03 10031 libdn-font-viewer2-perl_0.1-1_amd64.buildinfo
+Checksums-Sha256:
+ 14d70426f307b38d2098da5a87af11f320e95e9eda382cb05f86b6499605fa23 8488 dn-font-viewer2_0.1-1_all.deb
+ 33a0bac9e420010eb00c96ee91c7ea3b133e7569777eed56a22c014f8acc5e77 10031 libdn-font-viewer2-perl_0.1-1_amd64.buildinfo
+Files:
+ f56b0c660a3862ab363bb0dde4d42736 8488 perl optional dn-font-viewer2_0.1-1_all.deb
+ a4c3c6f72a3235e7a938185683d8fb11 10031 perl optional libdn-font-viewer2-perl_0.1-1_amd64.buildinfo

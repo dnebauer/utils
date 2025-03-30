@@ -1,0 +1,15 @@
+requires 'perl', '5.038';
+
+requires 'perl', '5.038';
+requires 'Carp', '1.54';
+requires 'Moo', '2.005005';
+requires 'MooX::Options', '4.103';
+requires 'Tk', '8.4';
+requires 'Tk::FontDialog', '0.19';
+requires 'namespace::clean', '0.27';
+requires 'strictures', '2.000006';
+requires 'version', '0.9930';
+
+on test => sub {
+    requires 'Test::More', '0.96';
+};

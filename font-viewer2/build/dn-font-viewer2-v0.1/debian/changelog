@@ -1,0 +1,7 @@
+libdn-font-viewer2-perl (0.1-1) UNRELEASED; urgency=medium
+
+  * Local package
+  * Initial release
+  * Closes: 843215
+
+ -- David Nebauer <david@nebauer.org>  Sun, 30 Mar 2025 11:01:02 +0930

@@ -1,0 +1,101 @@
+NAME
+
+    App::Dn::FontViewer2 - view font appearance
+
+VERSION
+
+    This documentation applies to App::Dn::FontViewer2 version 0.1.
+
+SYNOPSIS
+
+      use App::Dn::FontViewer2;
+      App::Dn::FontViewer2->new_with_options->run;
+
+DESCRIPTION
+
+    Invokes a font viewer that enables the user to view the effect of
+    changing the following font attributes:
+
+      * family
+
+      * size
+
+      * bolding
+
+      * italicising
+
+      * underlining
+
+      * overstriking (aka strikethough).
+
+    but noting that at the time of writing the underlining and overstriking
+    attributes have no effect on font appearance.
+
+    Two widgets are displayed: an empty MainWindow and a Tk::FontDialog.
+    The font dialog is closed by pressing the OK or Cancel buttons. The
+    main window is closed by pressing the Escape or q keys.
+
+    The class part of the X11 WM_CLASS property for the displayed main
+    window is set to "Perl/Tk widget". For the font dialog the X11 WM_CLASS
+    property is set to "FontDialog" while the WM_INSTANCE property is set
+    to "fontdialog".
+
+    For a viewer that does not use a pre-defined font dialog see the
+    dn-font-viewer app.
+
+    When the font viewer is dismissed, the attributes of the last viewed
+    font are printed to stdout.
+
+CONFIGURATION AND ENVIRONMENT
+
+ Properties
+
+    None.
+
+ Configuration files
+
+    None used.
+
+ Environment variables
+
+    None used.
+
+SUBROUTINES/METHODS
+
+ run()
+
+    The only public method. This method enables font viewing as described
+    in "DESCRIPTION".
+
+DIAGNOSTICS
+
+    No warning or error messages are emitted by this module.
+
+    Subsidiary modules may do so.
+
+INCOMPATIBILITIES
+
+    There are no known incompatibilities.
+
+BUGS AND LIMITATIONS
+
+    Please report any bugs to the author.
+
+DEPENDENCIES
+
+ Perl modules
+
+    Carp, Moo, MooX::Options, namespace::clean, strictures, Tk,
+    Tk::BrowseEntry, version.
+
+AUTHOR
+
+    David Nebauer <mailto:david@nebauer.org>
+
+LICENSE AND COPYRIGHT
+
+    Copyright (c) 2025 David Nebauer <mailto:david@nebauer.org>
+
+    This script is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
