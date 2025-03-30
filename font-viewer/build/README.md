@@ -1,0 +1,91 @@
+# NAME
+
+App::Dn::FontViewer - view font appearance
+
+# VERSION
+
+This documentation applies to [App::Dn::FontViewer](https://metacpan.org/pod/App%3A%3ADn%3A%3AFontViewer) version 0.1.
+
+# SYNOPSIS
+
+    use App::Dn::FontViewer;
+    App::Dn::FontViewer->new_with_options->run;
+
+# DESCRIPTION
+
+Invokes a font viewer that enables the user to view the effect of changing the
+following font attributes:
+
+- family
+- size
+- bolding
+- italicising
+- underlining
+- overstriking (aka strikethough).
+
+but noting that at the time of writing the underlining and overstriking
+attributes have no effect on font appearance.
+
+The font viewer is closed by pressing the `Escape` key.
+
+The viewer interface is constructed directly inside a top level widget.
+The class part of the X11 WM\_CLASS property for the displayed widget is set to
+"Perl/Tk widget".
+For a viewer that uses a pre-defined font dialog see the
+`dn-font-viewer2` app.
+
+When the font viewer is dismissed, the sttributes of the last viewed font are
+printed to stdout.
+
+# CONFIGURATION AND ENVIRONMENT
+
+## Properties
+
+None.
+
+## Configuration files
+
+None used.
+
+## Environment variables
+
+None used.
+
+# SUBROUTINES/METHODS
+
+## run()
+
+The only public method. This method enables font viewing as described in
+["DESCRIPTION"](#description).
+
+# DIAGNOSTICS
+
+No warning or error messages are emitted by this module.
+
+Subsidiary modules may do so.
+
+# INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+# BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+# DEPENDENCIES
+
+## Perl modules
+
+Carp, Moo, MooX::Options, namespace::clean, strictures, Tk, Tk::BrowseEntry,
+version.
+
+# AUTHOR
+
+[David Nebauer](mailto:david@nebauer.org)
+
+# LICENSE AND COPYRIGHT
+
+Copyright (c) 2025 [David Nebauer](mailto:david@nebauer.org)
+
+This script is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.

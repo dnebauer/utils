@@ -1,0 +1,33 @@
+Source: libdn-font-viewer-perl
+Maintainer: David Nebauer <david@nebauer.org>
+Section: perl
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               libmodule-build-tiny-perl,
+               perl (>= 5.38.0)
+Build-Depends-Indep: libmoo-perl (>= 2.005005) <!nocheck>,
+                     libmoox-options-perl <!nocheck>,
+                     libnamespace-clean-perl <!nocheck>,
+                     libstrictures-perl <!nocheck>,
+                     libtest-simple-perl <!nocheck>,
+                     libversion-perl <!nocheck>,
+                     perl-tk <!nocheck>
+Standards-Version: 4.7.2
+Homepage: https://metacpan.org/release/dn-font-viewer
+Rules-Requires-Root: no
+
+Package: dn-font-viewer
+Architecture: all
+Depends: ${misc:Depends},
+         ${perl:Depends},
+         libmoo-perl (>= 2.005005),
+         libmoox-options-perl,
+         libnamespace-clean-perl,
+         libstrictures-perl,
+         libversion-perl,
+         perl (>= 5.38.0),
+         perl-tk
+Description: view font appearance
+ Invokes a font viewer that enables the user to view the effect of changing
+ the following font attributes: family, size, bolding, italicising,
+ underlining, and overstriking (aka strikethrough).

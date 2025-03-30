@@ -1,0 +1,146 @@
+#!/usr/bin/perl
+
+use strictures 2;
+use 5.006;
+use 5.038_001;
+use version; our $VERSION = qv('0.1');
+use namespace::clean;
+use App::Dn::FontViewer;
+
+App::Dn::FontViewer->new_with_options->run;
+
+1;
+
+# POD    {{{1
+
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+dn-font-viewer - view font appearance
+
+=head1 USAGE
+
+B<dn-font-viewer>
+
+B<dn-font-viewer -h>
+
+=head1 DESCRIPTION
+
+Invokes a font viewer that enables the user to view the effect of changing the
+following font attributes:
+
+=over
+
+=item *
+
+family
+
+=item *
+
+size
+
+=item *
+
+bolding
+
+=item *
+
+italicising
+
+=item *
+
+underlining
+
+=item *
+
+overstriking (aka strikethough).
+
+=back
+
+but noting that at the time of writing the underlining and overstriking
+attributes have no effect on font appearance.
+
+The font viewer is closed by pressing the C<Escape> key.
+
+The viewer interface is constructed directly inside a top level widget.
+The class part of the X11 WM_CLASS property for the displayed widget is set to
+"Perl/Tk widget".
+For a viewer that uses a pre-defined font dialog see the
+S<< F<dn-font-viewer2> >> app.
+
+When the font viewer is dismissed, the sttributes of the last viewed font are
+printed to stdout.
+
+=head1 CONFIGURATION
+
+There are no configuration files or variables.
+
+=head1 REQUIRED ARGUMENTS
+
+Nil.
+
+=head1 OPTIONS
+
+=over
+
+=item B<-h>  B<--help>
+
+Show a help message.
+
+=item B<--usage>
+
+Show a short help message.
+
+=item B<--man>
+
+Show the manual.
+
+=back
+
+=head1 EXIT STATUS
+
+The exit code is 0 for successful execution and 1 if the script does a
+controlled exit following an error. If the script crashes unexpectedly the
+error code is that given by the system.
+
+=head1 DIAGNOSTICS
+
+This script emits no warning or error messages.
+
+Subsidiary modules may do so.
+
+=head1 INCOMPATIBILITIES
+
+There are no known incompatibilities.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs to the author.
+
+=head1 DEPENDENCIES
+
+=head2 Perl modules
+
+App::Dn::FontViewer, namespace::clean, strictures, version.
+
+=head1 SEE ALSO
+
+dn-font-viewer2.
+
+=head1 AUTHOR
+
+L<David Nebauer|mailto:david@nebauer.org>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2025 L<David Nebauer|mailto:david@nebauer.org>
+
+This script is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
+
+# vim:foldmethod=marker:
