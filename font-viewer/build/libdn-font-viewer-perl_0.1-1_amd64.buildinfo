@@ -4,14 +4,14 @@ Binary: dn-font-viewer
 Architecture: all
 Version: 0.1-1
 Checksums-Md5:
- d7bac78f5f7c68696d90b284cb7ccef8 9036 dn-font-viewer_0.1-1_all.deb
+ 43fe4f0d557dce32b62f4f121df6cecd 9028 dn-font-viewer_0.1-1_all.deb
 Checksums-Sha1:
- 2258c58c50ab86e2451bd60c45a3b2effc10f876 9036 dn-font-viewer_0.1-1_all.deb
+ 5dffb02d36a6bdf41134d50e170db0244ce32bb0 9028 dn-font-viewer_0.1-1_all.deb
 Checksums-Sha256:
- c1d3a3238c2afccf728cf48a58e419e9998de194ac3ee2acf2e70b6b29a2d0a0 9036 dn-font-viewer_0.1-1_all.deb
+ 8653b0ffae673f15ff7d49cdcac6cafea72eb8d3c0b515c36de9bfecbb461900 9028 dn-font-viewer_0.1-1_all.deb
 Build-Origin: Debian
 Build-Architecture: amd64
-Build-Date: Sun, 30 Mar 2025 10:37:23 +0930
+Build-Date: Sun, 30 Mar 2025 18:15:20 +0930
 Build-Tainted-By:
  usr-local-has-configs
  usr-local-has-libraries

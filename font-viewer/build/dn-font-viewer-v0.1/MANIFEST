@@ -9,7 +9,6 @@ README
 contrib/completion/zsh/_dn-font-viewer
 cpanfile
 dist.ini
-dn-font-viewer-v0.1.tar.gz
 lib/App/Dn/FontViewer.pm
 required/changelog
 required/control

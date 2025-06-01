@@ -34,7 +34,7 @@ The class part of the X11 WM\_CLASS property for the displayed widget is set to
 For a viewer that uses a pre-defined font dialog see the
 `dn-font-viewer2` app.
 
-When the font viewer is dismissed, the sttributes of the last viewed font are
+When the font viewer is dismissed, the attributes of the last viewed font are
 printed to stdout.
 
 # CONFIGURATION AND ENVIRONMENT

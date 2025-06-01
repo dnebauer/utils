@@ -18,11 +18,11 @@ Changes:
    * Initial release
    * Closes: 843651
 Checksums-Sha1:
- 2258c58c50ab86e2451bd60c45a3b2effc10f876 9036 dn-font-viewer_0.1-1_all.deb
- 75202cc198fef67ff167ac2cf835acda8ee6be5e 9991 libdn-font-viewer-perl_0.1-1_amd64.buildinfo
+ 5dffb02d36a6bdf41134d50e170db0244ce32bb0 9028 dn-font-viewer_0.1-1_all.deb
+ a122746539b41d5b41ec7533751b78f1b15e4803 9991 libdn-font-viewer-perl_0.1-1_amd64.buildinfo
 Checksums-Sha256:
- c1d3a3238c2afccf728cf48a58e419e9998de194ac3ee2acf2e70b6b29a2d0a0 9036 dn-font-viewer_0.1-1_all.deb
- 8ea2dc53ef498958e7173bc8d1705d718e8aea2dd7caf51bf21f5ea0b9467ecb 9991 libdn-font-viewer-perl_0.1-1_amd64.buildinfo
+ 8653b0ffae673f15ff7d49cdcac6cafea72eb8d3c0b515c36de9bfecbb461900 9028 dn-font-viewer_0.1-1_all.deb
+ 22965380afc5d505026c44bf430ef0fb397fa3830c66cbaf5041fbcfda1a60fb 9991 libdn-font-viewer-perl_0.1-1_amd64.buildinfo
 Files:
- d7bac78f5f7c68696d90b284cb7ccef8 9036 perl optional dn-font-viewer_0.1-1_all.deb
- 414c7444da0d92de3d06e2677aa9c6a9 9991 perl optional libdn-font-viewer-perl_0.1-1_amd64.buildinfo
+ 43fe4f0d557dce32b62f4f121df6cecd 9028 perl optional dn-font-viewer_0.1-1_all.deb
+ 97e1d201797ae8a78bbc5d480c183745 9991 perl optional libdn-font-viewer-perl_0.1-1_amd64.buildinfo

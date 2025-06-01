@@ -38,7 +38,7 @@ DESCRIPTION
     set to "Perl/Tk widget". For a viewer that uses a pre-defined font
     dialog see the dn-font-viewer2 app.
 
-    When the font viewer is dismissed, the sttributes of the last viewed
+    When the font viewer is dismissed, the attributes of the last viewed
     font are printed to stdout.
 
 CONFIGURATION AND ENVIRONMENT
