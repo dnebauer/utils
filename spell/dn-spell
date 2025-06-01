@@ -8,16 +8,17 @@
 # VARIABLES
 
 args="${*}"
-msg="Loading libraries" ; echo -ne "\\033[1;37;41m${msg}\\033[0m"
-source "@libexec_dir@/libdncommon-bash/liball"  # supplies functions
+msg="Loading libraries"
+echo -ne "\\033[1;37;41m${msg}\\033[0m"
+# shellcheck disable=SC1091
+source "@libexec_dir@/libdncommon-bash/liball" # supplies functions
 dnEraseText "${msg}"
 # libdncommon-bash provides variable - declare to avoid SC2154
-declare dn_self dn_true dn_false OPTARG
+#declare dn_self dn_true dn_false OPTARG
 usage="Usage:"
 parameters="word [word...]"
 args=""
 unset msg
-
 
 # PROCEDURES
 
@@ -25,8 +26,10 @@ unset msg
 #   params: nil
 #   prints: nil
 #   return: nil
-displayUsage () {
-cat << _USAGE
+displayUsage() {
+	# dn_self provided by lbdncommon-bash library
+	# shellcheck disable=SC2154
+	cat <<_USAGE
 ${dn_self}: check word spelling
 
 Uses 'ispell' to check word spelling and provide
@@ -40,28 +43,32 @@ _USAGE
 #   params: all command line parameters
 #   prints: feedback
 #   return: nil
-processCommandLine () {
+processCommandLine() {
 	# Read the command line options
 	#   - if optstring starts with ':' then error reporting is suppressed
 	#     leave ':' at start as '\?' and '\:' error capturing require it
 	#   - if option is followed by ':' then it is expected to have an argument
-	while getopts ":h" opt ; do
+	while getopts ":h" opt; do
 		case ${opt} in
-			'h' ) displayUsage && exit 0;;
-			\?  ) echo -e "Error: Invalid flag '${OPTARG}' detected"
-				  echo -e "Usage: ${dn_self} ${parameters}"
-				  echo -e "Try '${dn_self} -h' for help"
-				  echo -ne "\a"
-				  exit 1;;
-			':' ) echo -e "Error: No argument supplied for flag '${OPTARG}'"
-				  echo -e "Usage: ${dn_self} ${parameters}"
-				  echo -e "Try '${dn_self} -h' for help"
-				  echo -ne "\a"
-				  exit 1;;
+		'h') displayUsage && exit 0 ;;
+		\?)
+			echo -e "Error: Invalid flag '${OPTARG}' detected"
+			echo -e "Usage: ${dn_self} ${parameters}"
+			echo -e "Try '${dn_self} -h' for help"
+			echo -ne "\a"
+			exit 1
+			;;
+		':')
+			echo -e "Error: No argument supplied for flag '${OPTARG}'"
+			echo -e "Usage: ${dn_self} ${parameters}"
+			echo -e "Try '${dn_self} -h' for help"
+			echo -ne "\a"
+			exit 1
+			;;
 		esac
 	done
-	shift $(( OPTIND - 1 ))
-	args="${*}"  # reset arguments
+	shift $((OPTIND - 1))
+	args="${*}" # reset arguments
 	unset usage parameters
 }
 # Send output to table output file
@@ -70,32 +77,31 @@ processCommandLine () {
 #   prints: nil
 #   return: nil
 #   note:   appends output to 'table' variable
-tblRow () {
-    local output="${1}"
-    # add second column if content provided
-    [ -n "${2}" ] && output="${output}\t${2}"
-    # append to table output file
-    table="${table}\n${output}"
+tblRow() {
+	local output="${1}"
+	# add second column if content provided
+	(($# > 1)) && [ -n "${2}" ] && output="${output}\t${2}"
+	# append to table output file
+	table="${table}\n${output}"
 }
-
 
 # MAIN
 
 # Process command line
 processCommandLine "${@}"
-while [ "${*}" != "${args}" ] ; do shift ; done
+while [ "${*}" != "${args}" ]; do shift; done
 unset args
 
 # Check arguments
 # - check that argument supplied
 [ ${#} -gt 0 ] || dnFailScript "1" "no word(s) supplied"
 # - requires ispell
-which "ispell" &>/dev/null \
-	|| dnEndScript "1" "cannot find 'ispell'"
+which "ispell" &>/dev/null ||
+	dnEndScript "1" "cannot find 'ispell'"
 
 # Informational message
 dnInfo "${dn_self} is running..."
-words=( "${@}" )
+words=("${@}")
 fragment="word"
 [ ${#words[@]} -gt 1 ] && fragment="words"
 dnInfo "checking spelling of ${#words[@]} ${fragment}:"
@@ -126,78 +132,82 @@ unset fragment
 #     '# <original> <offset>'
 #         word itself is not found in dictionaries and there are no near misses
 declare -a spellcheck
-mapfile -t spellcheck < <( echo "${words[@]}" | ispell -S -o -B -a  | sed -e '1d' | sed -e '$d' )
-if [ ${#words[@]} -ne ${#spellcheck[@]} ] ; then
-    dnEndScript "1" "Internal error: unequal arrays"
+mapfile -t spellcheck < <(echo "${words[@]}" | ispell -S -o -B -a | sed -e '1d' | sed -e '$d')
+if [ ${#words[@]} -ne ${#spellcheck[@]} ]; then
+	dnEndScript "1" "Internal error: unequal arrays"
 fi
 
 # preprocess ispell output to determine
 # - whether output requires one or two columns
 # - whether column two needs to be expanded
 cols=1
+#dn_false provided by lbdncommon-bash library
+# shellcheck disable=SC2154
 expand=${dn_false}
-for line in "${spellcheck[@]}" ; do
-    mark="${line:0:1}"
-    if   [ "${mark}" = '+' ] ; then  # root
-        cols=2
-    elif [ "${mark}" = '-' ] ; then  # compound
-        cols=2
-    elif [ "${mark}" = '&' -o "${mark}" = '?' ] ; then  # miss/guess
-        cols=2
-        # shellcheck disable=SC2001
-        suggest="$( echo "${line}" | sed -e "s/^.*: \(.*\)$/\1/" )"
-        suggest="${suggest//, /', '}"
-        [ ${#suggest} -gt 20 ] && expand=${dn_true}
-    fi
+for line in "${spellcheck[@]}"; do
+	mark="${line:0:1}"
+	if [ "${mark}" = '+' ]; then # root
+		cols=2
+	elif [ "${mark}" = '-' ]; then # compound
+		cols=2
+	elif [ "${mark}" = '&' ] || [ "${mark}" = '?' ]; then # miss/guess
+		cols=2
+		# shellcheck disable=SC2001
+		suggest="$(echo "${line}" | sed -e "s/^.*: \(.*\)$/\1/")"
+		suggest="${suggest//, /', '}"
+		# dn_true provided by lbdncommon-bash library
+		# shellcheck disable=SC2154
+		[ ${#suggest} -gt 20 ] && expand=${dn_true}
+	fi
 done
 
 # will use groff for output
 table=""
-tblRow ".na"  # make text blocks ragged right
-tblRow ".TS"  # start table
-tblRow ";"  # no global options
-if [ ${cols} -eq 1 ] ; then  # one column
-    tblRow "l." 
-else  # two columns
-    if dnFlagTrue "${expand}" ; then  # expand second column
-        tblRow "l\tlx." 
-    else  # do not expand second column
-        tblRow "l\tl." 
-    fi
+tblRow ".na"               # make text blocks ragged right
+tblRow ".TS"               # start table
+tblRow ";"                 # no global options
+if [ ${cols} -eq 1 ]; then # one column
+	tblRow "l."
+else                             # two columns
+	if dnFlagTrue "${expand}"; then # expand second column
+		tblRow "l\tlx."
+	else # do not expand second column
+		tblRow "l\tl."
+	fi
 fi
-tblRow "_"  # divider line
+tblRow "_" # divider line
 
 # loop through words generating table output
 right="\\[OK]"
 wrong="x"
 maybe="?"
-for (( i=0 ; i < ${#words[@]} ; i++ )) ; do
-    word="${words[${i}]}"
-    mark="${spellcheck[${i}]:0:1}"
-    if   [ "${mark}" = '*' ] ; then  # correct
-        tblRow "  ${right} ${word}"
-    elif [ "${mark}" = '+' ] ; then  # root
-        # shellcheck disable=SC2001
-        root="$( echo "${spellcheck[${i}]}" | sed -e "s/^\\+ //" )"
-        tblRow "  ${maybe} ${word}:" "perhaps formed from '${root}'?"
-    elif [ "${mark}" = '-' ] ; then  # compound
-        tblRow "  ${maybe} ${word}:" "perhaps a compound word?"
-    elif [ "${mark}" = '&' -o "${mark}" = '?' ] ; then  # miss/guess
-        # shellcheck disable=SC2001
-        suggest="$( echo "${spellcheck[${i}]}" | sed -e "s/^.*: \(.*\)$/\1/" )"
-        suggest="${suggest//, /', '}"
-        # shellcheck disable=SC2001
-        suggest="'$( echo "${suggest}" | sed -e "s/, /', '/g" )'"
-        tblRow "  ${wrong} ${word}:" "T{\nperhaps ${suggest}?\nT}"
-    elif [ "${mark}" = '#' ] ; then  # none
-        tblRow "  ${wrong} ${word}"
-    else  # unknown
-        dnEndScript "1" "Internal error: invalid mark"
-    fi
-    tblRow "_"  # divider line
+for ((i = 0; i < ${#words[@]}; i++)); do
+	word="${words[${i}]}"
+	mark="${spellcheck[${i}]:0:1}"
+	if [ "${mark}" = '*' ]; then # correct
+		tblRow "  ${right} ${word}"
+	elif [ "${mark}" = '+' ]; then # root
+		# shellcheck disable=SC2001
+		root="$(echo "${spellcheck[${i}]}" | sed -e "s/^\\+ //")"
+		tblRow "  ${maybe} ${word}:" "perhaps formed from '${root}'?"
+	elif [ "${mark}" = '-' ]; then # compound
+		tblRow "  ${maybe} ${word}:" "perhaps a compound word?"
+	elif [ "${mark}" = '&' ] || [ "${mark}" = '?' ]; then # miss/guess
+		# shellcheck disable=SC2001
+		suggest="$(echo "${spellcheck[${i}]}" | sed -e "s/^.*: \(.*\)$/\1/")"
+		suggest="${suggest//, /', '}"
+		# shellcheck disable=SC2001
+		suggest="'$(echo "${suggest}" | sed -e "s/, /', '/g")'"
+		tblRow "  ${wrong} ${word}:" "T{\nperhaps ${suggest}?\nT}"
+	elif [ "${mark}" = '#' ]; then # none
+		tblRow "  ${wrong} ${word}"
+	else # unknown
+		dnEndScript "1" "Internal error: invalid mark"
+	fi
+	tblRow "_" # divider line
 done
-tblRow ".TE"  # end table
-tblRow ".ad"  # end of ragged right for table text
+tblRow ".TE" # end table
+tblRow ".ad" # end of ragged right for table text
 
 # output groff table
 # - for some reason groff generates a lot of blank lines at the end of the
