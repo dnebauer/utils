@@ -21,7 +21,7 @@ package-name neovide
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.15.0
+version 0.15.1
 
 # Script and binary files
 # Executable files to be packaged.
