@@ -24,7 +24,7 @@ for details on how to define the style keywords in that script.
 Pander executes the following steps:
 
 * Extract style keywords by running pandoc on the input file. This relies on
-  the existence of a `<data_dir>/templates/metajson.tpl` file having as its
+  the existence of a `<data_dir>/templates/my-metajson.tpl` file having as its
   sole content the line "\$meta-json\$".
 
 * Assemble metadata settings associated with the style keywords and write them
@@ -68,11 +68,11 @@ The styles currently defined have the following dependencies:
 * lua (v5.3 or greater)
 * pandoc (v2.12 or greater)
 * pandoc templates (all available from github repository
-  dnebauer/dotfiles-pandoc): `metajson.tpl`, `UoE-letter.latex`, and
-  `tufte-jez.latex`
+  dnebauer/pandoc-templates): `my-metajson.tpl`, `UoE-letter.latex`, and
+  `my-tufte-jez.latex`
 * pandoc filters: `heading2bold.py`, `paginatesects.py`,
   `include-code-files.lua`, `include-files.lua`, and `pagebreak.lua` (available
-  from github repository dnebauer/dotfiles-pandoc); and `pandoc-eqnos`,
+  from github repository dnebauer/pandoc-filters); and `pandoc-eqnos`,
   `pandoc-fignos`, `pandoc-secnos`, and `pandoc-tablenos` (available from github
   repository tomduck/pandoc-xnos)
 * latex packages: extsizes, fontspec, microtype, placeins, ucharclasses, and

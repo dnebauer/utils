@@ -199,7 +199,7 @@ details on how to define the style keywords in that script.
 Pander executes the following steps:
 .IP "\(bu" 4
 Extract style keywords by running pandoc on the input file. This relies on the
-existence of a \fI<data_dir>/templates/metajson.tpl>\fR file having
+existence of a \fI<data_dir>/templates/my-metajson.tpl>\fR file having
 as its sole content the line \f(CW\*(C`$meta\-json$\*(C'\fR.
 .IP "\(bu" 4
 Assemble metadata settings associated with the style keywords and write them to
@@ -240,33 +240,27 @@ pandoc (v2.12 or greater)
 .PP
 pandoc templates:
 .IP "\(bu" 4
-\&\fImetajson.tpl\fR (available from github repository dnebauer/dotfiles\-pandoc)
+\&\fImy-metajson.tpl\fR (available from github repository dnebauer/pandoc\-templates)
 .IP "\(bu" 4
-\&\fIUoE\-letter.latex\fR (available from github repository dnebauer/dotfiles\-pandoc)
+\&\fIUoE\-letter.latex\fR (available from github repository dnebauer/pandoc\-templates)
 .IP "\(bu" 4
-\&\fItufte\-jez.latex\fR (available from github repository dnebauer/dotfiles\-pandoc)
+\&\fItufte\-jez.latex\fR (available from github repository dnebauer/pandoc\-templates)
 .PP
 pandoc filters:
 .IP "\(bu" 4
-\&\fIheading2bold.py\fR (available from github repository dnebauer/dotfiles\-pandoc)
+\&\fIheading2bold.py\fR (available from github repository dnebauer/pandoc\-templates)
 .IP "\(bu" 4
 \&\fIinclude\-code\-files.lua\fR (available from github repository
-dnebauer/dotfiles\-pandoc)
+dnebauer/pandoc\-templates)
 .IP "\(bu" 4
 \&\fIinclude\-files.lua\fR (available from github repository
-dnebauer/dotfiles\-pandoc)
+dnebauer/pandoc\-templates)
 .IP "\(bu" 4
-\&\fIpagebreak.lua\fR (available from github repository dnebauer/dotfiles\-pandoc)
+\&\fIpagebreak.lua\fR (available from github repository dnebauer/pandoc\-templates)
 .IP "\(bu" 4
-\&\fIpaginatesects.py\fR (available from github repository dnebauer/dotfiles\-pandoc)
+\&\fIpaginatesects.py\fR (available from github repository dnebauer/pandoc\-templates)
 .IP "\(bu" 4
-\&\fIpandoc-eqnos\fR (available from github repository tomduck/pandoc\-eqnos)
-.IP "\(bu" 4
-\&\fIpandoc-fignos\fR (available from github repository tomduck/pandoc\-fignos)
-.IP "\(bu" 4
-\&\fIpandoc-secnos\fR (available from github repository tomduck/pandoc\-secnos)
-.IP "\(bu" 4
-\&\fIpandoc-tablenos\fR (available from github repository tomduck/pandoc\-tablenos)
+\&\fIpandoc-crossref\fR (available from github repository lierdakil/pandoc\-crossref)
 .PP
 latex packages:
 .IP "\(bu" 4

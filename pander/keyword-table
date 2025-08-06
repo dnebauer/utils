@@ -425,7 +425,7 @@ local keyword_data = {
 			},
 			html = {
 				metadata = {
-					css = datadir .. "/templates/css/buttondown.css",
+					css = datadir .. "/templates/my-css/buttondown.css",
 				},
 			},
 			latex = {
@@ -603,7 +603,7 @@ local keyword_data = {
 			},
 			html = {
 				metadata = {
-					css = datadir .. "/templates/css/buttondown.css",
+					css = datadir .. "/templates/my-css/buttondown.css",
 				},
 			},
 			latex = {
@@ -741,7 +741,7 @@ local keyword_data = {
 			},
 			html = {
 				metadata = {
-					css = datadir .. "/templates/css/tufte-otsaloma.css",
+					css = datadir .. "/templates/my-css/tufte-otsaloma.css",
 				},
 			},
 			latex = {
@@ -778,7 +778,7 @@ local keyword_data = {
 					},
 				},
 				options = {
-					["--template"] = "tufte-jez.latex",
+					["--template"] = "my-tufte-jez.latex",
 				},
 			},
 		},

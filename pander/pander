@@ -275,7 +275,7 @@ local keyword_actions_data = {
 		},
 		html = {
 			metadata = {
-				css = "/home/david/.local/share/pandoc/templates/css/buttondown.css",
+				css = "/home/david/.local/share/pandoc/templates/my-css/buttondown.css",
 			},
 		},
 		latex = {
@@ -393,7 +393,7 @@ local keyword_actions_data = {
 		},
 		html = {
 			metadata = {
-				css = "/home/david/.local/share/pandoc/templates/css/buttondown.css",
+				css = "/home/david/.local/share/pandoc/templates/my-css/buttondown.css",
 			},
 		},
 		latex = {
@@ -492,7 +492,7 @@ local keyword_actions_data = {
 		},
 		html = {
 			metadata = {
-				css = "/home/david/.local/share/pandoc/templates/css/tufte-otsaloma.css",
+				css = "/home/david/.local/share/pandoc/templates/my-css/tufte-otsaloma.css",
 			},
 		},
 		latex = {
@@ -519,7 +519,7 @@ local keyword_actions_data = {
 				urlcolor = "RoyalBlue",
 			},
 			options = {
-				["--template"] = "tufte-jez.latex",
+				["--template"] = "my-tufte-jez.latex",
 			},
 		},
 	},
@@ -2875,7 +2875,7 @@ end -- }}}1
 -- set variables    {{{1
 pander = {
 	script = arg[0]:match("^.*%/(.-)$"), -- name of this script
-	template = "metajson.tpl", -- metajson template file name
+	template = "my-metajson.tpl", -- metajson template file name
 	input_filename = false, -- markdown input file
 	output_format = false, -- output format
 	metadata_file = false, -- path to temporary metadata file
@@ -3121,7 +3121,7 @@ Pander executes the following steps:
 =item *
 
 Extract style keywords by running pandoc on the input file. This relies on the
-existence of a S<<< F<< <data_dir>/templates/metajson.tpl> >> >>> file having
+existence of a S<<< F<< <data_dir>/templates/my-metajson.tpl> >> >>> file having
 as its sole content the line C<$meta-json$>.
 
 =item *
@@ -3183,15 +3183,15 @@ pandoc templates:
 
 =item *
 
-F<metajson.tpl> (available from github repository dnebauer/dotfiles-pandoc)
+F<my-metajson.tpl> (available from github repository dnebauer/pandoc-templates)
 
 =item *
 
-F<UoE-letter.latex> (available from github repository dnebauer/dotfiles-pandoc)
+F<UoE-letter.latex> (available from github repository dnebauer/pandoc-templates)
 
 =item *
 
-F<tufte-jez.latex> (available from github repository dnebauer/dotfiles-pandoc)
+F<my-tufte-jez.latex> (available from github repository dnebauer/pandoc-templates)
 
 =back
 
@@ -3201,41 +3201,29 @@ pandoc filters:
 
 =item *
 
-F<heading2bold.py> (available from github repository dnebauer/dotfiles-pandoc)
+F<heading2bold.py> (available from github repository dnebauer/pandoc-filters)
 
 =item *
 
 F<include-code-files.lua> (available from github repository
-dnebauer/dotfiles-pandoc)
+dnebauer/pandoc-filters)
 
 =item *
 
 F<include-files.lua> (available from github repository
-dnebauer/dotfiles-pandoc)
+dnebauer/pandoc-filters)
 
 =item *
 
-F<pagebreak.lua> (available from github repository dnebauer/dotfiles-pandoc)
+F<pagebreak.lua> (available from github repository dnebauer/pandoc-filters)
 
 =item *
 
-F<paginatesects.py> (available from github repository dnebauer/dotfiles-pandoc)
+F<paginatesects.py> (available from github repository dnebauer/pandoc-filters)
 
 =item *
 
-F<pandoc-eqnos> (available from github repository tomduck/pandoc-eqnos)
-
-=item *
-
-F<pandoc-fignos> (available from github repository tomduck/pandoc-fignos)
-
-=item *
-
-F<pandoc-secnos> (available from github repository tomduck/pandoc-secnos)
-
-=item *
-
-F<pandoc-tablenos> (available from github repository tomduck/pandoc-tablenos)
+F<pandoc-crossref> (available from github repository lierdakil/pandoc-crossref)
 
 =back
 
