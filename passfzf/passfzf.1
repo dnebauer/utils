@@ -1,0 +1,247 @@
+.\" Hey, EMACS: -*- nroff -*-
+
+.\" Filename: passfzf.1
+.\" Author:   David Nebauer
+.\" History:  2025-11-03 - created
+
+.\" -----------------------------------------------------------------
+.\" NOTES
+.\" -----------------------------------------------------------------
+.ig
+
+For header (.TH), first parameter, NAME, should be all caps
+Second parameter, SECTION, should be 1-8, maybe w/ subsection
+Other parameters are allowed: see man(7), man(1)
+Please adjust the date whenever revising the manpage.
+
+Some roff macros, for reference:
+.nh        disable hyphenation
+.hy        enable hyphenation
+.ad l      left justify
+.ad b      justify to both left and right margins
+.nf        disable filling
+.fi        enable filling
+.br        insert line break
+.sp <n>    insert n+1 empty lines
+for manpage-specific macros, see groff_man(7) and man(7)
+
+Formatting [see groff_char (7) and man (7) for details]:
+\(aq  : escape sequence for (')
+\[dq] : plain double quote
+\[lq] : left/open double quote
+\[rq] : right/close double quote
+`     : left/open single quote
+'     : right/close single quote
+\(em  : escape sequence for em dash
+\(en  : escape sequence for en dash
+\.    : escape sequence for period/dot
+\(rg  : registration symbol
+\(tm  : trademark symbol
+\fX   : escape sequence that changes font, where 'X' can be 'R|I|B|BI'
+        (R = roman/normal | I = italic | B = bold | BI = bold-italic)
+\fP   : switch to previous font
+        in this case '\fR' could also have been used
+.B    : following arguments are boldened
+.I    : following arguments are italicised
+.BI   : following arguments are bold alternating with italics
+.BR   : following arguments are bold alternating with roman
+.IB   : following arguments are italics alternating with bold
+.IR   : following arguments are italics alternating with roman
+.RB   : following arguments are roman alternating with bold
+.RI   : following arguments are roman alternating with italics
+.SM   : following arguments are small (scaled 9/10 of the regular size)
+.SB   : following arguments are small bold (not small alternating with bold)
+        [note: if argument in alternating pattern contains whitespace,
+               enclose in whitespace]
+.RS x : indent following lines by x characters
+.RE   : end indent
+
+Bulleted list:
+   A bulleted list:
+   .IP \[bu] 2
+   lawyers
+   .IP \[bu]
+   guns
+   .IP \[bu]
+   money
+Numbered list:
+   A numbered list:
+   .nr step 1 1
+   .IP \n[step]. 3
+   lawyers
+   .IP \n+[step].
+   guns
+   .IP \n+[step].
+   money
+..
+
+.\" -----------------------------------------------------------------
+.\" SETUP
+.\" -----------------------------------------------------------------
+
+.\" Macro: Format URL
+.\"  usage:  .URL "http:\\www.gnu.org" "GNU Project" " of the"
+.\"  params: 1 = url
+.\"          2 = link text/name
+.\"          3 = postamble (optional)
+.\"  note:   The www.tmac macro provides a .URL macro package; this
+.\"          is a local fallback in case www.tmac is unavailable
+.\"  credit: man(7)
+.de URL
+\\$2 \(laURL: \\$1 \(ra\\$3
+..
+
+.\" Prefer .URL macro from www.tmac macro package if it is available
+.\"  note: In the conditional below the '\n' escape returns the value of
+.\"        a register, in this the '.g'
+.\"        The '.g' register is only found in GNU 'troff', and it is
+.\"        assumed that GNU troff will always include the www.tmac
+.\"        macro package
+.if \n[.g] .mso www.tmac
+
+.\" Macro: Ellipsis
+.\"  usage: .ellipsis
+.\"  note: only works at beginning of line
+.de ellipsis
+.cc ^
+...
+^cc
+..
+
+.\" String: Command name
+.ds self passfzf
+
+.\" -----------------------------------------------------------------
+.\" MANPAGE CONTENT
+.\" -----------------------------------------------------------------
+
+.TH "PASSFZF" "1" "2025-11-03" "" "PASSFZF Manual"
+.SH "NAME"
+\*[self] \- use fzf and pass to perform password operations
+.SH "SYNOPSIS"
+.SY "\*[self]"
+[
+.I "\-v"
+]
+[
+.I "\-d"
+]
+.YS
+.SY "\*[self]"
+[
+.I "\-h"
+]
+.SH "DESCRIPTION"
+\*[self] performs the following tasks:
+.IP \[bu] 2
+opens a tomb if present
+.IP \[bu]
+presents a list of
+.B "pass"
+names for the user to select from
+.IP \[bu]
+the user selects an action to perform on the name
+.IP \[bu]
+close the tomb if present.
+.PP
+The available actions and their corresponding commands are:
+.RS 4
+.TP
+add/insert
+.B "pass"
+insert NAME
+.TP
+clip
+.B "pass"
+show --clip NAME
+.TP
+clip OTP
+.B "pass"
+otp --clip NAME
+.TP
+copy
+.B "pass"
+cp NAME COPY_NAME
+.TP
+edit
+.B "pass"
+edit NAME
+.TP
+exit
+.B "pkill"
+-P \$\$
+.TP
+git pull
+.B "pass"
+git pull
+.TP
+git push
+.B "pass"
+git push --set-upstream --all
+.TP
+rename
+.B "pass"
+mv NAME NEW_NAME
+.TP
+show
+.B "pass"
+show NAME
+.TP
+trash
+.B "pass"
+rm NAME
+.TP
+generate and clip new password
+.B "pass"
+generate --clip [--no-symbols] --in-place NAME LENGTH
+.RE
+where:
+.IP \[bu] 2
+the NAME is the one selected in the initial step
+.IP \[bu]
+the user enters NEW_NAME, COPY_NAME, and LENGTH as necessary
+.IP \[bu]
+the user selects whether to include the option
+.I "--no-symbols"
+as necessary.
+.PP
+In the
+.I "generate"
+action the user can select an existing name or enter a new one. The script
+first tries to execute the command with the
+.I "--in-place"
+option, but this fails if the name does not already exist. In that case it runs
+the command again without the
+.I "--in-place"
+option, creating a new name entry.
+.PP
+.B "pass"
+is assumed to have its default configuration.
+.SH "OPTIONS"
+.TP
+.B "\-v  \-\-verbose"
+Print input lines as they are read (equivalent to \(aqset -o verbose\(aq).
+Optional.
+.TP
+.B "\-d  \-\-debug"
+Print input lines after command expansion (equivalent to
+\(aqset -o xtrace\(aq). Optional.
+.TP
+.B "\-h  \-\-help"
+Print help text and exit. Optional.
+.SH "SEE ALSO"
+.BR "pass " "(1),"
+.BR "fzf " "(1),"
+.BR "pass-otp " "(1),"
+.BR "pass-tomb " "(1),"
+.BR "git " "(1)."
+.SH "AUTHOR"
+\*[self] was intiially created by
+.URL "mlaparie [at] disr [dot] it" "Mathieu Laparie"
+and re-written by
+.URL "david at nebauer.org" "David Nebauer" "."
+Note the copyright and license statements in the script file.
+.PP
+This manual page was written by
+.URL "david at nebauer.org" "David Nebauer"
+for personal use but it be used by others.
