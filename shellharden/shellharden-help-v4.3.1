@@ -1,0 +1,33 @@
+Shellharden: The corrective bash syntax highlighter.
+
+Usage:
+	shellharden [options] [files]
+	cat files | shellharden [options] ''
+
+Shellharden is a syntax highlighter and a tool to semi-automate the rewriting
+of scripts to ShellCheck conformance, mainly focused on quoting.
+
+The default mode of operation is like `cat`, but with syntax highlighting in
+foreground colors and suggestive changes in background colors.
+
+Options:
+	--suggest         Output a colored diff suggesting changes.
+	--syntax          Output syntax highlighting with ANSI colors.
+	--syntax-suggest  Diff with syntax highlighting (default mode).
+	--transform       Output suggested changes.
+	--check           No output; exit with 2 if changes are suggested.
+	--replace         Replace file contents with suggested changes.
+	--                Don't treat further arguments as options.
+	-h|--help         Show help text.
+	--version         Show version.
+
+The changes suggested by Shellharden inhibits word splitting and indirect
+pathname expansion. This will make your script ShellCheck compliant in terms of
+quoting. Whether your script will work afterwards is a different question:
+If your script was using those features on purpose, it obviously won't anymore!
+
+Every script is possible to write without using word splitting or indirect
+pathname expansion, but it may involve doing things differently.
+See the accompanying file how_to_do_things_safely_in_bash.md or online:
+https://github.com/anordal/shellharden/blob/master/how_to_do_things_safely_in_bash.md
+
