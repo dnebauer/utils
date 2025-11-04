@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-AU" xml:lang="en-AU">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="David Nebauer" />
+  <meta name="dcterms.date" content="2025-08-09" />
+  <title>Pandoc Filters</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+  <style type="text/css">
+
+
+
+div#header, header
+{
+
+border-bottom: 1px solid #aaa;
+margin-bottom: 0.5em;
+}
+.title, .subtitle 
+{
+text-align: center;
+}
+.subtitle
+{
+font-size: medium;
+font-style: italic;
+}
+.author, .date 
+{
+text-align: center;
+}
+
+.abstract
+{
+text-align: justify;
+font-style: italic;
+margin-bottom: 0.5em;
+margin-left: 3em;
+margin-right: 3em;
+}
+
+div#TOC, nav#TOC
+{
+
+border-bottom: 1px solid #aaa;
+margin-bottom: 0.5em;
+}
+@media print
+{
+div#TOC, nav#TOC
+{
+
+display: none;
+}
+}
+
+h1, h2, h3, h4, h5, h6
+{
+font-family: "Helvetica Neue", Helvetica, "Liberation Sans", Calibri, Arial, sans-serif; 
+
+page-break-after: avoid; 
+}
+
+div div, section section 
+{
+margin-left: 1.5em; 
+}
+p {}
+blockquote
+{
+font-style: italic;
+}
+li 
+{
+}
+li > p 
+{
+margin-top: 1em; 
+}
+ul 
+{
+padding-left: 2em; 
+}
+ul li 
+{
+}
+ol 
+{
+padding-left: 2em; 
+}
+ol li 
+{
+}
+hr 
+{
+border: none;
+height: 1pt;
+background: none;
+border-top: 1pt solid #333;
+}
+
+sub 
+{
+}
+sup 
+{
+}
+em 
+{
+}
+em > em 
+{
+font-style: normal;
+}
+strong 
+{
+}
+
+a 
+{
+}
+
+@media screen
+{
+a {
+text-decoration: underline dotted; 
+}
+#TOC a 
+{
+text-decoration: none;
+border-bottom: inherit;
+}
+a:hover
+{
+text-decoration: underline solid blue; / * Hover emphasizes */
+}
+
+a img
+{
+text-decoration: none;
+border: 1px solid white;
+}
+a img:hover {
+text-decoration: none;
+border: 1px dotted blue;
+}
+}
+@media print
+{
+a {
+
+text-decoration: none;
+color: inherit;
+}
+a[href^="http://"]:after, a[href^="https://"]:after
+{
+
+content: " (" attr(href) ") ";
+font-size: 90%;
+}
+}
+
+img
+{
+
+vertical-align: middle;
+}
+@media print
+{
+img
+{
+
+max-height: 8.5in;
+max-width: 6.5in;
+}
+}
+div.figure, figure 
+{
+
+margin-left: auto;
+margin-right: auto;
+text-align: center;
+font-style: italic;
+font-size: small;
+}
+p.caption, figcaption 
+{
+
+}
+
+pre, code
+{
+
+white-space: pre-wrap;
+word-wrap: break-word;
+}
+
+
+code
+{
+background-color: #E8E8E8;
+}
+
+pre, pre > code
+{
+background-color: #E8E8E8;
+}
+pre 
+{
+
+padding: 0.5em; 
+border-radius: 5px; 
+
+border: 1px solid #aaa;
+
+margin-left: 0.5em;
+margin-right: 0.5em;
+}
+@media screen
+{
+pre
+{
+
+border: none;
+box-shadow: inset 1px 1px 3px #b0b0b0;
+}
+pre, pre > code
+{
+
+white-space: pre;
+word-wrap: normal;
+overflow: auto;
+}
+}
+code 
+{
+
+padding-left: 0.3em;
+padding-right: 0.3em;
+padding-top: 0.1em;
+padding-bottom: 0.1em;
+border-radius: 3px;
+}
+@media screen
+{
+code
+{
+box-shadow: inset 0px 0px 2px #b0b0b0;
+}
+}
+pre > code 
+{
+
+padding: 0;
+border: none;
+border-radius: none;
+background-color: inherit;
+box-shadow: none;
+}
+code.url 
+{
+background-color: inherit; 
+box-shadow: none;
+}
+
+
+span.math 
+{
+}
+span.math.inline 
+{
+}
+span.math.display 
+{
+}
+span.LaTeX 
+{
+}
+eq 
+{
+}
+
+
+table
+{
+border-collapse: collapse;
+border-spacing: 0; 
+border-top: 2pt solid black; 
+border-bottom: 2pt solid black;
+
+margin-left: auto;
+margin-right: auto;
+}
+thead, th 
+{
+
+border-bottom: 1pt solid black;
+background-color: #E8E8E8;
+}
+tr.header 
+{
+}
+tbody 
+{
+}
+
+tr {
+}
+
+tr.odd {}
+tr.even {}
+tr.odd:hover, tr.even:hover 
+{
+background-color: #E0E0E0;
+}
+td, th 
+{
+vertical-align: top; 
+vertical-align: baseline; 
+padding-left: 0.5em;
+padding-right: 0.5em;
+padding-top: 0.2em;
+padding-bottom: 0.2em;
+}
+
+
+th 
+{
+font-weight: bold;
+}
+tfoot 
+{
+}
+caption 
+{
+caption-side: top;
+border: none;
+font-size: 0.9em;
+font-style: italic;
+text-align: center;
+margin-top: 0.5em;
+margin-bottom: 0.3em;
+padding-bottom: 0.2em;
+}
+
+dl 
+{
+border-top: 2pt solid #888;
+padding-top: 0.5em;
+border-bottom: 2pt solid #888;
+}
+dt 
+{
+font-weight: bold;
+}
+dd+dt 
+{
+border-top: 1pt solid #888;
+padding-top: 0.5em;
+}
+dd 
+{
+margin-bottom: 0.5em;
+}
+dd+dd 
+{
+border-top: 1px solid #888; 
+}
+
+a.footnote, a.footnoteRef { 
+font-size: small;
+vertical-align: text-top;
+}
+a[href^="#fnref"], a.reversefootnote 
+{
+}
+@media print
+{
+a[href^="#fnref"], a.reversefootnote 
+{
+
+display: none;
+}
+}
+.footnotes 
+{
+}
+.footnotes>ol>li[id^="fn"] 
+{
+}
+
+.footnotes > hr
+{
+margin-top: 2em;
+padding: 0;
+border: none;
+border-top: double;
+border-color: #303030;
+border-width: 3pt;
+color: black;
+text-align: center;
+}
+
+
+
+
+@media screen
+{
+.noscreen 
+{
+display: none;
+}
+}
+@media print
+{
+.noprint 
+{
+display:none;
+}
+}
+.block-center
+{
+margin-left: auto;
+margin-right: auto;
+display: table;
+}
+.text-center
+{
+text-align: center;
+}
+.block-right
+{
+margin-left: auto;
+margin-right: 0;
+display: table;
+}
+.text-right
+{
+text-align: right;
+}
+.block-left
+{
+margin-left: 0;
+margin-right: auto;
+display: table;
+}
+.text-left
+{
+text-align: left;
+}
+
+@media screen
+{
+img.shadow 
+{
+box-shadow: 3px 3px 5px #b0b0b0;
+}
+}
+@media print
+{
+img.shadow
+{
+box-shadow: 3px 3px 0px #b0b0b0;
+}
+}
+img.pad 
+{
+padding: 10px;
+}
+img.rounded 
+{
+border-radius: 10px;
+}
+img.border 
+{
+border: 1pt solid #c0c0c0;
+}
+img.well
+{
+box-shadow: 0px 0px 5px #b0b0b0 inset;
+}
+img.right 
+{
+float: right;
+clear: right;
+margin-left: 10px;
+margin-top: 10px;
+margin-bottom: 10px;
+}
+img.left 
+{
+float: left;
+clear: left;
+margin-right: 10px;
+margin-top: 10px;
+margin-bottom: 10px;
+}
+div.figure img, figure img 
+{
+float: none; 
+clear: both;
+}
+img.top
+{
+vertical-align: top;
+}
+img.bottom
+{
+vertical-align: bottom;
+}
+img.middle
+{
+vertical-align: middle;
+}
+img.baseline
+{
+vertical-align: baseline;
+}
+img.margin 
+{
+margin-left: 10px;
+margin-right: 10px;
+}
+
+img.max100
+{
+max-width: 100%;
+}
+img.max95 
+{
+max-width: 95%;
+}
+img.max50
+{
+max-width: 50%;
+}
+img.max45 
+{
+max-width: 45%;
+}
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Pandoc Filters</h1>
+<p class="author">David Nebauer</p>
+<p class="date">9 August 2025</p>
+</header>
+<p>From the <a href="https://github.com/orgs/pandoc-ext/repositories">pandoc-ext</a>
+repository collection:</p>
+<table>
+<tbody>
+<tr>
+<td style="text-align: left;"><a href="https://github.com/pandoc-ext/abstract-section/blob/main/_extensions/abstract-section/abstract-section.lua">abstract-section.lua</a></td>
+<td style="text-align: left;"><a href="https://github.com/pandoc-ext/multibib/blob/main/multibib.lua">multibib.lua</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="https://github.com/pandoc-ext/diagram/blob/main/_extensions/diagram/diagram.lua">diagram.lua</a></td>
+<td style="text-align: left;"><a href="https://github.com/pandoc-ext/pagebreak/blob/main/pagebreak.lua">pagebreak.lua</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="https://github.com/pandoc-ext/include-files/blob/main/include-files.lua">include-files.lua</a></td>
+<td style="text-align: left;"><a href="https://github.com/pandoc-ext/pretty-urls/blob/main/_extensions/pretty-urls/pretty-urls.lua">pretty-urls.lua</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="https://github.com/pandoc-ext/list-table/blob/main/_extensions/list-table/list-table.lua">list-table.lua</a></td>
+<td style="text-align: left;"><a href="https://github.com/pandoc-ext/section-bibliographies/blob/main/_extensions/section-bibliographies/section-bibliographies.lua">section-bibliographies.lua</a></td>
+</tr>
+</tbody>
+</table>
+<p>From the <a href="https://github.com/pandoc/lua-filters">pandoc/lua-filters</a>
+repository:</p>
+<table>
+<tbody>
+<tr>
+<td style="text-align: left;"><a href="https://github.com/pandoc/lua-filters/blob/master/author-info-blocks/author-info-blocks.lua">author-info-blocks.lua</a></td>
+<td style="text-align: left;"><a href="https://github.com/pandoc/lua-filters/blob/master/scholarly-metadata/scholarly-metadata.lua">scholarly-metadata.lua</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="https://github.com/pandoc/lua-filters/blob/master/doi2cite/doi2cite.lua">doi2cite.lua</a></td>
+<td style="text-align: left;"><a href="https://github.com/pandoc/lua-filters/blob/master/short-captions/short-captions.lua">short-captions.lua</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="https://github.com/pandoc/lua-filters/blob/master/first-line-indent/first-line-indent.lua">first-line-indent.lua</a></td>
+<td style="text-align: left;"><a href="https://github.com/pandoc/lua-filters/blob/master/spellcheck/spellcheck.lua">spellcheck.lua</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="https://github.com/pandoc/lua-filters/blob/master/include-code-files/include-code-files.lua">include-code-files.lua</a></td>
+<td style="text-align: left;"><a href="https://github.com/pandoc/lua-filters/blob/master/table-short-captions/table-short-captions.lua">table-short-captions.lua</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="https://github.com/pandoc/lua-filters/blob/master/latex-hyphen/latex-hyphen.lua">latex-hyphen.lua</a></td>
+<td style="text-align: left;"><a href="https://github.com/pandoc/lua-filters/blob/master/wordcount/wordcount.lua">wordcount.lua</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="https://github.com/pandoc/lua-filters/blob/master/not-in-format/not-in-format.lua">not-in-format.lua</a></td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+<p>Personally managed:</p>
+<table>
+<tbody>
+<tr>
+<td style="text-align: left;">heading2bold.py</td>
+<td style="text-align: left;">paginatesects.py</td>
+</tr>
+<tr>
+<td style="text-align: left;">keyboard-font.lua</td>
+<td style="text-align: left;">text-colour.lua</td>
+</tr>
+<tr>
+<td style="text-align: left;">linebreakbetweenparas.lua</td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

@@ -207,10 +207,10 @@ selection=$(
       --no-multi \
       --cycle \
       --header='
-| Ret: clip | C-t: trash    | M-<: git pull | C-a: add/insert   |
-| C-s: show | C-r: rename   | M->: git push | C-c/C-q/Esc: exit |
-| C-e: edit | C-o: clip OTP | C-d: copy     |
-| C-g: generate and clip new password       |' \
+| Ret: clip | C-t: trash    | M-<: git pull | C-a: add/insert   |
+| C-s: show | C-r: rename   | M->: git push | C-c/C-q/Esc: exit |
+| C-e: edit | C-o: clip OTP | C-d: copy     |
+| C-g: generate and clip new password       |' \
       --margin='1,2,1,2' \
       --color='16,gutter:-1' \
       --bind="tab:down" \
@@ -223,8 +223,8 @@ selection=$(
       --bind="ctrl-r:execute(echo 'mv' > $tmpfile)+accept" \
       --bind="ctrl-s:execute(echo 'show' > $tmpfile)+accept" \
       --bind="ctrl-t:execute(echo 'rm' > $tmpfile)+accept" \
-      --bind="alt-<:execute(echo 'git pull' > $tmpfile)+abort" \
-      --bind="alt->:execute(echo 'git push -u --all' > $tmpfile)+abort" \
+      --bind="alt-<:execute(echo 'git pull' > $tmpfile)+accept" \
+      --bind="alt->:execute(echo 'git push -u --all' > $tmpfile)+accept" \
       --bind="enter,alt-enter:execute(echo 'show --clip' > $tmpfile)+accept" \
       --bind="ctrl-c,ctrl-q,esc:execute(echo 'quit' > $tmpfile)+cancel"
 )
@@ -239,11 +239,13 @@ action_taken=false
 case "$arg" in
 "git pull")
   echo -e "\033[0;32m\nPerforming git pull...\033[0m"
+  cd "$STORE"
   "$PASS" git pull
   action_taken=true
   ;;
 "git push -u --all")
   echo -e "\033[0;32m\nPerforming git push...\033[0m"
+  cd "$STORE"
   "$PASS" git push --set-upstream --all
   action_taken=true
   ;;
