@@ -323,13 +323,7 @@ if [[ $action_taken = false ]]; then
       "$PASS" show --clip "$selection"
       ;;
     *)
-      printf "\033[0;32mSelected name:\033[0m %s" "$selection"
       echo -e "\033[0;31mError:\033[0m unknown action: '$arg'" 1>&2
-      if [[ -n "$selection" ]]; then
-        "$PASS" "$arg" "$selection"
-      else
-        "$PASS" "$arg"
-      fi
       ;;
     esac
   fi
