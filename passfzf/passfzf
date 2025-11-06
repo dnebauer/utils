@@ -30,9 +30,9 @@ TOMB="$HOME/.password.tomb"
 # VARIABLES    {{{1
 
 self="$(basename "$0")"
-required_system_tools=(echo fdfind fzf getopt git mktemp pass printf read rm trap)
-required_local_tools=() # required tools specified by full path
-# • optional dependencies: git, pass-tomb, pass-otp
+required_system_tools=(
+  echo fdfind fzf getopt git mktemp pass printf read rm swapoff swapon trap
+)
 # }}}1
 
 # PROCEDURES
@@ -49,17 +49,13 @@ function checkPrereqs() {
   for tool in "${required_system_tools[@]}"; do
     command -v "$tool" &>/dev/null || missing+=("$tool")
   done
-  # these tools are specified by absolute path
-  for tool in "${required_local_tools[@]}"; do
-    [[ -x "$tool" ]] || missing+=("$tool")
-  done
   if [[ ${#missing[@]} -ne 0 ]]; then
     local msg
     msg="Can't run without: $(joinBy ', ' "${missing[@]}")"
     echo "$self: $msg" 1>&2
     exit 1
   fi
-  unset required_system_tools required_local_tools
+  unset required_system_tools
 }
 # displayUsage()    {{{1
 #   intent: display usage information
@@ -173,6 +169,22 @@ function joinBy() {
   shift
   printf %b%s "$first_item" "${@/#/$delimiter}"
 }
+# tombClose($tomb, $pass, $swap)    {{{1
+#   intent: close a pass tomb if present
+#   params: tomb - path to pass tomb
+#           pass - pass executable name
+#           swap - path to swapfile
+#   prints: pass feedback
+#   return: nil
+function tombClose() {
+  local tomb pass swap
+  tomb="${1:-}" pass="${2:-}" swap="${3:-}"
+  if [[ -e "$tomb" ]]; then
+    printf "\n"
+    "$pass" close
+    sudo swapon -a && sudo swapon "$swap" 2>/dev/null
+  fi
+}
 # }}}1
 
 # MAIN
@@ -218,14 +230,14 @@ selection=$(
       --bind="ctrl-a:execute(echo 'add' > $tmpfile)+accept-or-print-query" \
       --bind="ctrl-d:execute(echo 'cp' > $tmpfile)+accept" \
       --bind="ctrl-e:execute(echo 'edit' > $tmpfile)+accept" \
-      --bind="ctrl-g:execute(echo 'generate --clip' > $tmpfile)+accept-or-print-query" \
-      --bind="ctrl-o:execute(echo 'otp --clip' > $tmpfile)+accept" \
+      --bind="ctrl-g:execute(echo 'generate-clip' > $tmpfile)+accept-or-print-query" \
+      --bind="ctrl-o:execute(echo 'otp-clip' > $tmpfile)+accept" \
       --bind="ctrl-r:execute(echo 'mv' > $tmpfile)+accept" \
       --bind="ctrl-s:execute(echo 'show' > $tmpfile)+accept" \
       --bind="ctrl-t:execute(echo 'rm' > $tmpfile)+accept" \
-      --bind="alt-<:execute(echo 'git pull' > $tmpfile)+accept" \
-      --bind="alt->:execute(echo 'git push -u --all' > $tmpfile)+accept" \
-      --bind="enter,alt-enter:execute(echo 'show --clip' > $tmpfile)+accept" \
+      --bind="alt-<:execute(echo 'git-pull' > $tmpfile)+accept" \
+      --bind="alt->:execute(echo 'git-push' > $tmpfile)+accept" \
+      --bind="enter,alt-enter:execute(echo 'show-clip' > $tmpfile)+accept" \
       --bind="ctrl-c,ctrl-q,esc:execute(echo 'quit' > $tmpfile)+cancel"
 )
 
@@ -237,21 +249,21 @@ trap - EXIT
 # process actions that do not use selected pass entry    {{{1
 action_taken=false
 case "$arg" in
-"git pull")
+"git-pull")
   echo -e "\033[0;32m\nPerforming git pull...\033[0m"
   cd "$STORE"
   "$PASS" git pull
   action_taken=true
   ;;
-"git push -u --all")
+"git-push")
   echo -e "\033[0;32m\nPerforming git push...\033[0m"
   cd "$STORE"
   "$PASS" git push --set-upstream --all
   action_taken=true
   ;;
 quit)
-  pkill -P $$
-  action_taken=true
+  tombClose "$TOMB" "$PASS" "$SWAPFILE"
+  pkill --parent $$
   ;;
 esac
 
@@ -276,7 +288,7 @@ if [[ $action_taken = false ]]; then
     "edit")
       "$PASS" edit "$selection"
       ;;
-    "generate --clip")
+    "generate-clip")
       printf "\033[0;32mSelected name:\033[0m %s" "$selection"
       printf "\033[0;32m\nName to generate password for (default=selection):\033[0m\n"
       read -r -e
@@ -306,7 +318,7 @@ if [[ $action_taken = false ]]; then
         "$PASS" mv "$selection" "$REPLY"
       fi
       ;;
-    "otp --clip")
+    "otp-clip")
       if ! "$PASS" otp 2>&1 | grep -q "Usage: $PASS otp"; then
         echo -e "\033[0;31mError:\033[0m the pass-otp extension not installed" 1>&2
       else
@@ -319,7 +331,7 @@ if [[ $action_taken = false ]]; then
     "show")
       "$PASS" show "$selection"
       ;;
-    "show --clip")
+    "show-clip")
       "$PASS" show --clip "$selection"
       ;;
     *)
@@ -330,11 +342,7 @@ if [[ $action_taken = false ]]; then
 fi
 
 # close pass tomb if necessary    {{{1
-if [[ -e "$TOMB" ]]; then
-  printf "\n"
-  "$PASS" close
-  sudo swapon -a && sudo swapon "$SWAPFILE" 2>/dev/null
-fi
+tombClose "$TOMB" "$PASS" "$SWAPFILE"
 # }}}1
 
 # CREDITS    {{{1
