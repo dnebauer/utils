@@ -261,7 +261,7 @@ case "$arg" in
   "$PASS" git push --set-upstream --all
   action_taken=true
   ;;
-quit)
+"quit")
   tombClose "$TOMB" "$PASS" "$SWAPFILE"
   pkill --parent $$
   ;;
