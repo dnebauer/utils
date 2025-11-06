@@ -31,7 +31,7 @@ TOMB="$HOME/.password.tomb"
 
 self="$(basename "$0")"
 required_system_tools=(
-  cat echo fdfind fzf getopt git mktemp pass printf read rm swapoff swapon trap
+  cat echo fdfind fzf getopt git mktemp pass printf read rm trap
 )
 # }}}1
 
