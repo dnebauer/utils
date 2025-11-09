@@ -80,7 +80,7 @@ Numbered list:
 .\" -----------------------------------------------------------------
 
 .\" Macro: Format URL
-.\"  usage:  .URL "http:\\www.gnu.org" "GNU Project" " of the"
+.\"  usage:  .URL "http://www.gnu.org" "GNU Project" " of the"
 .\"  params: 1 = url
 .\"          2 = link text/name
 .\"          3 = postamble (optional)
@@ -195,6 +195,7 @@ generate and clip new password
 .B "pass"
 generate --clip [--no-symbols] --in-place NAME LENGTH
 .RE
+.PP
 where:
 .IP \[bu] 2
 the NAME is the one selected in the initial step
@@ -217,7 +218,25 @@ option, creating a new name entry.
 .PP
 .B "pass"
 is assumed to have its default configuration.
+.PP
+If a pass tomb is in use the script opens and closes the tomb at the beginning
+and end of its execution cycle.
+.PP
+If called with the
+.I "\-c"
+option it is assumed the script has been called by a wrapper script.
+This results in the following additional behaviour:
+.IP \[bu] 2
+any clipped password is saved to the capture file
+.IP \[bu]
+the script prompts for a key press before exiting.
+.PP
+This script assumes the specified capture file is both writable and safe to
+write to.
 .SH "OPTIONS"
+.TP
+.BI "\-c  \-\-capture " "filepath"
+Path to capture file. Optional.
 .TP
 .B "\-v  \-\-verbose"
 Print input lines as they are read (equivalent to \(aqset -o verbose\(aq).
@@ -234,14 +253,15 @@ Print help text and exit. Optional.
 .BR "fzf " "(1),"
 .BR "pass-otp " "(1),"
 .BR "pass-tomb " "(1),"
-.BR "git " "(1)."
+.BR "git " "(1),"
+.BR "passfzf-capture " "(1)."
 .SH "AUTHOR"
 \*[self] was intiially created by
-.URL "mlaparie [at] disr [dot] it" "Mathieu Laparie"
+.URL "mailto:mlaparie[at]disr[dot]it" "Mathieu Laparie"
 and re-written by
-.URL "david at nebauer.org" "David Nebauer" "."
+.URL "mailto:david[at]nebauer[dot]org" "David Nebauer" "."
 Note the copyright and license statements in the script file.
 .PP
 This manual page was written by
-.URL "david at nebauer.org" "David Nebauer"
+.URL "mailto:david[at]nebauer[dot]org" "David Nebauer"
 for personal use but it be used by others.

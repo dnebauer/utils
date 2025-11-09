@@ -21,7 +21,7 @@ package-name passfzf
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.2
+version 0.3
 
 # Script and binary files
 # Executable files to be packaged.
@@ -30,6 +30,7 @@ version 0.2
 # Default value of 'sbin-file' in built deb package: /usr/sbin
 # Required (unless a library package). Multiple allowed
 bin-file passfzf
+bin-file passfzf-capture
 #sbin-file
 
 # Manpages
@@ -37,6 +38,7 @@ bin-file passfzf
 # Default location in built deb package: /usr/share/man/man1
 # Required (unless a library package). Multiple allowed.
 man-file passfzf.1
+man-file passfzf-capture.1
 
 # Data files
 # Data files to package.
@@ -163,11 +165,51 @@ control-description generate and clip new password.
 control-description .
 control-description If a pass tomb is present it is opened and closed as
 control-description necessary.
+control-description .
+control-description A wrapper script is provided to enable running inside an
+control-description invoked terminal.
 
 # Dependency
 # The name of a single package this package depends on.
 # Can include minimum version.
 # Optional. Multiple allowed.
+
+### Perl modules
+
+# Clipboard
+depends-on libclipboard-perl (>= 0.32-1)
+
+# Const::Fast
+depends-on libconst-fast-perl (>= 0.014-2)
+
+# Moo
+depends-on libmoo-perl (>= 2.005005-1)
+
+# MooX::HandlesVia
+depends-on libmoox-handlesvia-perl (>= 0.001009-2)
+
+# MooX::Options
+depends-on libmoox-options-perl (>= 4.103-5)
+
+# namespace::clean
+depends-on libnamespace-clean-perl (>= 0.27-2)
+
+# Path::Tiny
+depends-on libpath-tiny-perl (>= 0.148-1)
+
+# strictures
+depends-on libstrictures-perl (>= 2.000006-1)
+
+# Types::Standard
+depends-on libtype-tiny-perl (>= 2.008004-1)
+
+# version
+depends-on libversion-perl (>= 1:0.9933-1)
+
+### Executables
+
+# alacritty
+depends-on alacritty (>= 0.16.1-1)
 
 # fdfind
 depends-on fd-find (>= 10.3.0-2)

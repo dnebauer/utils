@@ -33,6 +33,8 @@ self="$(basename "$0")"
 required_system_tools=(
   cat echo fdfind fzf getopt git mktemp pass printf read rm trap
 )
+capture_file=''
+capturing() { return 1; } # default: false
 # }}}1
 
 # PROCEDURES
@@ -100,16 +102,28 @@ the name does not already exist. In that case it runs the
 command again without the '--in-place' option, creating a
 new name entry.
 
+It is assumed that pass has its default configuration.
+
 If a pass tomb is in use the script opens and closes the
 tomb at the beginning and end of its execution cycle.
+
+If called with the '-c' option it is assumed the script has
+been called by a wrapper script. This results in the
+following additional behaviour:
+* any clipped password is saved to the capture file
+* the script prompts for a key press before exiting.
+
+This script assumes the specified capture file is both
+writable and safe to write to.
 
 Usage: $self
        $self -h
 
-Options: -v = print input lines as they are read
-              (equivalent to 'set -o verbose')
-         -d = print input lines after command expansion
-              (equivalent to 'set -o xtrace')
+Options: -c fp = path to capture file
+         -v    = print input lines as they are read
+                 (equivalent to 'set -o verbose')
+         -d    = print input lines after command expansion
+                 (equivalent to 'set -o xtrace')
 _USAGE
 }
 # processOptions([@options])    {{{1
@@ -124,8 +138,8 @@ processOptions() {
   local OPTIONS
   if ! OPTIONS="$(
     getopt \
-      --options hvd \
-      --long help,verbose,debug \
+      --options hvdc: \
+      --long capture:,help,verbose,debug \
       --name "${BASH_SOURCE[0]}" \
       -- "$@"
   )"; then
@@ -135,6 +149,11 @@ processOptions() {
   eval set -- "$OPTIONS"
   while true; do
     case "$1" in
+    -c | --capture)
+      capture_file="$2"
+      capturing() { return 0; } # switch to true
+      shift 2
+      ;;
     -h | --help)
       displayUsage
       exit 0
@@ -183,6 +202,50 @@ function tombClose() {
     printf "\n"
     "$pass" close
     sudo swapon -a && sudo swapon "$swap" 2>/dev/null
+  fi
+}
+# captureClipping()    {{{1
+#   intent: save clipped password to capture file
+#   params: nil
+#   prints: error feedback
+#   return: nil
+function captureClipping() {
+  if ! capturing; then
+    return
+  fi
+  sleep 0.1
+  local clipping
+  clipping="$(xclip -selection clipboard -out)"
+  echo -n "$clipping" >"$capture_file"
+}
+# prompt()    {{{1
+#   intent: prompt user for key press before exiting
+#   params: nil
+#   prints: error feedback
+#   return: nil
+function prompt() {
+  if ! capturing; then
+    return
+  fi
+  printf "\033[0;32m\nPress Return to exit\033[0m "
+  read -r
+}
+# promptOnFailure($status, $app)    {{{1
+#   intent: if operation failed prompt user for key press before exiting
+#   params: status - exit status of operation
+#           app    - app whose operation failed
+#   prints: error feedback
+#   return: nil
+function promptOnFailure() {
+  if ! capturing; then
+    return
+  fi
+  local status app
+  status="${1:-}" app="${2-}"
+  if ! [[ $status == 0 ]]; then
+    echo -e "\033[0;31mError:\033[0m $app exited with error code $status" 1>&2
+    printf "\033[0;32m\nPress Return to exit\033[0m "
+    read -r
   fi
 }
 # }}}1
@@ -253,12 +316,14 @@ case "$arg" in
   echo -e "\033[0;32m\nPerforming git pull...\033[0m"
   cd "$STORE"
   "$PASS" git pull
+  prompt
   action_taken=true
   ;;
 "git-push")
   echo -e "\033[0;32m\nPerforming git push...\033[0m"
   cd "$STORE"
   "$PASS" git push --set-upstream --all
+  prompt
   action_taken=true
   ;;
 "quit")
@@ -277,16 +342,19 @@ if [[ $action_taken = false ]]; then
     case "$arg" in
     "add")
       "$PASS" insert "$selection" # 'add' is a synonym for 'insert'
+      prompt
       ;;
     "cp")
       printf "\033[0;32m\nNew name to copy '%s' to:\033[0m\n" "$selection"
       read -r -e
       if [[ -n "$REPLY" ]]; then
         "$PASS" cp "$selection" "$REPLY"
+        prompt
       fi
       ;;
     "edit")
       "$PASS" edit "$selection"
+      promptOnFailure $? 'pass'
       ;;
     "generate-clip")
       printf "\033[0;32mSelected name:\033[0m %s" "$selection"
@@ -310,12 +378,15 @@ if [[ $action_taken = false ]]; then
       fi
       "$PASS" "${gen_args[@]}" --in-place "$selection" "$num_chars" 2>/dev/null ||
         "$PASS" "${gen_args[@]}" "$selection" "$num_chars"
+      prompt
+      captureClipping
       ;;
     "mv")
       printf "\033[0;32m\nNew name to rename '%s' to:\033[0m\n" "$selection"
       read -r -e
       if [[ -n "$REPLY" ]]; then
         "$PASS" mv "$selection" "$REPLY"
+        prompt
       fi
       ;;
     "otp-clip")
@@ -323,19 +394,26 @@ if [[ $action_taken = false ]]; then
         echo -e "\033[0;31mError:\033[0m the pass-otp extension not installed" 1>&2
       else
         "$PASS" otp --clip "$selection"
+        prompt
+        captureClipping
       fi
       ;;
     "rm")
       "$PASS" rm "$selection"
+      prompt
       ;;
     "show")
       "$PASS" show "$selection"
+      prompt
       ;;
     "show-clip")
       "$PASS" show --clip "$selection"
+      promptOnFailure $? 'pass'
+      captureClipping
       ;;
     *)
       echo -e "\033[0;31mError:\033[0m unknown action: '$arg'" 1>&2
+      prompt
       ;;
     esac
   fi
