@@ -48,16 +48,14 @@ __dir="$(cd "$(dirname "${BASH_SOURCE[${__b3bp_tmp_source_idx:-0}]}")" && pwd)"
 __file="${__dir}/$(basename "${BASH_SOURCE[${__b3bp_tmp_source_idx:-0}]}")"
 __base="$(basename "${__file}" .sh)"
 
-
 # Define the environment variables (and their defaults) that this script depends on
 LOG_LEVEL="${LOG_LEVEL:-6}" # 7 = debug -> 0 = emergency
 NO_COLOR="${NO_COLOR:-}"    # true = disable color. otherwise autodetected
 
-
 ### Functions
 ##############################################################################
 
-function __b3bp_log () {
+function __b3bp_log() {
   local log_level="${1}"
   shift
 
@@ -83,10 +81,11 @@ function __b3bp_log () {
   local color="${!colorvar:-${color_error}}"
   local color_reset="\x1b[0m"
 
-  if [[ "${NO_COLOR:-}" = "true" ]] || ( [[ "${TERM:-}" != "xterm"* ]] && [[ "${TERM:-}" != "screen"* ]] ) || [[ ! -t 2 ]]; then
+  if [[ "${NO_COLOR:-}" = "true" ]] || ([[ "${TERM:-}" != "xterm"* ]] && [[ "${TERM:-}" != "screen"* ]]) || [[ ! -t 2 ]]; then
     if [[ "${NO_COLOR:-}" != "false" ]]; then
       # Don't use colors on pipes or non-recognized terminals
-      color=""; color_reset=""
+      color=""
+      color_reset=""
     fi
   fi
 
@@ -95,19 +94,43 @@ function __b3bp_log () {
 
   while IFS=$'\n' read -r log_line; do
     echo -e "$(date -u +"%Y-%m-%d %H:%M:%S UTC") ${color}$(printf "[%9s]" "${log_level}")${color_reset} ${log_line}" 1>&2
-  done <<< "${@:-}"
+  done <<<"${@:-}"
 }
 
-function emergency () {                                __b3bp_log emergency "${@}"; exit 1; }
-function alert ()     { [[ "${LOG_LEVEL:-0}" -ge 1 ]] && __b3bp_log alert "${@}"; exit 1; }
-function critical ()  { [[ "${LOG_LEVEL:-0}" -ge 2 ]] && __b3bp_log critical "${@}"; exit 1; }
-function error ()     { [[ "${LOG_LEVEL:-0}" -ge 3 ]] && __b3bp_log error "${@}"; exit 1; }
-function warning ()   { [[ "${LOG_LEVEL:-0}" -ge 4 ]] && __b3bp_log warning "${@}"; true; }
-function notice ()    { [[ "${LOG_LEVEL:-0}" -ge 5 ]] && __b3bp_log notice "${@}"; true; }
-function info ()      { [[ "${LOG_LEVEL:-0}" -ge 6 ]] && __b3bp_log info "${@}"; true; }
-function debug ()     { [[ "${LOG_LEVEL:-0}" -ge 7 ]] && __b3bp_log debug "${@}"; true; }
+function emergency() {
+  __b3bp_log emergency "${@}"
+  exit 1
+}
+function alert() {
+  [[ "${LOG_LEVEL:-0}" -ge 1 ]] && __b3bp_log alert "${@}"
+  exit 1
+}
+function critical() {
+  [[ "${LOG_LEVEL:-0}" -ge 2 ]] && __b3bp_log critical "${@}"
+  exit 1
+}
+function error() {
+  [[ "${LOG_LEVEL:-0}" -ge 3 ]] && __b3bp_log error "${@}"
+  exit 1
+}
+function warning() {
+  [[ "${LOG_LEVEL:-0}" -ge 4 ]] && __b3bp_log warning "${@}"
+  true
+}
+function notice() {
+  [[ "${LOG_LEVEL:-0}" -ge 5 ]] && __b3bp_log notice "${@}"
+  true
+}
+function info() {
+  [[ "${LOG_LEVEL:-0}" -ge 6 ]] && __b3bp_log info "${@}"
+  true
+}
+function debug() {
+  [[ "${LOG_LEVEL:-0}" -ge 7 ]] && __b3bp_log debug "${@}"
+  true
+}
 
-function help () {
+function help() {
   echo "" 1>&2
   echo " ${*}" 1>&2
   echo "" 1>&2
@@ -121,7 +144,6 @@ function help () {
 
   exit 1
 }
-
 
 ### Parse commandline options
 ##############################################################################
@@ -174,11 +196,11 @@ while read -r __b3bp_tmp_line; do
     # check if option takes an argument
     if [[ "${__b3bp_tmp_line}" =~ \[.*\] ]]; then
       __b3bp_tmp_opt="${__b3bp_tmp_opt}:" # add : if opt has arg
-      __b3bp_tmp_init=""  # it has an arg. init with ""
+      __b3bp_tmp_init=""                  # it has an arg. init with ""
       printf -v "__b3bp_tmp_has_arg_${__b3bp_tmp_opt:0:1}" '%s' "1"
     elif [[ "${__b3bp_tmp_line}" =~ \{.*\} ]]; then
       __b3bp_tmp_opt="${__b3bp_tmp_opt}:" # add : if opt has arg
-      __b3bp_tmp_init=""  # it has an arg. init with ""
+      __b3bp_tmp_init=""                  # it has an arg. init with ""
       # remember that this option requires an argument
       printf -v "__b3bp_tmp_has_arg_${__b3bp_tmp_opt:0:1}" '%s' "2"
     else
@@ -214,7 +236,7 @@ while read -r __b3bp_tmp_line; do
   fi
 
   printf -v "arg_${__b3bp_tmp_opt:0:1}" '%s' "${__b3bp_tmp_init}"
-done <<< "${__usage:-}"
+done <<<"${__usage:-}"
 
 # run getopts only if options were specified in __usage
 if [[ "${__b3bp_tmp_opts:-}" ]]; then
@@ -226,7 +248,7 @@ if [[ "${__b3bp_tmp_opts:-}" ]]; then
 
   # start parsing command line
   set +o nounset # unexpected arguments will cause unbound variables
-                 # to be dereferenced
+  # to be dereferenced
   # Overwrite $arg_<flag> defaults with the actual CLI options
   while getopts "${__b3bp_tmp_opts}" __b3bp_tmp_opt; do
     [[ "${__b3bp_tmp_opt}" = "?" ]] && help "Invalid use of script: ${*} "
@@ -249,7 +271,7 @@ if [[ "${__b3bp_tmp_opts:-}" ]]; then
         __b3bp_tmp_varname="__b3bp_tmp_has_arg_${__b3bp_tmp_opt}"
         printf -v "OPTARG" '%s' "${@:OPTIND:${!__b3bp_tmp_varname}}"
         # shift over the argument if argument is expected
-        ((OPTIND+=__b3bp_tmp_has_arg_${__b3bp_tmp_opt}))
+        ((OPTIND += __b3bp_tmp_has_arg_"${__b3bp_tmp_opt}"))
       fi
       # we have set opt/OPTARG to the short value and the argument as OPTARG if it exists
     fi
@@ -266,13 +288,12 @@ if [[ "${__b3bp_tmp_opts:-}" ]]; then
   done
   set -o nounset # no more unbound variable references expected
 
-  shift $((OPTIND-1))
+  shift $((OPTIND - 1))
 
-  if [[ "${1:-}" = "--" ]] ; then
+  if [[ "${1:-}" = "--" ]]; then
     shift
   fi
 fi
-
 
 ### Automatic validation of required option arguments
 ##############################################################################
@@ -292,7 +313,6 @@ for __b3bp_tmp_varname in ${!__b3bp_tmp_has_arg_*}; do
   help "Option -${__b3bp_tmp_opt_short}${__b3bp_tmp_opt_long:-} requires an argument"
 done
 
-
 ### Cleanup Environment variables
 ##############################################################################
 
@@ -302,7 +322,6 @@ done
 
 unset -v __tmp_varname
 
-
 ### Externally supplied __usage. Nothing else to do here
 ##############################################################################
 
@@ -311,25 +330,23 @@ if [[ "${__b3bp_external_usage:-}" = "true" ]]; then
   return
 fi
 
-
 ### Signal trapping and backtracing
 ##############################################################################
 
-function __b3bp_cleanup_before_exit () {
+function __b3bp_cleanup_before_exit() {
   info "Cleaning up. Done"
 }
 #trap __b3bp_cleanup_before_exit EXIT
 
 # requires `set -o errtrace`
 __b3bp_err_report() {
-    local error_code
-    error_code=${?}
-    error "Error in ${__file} in function ${1} on line ${2}"
-    exit ${error_code}
+  local error_code
+  error_code=${?}
+  error "Error in ${__file} in function ${1} on line ${2}"
+  exit "${error_code}"
 }
 # Uncomment the following line for always providing an error backtrace
 # trap '__b3bp_err_report "${FUNCNAME:-.}" ${LINENO}' ERR
-
 
 ### Command-line argument switches (like -d for debugmode, -h for showing helppage)
 ##############################################################################
@@ -358,7 +375,6 @@ if [[ "${arg_h:?}" = "1" ]]; then
   help "Help using ${0}"
 fi
 
-
 ### Runtime
 ##############################################################################
 
@@ -369,8 +385,8 @@ fi
 srcfile="${1}"
 [ -f "${srcfile}" ] || error "Cannot find ${srcfile}"
 mimetype="$(file --brief --mime-type "${srcfile}")"
-[ "${mimetype}" = 'application/pdf' ] \
-    || error "Expected application/pdf file, got ${mimetype}"
+[ "${mimetype}" = 'application/pdf' ] ||
+  error "Expected application/pdf file, got ${mimetype}"
 
 # Set output basename
 
@@ -381,39 +397,39 @@ outbase=''
 
 # Get pdf file page count
 
-pages="$(pdfinfo "${srcfile}" | grep 'Pages' | awk '{ print $2 }')" \
-    || error "Unable to determine page count of ${srcfile}"
+pages="$(pdfinfo "${srcfile}" | grep -a 'Pages' | awk '{ print $2 }')" ||
+  error "Unable to determine page count of ${srcfile}"
 
 # Check whether output will overwrite any existing files
 
 overwrite=0
-for page in $( seq -w 1 "${pages}" ) ; do
-    outfile="${outbase}_${page}.pdf"
-    [ -f "${outfile}" ] && ((overwrite+=1))
+for page in $(seq -w 1 "${pages}"); do
+  outfile="${outbase}_${page}.pdf"
+  [ -f "${outfile}" ] && ((overwrite += 1))
 done
-if [ ${overwrite} -gt 0 ] ; then
-    info "Output file mask is '${outbase}_X.pdf'"
-    info "where X ranges from 1 to ${pages} (left zero padded)"
-    warning "This will overwrite ${overwrite} existing file(s)"
-    # shellcheck disable=SC2162
-    read -s -n 1 -p 'Proceed anyway? [y/N] ' input
-    echo "${input}"
-    if [ "${input}" != 'y' ] && [ "${input}" != 'Y' ] ; then
-        info 'Aborting at user request'
-        exit 0
-    fi
+if [ ${overwrite} -gt 0 ]; then
+  info "Output file mask is '${outbase}_X.pdf'"
+  info "where X ranges from 1 to ${pages} (left zero padded)"
+  warning "This will overwrite ${overwrite} existing file(s)"
+  # shellcheck disable=SC2162
+  read -s -n 1 -p 'Proceed anyway? [y/N] ' input
+  echo "${input}"
+  if [ "${input}" != 'y' ] && [ "${input}" != 'Y' ]; then
+    info 'Aborting at user request'
+    exit 0
+  fi
 fi
 
 # Generate output
 
-for page in $( seq -w 1 "${pages}" ) ; do
-    # last argument to mutool is left-zero-stripped page number
-    # - uses peculiar syntax of bash expr to find number of leading zeroes
-    # - bash expr is antiquated and use is discouraged (see shellcheck SC2003)
-    # - have not been able to find modern replacement for this usage
-    mutool \
-        clean \
-        "${srcfile}" \
-        "${outbase}_${page}.pdf" \
-        "${page:$(expr "${page}" : '^0*')}"
+for page in $(seq -w 1 "${pages}"); do
+  # last argument to mutool is left-zero-stripped page number
+  # - uses peculiar syntax of bash expr to find number of leading zeroes
+  # - bash expr is antiquated and use is discouraged (see shellcheck SC2003)
+  # - have not been able to find modern replacement for this usage
+  mutool \
+    clean \
+    "${srcfile}" \
+    "${outbase}_${page}.pdf" \
+    "${page:$(expr "${page}" : '^0*')}"
 done
