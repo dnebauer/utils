@@ -1,0 +1,25 @@
+Format: 1.8
+Date: Sun, 04 Jan 2026 23:37:41 +0930
+Source: dn-qk-deb
+Binary: dn-qk-deb
+Architecture: all
+Version: 0.9-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ dn-qk-deb  - quick and dirty debianisation of files
+Changes:
+ dn-qk-deb (0.9-1) UNRELEASED; urgency=low
+ .
+   * new upstream release
+Checksums-Sha1:
+ 290bac9f1876e0cf9ccc6a8e31c82484c7a53803 35040 dn-qk-deb_0.9-1_all.deb
+ 3bcb30cfd03bce4d4f87406d3417a56457f288a3 10606 dn-qk-deb_0.9-1_amd64.buildinfo
+Checksums-Sha256:
+ 095d10a86b3091c46280ffa5002cfe0998ee213e44117f5812f318beb0e2e2d4 35040 dn-qk-deb_0.9-1_all.deb
+ ec1f004e7ce6fa7afcdb96a9ed07d28ee374831be67ffbd9c95b4c3483b2dc27 10606 dn-qk-deb_0.9-1_amd64.buildinfo
+Files:
+ 9c616f8bb4f8e3d1246bea5a6631a4e4 35040 utils optional dn-qk-deb_0.9-1_all.deb
+ 4f08fc35bd7f21782cc8bf6ee1ef7d34 10606 utils optional dn-qk-deb_0.9-1_amd64.buildinfo

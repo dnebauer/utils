@@ -1,4 +1,7 @@
 Revision history for App-Dn-QkDeb
 
+0.9 2026-01-04
+        - Update copyright and license notices
+        - Remove extraneous perlcritic annotations
 0.8 2024-06-22
         - Initial conversion to multiple module build

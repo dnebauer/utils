@@ -30,7 +30,7 @@ has 'path' => (
 # params: nil
 # prints: nil
 # return: string
-sub name ($self) {    ## no critic (RequireInterpolationOfMetachars)
+sub name ($self) {
   return $self->path->basename();
 }
 
@@ -40,9 +40,9 @@ sub name ($self) {    ## no critic (RequireInterpolationOfMetachars)
 # params: nil
 # prints: nil
 # return: string
-sub real ($self) {    ## no critic (RequireInterpolationOfMetachars)
+sub real ($self) {
   return $self->path->realpath()->canonpath();
-}                     # }}}1
+}    # }}}1
 
 1;
 

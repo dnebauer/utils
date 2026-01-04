@@ -123,7 +123,7 @@ has '_author_list' => (
   documentation => 'Package authors',
 );
 
-sub _primary_author ($self) {   ## no critic (RequireInterpolationOfMetachars)
+sub _primary_author ($self) {
   my @authors = $self->_authors;
   my $primary = shift @authors;
   return $primary;
@@ -169,7 +169,7 @@ has '_build_dir_path' => (
   documentation => 'Build directory (temporary)',
 );
 
-sub _build_dir ($self) {    ## no critic (RequireInterpolationOfMetachars)
+sub _build_dir ($self) {
   return $self->_build_dir_path->canonpath();
 }
 
@@ -222,7 +222,7 @@ has '_deb_build_dir_path' => (
   documentation => 'Debian build directory (temporary)',
 );
 
-sub _deb_build_dir ($self) {    ## no critic (RequireInterpolationOfMetachars)
+sub _deb_build_dir ($self) {
   return $self->_deb_build_dir_path->canonpath();
 }
 
@@ -239,7 +239,7 @@ has '_deb_parent_dir_path' => (
   documentation => 'Debian parent directory (temporary)',
 );
 
-sub _deb_parent_dir ($self) {   ## no critic (RequireInterpolationOfMetachars)
+sub _deb_parent_dir ($self) {
   return $self->_deb_parent_dir_path->canonpath();
 }
 
@@ -261,7 +261,7 @@ has '_debianise_dir_path' => (
   documentation => q{Debian build directory's "debian" subdir},
 );
 
-sub _debianise_dir ($self) {    ## no critic (RequireInterpolationOfMetachars)
+sub _debianise_dir ($self) {
   return $self->_debianise_dir_path->canonpath();
 }
 
@@ -477,7 +477,7 @@ has '_project_dir_path' => (
   documentation => 'Project directory',
 );
 
-sub _project_dir ($self) {    ## no critic (RequireInterpolationOfMetachars)
+sub _project_dir ($self) {
   return $self->_project_dir_path->canonpath();
 }
 
@@ -541,7 +541,7 @@ has '_version' => (
 # params: nil
 # prints: feedback
 # return: result
-sub run ($self) {    ## no critic (RequireInterpolationOfMetachars)
+sub run ($self) {
 
   # create template flag overrides all other flags
   if ($self->create_template) {
@@ -588,8 +588,7 @@ sub run ($self) {    ## no critic (RequireInterpolationOfMetachars)
 # params: nil
 # prints: feedback
 # return: n/a, dies on failure
-sub _write_project_files ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_project_files ($self) {
   $self->_write_resources_file();
   $self->_write_git_ignore_file();
   return;
@@ -601,8 +600,7 @@ sub _write_project_files ($self)
 # params: nil
 # prints: feedback and user interaction
 # return: boolean
-sub _write_resources_file ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_resources_file ($self) {
 
   # check whether overwriting existing file
   my $resource    = $self->_resources_file;
@@ -623,7 +621,7 @@ sub _write_resources_file ($self)
 
   # set vars
   my $date = $self->date_current_iso();
-  my $year = (split $DASH, $date)[0];
+  my $year = (split $DASH, $date)[0]; ## no critic (Community::SplitQuotedPattern)
   my $time = $self->time_now();
   my $div  = $DASH x $PRINT_WIDTH;
   my @c;
@@ -875,8 +873,7 @@ sub _write_resources_file ($self)
 # params: nil
 # prints: nil
 # return: n/a
-sub _write_git_ignore_file ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_git_ignore_file ($self) {
 
   #  do not overwrite existing file
   my $ignore      = '.gitignore';
@@ -907,7 +904,7 @@ sub _write_git_ignore_file ($self)
 # params: nil
 # prints: message if error detected
 # return: boolean
-sub _project_checks ($self) {   ## no critic (RequireInterpolationOfMetachars)
+sub _project_checks ($self) {
   my $sane = $TRUE;
 
   # resource file
@@ -1145,7 +1142,7 @@ sub _qkpath ($self, $path, $type)
 # params: nil
 # prints: feedback if fails
 # return: n/a, dies on failure
-sub _check_resources ($self) {  ## no critic (RequireInterpolationOfMetachars)
+sub _check_resources ($self) {
   my @errors;
 
   # standard and library packages have different requirements
@@ -1212,7 +1209,7 @@ sub _check_resources ($self) {  ## no critic (RequireInterpolationOfMetachars)
 # params: nil
 # prints: user interaction
 # return: n/a - die if error
-sub _bump_version ($self) {    ## no critic (RequireInterpolationOfMetachars)
+sub _bump_version ($self) {
 
   # user has option to enter new version
   my $current;
@@ -1261,8 +1258,7 @@ sub _bump_version ($self) {    ## no critic (RequireInterpolationOfMetachars)
 # params: nil
 # prints: nil
 # return: n/a, die on failure
-sub _update_resources_version ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _update_resources_version ($self) {
 
   # set vars
   my $resource    = $self->_resources_file;
@@ -1294,8 +1290,7 @@ sub _update_resources_version ($self)
 # params: nil
 # prints: feedback
 # return: nil
-sub _create_man_from_pod ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _create_man_from_pod ($self) {
 
   # only create man from pod if:
   # - one perl script file (user or superuser), and
@@ -1327,8 +1322,7 @@ sub _create_man_from_pod ($self)
 # params: nil
 # prints: feedback
 # return: n/a - die on failure
-sub _create_autotools_project ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _create_autotools_project ($self) {
   my $cmd;
 
   # copy project files to build directory
@@ -1367,7 +1361,7 @@ sub _create_autotools_project ($self)
 # params: nil
 # prints: feedback
 # return: n/a - die on failure
-sub _copy_project ($self) {    ## no critic (RequireInterpolationOfMetachars)
+sub _copy_project ($self) {
 
   # cannot simply copy true paths to build directory because
   # for symlinked files the file name in the true path may differ
@@ -1418,7 +1412,7 @@ sub _copy_project ($self) {    ## no critic (RequireInterpolationOfMetachars)
 # return: n/a - die on failure
 # note:   these files and directories are copied with their
 #         names unchanged, i.e., without '.in' suffix
-sub _copy_extras ($self) {    ## no critic (RequireInterpolationOfMetachars)
+sub _copy_extras ($self) {
 
   # cannot simply copy true paths to build directory because
   # for symlinked files the file name in the true path may differ
@@ -1446,7 +1440,7 @@ sub _copy_extras ($self) {    ## no critic (RequireInterpolationOfMetachars)
     my $source   = $truepath;
     my $destination;
     for ($source) {
-      if (-f) {    ## no critic (ProhibitFiletest_f)
+      if (-f) {
         $destination = $self->file_cat_dir($basename, $File::chdir::CWD);
         $destination = $self->file_cat_dir($basename, $File::chdir::CWD);
       }
@@ -1467,8 +1461,7 @@ sub _copy_extras ($self) {    ## no critic (RequireInterpolationOfMetachars)
 # params: nil
 # prints: nil
 # return: n/a
-sub _write_build_files ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_build_files ($self) {
   $self->_write_configure_file();
   $self->_write_makefile_file();
 
@@ -1486,8 +1479,7 @@ sub _write_build_files ($self)
 # params: nil
 # prints: nil
 # return: n/a
-sub _write_configure_file ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_configure_file ($self) {
 
   # set vars
   my $name          = $self->_name;
@@ -1698,8 +1690,7 @@ sub _write_configure_file ($self)
 # params: @files - App::Dn::QkDeb::File objects [required]
 # prints: nil, except error messages
 # return: scalar string, dies on failure
-sub _concat_filenames ($self, @files)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _concat_filenames ($self, @files) {
   my @names;
   foreach my $file (@files) {
     push @names, $file->name;
@@ -1714,8 +1705,7 @@ sub _concat_filenames ($self, @files)
 # params: nil
 # prints: nil
 # return: n/a
-sub _write_makefile_file ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_makefile_file ($self) {
 
   # set vars
   my $name          = $self->_name;
@@ -1979,8 +1969,7 @@ sub _write_changelog_file ($self)
 # params: nil
 # prints: nil
 # return: n/a, die on failure
-sub _delete_existing_package ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _delete_existing_package ($self) {
   my @patterns;
   push @patterns, qr{[.]deb\Z}xsm;                # *.deb
   push @patterns, qr{[.]diff[.]gz\Z}xsm;          # *.diff.gz
@@ -2007,8 +1996,7 @@ sub _delete_existing_package ($self)
 # params: nil
 # prints: feedback
 # return: n/a, die on failure
-sub _debianise_project ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _debianise_project ($self) {
   $self->_extract_distro();
   $self->_initial_debianisation();
   $self->_configure_debian_subdir();
@@ -2023,7 +2011,7 @@ sub _debianise_project ($self)
 # params: nil
 # prints: feedback
 # return: n/a, die on failure
-sub _extract_distro ($self) {   ## no critic (RequireInterpolationOfMetachars)
+sub _extract_distro ($self) {
   my $build_dir      = $self->_build_dir;
   my $deb_parent_dir = $self->_deb_parent_dir;
 
@@ -2072,8 +2060,7 @@ sub _extract_distro ($self) {   ## no critic (RequireInterpolationOfMetachars)
 # params: nil
 # prints: feedback
 # return: n/a, die on failure
-sub _initial_debianisation ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _initial_debianisation ($self) {
   my $distro_filename = $self->_distribution_filepath->name;
   if (not $distro_filename) { confess 'No filename provided'; }
   my $email         = $self->_email;
@@ -2095,8 +2082,7 @@ sub _initial_debianisation ($self)
 # params: nil
 # prints: feedback
 # return: n/a, die on failure
-sub _configure_debian_subdir ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _configure_debian_subdir ($self) {
 
   # get debian subdirectory
   my $deb_build_dir = $self->_deb_build_dir;
@@ -2136,8 +2122,7 @@ sub _configure_debian_subdir ($self)
 # params: nil
 # prints: nil
 # return: n/a, die on failure
-sub _amend_debian_rules ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _amend_debian_rules ($self) {
 
   # reused variables
   my ($fh, @new_rule);
@@ -2206,8 +2191,7 @@ sub _amend_debian_rules ($self)
 # params: nil
 # prints: nil
 # return: boolean, dies on failure
-sub _write_debconf_file ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_debconf_file ($self) {
 
   # need templates file to proceed
   if (not $self->_debconf) { return; }
@@ -2234,8 +2218,7 @@ sub _write_debconf_file ($self)
 # params: nil
 # prints: nil
 # return: n/a
-sub _write_debian_files ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_debian_files ($self) {
   $self->_write_control_file();
   $self->_write_deb_changelog_file();
   $self->_write_debconf_file();
@@ -2259,8 +2242,7 @@ sub _write_debian_files ($self)
 # params: nil
 # prints: nil
 # return: boolean, dies on failure
-sub _write_control_file ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_control_file ($self) {
 
   # set vars
   my $compat    = $self->debhelper_compat;
@@ -2325,8 +2307,7 @@ sub _write_control_file ($self)
 # params: nil
 # prints: nil
 # return: boolean, dies on failure
-sub _write_deb_changelog_file ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_deb_changelog_file ($self) {
 
   # set vars
   my $deb_dir = $self->_debianise_dir;
@@ -2362,8 +2343,7 @@ sub _write_deb_changelog_file ($self)
 # params: nil
 # prints: nil
 # return: boolean, dies on failure
-sub _write_templates_file ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_templates_file ($self) {
 
   # need templates file to proceed
   if (not $self->_templates) { return; }
@@ -2390,8 +2370,7 @@ sub _write_templates_file ($self)
 # params: nil
 # prints: nil
 # return: boolean, dies on failure
-sub _write_pre_install_file ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_pre_install_file ($self) {
 
   # need preinstall file to proceed
   if (not $self->_preinst) { return; }
@@ -2418,8 +2397,7 @@ sub _write_pre_install_file ($self)
 # params: nil
 # prints: nil
 # return: boolean, dies on failure
-sub _write_post_install_file ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_post_install_file ($self) {
 
   # need postinstall file to proceed
   if (not $self->_postinst) { return; }
@@ -2446,8 +2424,7 @@ sub _write_post_install_file ($self)
 # params: nil
 # prints: nil
 # return: boolean, dies on failure
-sub _write_pre_remove_file ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_pre_remove_file ($self) {
 
   # need preremoval file to proceed
   if (not $self->_prerm) { return; }
@@ -2474,8 +2451,7 @@ sub _write_pre_remove_file ($self)
 # params: nil
 # prints: nil
 # return: boolean, dies on failure
-sub _write_post_remove_file ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_post_remove_file ($self) {
 
   # need postremoval file to proceed
   if (not $self->_postrm) { return; }
@@ -2502,8 +2478,7 @@ sub _write_post_remove_file ($self)
 # params: nil
 # prints: nil
 # return: boolean, dies on failure
-sub _write_bash_completion_file ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_bash_completion_file ($self) {
 
   # need bash completion file to proceed
   if (not $self->_bashcomp) { return; }
@@ -2530,8 +2505,7 @@ sub _write_bash_completion_file ($self)
 # params: nil
 # prints: nil
 # return: boolean, dies on failure
-sub _write_install_file ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_install_file ($self) {
 
   # need install file to proceed
   if (not $self->_install) { return; }
@@ -2558,8 +2532,7 @@ sub _write_install_file ($self)
 # params: nil
 # prints: nil
 # return: boolean, dies on failure
-sub _write_copyright_file ($self)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _write_copyright_file ($self) {
 
   # set vars
   my $name          = $self->_name;
@@ -2594,29 +2567,28 @@ sub _write_copyright_file ($self)
     q{ `/usr/share/common-licenses/Artistic'.},
     $EMPTY_STRING,
     q{License: GPL-2},
-    q{ This library is free software; you can redistribute it},
+    q{ This library is free software: you can redistribute it},
     q{ and/or modify it under the terms of the GNU General Public},
-    q{ License as published by the Free Software Foundation; either},
+    q{ License as published by the Free Software Foundation, either},
     q{ version 2 of the License, or (at your option) any later},
     q{ version.},
     $SPACE_DOT,
-    q{ This library is distributed in the hope that it will be},
+    q{ This program is distributed in the hope that it will be},
     q{ useful, but WITHOUT ANY WARRANTY; without even the implied},
     q{ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR},
-    q{ PURPOSE. See the GNU Lesser General Public License for more},
+    q{ PURPOSE. See the GNU General Public License for more},
     q{ details.},
     $SPACE_DOT,
     q{ You should have received a copy of the GNU General Public},
-    q{ License along with this library; if not, write to the Free},
-    q{ Software Foundation, Inc., 51 Franklin Street, Fifth Floor,},
-    q{ Boston, MA 02110-1301 USA.},
+    q{ License along with this program. If not, see},
+    q{ <https://www.gnu.org/licenses/>.},
     $SPACE_DOT,
     q{ On Debian systems, the full text of the GNU General Public},
     q{ License version 2 can be found in the file},
-    q{ `/usr/share/common-licenses/GPL-2'.},
+    q{ '/usr/share/common-licenses/GPL-2'.},
     $EMPTY_STRING,
     q{License: LGPL-2.1},
-    q{ This library is free software; you can redistribute it},
+    q{ This library is free software: you can redistribute it},
     q{ and/or modify it under the terms of the GNU Lesser General},
     q{ Public License as published by the Free Software Foundation;},
     q{ either version 2.1 of the License, or (at your option) any},
@@ -2629,9 +2601,8 @@ sub _write_copyright_file ($self)
     q{ details.},
     $SPACE_DOT,
     q{ You should have received a copy of the GNU Lesser General},
-    q{ Public License along with this library; if not, write to},
-    q{ the Free Software Foundation, Inc., 51 Franklin Street,},
-    q{ Fifth Floor, Boston, MA 02110-1301 USA.},
+    q{ Public License along with this library. if not, see},
+    q{ <https://www.gnu.org/licenses/>.},
     $SPACE_DOT,
     q{ On Debian systems, the full text of the GNU Lesser General},
     q{ Public License version 2.1 can be found in the file},
@@ -2676,7 +2647,7 @@ sub _write_docs_file ($self)
 # params: nil
 # prints: feedback
 # return: n/a, die on failure
-sub _build_package ($self) {    ## no critic (RequireInterpolationOfMetachars)
+sub _build_package ($self) {
 
   # build package
   my $deb_build_dir = $self->_deb_build_dir;
@@ -2720,7 +2691,7 @@ sub _build_package ($self) {    ## no critic (RequireInterpolationOfMetachars)
 # params: nil
 # prints: feedback
 # return: boolean, but dies on failure
-sub _install_deb ($self) {    ## no critic (RequireInterpolationOfMetachars)
+sub _install_deb ($self) {
 
   # set vars
   my $project_dir = $self->_project_dir;
