@@ -1,0 +1,330 @@
+#!/usr/bin/env bash
+
+# File: dn-lesspipe-update
+# Author: David Nebauer (david at nebauer dot org)
+# Purpose: Update and restow local stow package for lesspipe.sh
+# Created: 2026-01-04
+
+# ERROR HANDLING    {{{1
+
+# Exit on error. Append "|| true" if you expect an error.
+set -o errexit
+# Exit on error inside any functions or subshells.
+set -o errtrace
+# Do not allow use of undefined vars. Use ${VAR:-} to use an undefined VAR
+set -o nounset
+# Catch error in case mysqldump fails (but gzip succeeds) in `mysqldump |gzip`
+set -o pipefail
+# Turn on traces, useful while debugging but commented out by default
+# set -o xtrace
+
+# VARIABLES    {{{1
+
+msg="Loading libraries"
+echo -ne "\\033[1;37;41m${msg}\\033[0m"
+# shellcheck disable=SC1091
+source "/usr/libexec/libdncommon-bash/liball" # supplies functions
+dnEraseText "${msg}"
+# provided by libdncommon-bash: dn_self,dn_divider[_top|_bottom]
+usage="Usage:"
+parameters=" [-v] [-d]"
+# required tools findable on system path
+required_system_tools=(
+  bash
+  getopt
+  git
+  make
+  stow
+)
+# required tools specified by full path
+required_local_tools=()
+# lesspipe repository
+repo_clone_url='https://github.com/wofr06/lesspipe.git'
+repo_url='https://github.com/wofr06/lesspipe'
+stow_root="$HOME/.config/dotfiles"
+stow_pkg="lesspipe.sh"
+stow_pkg_dir="$stow_root/$stow_pkg"
+clean_dirs=() # directories to be deleted on exit
+unset msg
+# }}}1
+
+# PROCEDURES
+
+# checkPrereqs()    {{{1
+#   intent: check for required tools
+#   params: nil
+#   prints: error message if tool(s) missing
+#   return: n/a, aborts scipts on failure
+function checkPrereqs() {
+  local missing tool
+  missing=()
+  # these tools can be found on the base system path
+  for tool in "${required_system_tools[@]}"; do
+    command -v "$tool" &>/dev/null || missing+=("$tool")
+  done
+  # these tools are specified by absolute path
+  for tool in "${required_local_tools[@]}"; do
+    [[ -x "$tool" ]] || missing+=("$tool")
+  done
+  if [[ ${#missing[@]} -ne 0 ]]; then
+    local msg
+    msg="Can't run without: $(joinBy ', ' "${missing[@]}")"
+    echo "$dn_self: $msg" >/dev/stderr
+    exit 1
+  fi
+  unset required_system_tools required_local_tools
+}
+# displayUsage()    {{{1
+#   intent: display usage information
+#   params: nil
+#   prints: nil
+#   return: nil
+displayUsage() {
+  cat <<_USAGE
+${dn_self}: Update local installation of lesspipe.sh
+
+Download and build the current lesspipe.sh repository
+($repo_url).
+
+Use the built files to update the local lesspipe.sh stow
+package located at:
+$stow_pkg_dir
+
+The stow package is then re-stowed to update the lesspipe.sh
+installation.
+
+Some limited checking is done for files that have been added
+to or removed from the lesspipe.sh repository.
+
+${usage} ${dn_self} ${parameters}
+       ${dn_self} -h
+
+Options: -v = print input lines as they are read
+              (equivalent to 'set -o verbose')
+         -d = print input lines after command expansion
+              (equivalent to 'set -o xtrace')
+_USAGE
+}
+# processOptions([@options])    {{{1
+#   intent: process all command line options
+#   params: @options - all command line parameters
+#   prints: feedback
+#   return: nil
+#   note:   after execution variable @ARGS contains
+#           remaining command line args (after options removed)
+processOptions() {
+  # read the command line options
+  local OPTIONS
+  if ! OPTIONS="$(
+    getopt \
+      --options hvd \
+      --long help,verbose,debug \
+      --name "${BASH_SOURCE[0]}" \
+      -- "${@}"
+  )"; then
+    # getopt displays errors
+    exit 1
+  fi
+  eval set -- "${OPTIONS}"
+  while true; do
+    case "${1}" in
+    -h | --help)
+      displayUsage
+      exit 0
+      ;;
+    -v | --verbose)
+      set -o verbose
+      shift 1
+      ;;
+    -d | --debug)
+      set -o xtrace
+      shift 1
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *) break ;;
+    esac
+  done
+}
+# joinBy($delim, @items)    {{{1
+#   intent: join all items using delimiter
+#   params: delim - delimiter
+#           items - items to be joined
+#   prints: string containing joined items
+#   return: nil
+joinBy() {
+  local delimiter first_item
+  delimiter="${1:-}"
+  shift
+  first_item="${1:-}"
+  shift
+  printf %b%s "$first_item" "${@/#/$delimiter}"
+}
+# }}}1
+
+# MAIN
+
+# check for required tools    {{{1
+checkPrereqs
+
+# process command line options    {{{1
+processOptions "${@}"
+
+# tidy up when done    {{{1
+# shellcheck disable=SC2154 # triggered by use of 'clean_dir' in trap command
+trap 'for clean_dir in "${clean_dirs[@]}" ; do rm -fr "$clean_dir" ; done' EXIT
+
+# informational message    {{{1
+dnInfo "${dn_self} is running..."
+
+# check for internet connection    {{{1
+dnInfon 'Check internet connectivity... '
+if ! dnCheckInternet; then
+  echo 'failed'
+  dnAbort 'internet connectivity is required'
+fi
+echo 'ok'
+
+# create repo download/build directory    {{{1
+build_dir="$(dnTempDir)" || dnAbort 'unable to create temp build dir'
+clean_dirs+=("$build_dir")
+
+# download repo to temp dir    {{{1
+dnInfo 'Cloning current lesspipe.sh repository:'
+echo "$dn_divider_top"
+if ! cd "$build_dir"; then
+  echo "$dn_divider_bottom"
+  dnAbort 'Unable to cd to download dir'
+fi
+if ! git clone "$repo_clone_url" ./; then
+  echo "$dn_divider_bottom"
+  dnAbort 'Repository cloning failed'
+fi
+echo "$dn_divider_bottom"
+
+# build repo in temp dir    {{{1
+install_dir="$(dnTempDir)" || dnAbort 'Unable to create temp install dir'
+clean_dirs+=("$install_dir")
+dnInfo 'Building lesspipe.sh files'
+dnInfo 'Configuring build files:'
+echo "$dn_divider_top"
+if ! ./configure \
+  --prefix="$install_dir" \
+  --bash-completion-dir="$install_dir/etc/bashcompletion.d"; then
+  echo "$dn_divider_bottom"
+  dnAbort 'configuration failed'
+fi
+echo "$dn_divider_bottom"
+dnInfo "Running 'make':"
+echo "$dn_divider_top"
+if ! make; then
+  echo "$dn_divider_bottom"
+  dnAbort "$dn_divider_bottom"
+fi
+echo "$dn_divider_bottom"
+# • some tests fail because colon separators are not properly interpreted --
+#   this is a defect in the testing code
+dnInfo "Running 'make test':"
+echo "$dn_divider_top"
+make test || true
+echo "$dn_divider_bottom"
+dnWarn 'Any failed tests may indicate missing utilities used by lesspipe.sh'
+dnInfo "Running 'make install':"
+echo "$dn_divider_top"
+if ! make install; then
+  echo "$dn_divider_bottom"
+  dnAbort 'make install failed'
+fi
+echo "$dn_divider_bottom"
+
+# check install files in temp dir    {{{1
+errs=()
+# • check for bin files added to repository build since last update
+dnInfon 'Checking built files... '
+cmd_output="$(dir -1 "$install_dir"/bin/)" ||
+  dnAbort 'Unable to locate build bin files'
+mapfile -t bin_files_built <<<"$cmd_output"
+bin_files_added=()
+for bin_file in "${bin_files_built[@]}"; do
+  dnFileValid "$stow_pkg_dir/.local/bin/$bin_file" ||
+    bin_files_added+=("$bin_file")
+done
+added_file_count=${#bin_files_added[@]}
+if ((added_file_count > 0)); then
+  errs+=('File(s) added to lesspipe.sh since last update:')
+  for bin_file in "${bin_files_added[@]}"; do
+    errs+=("• $bin_file")
+  done
+fi
+# • check for bin files removed from repository build since last update
+unset cmd_output
+cmd_output="$(dir -1 "$stow_pkg_dir/.local/bin/")" ||
+  dnAbort 'Unable to locate existing stow bin files'
+mapfile -t bin_files_stow_pkg <<<"$cmd_output"
+bin_files_removed=()
+for bin_file in "${bin_files_stow_pkg[@]}"; do
+  dnFileValid "$install_dir/bin/$bin_file" || bin_files_removed+=("$bin_file")
+done
+removed_file_count=${#bin_files_removed[@]}
+if ((removed_file_count > 0)); then
+  errs+=('File(s) removed from lesspipe.sh since last update:')
+  for bin_file in "${bin_files_removed[@]}"; do
+    errs+=("• $bin_file")
+  done
+  errs+=('** These probably need to be removed from the stow package')
+  errs+=('** These probably need to be removed from their stowed location(s)')
+fi
+# • remaining repository build files
+if ! dnFileValid "$install_dir/etc/bashcompletion.d/less"; then
+  errs+=('Cannot find bash completion file in build files')
+fi
+if ! dnFileValid "$install_dir/share/zsh/site-functions/_less"; then
+  errs+=('Cannot find zsh completion file in build files')
+fi
+if ! dnFileValid "$install_dir/share/man/man1/lesspipe.1"; then
+  errs+=('Cannot find lesspipe man file in build files')
+fi
+echo 'done'
+# • report any errors
+err_count=${#errs[@]}
+if ((err_count > 0)); then
+  for err in "${errs[@]}"; do
+    dnWarnStderr "$err"
+  done
+  dnConfirm 'Proceed with update?' ||
+    dnAbort 'Aborting at user request'
+fi
+
+# update stow package files    {{{1
+dnInfon 'Updating stow package files... '
+cp --update=all \
+  "$install_dir"/bin/* \
+  "$stow_pkg_dir"/.local/bin/ ||
+  dnAbort 'Error copying bin files to stow package'
+cp --update=all \
+  "$install_dir"/etc/bashcompletion.d/less \
+  "$stow_pkg_dir"/.bash_completion/ ||
+  dnAbort 'Error copying bash completion file to stow package'
+cp --update=all \
+  "$install_dir"/share/zsh/site-functions/_less \
+  "$stow_pkg_dir"/.local/share/zsh/completions/ ||
+  dnAbort 'Error copying bash completion file to stow package'
+cp --update=all \
+  "$install_dir"/share/man/man1/lesspipe.1 \
+  "$stow_pkg_dir"/.local/share/man/man1/lesspipe.sh.1 ||
+  dnAbort 'Error copying bash completion file to stow package'
+echo 'done'
+
+# re-stow package    {{{1
+dnInfon 'Re-stowing package... '
+cd "$stow_root" || dnAbort 'Unable to cd to stow root directory'
+stow "$stow_pkg" || dnAbort 'Unable to re-stow package'
+echo 'done'
+
+# all done   {{{1
+dnEndScript 0
+# }}}1
+
+# vim:foldmethod=marker:
