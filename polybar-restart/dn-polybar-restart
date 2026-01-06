@@ -31,6 +31,7 @@ parameters=' [-v] [-d]'
 required_system_tools=(
   getopt
   polybar
+  polybar-msg
 )
 # required tools specified by full path
 required_local_tools=()
@@ -61,9 +62,6 @@ function checkPrereqs() {
     local msg
     msg="Can't run without: $(joinBy ', ' "${missing[@]}")"
     echo "${dn_self:?}: $msg" >/dev/stderr
-    # cannot use 'log' function here:
-    # - options have not yet been processed
-    logger --priority "user.err" --tag "$dn_self" "$msg"
     exit 1
   fi
   unset required_system_tools required_local_tools
