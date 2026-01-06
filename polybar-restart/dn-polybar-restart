@@ -1,0 +1,228 @@
+#!/usr/bin/env bash
+
+# File: dn-polybar.restart
+# Author: David Nebauer (david at nebauer dot org)
+# Purpose: Kill and restart polybar
+# Created: 2026-01-06
+
+# ERROR HANDLING    {{{1
+
+# Exit on error. Append "|| true" if you expect an error.
+set -o errexit
+# Exit on error inside any functions or subshells.
+set -o errtrace
+# Do not allow use of undefined vars. Use ${VAR:-} to use an undefined VAR
+set -o nounset
+# Catch error in case mysqldump fails (but gzip succeeds) in `mysqldump |gzip`
+set -o pipefail
+# Turn on traces, useful while debugging but commented out by default
+# set -o xtrace
+
+# VARIABLES    {{{1
+
+msg='Loading libraries'
+echo -ne "\\033[1;37;41m${msg}\\033[0m"
+# shellcheck disable=SC1091
+source '@libexec_dir@/libdncommon-bash/liball' # supplies functions
+dnEraseText "${msg}"
+usage='Usage:'
+parameters=' [-v] [-d]'
+# required tools findable on system path
+required_system_tools=(
+  getopt
+  polybar
+)
+# required tools specified by full path
+required_local_tools=()
+launcher_default="$HOME/.config/polybar/launch"
+launcher=''
+unset msg
+# }}}1
+
+# PROCEDURES
+
+# checkPrereqs()    {{{1
+#   intent: check for required tools
+#   params: nil
+#   prints: error message if tool(s) missing
+#   return: n/a, aborts scipts on failure
+function checkPrereqs() {
+  local missing tool
+  missing=()
+  # these tools can be found on the base system path
+  for tool in "${required_system_tools[@]}"; do
+    command -v "$tool" &>/dev/null || missing+=("$tool")
+  done
+  # these tools are specified by absolute path
+  for tool in "${required_local_tools[@]}"; do
+    [[ -x "$tool" ]] || missing+=("$tool")
+  done
+  if [[ ${#missing[@]} -ne 0 ]]; then
+    local msg
+    msg="Can't run without: $(joinBy ', ' "${missing[@]}")"
+    echo "${dn_self:?}: $msg" >/dev/stderr
+    # cannot use 'log' function here:
+    # - options have not yet been processed
+    logger --priority "user.err" --tag "$dn_self" "$msg"
+    exit 1
+  fi
+  unset required_system_tools required_local_tools
+}
+# displayUsage()    {{{1
+#   intent: display usage information
+#   params: nil
+#   prints: nil
+#   return: nil
+displayUsage() {
+  cat <<_USAGE
+${dn_self}: kill and restart polybar
+
+This command is issued to stop any running polybar instance:
+  polybar-msg cmd quit
+
+The script then executes the polybar launcher. This filepath
+is obtained from a configuration file if possible; if not,
+the following launch file is used if present:
+  ~/.config/polybar/launch
+
+The script searches for the following configuration files in order:
+* ${dn_self}rc
+* ${dn_self}.rc
+* ${dn_self}.conf
+
+${dn_self} searches for these configuration files in these
+directories in order:
+* ~/.config/${dn_self}/
+* ~/.config
+* /etc/${dn_self}/
+* /etc
+
+The first matching file is examined for the key "launcher"
+in section "main", assuming ini file format. If a matching
+key is found its value is used as the polybar launcher
+(provided it exists).
+
+If the first matching file is unsuitable, either because it
+has no "launcher" key or an invalid value, the script does
+not search for any further file matches to examine.
+
+${usage} ${dn_self} ${parameters}
+       ${dn_self} -h
+
+Options: -v = print input lines as they are read
+              (equivalent to 'set -o verbose')
+         -d = print input lines after command expansion
+              (equivalent to 'set -o xtrace')
+_USAGE
+}
+# processOptions([@options])    {{{1
+#   intent: process all command line options
+#   params: @options - all command line parameters
+#   prints: feedback
+#   return: nil
+#   note:   after execution variable @ARGS contains
+#           remaining command line args (after options removed)
+processOptions() {
+  # read the command line options
+  local OPTIONS
+  if ! OPTIONS="$(
+    getopt \
+      --options hvd \
+      --long help,verbose,debug \
+      --name "${BASH_SOURCE[0]}" \
+      -- "${@}"
+  )"; then
+    # getopt displays errors
+    exit 1
+  fi
+  eval set -- "${OPTIONS}"
+  while true; do
+    case "${1}" in
+    -h | --help)
+      displayUsage
+      exit 0
+      ;;
+    -v | --verbose)
+      set -o verbose
+      shift 1
+      ;;
+    -d | --debug)
+      set -o xtrace
+      shift 1
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *) break ;;
+    esac
+  done
+}
+# joinBy($delim, @items)    {{{1
+#   intent: join all items using delimiter
+#   params: delim - delimiter
+#           items - items to be joined
+#   prints: string containing joined items
+#   return: nil
+function joinBy() {
+  local delimiter first_item
+  delimiter="${1:-}"
+  shift
+  first_item="${1:-}"
+  shift
+  printf %b%s "$first_item" "${@/#/$delimiter}"
+}
+# }}}1
+
+# MAIN
+
+# check for required tools    {{{1
+checkPrereqs
+
+# process command line options    {{{1
+processOptions "${@}" # leaves ${ARGS[@]} holding positional arguments
+
+# locate polybar launcher    {{{1
+conffile="$(dnIniFileFindFirst "$dn_self")" || true
+if [ -n "$conffile" ] && [ -f "$conffile" ]; then
+  dnInfo "Located configuration file '$conffile'"
+  launcher="$(dnIniGetOrDefault "$conffile" 'main' 'launcher')"
+  if [ -n "$launcher" ]; then
+    dnInfo "Extracted polybar launcher '$launcher'"
+  else
+    dnWarn 'Unable to extract polybar launcher path'
+  fi
+fi
+if ! [ -n "$launcher" ]; then
+  dnInfo "Using default launcher path '$launcher_default'"
+  launcher="$launcher_default"
+fi
+[ -f "$launcher" ] || dnAbort "Unable to locate polybar launcher '$launcher'"
+
+# stop polybar    {{{1
+dnInfo "Stopping polybar [polybar-msg cmd quit]:"
+echo "${dn_divider_top:?}"
+if polybar-msg cmd quit; then
+  echo "${dn_divider_bottom:?}"
+  dnInfo 'Stopped polybar successfully'
+else
+  echo "$dn_divider_bottom"
+  dnWarn 'Error reported trying to kill polybar'
+fi
+
+# give polybar time to shut down    {{{1
+sleep 1
+
+# restart polybar    {{{1
+dnInfo "Restarting polybar [$launcher]:"
+echo "$dn_divider_top"
+if "$launcher"; then
+  echo "$dn_divider_bottom"
+  dnInfo 'Restarted polybar successfully'
+else
+  echo "$dn_divider_bottom"
+  dnWarn 'Error reported when restarting polybar'
+fi
+# }}}1
+
+# vim:foldmethod=marker:
