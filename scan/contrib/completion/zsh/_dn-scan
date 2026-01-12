@@ -1,0 +1,15 @@
+#compdef dn-scan
+
+local rc=1
+
+_arguments -S \
+  - 'help_option' \
+    '(-h --help)'{-h,--help}'[Show a help message]' \
+  - 'script_options' \
+    '(-f --folder)'{-f,--folder}'[Save directory (default\: "~/Downloads")]:folder:_files -/' \
+    '(-b --basename)'{-b,--basename}'[Save file basename (default\: "image.png")]:basename:' \
+    '(-v --verbose)'{-v,--verbose}'[Equivalent to "set -o verbose" (flag)]' \
+    '(-d --debug)'{-d,--debug}'[Equivalent to "set -o xtrace" (flag)]' \
+  && rc=0
+
+return rc

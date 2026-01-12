@@ -1,0 +1,331 @@
+#!/usr/bin/env bash
+
+# File: dn-scan
+# Author: David Nebauer (david at nebauer dot org)
+# Purpose: scan to image and transform the image
+# Created: 2026-01-07
+
+# ERROR HANDLING    {{{1
+
+# Exit on error. Append "|| true" if you expect an error.
+set -o errexit
+# Exit on error inside any functions or subshells.
+set -o errtrace
+# Do not allow use of undefined vars. Use ${VAR:-} to use an undefined VAR
+set -o nounset
+# Catch error in case mysqldump fails (but gzip succeeds) in `mysqldump |gzip`
+set -o pipefail
+# Turn on traces, useful while debugging but commented out by default
+# set -o xtrace
+
+# VARIABLES    {{{1
+
+msg='Loading libraries'
+echo -ne "\\033[1;37;41m$msg\\033[0m"
+# shellcheck disable=SC1091
+source "@libexec_dir@/libdncommon-bash/liball" # supplies functions
+#source '/usr/libexec/libdncommon-bash/liball'  # supplies functions
+dnEraseText "$msg"
+# provided by libdncommon-bash: dn_self,dn_divider[_top|_bottom]
+usage='Usage:'
+parameters=" [-v] [-d]"
+# required tools findable on system path
+required_system_tools=(
+  convert
+  cp
+  cut
+  du
+  getopt
+  imv-x11
+  scanimage
+  shotwell
+)
+# required tools specified by full path
+required_local_tools=()
+# defaults
+folder="$HOME/Downloads"
+basename='image'
+img_original='tmpdir/image_original.png'
+img_current='tmpdir/image_current.png'
+img_deskewed='tmpdir/image_deskewed.png'
+img_cropped='tmpdir/image_cropped.png'
+img_resized='tmpdir/image_resized.png'
+deskew_factor='80%'
+resize_factor='40%'
+unset msg
+# }}}1
+
+# PROCEDURES
+
+# checkPrereqs()    {{{1
+#   intent: check for required tools
+#   params: nil
+#   prints: error message if tool(s) missing
+#   return: n/a, aborts scipts on failure
+checkPrereqs() {
+  local missing tool
+  missing=()
+  # these tools can be found on the base system path
+  for tool in "${required_system_tools[@]}"; do
+    command -v "$tool" &>/dev/null || missing+=("$tool")
+  done
+  # these tools are specified by absolute path
+  for tool in "${required_local_tools[@]}"; do
+    [[ -x "$tool" ]] || missing+=("$tool")
+  done
+  if [[ ${#missing[@]} -ne 0 ]]; then
+    local msg
+    msg="Can't run without: $(joinBy ', ' "${missing[@]}")"
+    echo "${dn_self:?}: $msg" >/dev/stderr
+    exit 1
+  fi
+  unset required_system_tools required_local_tools
+}
+# displayUsage()    {{{1
+#   intent: display usage information
+#   params: nil
+#   prints: nil
+#   return: nil
+displayUsage() {
+  cat <<_USAGE
+$dn_self: scan to image and then transform the image
+
+$dn_self uses scanimage to perform a scan. The user then
+has the opportunity to perform the following operations on
+the resulting image: deskew (using ImageMagick), crop (using
+shotwell), change resolution/resize (using ImageMagick).
+
+The image is then saved to disk. The default directory path
+is "$folder" but this can be changed with the
+-f option. The default filename is "$basename.png" but the
+file basename ran be changed with the -b option. Note that
+file collisions are avoided by adding a unique number to the
+end of the basename.
+
+Finally, the user has the opportunity to request a pdf
+version of the final image.
+
+$usage $dn_self $parameters
+       $dn_self -h
+
+Options: -f OPT = directory in which to save file
+         -b OPT = basename of file to save
+         -v     = print input lines as they are read
+                  (equivalent to 'set -o verbose')
+         -d     = print input lines after command expansion
+                  (equivalent to 'set -o xtrace')
+_USAGE
+}
+# processOptions([@options])    {{{1
+#   intent: process all command line options
+#   params: @options - all command line parameters
+#   prints: feedback
+#   return: nil
+#   note:   after execution variable @ARGS contains
+#           remaining command line args (after options removed)
+processOptions() {
+  # read the command line options
+  local OPTIONS
+  if ! OPTIONS="$(
+    getopt \
+      --options b:f:hvd \
+      --long basename:,folder:,help,verbose,debug \
+      --name "${BASH_SOURCE[0]}" \
+      -- "$@"
+  )"; then
+    # getopt displays errors
+    exit 1
+  fi
+  eval set -- "$OPTIONS"
+  while true; do
+    case "${1}" in
+    -b | --basename)
+      basename="$2"
+      shift 2
+      ;;
+    -f | --folder)
+      folder="$2"
+      shift 2
+      ;;
+    -h | --help)
+      displayUsage
+      exit 0
+      ;;
+    -v | --verbose)
+      set -o verbose
+      shift 1
+      ;;
+    -d | --debug)
+      set -o xtrace
+      shift 1
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *) break ;;
+    esac
+  done
+}
+# joinBy($delim, @items)    {{{1
+#   intent: join all items using delimiter
+#   params: delim - delimiter
+#           items - items to be joined
+#   prints: string containing joined items
+#   return: nil
+joinBy() {
+  local delimiter first_item
+  delimiter="${1:-}"
+  shift
+  first_item="${1:-}"
+  shift
+  printf %b%s "$first_item" "${@/#/$delimiter}"
+}
+# displayImage($fp)    {{{1
+#   intent: display full image
+#   params: fp - image filepath
+#   prints: nil
+#   return: boolean (whether displayed successfully)
+displayImage() {
+  local fp
+  fp="${1:-}"
+  shift
+  imv-x11 "$fp"
+  return $?
+}
+# }}}1
+
+# MAIN
+
+# check for required tools    {{{1
+checkPrereqs
+
+# process command line options    {{{1
+processOptions "$@"
+
+# check folder and basename    {{{1
+if ! [ -d "$folder" ]; then
+  if dnConfirm "Create destination directory '$folder'?"; then
+    if mkdir -p "$folder"; then
+      dnInfo 'Directory created succesfully'
+    else
+      dnAbort 'Unable to create directory'
+    fi
+  else
+    dnAbort 'Unable to proceed without a destination directory'
+  fi
+fi
+tmpdir="$(dnTempDir)" || dnAbort 'Unable to create temp directory'
+trap 'rm -fr "$tmpdir"' EXIT
+touch "$tmpdir/$basename.png" ||
+  dnAbort "Unable to create a file named '$basename.png'"
+rm -f "$tmpdir/$basename.png"
+img_original="${img_original/#tmpdir/$tmpdir}"
+img_current="${img_current/#tmpdir/$tmpdir}"
+img_deskewed="${img_deskewed/#tmpdir/$tmpdir}"
+img_cropped="${img_cropped/#tmpdir/$tmpdir}"
+img_resized="${img_resized/#tmpdir/$tmpdir}"
+
+# do scan    {{{1
+dnInfo 'Performing scan [scanimage --format=png --resolution=300 --progress]'
+echo "${dn_divider_top:?}"
+if scanimage --format=png --resolution=300 --progress >"$img_original"; then
+  echo "${dn_divider_bottom:?}"
+else
+  echo "$dn_divider_bottom"
+  dnAbort 'Unable to scan image'
+fi
+dnInfo 'Displaying the initial scan image'
+displayImage "$img_original" &>/dev/null ||
+  dnAbort 'Unable to display scan image'
+cp "$img_original" "$img_current" || dnAbort 'Unable to copy scan image'
+
+# deskew    {{{1
+
+dnInfo "Deskewing [convert ORIG -deskew $deskew_factor +repage DESKEWED]"
+echo "$dn_divider_top"
+if convert "$img_original" -deskew "$deskew_factor" +repage "$img_deskewed"; then
+  echo "$dn_divider_bottom"
+else
+  echo "$dn_divider_bottom"
+  dnAbort 'Unable to deskew image'
+fi
+dnInfo 'Displaying the deskewed scan image'
+displayImage "$img_deskewed" &>/dev/null ||
+  dnAbort 'Unable to display deskewed image'
+if dnConfirm 'Accept deskewed image?'; then
+  cp "$img_deskewed" "$img_current" || dnAbort 'Unable to copy deskewed image'
+else
+  dnInfo 'Reverting to previous image'
+fi
+
+# crop image   {{{1
+cp "$img_current" "$img_cropped" || dnAbort 'Unable to copy to cropped image'
+dnInfo 'Crop image and save as current file [shotwell IMG]'
+echo "$dn_divider_top"
+if shotwell "$img_cropped"; then
+  echo "$dn_divider_bottom"
+else
+  echo "$dn_divider_bottom"
+  dnAbort 'Unable to crop image'
+fi
+dnInfo 'Displaying the cropped image'
+displayImage "$img_cropped" &>/dev/null ||
+  dnAbort 'Unable to display cropped image'
+if dnConfirm 'Accept cropped image?'; then
+  cp "$img_cropped" "$img_current" || dnAbort 'Unable to copy cropped image'
+else
+  dnInfo 'Reverting to previous image'
+fi
+
+# resize image   {{{1
+size="$(cut -d'	' -f1 <<<"$(du -h "$img_current")")"
+msg="Image size is $size - do you want to reduce image size/resolution?"
+if dnConfirm "$msg"; then
+  dnInfo "Reducing image size [convert IMG.png -resize $resize_factor RESIZED.png]"
+  echo "$dn_divider_top"
+  if convert "$img_current" -resize "$resize_factor" "$img_resized"; then
+    echo "${dn_divider_bottom}"
+    dnInfo "Displaying resized image"
+    displayImage "$img_resized" &>/dev/null ||
+      dnAbort 'Unable to display resized image'
+    if dnConfirm 'Accept resized image?'; then
+      cp -f "$img_resized" "$img_current" ||
+        dnAbort 'Unable to copy resized image'
+    else
+      dnInfo 'Reverting to previous image'
+    fi
+  else
+    echo "${dn_divider_bottom}"
+    dnAbort 'Unable to reduce image size/resolution'
+  fi
+fi
+
+# save image file in destination directory    {{{1
+img_fp="$folder/$basename.png"
+if dnFileValid "$img_fp"; then
+  unique_filename="$(dnUniqueFileName "$folder" "${basename}_X.png" 'X')"
+  img_fp="$folder/$unique_filename"
+fi
+cp -f "$img_current" "$img_fp" || dnAbort 'Unable to save image file'
+dnInfo "Image saved to '$img_fp'"
+
+# create pdf version    {{{1
+if dnConfirm 'Create pdf version?'; then
+  pdf_fp="${img_fp%.png}.pdf"
+  dnInfo 'Creating pdf version [convert BASE.png BASE.pdf]'
+  echo "$dn_divider_top"
+  if convert "$img_fp" "$pdf_fp"; then
+    echo "$dn_divider_bottom"
+  else
+    echo "$dn_divider_bottom"
+    dnAbort "Unable to create pdf output '$pdf_fp'"
+  fi
+  dnInfo "Created '$pdf_fp'"
+else
+  dnInfo 'Okay, bye'
+fi
+
+# }}}1
+
+# vim:foldmethod=marker:

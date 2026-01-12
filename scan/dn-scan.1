@@ -1,0 +1,182 @@
+.\" Hey, EMACS: -*- nroff -*-
+
+.\" Filename: dn-scan.1
+.\" Author:   David Nebauer
+.\" History:  2026-01-09 - created
+
+.\" -----------------------------------------------------------------
+.\" NOTES
+.\" -----------------------------------------------------------------
+.ig
+
+For header (.TH), first parameter, NAME, should be all caps
+Second parameter, SECTION, should be 1-8, maybe w/ subsection
+Other parameters are allowed: see man(7), man(1)
+Please adjust the date whenever revising the manpage.
+
+Some roff macros, for reference:
+.nh        disable hyphenation
+.hy        enable hyphenation
+.ad l      left justify
+.ad b      justify to both left and right margins
+.nf        disable filling
+.fi        enable filling
+.br        insert line break
+.sp <n>    insert n+1 empty lines
+for manpage-specific macros, see groff_man(7) and man(7)
+
+Formatting [see groff_char (7) and man (7) for details]:
+\(aq  : escape sequence for (')
+\[dq] : plain double quote
+\[lq] : left/open double quote
+\[rq] : right/close double quote
+`     : left/open single quote
+'     : right/close single quote
+\(em  : escape sequence for em dash
+\(en  : escape sequence for en dash
+\.    : escape sequence for period/dot
+\(rg  : registration symbol
+\(tm  : trademark symbol
+\fX   : escape sequence that changes font, where 'X' can be 'R|I|B|BI'
+        (R = roman/normal | I = italic | B = bold | BI = bold-italic)
+\fP   : switch to previous font
+        in this case '\fR' could also have been used
+.B    : following arguments are boldened
+.I    : following arguments are italicised
+.BI   : following arguments are bold alternating with italics
+.BR   : following arguments are bold alternating with roman
+.IB   : following arguments are italics alternating with bold
+.IR   : following arguments are italics alternating with roman
+.RB   : following arguments are roman alternating with bold
+.RI   : following arguments are roman alternating with italics
+.SM   : following arguments are small (scaled 9/10 of the regular size)
+.SB   : following arguments are small bold (not small alternating with bold)
+        [note: if argument in alternating pattern contains whitespace,
+               enclose in whitespace]
+.RS x : indent following lines by x characters
+.RE   : end indent
+
+Bulleted list:
+   A bulleted list:
+   .IP \[bu] 2
+   lawyers
+   .IP \[bu]
+   guns
+   .IP \[bu]
+   money
+Numbered list:
+   A numbered list:
+   .nr step 1 1
+   .IP \n[step]. 3
+   lawyers
+   .IP \n+[step].
+   guns
+   .IP \n+[step].
+   money
+..
+
+.\" -----------------------------------------------------------------
+.\" SETUP
+.\" -----------------------------------------------------------------
+
+.\" Macro: Format URL
+.\"  usage:  .URL "http:\\www.gnu.org" "GNU Project" " of the"
+.\"  params: 1 = url
+.\"          2 = link text/name
+.\"          3 = postamble (optional)
+.\"  note:   The www.tmac macro provides a .URL macro package; this
+.\"          is a local fallback in case www.tmac is unavailable
+.\"  credit: man(7)
+.de URL
+\\$2 \(laURL: \\$1 \(ra\\$3
+..
+
+.\" Prefer .URL macro from www.tmac macro package if it is available
+.\"  note: In the conditional below the '\n' escape returns the value of
+.\"        a register, in this the '.g'
+.\"        The '.g' register is only found in GNU 'troff', and it is
+.\"        assumed that GNU troff will always include the www.tmac
+.\"        macro package
+.if \n[.g] .mso www.tmac
+
+.\" Macro: Ellipsis
+.\"  usage: .ellipsis
+.\"  note: only works at beginning of line
+.de ellipsis
+.cc ^
+...
+^cc
+..
+
+.\" String: Command name
+.ds self dn-scan
+
+.\" -----------------------------------------------------------------
+.\" MANPAGE CONTENT
+.\" -----------------------------------------------------------------
+
+.TH "DN-SCAN" "1" "2026-01-09" "" "DN-SCAN Manual"
+.SH "NAME"
+\*[self] \- scan to image and then transform the image
+.SH "SYNOPSIS"
+.SY "\*[self]"
+[
+.B "\-f"
+.I "dir_path"
+]
+[
+.B "\-b"
+.I "base_name"
+]
+.YS
+.SY "\*[self]"
+.B "\-h"
+.YS
+.SH "DESCRIPTION"
+\*[self] uses
+.I "scanimage"
+to perform a scan. The user then has the opportunity to perform the following
+operations on the resulting image: deskew (using ImageMagick), crop (using
+shotwell), reduce file size/image resolutione (using ImageMagick).
+.PP
+The image is then saved to disk. The default directory path is "~/Downloads/"
+but this can be changed with the
+.I "-f"
+option. The default filename is "image.png" but the file basename ran be
+changed with the
+.I "-b"
+option. Note that filename collisions are avoided by adding a unique number to
+the end of the basename.
+.PP
+Finally, the user is given an opportunity to request a pdf version of the final
+image.
+.SH "OPTIONS"
+.TP
+.BI "\-f  \-\-folder " "dir_path"
+Destination directory for image file. Will be created if it does not exist.
+Default: \(aq~/Downloads\(aq. Optional.
+.TP
+.BI "\-b  \-\-basename " "base_name"
+Basename of image file to be created. Default: \(aqimage\(aq. Optional.
+.TP
+.B "\-v  \-\-verbose"
+Print input lines as they are read (equivalent to \(aqset -o verbose\(aq).
+Optional.
+.TP
+.B "\-d  \-\-debug"
+Print input lines after command expansion (equivalent to \(aqset -o
+xtrace\(aq). Optional.
+.TP
+.B "\-h  \-\-help"
+Print help text and exit. Optional.
+.SH "SEE ALSO"
+.BR "scanimage " "(1),"
+.BR "shotwell " "(1),"
+.BR "imagemagick " "(1)."
+.SH "AUTHOR"
+\*[self] was written by
+.URL "mailto:david at nebauer.org" "David Nebauer" "."
+.PP
+This manual page was written by
+.URL "mailto:david at nebauer.org" "David Nebauer"
+for the Debian project (but may be used by others).
