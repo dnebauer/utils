@@ -51,7 +51,7 @@ mnt_base=  # base mount directory
 lower=0
 upper=0
 # other vars
-min_upper_iso_num=27 # upper iso image number at time of editing
+min_upper_iso_num=26 # upper iso image number at time of editing
 unset msg
 # }}}1
 
