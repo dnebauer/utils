@@ -200,7 +200,6 @@ local keyword_actions_data = {
 				ps = false,
 				signature = "/home/david/.local/share/pandoc/resources/signature.png",
 				signed = true,
-				["tablenos-warning-level"] = 1,
 			},
 		},
 	},
@@ -234,21 +233,33 @@ local keyword_actions_data = {
 				"+smart",
 			},
 			filters = {
-				"pandoc-fignos",
-				"pandoc-eqnos",
-				"pandoc-tablenos",
+				"pandoc-crossref",
 			},
 			metadata = {
-				["eqnos-cleveref"] = true,
-				["eqnos-plus-name"] = "equation",
-				["fignos-cleveref"] = true,
-				["fignos-plus-name"] = "figure",
+				cref = true,
+				eqnPrefix = {
+					"equation",
+					"equations",
+				},
+				figPrefix = {
+					"figure",
+					"figures",
+				},
 				lang = "en-AU",
+				lstPrefix = {
+					"list",
+					"lists",
+				},
 				numbersections = false,
 				papersize = "a4",
-				["secnos-cleveref"] = true,
-				["tablenos-cleveref"] = true,
-				["tablenos-warning-level"] = 1,
+				secPrefix = {
+					"section",
+					"sections",
+				},
+				tblPrefix = {
+					"table",
+					"tables",
+				},
 			},
 			options = {
 				["--embed-resources"] = true,
@@ -355,14 +366,29 @@ local keyword_actions_data = {
 			},
 			metadata = {
 				cref = true,
-				eqnPrefix = "equation",
-				figPrefix = "figure",
+				eqnPrefix = {
+					"equation",
+					"equations",
+				},
+				figPrefix = {
+					"figure",
+					"figures",
+				},
 				lang = "en-AU",
-				lstPrefix = "list",
+				lstPrefix = {
+					"list",
+					"lists",
+				},
 				numbersections = false,
 				papersize = "a4",
-				secPrefix = "section",
-				tblPrefix = "table",
+				secPrefix = {
+					"section",
+					"sections",
+				},
+				tblPrefix = {
+					"table",
+					"tables",
+				},
 			},
 			options = {
 				["--embed-resources"] = true,
@@ -447,21 +473,33 @@ local keyword_actions_data = {
 				"+smart",
 			},
 			filters = {
-				"pandoc-fignos",
-				"pandoc-eqnos",
-				"pandoc-tablenos",
+				"pandoc-crossref",
 			},
 			metadata = {
-				["eqnos-cleveref"] = true,
-				["eqnos-plus-name"] = "equation",
-				["fignos-cleveref"] = true,
-				["fignos-plus-name"] = "figure",
+				cref = true,
+				eqnPrefix = {
+					"equation",
+					"equations",
+				},
+				figPrefix = {
+					"figure",
+					"figures",
+				},
 				lang = "en-AU",
+				lstPrefix = {
+					"list",
+					"lists",
+				},
 				numbersections = false,
 				papersize = "A4",
-				["secnos-cleveref"] = true,
-				["tablenos-cleveref"] = true,
-				["tablenos-warning-level"] = 1,
+				secPrefix = {
+					"section",
+					"sections",
+				},
+				tblPrefix = {
+					"table",
+					"tables",
+				},
 			},
 			options = {
 				["--embed-resources"] = true,
@@ -524,6 +562,7 @@ local keyword_actions_data = {
 		},
 	},
 }
+
 -- luacheck: pop
 
 -- keyword_conflict_data    {{{1
@@ -649,6 +688,7 @@ local keyword_valid_data = {
 	TextColour = true,
 	Tufte = true,
 }
+
 -- }}}1
 
 --[[ Modules ]]

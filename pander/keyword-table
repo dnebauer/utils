@@ -92,8 +92,16 @@ local keyword_data = {
 			all = {
 				filters = {
 					-- filters are from github pandoc/lua-filters repo
-					{ "include-files.lua", 10, true },
-					{ "include-code-files.lua", 10, true },
+					{
+						"include-files.lua",
+						10,
+						true,
+					},
+					{
+						"include-code-files.lua",
+						10,
+						true,
+					},
 				},
 			},
 		},
@@ -112,8 +120,16 @@ local keyword_data = {
 				},
 				filters = {
 					-- filters are from github pandoc/lua-filters repo
-					{ "include-files.lua", 10, true },
-					{ "include-code-files.lua", 10, true },
+					{
+						"include-files.lua",
+						10,
+						true,
+					},
+					{
+						"include-code-files.lua",
+						10,
+						true,
+					},
 				},
 			},
 		},
@@ -155,7 +171,10 @@ local keyword_data = {
 	Latex8pt = {
 		description = "set font size to 8 pt in latex output",
 		expand_groups = {},
-		conflict_groups = { "documentclass", "font-size" },
+		conflict_groups = {
+			"documentclass",
+			"font-size",
+		},
 		actions = {
 			latex = {
 				metadata = {
@@ -171,7 +190,10 @@ local keyword_data = {
 	Latex9pt = {
 		description = "set font size to 9 pt in latex output",
 		expand_groups = {},
-		conflict_groups = { "documentclass", "font-size" },
+		conflict_groups = {
+			"documentclass",
+			"font-size",
+		},
 		actions = {
 			latex = {
 				metadata = {
@@ -187,7 +209,9 @@ local keyword_data = {
 	Latex10pt = {
 		description = "set font size to 10 pt in latex output",
 		expand_groups = {},
-		conflict_groups = { "font-size" },
+		conflict_groups = {
+			"font-size",
+		},
 		actions = {
 			latex = {
 				metadata = {
@@ -202,7 +226,9 @@ local keyword_data = {
 	Latex11pt = {
 		description = "set font size to 11 pt in latex output",
 		expand_groups = {},
-		conflict_groups = { "font-size" },
+		conflict_groups = {
+			"font-size",
+		},
 		actions = {
 			latex = {
 				metadata = {
@@ -217,7 +243,9 @@ local keyword_data = {
 	Latex12pt = {
 		description = "set font size to 12 pt in latex output",
 		expand_groups = {},
-		conflict_groups = { "font-size" },
+		conflict_groups = {
+			"font-size",
+		},
 		actions = {
 			latex = {
 				metadata = {
@@ -232,7 +260,10 @@ local keyword_data = {
 	Latex14pt = {
 		description = "set font size to 14 pt in latex output",
 		expand_groups = {},
-		conflict_groups = { "documentclass", "font-size" },
+		conflict_groups = {
+			"documentclass",
+			"font-size",
+		},
 		actions = {
 			latex = {
 				metadata = {
@@ -248,7 +279,10 @@ local keyword_data = {
 	Latex17pt = {
 		description = "set font size to 17 pt in latex output",
 		expand_groups = {},
-		conflict_groups = { "documentclass", "font-size" },
+		conflict_groups = {
+			"documentclass",
+			"font-size",
+		},
 		actions = {
 			latex = {
 				metadata = {
@@ -264,7 +298,10 @@ local keyword_data = {
 	Latex20pt = {
 		description = "set font size to 20 pt in latex output",
 		expand_groups = {},
-		conflict_groups = { "documentclass", "font-size" },
+		conflict_groups = {
+			"documentclass",
+			"font-size",
+		},
 		actions = {
 			latex = {
 				metadata = {
@@ -284,7 +321,11 @@ local keyword_data = {
 
 		description = "style theme for writing letters",
 		expand_groups = {},
-		conflict_groups = { "documentclass", "fonts", "theme" },
+		conflict_groups = {
+			"documentclass",
+			"fonts",
+			"theme",
+		},
 		actions = {
 			all = {
 				metadata = {
@@ -313,7 +354,6 @@ local keyword_data = {
 					incl = false,
 					signed = true, -- sign using image below
 					signature = datadir .. "/resources/signature.png",
-					["tablenos-warning-level"] = 1,
 				},
 				latex = {
 					template = "UoE-letter.latex",
@@ -340,7 +380,9 @@ local keyword_data = {
 
 		description = "use libertinus/xecjk latex font packages",
 		expand_groups = {},
-		conflict_groups = { "fonts" },
+		conflict_groups = {
+			"fonts",
+		},
 		actions = {
 			context = {
 				metadata = {
@@ -375,20 +417,36 @@ local keyword_data = {
 
 		description = "standard but with no fonts defined for pdf",
 		expand_groups = {},
-		conflict_groups = { "theme" },
+		conflict_groups = {
+			"theme",
+		},
 		actions = {
 			all = {
 				metadata = {
 					lang = "en-AU",
 					numbersections = false,
 					papersize = "a4",
-					["eqnos-cleveref"] = true,
-					["eqnos-plus-name"] = "equation",
-					["fignos-cleveref"] = true,
-					["fignos-plus-name"] = "figure",
-					["secnos-cleveref"] = true,
-					["tablenos-cleveref"] = true,
-					["tablenos-warning-level"] = 1,
+					figPrefix = {
+						"figure",
+						"figures",
+					},
+					eqnPrefix = {
+						"equation",
+						"equations",
+					},
+					tblPrefix = {
+						"table",
+						"tables",
+					},
+					lstPrefix = {
+						"list",
+						"lists",
+					},
+					secPrefix = {
+						"section",
+						"sections",
+					},
+					cref = true,
 				},
 				extensions = {
 					"+footnotes",
@@ -400,9 +458,7 @@ local keyword_data = {
 					["--standalone"] = true,
 				},
 				filters = {
-					"pandoc-fignos",
-					"pandoc-eqnos",
-					"pandoc-tablenos",
+					"pandoc-crossref",
 				},
 			},
 			context = {
@@ -453,7 +509,9 @@ local keyword_data = {
 	PageBreak = {
 		description = "process LaTeX \\newpage instructions",
 		expand_groups = {},
-		conflict_groups = { "paginate" },
+		conflict_groups = {
+			"paginate",
+		},
 		actions = {
 			all = {
 				filters = {
@@ -525,7 +583,9 @@ local keyword_data = {
 	SectNewpage = {
 		description = "start each section on a new page",
 		expand_groups = {},
-		conflict_groups = { "paginate" },
+		conflict_groups = {
+			"paginate",
+		},
 		actions = {
 			html = {
 				filters = {
@@ -552,18 +612,36 @@ local keyword_data = {
 
 		description = "default style theme",
 		expand_groups = {},
-		conflict_groups = { "fonts", "theme" },
+		conflict_groups = {
+			"fonts",
+			"theme",
+		},
 		actions = {
 			all = {
 				metadata = {
 					lang = "en-AU",
 					numbersections = false,
 					papersize = "a4",
-					figPrefix = "figure",
-					eqnPrefix = "equation",
-					tblPrefix = "table",
-					lstPrefix = "list",
-					secPrefix = "section",
+					figPrefix = {
+						"figure",
+						"figures",
+					},
+					eqnPrefix = {
+						"equation",
+						"equations",
+					},
+					tblPrefix = {
+						"table",
+						"tables",
+					},
+					lstPrefix = {
+						"list",
+						"lists",
+					},
+					secPrefix = {
+						"section",
+						"sections",
+					},
 					cref = true,
 				},
 				extensions = {
@@ -687,20 +765,38 @@ local keyword_data = {
 	Tufte = {
 		description = "style theme based on Edward R. Tufte's designs",
 		expand_groups = {},
-		conflict_groups = { "documentclass", "fonts", "theme" },
+		conflict_groups = {
+			"documentclass",
+			"fonts",
+			"theme",
+		},
 		actions = {
 			all = {
 				metadata = {
 					lang = "en-AU",
 					numbersections = false,
 					papersize = "A4",
-					["eqnos-cleveref"] = true,
-					["eqnos-plus-name"] = "equation",
-					["fignos-cleveref"] = true,
-					["fignos-plus-name"] = "figure",
-					["secnos-cleveref"] = true,
-					["tablenos-cleveref"] = true,
-					["tablenos-warning-level"] = 1,
+					figPrefix = {
+						"figure",
+						"figures",
+					},
+					eqnPrefix = {
+						"equation",
+						"equations",
+					},
+					tblPrefix = {
+						"table",
+						"tables",
+					},
+					lstPrefix = {
+						"list",
+						"lists",
+					},
+					secPrefix = {
+						"section",
+						"sections",
+					},
+					cref = true,
 				},
 				extensions = {
 					"+footnotes",
@@ -712,9 +808,7 @@ local keyword_data = {
 					["--standalone"] = true,
 				},
 				filters = {
-					"pandoc-fignos",
-					"pandoc-eqnos",
-					"pandoc-tablenos",
+					"pandoc-crossref",
 				},
 			},
 			context = {
