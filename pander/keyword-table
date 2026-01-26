@@ -1258,8 +1258,15 @@ function list_keywords()
 		local match = "^Latex%d%d?pt$"
 		if a:match(match) and b:match(match) then
 			local pts = "^Latex(%d+)pt$"
+			---@diagnostic disable:deprecated
+			-- deprecation warning assumes use of LuaJIT compiler
+			-- rather than the standard lua interpreter;
+			-- LuaJIT is compatible with lua 5.1 and 'math.tointeger' was introduced
+			-- in lua 5.3, so the function would be unavailable, and the linter
+			-- chooses to flag that as a 'deprecation'
 			local a_pts = math.tointeger(a:match(pts))
 			local b_pts = math.tointeger(b:match(pts))
+			---@diagnostic enable:deprecated
 			return (a_pts < b_pts)
 		else
 			return (a < b)
