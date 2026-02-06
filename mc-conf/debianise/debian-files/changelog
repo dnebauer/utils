@@ -1,3 +1,21 @@
+dn-mc-conf (3.5-1) UNRELEASED; urgency=low
+
+  * revert view command for dia files
+
+ -- David Nebauer <david@nebauer.org>  Fri, 6 Feb 2026 19:46:00 +0930
+
+dn-mc-conf (3.4-1) UNRELEASED; urgency=low
+
+  * add view command for dia files
+
+ -- David Nebauer <david@nebauer.org>  Fri, 6 Feb 2026 19:34:25 +0930
+
+dn-mc-conf (3.3-1) UNRELEASED; urgency=low
+
+  * add dia file support
+
+ -- David Nebauer <david@nebauer.org>  Fri, 6 Feb 2026 19:16:32 +0930
+
 dn-mc-conf (3.2-1) UNRELEASED; urgency=low
 
   * change handling of mht[ml] files

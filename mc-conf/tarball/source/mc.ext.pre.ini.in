@@ -207,6 +207,13 @@ Include=dn_libreoffice
 #ShellIgnoreCase=true
 #Include=dn_libreoffice
 
+# dia
+
+[dn_dia]
+Shell=.dia
+ShellIgnoreCase=true
+Open=(dia %f >/dev/null 2>&1 &)
+
 # scribus
 
 [dn_sla]
