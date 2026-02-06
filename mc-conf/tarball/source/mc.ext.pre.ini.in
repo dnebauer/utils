@@ -89,7 +89,8 @@ Include=dn_output
 [dn_mht]
 Regex=\.mht(ml)?$
 RegexIgnoreCase=true
-Open=(firefox %f >/dev/null 2>&1 &)
+#Open=(firefox %f >/dev/null 2>&1 &)
+Open=(if command -v firefox &>/dev/null; then (firefox %f &) &>/dev/null; elif command -v google-chrome &>/dev/null; then (google-chrome %f &) &>/dev/null; fi)
 
 ### Sound files ###
 
@@ -300,9 +301,9 @@ Include=dn_plaintext
 
 # gramps
 
-[dn_grdb]
-Shell=.grdb
-ShellIgnoreCase=true
+[dn_gramps]
+Regex=\\.(grdb|ged)$
+RegexIgnoreCase=true
 Open=(gramps %f >/dev/null 2>&1 &)
 
 # tellico

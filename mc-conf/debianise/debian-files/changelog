@@ -1,3 +1,15 @@
+dn-mc-conf (3.2-1) UNRELEASED; urgency=low
+
+  * change handling of mht[ml] files
+
+ -- David Nebauer <david@nebauer.org>  Fri, 6 Feb 2026 19:07:32 +0930
+
+dn-mc-conf (3.1-1) UNRELEASED; urgency=low
+
+  * Add 'ged' as file extension to be opened by gramps
+
+ -- David Nebauer <david@nebauer.org>  Mon, 2 Feb 2026 09:21:15 +0930
+
 dn-mc-conf (3.0-4) UNRELEASED; urgency=low
 
   * Remove dependecy on scribus
