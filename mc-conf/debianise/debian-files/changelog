@@ -1,3 +1,9 @@
+dn-mc-conf (3.6-1) UNRELEASED; urgency=low
+
+  * add 'g' menu option to open gunzipped file in vim
+
+ -- David Nebauer <david@nebauer.org>  Tue, 24 Feb 2026 07:04:15 +0930
+
 dn-mc-conf (3.5-1) UNRELEASED; urgency=low
 
   * revert view command for dia files

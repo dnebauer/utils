@@ -52,4 +52,27 @@ e       Email as attachment using neomutt
 c       Copy filename to clipboard
   echo %s | xclip -sel clip
 
+# MENU ITEM: Open gzipped file in vim
+
+# Works on file under cursor
+
+# Explanation of first line of entry:
+#   =: condition for menu entry being made available
+#   t: condition is that file(s) must be of certain type(s)
+#   r: can be regular file
+#   x: can be regular file
+
+# Explanation of second line of entry:
+#   c: hotkey
+#   seven spaces: match convention in global file
+#   'Copy filename to clipboard': menu item text
+
+# Explanation of third line of entry:
+#   execute utility 'xclip' with parameters
+#   %s: file(s), tagged or under cursor
+
+= t rx
+g       Open gunzipped file in vim
+  gunzip --stdout %s | vim -
+
 ### End of entries inserted by @pkg@ ###
