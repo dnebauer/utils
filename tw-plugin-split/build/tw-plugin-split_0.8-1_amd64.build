@@ -1,6 +1,6 @@
  dpkg-buildpackage -us -uc -ui -i -b
 dpkg-buildpackage: info: source package tw-plugin-split
-dpkg-buildpackage: info: source version 0.7-1
+dpkg-buildpackage: info: source version 0.8-1
 dpkg-buildpackage: info: source distribution UNRELEASED
 dpkg-buildpackage: info: source changed by David Nebauer <david@nebauer.org>
  dpkg-source -i --before-build .
@@ -15,7 +15,7 @@ dh binary
    debian/rules override_dh_auto_configure
 make[1]: Entering directory '/home/david/data/computing/projects/utils/tw-plugin-split/build/App-TW-Plugin-Split-v0.7'
 dh_auto_configure -- --sharedstatedir=/var/lib
-	/usr/bin/perl Build.PL --installdirs vendor --config "optimize=-g -O2 -Werror=implicit-function-declaration -ffile-prefix-map=/home/david/data/computing/projects/utils/tw-plugin-split/build/App-TW-Plugin-Split-v0.7=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -Wdate-time -D_FORTIFY_SOURCE=2" --config "ld=x86_64-linux-gnu-gcc -g -O2 -Werror=implicit-function-declaration -ffile-prefix-map=/home/david/data/computing/projects/utils/tw-plugin-split/build/App-TW-Plugin-Split-v0.7=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -Wl,-z,relro" --sharedstatedir=/var/lib
+	/usr/bin/perl Build.PL --installdirs vendor --config optimize="-g -O2 -Werror=implicit-function-declaration -ffile-prefix-map=/home/david/data/computing/projects/utils/tw-plugin-split/build/App-TW-Plugin-Split-v0.7=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -Wdate-time -D_FORTIFY_SOURCE=2" --config ld="x86_64-linux-gnu-gcc -g -O2 -Werror=implicit-function-declaration -ffile-prefix-map=/home/david/data/computing/projects/utils/tw-plugin-split/build/App-TW-Plugin-Split-v0.7=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -Wl,-z,relro" --sharedstatedir=/var/lib
 Creating new 'Build' script for 'App-TW-Plugin-Split' version 'v0.7'
 make[1]: Leaving directory '/home/david/data/computing/projects/utils/tw-plugin-split/build/App-TW-Plugin-Split-v0.7'
    dh_auto_build
@@ -32,7 +32,7 @@ ok 1
 1..1
 ok
 All tests successful.
-Files=2, Tests=1,  0 wallclock secs ( 0.01 usr  0.00 sys +  0.11 cusr  0.03 csys =  0.15 CPU)
+Files=2, Tests=1,  0 wallclock secs ( 0.01 usr  0.01 sys +  0.13 cusr  0.03 csys =  0.18 CPU)
 Result: PASS
    create-stamp debian/debhelper-build-stamp
    dh_prep
@@ -56,11 +56,11 @@ Installing /home/david/data/computing/projects/utils/tw-plugin-split/build/App-T
    dh_gencontrol
    dh_md5sums
    dh_builddeb
-dpkg-deb: building package 'tw-plugin-split' in '../tw-plugin-split_0.7-1_all.deb'.
- dpkg-genbuildinfo --build=binary -O../tw-plugin-split_0.7-1_amd64.buildinfo
- dpkg-genchanges --build=binary -O../tw-plugin-split_0.7-1_amd64.changes
+dpkg-deb: building package 'tw-plugin-split' in '../tw-plugin-split_0.8-1_all.deb'.
+ dpkg-genbuildinfo --build=binary -O../tw-plugin-split_0.8-1_amd64.buildinfo
+ dpkg-genchanges --build=binary -O../tw-plugin-split_0.8-1_amd64.changes
 dpkg-genchanges: info: binary-only upload (no source code included)
  dpkg-source -i --after-build .
 dpkg-buildpackage: info: binary-only upload (no source included)
-Now running lintian tw-plugin-split_0.7-1_amd64.changes ...
+Now running lintian tw-plugin-split_0.8-1_amd64.changes ...
 Finished running lintian.

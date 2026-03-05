@@ -18,7 +18,11 @@ use File::Which;
 use IPC::Cmd;
 use List::SomeUtils;
 use MooX::HandlesVia;
-use MooX::Options protect_argv => 0;
+use MooX::Options (
+  authors      => 'David Nebauer <david at nebauer dot org>',
+  description  => 'convert single json or tid TiddlyWiki plugin file',
+  protect_argv => 0,
+);
 use Path::Tiny;
 use Types::Path::Tiny;
 use Types::Standard;
@@ -48,10 +52,10 @@ option 'format' => (
 # simplify (-s)    {{{1
 option 'simplify' => (
   is       => 'ro',
-  short    => 's',      ## no critic (ProhibitDuplicateLiteral)
+  short    => 's',                                          ## no critic (ProhibitDuplicateLiteral)
   required => $FALSE,
   doc      => 'Whether to simplify extracted file names',
-);                      # }}}1
+);                                                          # }}}1
 
 # attributes
 
@@ -115,7 +119,7 @@ has '_plugin_input_file' => (
 # params: nil
 # prints: feedback
 # return: n/a, dies on failure
-sub run ($self) {    ## no critic (RequireInterpolationOfMetachars)
+sub run ($self) {
 
   # check tiddlywiki version (dies if not satisfied)
   $self->_check_tw_version;
@@ -140,7 +144,7 @@ sub run ($self) {    ## no critic (RequireInterpolationOfMetachars)
 # return: n/a, dies on failure
 # note:   relies on presence of $TW_MIN_VERSION variable/constant
 # note:   assumes semantic versioning, e.g., 'major.minor.patch'
-sub _check_tw_version ($self) { ## no critic (RequireInterpolationOfMetachars)
+sub _check_tw_version ($self) {
   my $tw = $CMD_TIDDLYWIKI;
   File::Which::which $tw or die "Error: Missing executable '$tw'\n";
   my $cmd = [ $tw, '--version' ];
@@ -152,17 +156,16 @@ sub _check_tw_version ($self) { ## no critic (RequireInterpolationOfMetachars)
     warn "Version command: '$cmd_str'\n";
     die "Error: Version command failed\n";
   }
-  my @version       = split /[.]/xsm, (@{$stdout})[0];
+  chomp(my $version_string = (@{$stdout})[0]);
+  my @version       = split /[.]/xsm, $version_string;
   my $version_parts = @version;
   my @minimum       = split /[.]/xsm, $TW_MIN_VERSION;
   my $minimum_parts = @minimum;
   if ($version_parts != $minimum_parts) {
-    my $version_string = join $PERIOD, @version;
-    my $minimum_string = join $PERIOD, @minimum;
     my $err =
           "The $tw version ($version_string) does not have the\n"
         . "same number of elements as the minimum\n"
-        . "specified version ($minimum_string)";
+        . "specified version ($TW_MIN_VERSION)";
     croak $err;
   }
   my $index = 0;
@@ -171,13 +174,21 @@ sub _check_tw_version ($self) { ## no critic (RequireInterpolationOfMetachars)
       and $minimum[$index] =~ /\A\d+\Z/xsm)
     {
       # do numerical comparison
-      die "tiddlywiki is v$stdout, need at least v$TW_MIN_VERSION\n"
-          if $version[$index] < $minimum[$index];
+      if ($version[$index] > $minimum[$index]) {
+        last;
+      }
+      elsif ($version[$index] < $minimum[$index]) {
+        die "TW is v$version_string, need at least v$TW_MIN_VERSION\n";
+      }
     }
     else {
       # do text comparison
-      die "tiddlywiki is v$stdout, need at least v$TW_MIN_VERSION\n"
-          if "$version[$index]" lt "$minimum[$index]";
+      if ($version[$index] gt $minimum[$index]) {
+        last;
+      }
+      elsif ($version[$index] lt $minimum[$index]) {
+        die "TW is v$version_string, need at least v$TW_MIN_VERSION\n";
+      }
     }
     $index++;
   }
@@ -190,7 +201,7 @@ sub _check_tw_version ($self) { ## no critic (RequireInterpolationOfMetachars)
 # params: nil
 # prints: feedback
 # return: scalar string - deserializer
-sub _deserializer ($self) {    ## no critic (RequireInterpolationOfMetachars)
+sub _deserializer ($self) {
 
   # variables    {{{2
   my $default = 'tid';
@@ -232,8 +243,7 @@ sub _deserializer ($self) {    ## no critic (RequireInterpolationOfMetachars)
 # params: $dir - directory [scalar string]
 # prints: feedback
 # return: list of absolute paths, dies on failure
-sub _dir_contents ($self, $dir)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _dir_contents ($self, $dir) {
   my $finder = File::Find::Rule->new;
   $finder->mindepth(1);
   $finder->maxdepth(1);
@@ -247,7 +257,7 @@ sub _dir_contents ($self, $dir)
 # params: $dir - directory [scalar string]
 # prints: feedback
 # return: list of absolute filepaths, dies on failure
-sub _dir_files ($self, $dir) {  ## no critic (RequireInterpolationOfMetachars)
+sub _dir_files ($self, $dir) {
   my $finder = File::Find::Rule->new;
   $finder->file;
   my @files = $finder->in($dir);
@@ -260,8 +270,7 @@ sub _dir_files ($self, $dir) {  ## no critic (RequireInterpolationOfMetachars)
 # params: $dir - directory [scalar string]
 # prints: feedback
 # return: list of absolute dirpaths, dies on failure
-sub _dir_subdirs ($self, $dir)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _dir_subdirs ($self, $dir) {
   my $finder = File::Find::Rule->new;
   $finder->directory;
   $finder->mindepth(1);
@@ -276,7 +285,7 @@ sub _dir_subdirs ($self, $dir)
 # params: nil
 # prints: feedback
 # return: n/a, dies on failure
-sub _extract_plugin ($self) {   ## no critic (RequireInterpolationOfMetachars)
+sub _extract_plugin ($self) {
 
   # variables for cmdline command    {{{2
   my $tw         = $CMD_TIDDLYWIKI;
@@ -331,7 +340,7 @@ sub _extract_plugin ($self) {   ## no critic (RequireInterpolationOfMetachars)
 # prints: feedback
 # return: n/a, dies on failure
 # notes:  current directory has to be empty
-sub _output ($self) {    ## no critic (RequireInterpolationOfMetachars)
+sub _output ($self) {
 
   # can't be anything in current directory
   my $cwd          = $self->_cwd->canonpath;
@@ -359,8 +368,7 @@ sub _output ($self) {    ## no critic (RequireInterpolationOfMetachars)
 #         file name, trim longest common stem starting with this from
 #         those files; *unless* doing so results in duplicate
 #         file names
-sub _simplify ($self)
-{    ## no critic (RequireInterpolationOfMetachars ProhibitExcessComplexity)
+sub _simplify ($self) {    ## no critic (RequireInterpolationOfMetachars ProhibitExcessComplexity)
 
   # get file list    {{{2
   my $dir       = $self->_plugin_dir->canonpath;
@@ -374,7 +382,7 @@ sub _simplify ($self)
   return if scalar @files == 1;
 
   # find longest matching stem    {{{2
-  const my $MIN_STEM_LENGTH = 12;    # '$__plugins_X'
+  const my $MIN_STEM_LENGTH => 12;    # '$__plugins_X'
   my $len = $MIN_STEM_LENGTH;
   while ($TRUE) {
     my @stems = map { substr $_, 0, $len } @files;
@@ -452,8 +460,7 @@ sub _simplify ($self)
 #         $start - where new file name is to start [scalar integer]
 # prints: feedback
 # return: scalar string, dies on failure
-sub _snip ($self, $name, $start)
-{    ## no critic (RequireInterpolationOfMetachars)
+sub _snip ($self, $name, $start) {
   my $pruned = substr $name, $start;
   return $pruned;
 }    # }}}1

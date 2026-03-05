@@ -1,0 +1,25 @@
+Format: 1.8
+Date: Tue, 03 Mar 2026 22:49:35 +0930
+Source: tw-plugin-split
+Binary: tw-plugin-split
+Architecture: all
+Version: 0.8-1
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: David Nebauer <david@nebauer.org>
+Changed-By: David Nebauer <david@nebauer.org>
+Description:
+ tw-plugin-split - convert single json or tid TiddlyWiki plugin file
+Changes:
+ tw-plugin-split (0.8-1) UNRELEASED; urgency=low
+ .
+   * fix bad module call
+Checksums-Sha1:
+ a36b046fd4baf0829315d3aecb4e65a84154810a 16452 tw-plugin-split_0.8-1_all.deb
+ fa23c49071ce9fc955913a31d2a347f1ab9b54b4 9842 tw-plugin-split_0.8-1_amd64.buildinfo
+Checksums-Sha256:
+ cfd2de8074e9f183831492b3e3bc946be27b9cd7240c175c9ecdf519b86c1bee 16452 tw-plugin-split_0.8-1_all.deb
+ ab1e50d3d9d44673a2131eaa7e51cd3aadb7667d7f482dcdd2d3357cf25dda0d 9842 tw-plugin-split_0.8-1_amd64.buildinfo
+Files:
+ c3b6122c8a105e6b8a08ffb193202d0f 16452 utils optional tw-plugin-split_0.8-1_all.deb
+ 823d463041eefcc54d045537734540df 9842 utils optional tw-plugin-split_0.8-1_amd64.buildinfo
