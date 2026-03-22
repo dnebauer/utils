@@ -27,7 +27,7 @@ source "/usr/libexec/libdncommon-bash/liball" # supplies functions
 dnEraseText "${msg}"
 # provided by libdncommon-bash: dn_self,dn_divider[_top|_bottom]
 usage="Usage:"
-parameters=" [-v] [-d]"
+parameters="[-v] [-d]"
 # required tools findable on system path
 required_system_tools=(
   bash
