@@ -45,6 +45,7 @@ stow_root="$HOME/.config/dotfiles"
 stow_pkg="lesspipe.sh"
 stow_pkg_dir="$stow_root/$stow_pkg"
 clean_dirs=() # directories to be deleted on exit
+run_tests='y' # flag: whether to run 'make test'
 unset msg
 # }}}1
 
@@ -117,8 +118,8 @@ processOptions() {
   local OPTIONS
   if ! OPTIONS="$(
     getopt \
-      --options hvd \
-      --long help,verbose,debug \
+      --options hvdn \
+      --long help,verbose,debug,notest \
       --name "${BASH_SOURCE[0]}" \
       -- "${@}"
   )"; then
@@ -128,6 +129,10 @@ processOptions() {
   eval set -- "${OPTIONS}"
   while true; do
     case "${1}" in
+    -n | --notest)
+      run_tests='n'
+      exit 0
+      ;;
     -h | --help)
       displayUsage
       exit 0
@@ -226,18 +231,22 @@ fi
 echo "$dn_divider_bottom"
 # • some tests fail because colon separators are not properly interpreted --
 #   this is a defect in the testing code
-dnInfo "Running 'make test':"
-echo "$dn_divider_top"
-make test || true
-echo "$dn_divider_bottom"
-dnWarn 'Any failed tests may indicate missing utilities used by lesspipe.sh'
-dnInfo "Running 'make install':"
-echo "$dn_divider_top"
-if ! make install; then
+if [ "$run_tests" == 'y' ]; then
+  dnInfo "Running 'make test':"
+  echo "$dn_divider_top"
+  make test || true
   echo "$dn_divider_bottom"
-  dnAbort 'make install failed'
+  dnWarn 'Any failed tests may indicate missing utilities used by lesspipe.sh'
+  dnInfo "Running 'make install':"
+  echo "$dn_divider_top"
+  if ! make install; then
+    echo "$dn_divider_bottom"
+    dnAbort 'make install failed'
+  fi
+  echo "$dn_divider_bottom"
+else
+  dnInfo 'Skipping tests at user request'
 fi
-echo "$dn_divider_bottom"
 
 # check install files in temp dir    {{{1
 errs=()

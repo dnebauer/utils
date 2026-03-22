@@ -120,6 +120,18 @@ Numbered list:
 \*[self] \- update local installation of lesspipe.sh
 .SH "SYNOPSIS"
 .SY "\*[self]"
+[
+.B "-n"
+]
+[
+.B "-d"
+]
+[
+.B "-v"
+]
+.SE
+.SY "\*[self]"
+.B "\-h"
 .SH "DESCRIPTION"
 lesspipe.sh is a preprocessor for the less pager that transforms non-text files
 into readable text format and can enhance readability by colorizing the output.
@@ -182,6 +194,9 @@ All build files are located in temporary directories which are deleted when
 \*[self] exits or is terminated. The only exception is when \*[self] halts due
 to a SIGKILL or SIGSTOP signal.
 .SH "OPTIONS"
+.TP
+.B "\-n  \-\-notest"
+Skip the \(aqmake test\(aq build step. Optional.
 .TP
 .B "\-v  \-\-verbose"
 Print input lines as they are read (equivalent to \(aqset -o verbose\(aq).
