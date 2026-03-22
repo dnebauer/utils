@@ -177,7 +177,7 @@ control-description shellscript, sh.
 depends-on perl-base (>= 5.40.1-7)
 
 #   Getopt::Std, Term::ANSIColor
-depends-on perl-modules (>= 5.40.1-7)
+depends-on perl-modules
 
 # Copyright year
 # Year of copyright
