@@ -9,6 +9,8 @@ Arguments:
                       them
 
 Options:
+      --chdir <CHDIR>
+          Change to this directory during startup [env: NEOVIDE_CHDIR=]
       --fork
           Spawn a child process and leak it [env: NEOVIDE_FORK=]
       --frame <FRAME>
@@ -19,6 +21,9 @@ Options:
           The initial grid size of the window [<columns>x<lines>].
           Defaults to columns/lines from init.vim/lua if no value is given.
           If --grid is not set then it's inferred from the window size
+          [env: NEOVIDE_GRID=]
+      --icon <ICON>
+          The custom icon to use for the app [env: NEOVIDE_ICON=]
       --log
           If to enable logging to a file in the current directory
       --maximized
@@ -48,9 +53,9 @@ Options:
       --no-vsync
           Do not try to request VSync on the window
       --server <ADDRESS>
-          Connect to the named pipe or socket at ADDRESS
+          Connect to the named pipe or socket at ADDRESS [env: NEOVIDE_SERVER=]
       --size <SIZE>
-          The size of the window in pixels
+          The size of the window in pixels [env: NEOVIDE_SIZE=]
       --srgb
           Request sRGB when initializing the window, may help with GPUs with
           weird pixel formats. Default on Windows [env: NEOVIDE_SRGB=]

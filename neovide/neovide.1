@@ -137,6 +137,9 @@ used. Optional.
 Arguments to pass down to neovim without interpreting them. Optional.
 .SH "OPTIONS"
 .TP
+.BI "\-\-chdir " "<CHDIR>"
+Change to this directory during startup [env: NEOVIDE_CHDIR=]
+.TP
 .B "\-\-fork"
 Spawn a child process and leak it. [env: NEOVIDE_FORK=]
 .TP
@@ -149,7 +152,10 @@ set to
 .BI "\-\-grid " "[<GRID>]"
 The initial grid size of the window [<columns>x<lines>]. Defaults to columns/
 lines from init.vim/lua if no value is given. If \-\-grid is not set then it's
-inferred from the window size.
+inferred from the window size. [env: NEOVIDE_GRID=]
+.TP
+.BI "\-\-icon " "<ICON>"
+The custom icon to use for the app [env: NEOVIDE_ICON=]
 .TP
 .B "\-\-log"
 Enables logging to a file in the current directory.
@@ -190,10 +196,10 @@ Disable opening multiple files in tabs. They're still buffers.
 Do not try to request VSync on the window.
 .TP
 .BI "\-\-server " "<ADDRESS>"
-Connect to the named pipe or socket at ADDRESS.
+Connect to the named pipe or socket at ADDRESS. [env: NEOVIDE_SERVER=]
 .TP
 .BI "\-\-size " "<SIZE>"
-The size of the window in pixels.
+The size of the window in pixels. [env: NEOVIDE_SIZE=]
 .TP
 .B "\-\-srgb"
 Request sRGB when initializing the window. May help with GPUs with weird pixel
