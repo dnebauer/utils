@@ -21,7 +21,7 @@ package-name neovide
 # Package version
 # Version number for package.
 # Required. One only.
-version 0.16.0
+version 0.16.2
 
 # Script and binary files
 # Executable files to be packaged.
@@ -185,4 +185,5 @@ email david@nebauer.org
 # Author
 # Author of script
 # Required. Multiple allowed.
-author keith <keith@the-simmons.net>
+author Kaylee Simmons
+author Alexsander Falcucci
