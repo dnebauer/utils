@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+# Add a local pandoc template file for each user
+
+# VARIABLES
+
+self="$(basename "${0}")"
+global_template_filepath="/usr/share/pander/my-metajson.tpl"
+local_template_directory_stencil='/home/USER/.local/share/pandoc/templates'
+local_template_filepath_stencil="${local_template_directory_stencil}/my-metajson.tpl"
+
+# PROCEDURES
+
+# Function: listUsers
+#   intent: list users with accounts and a home directory
+#   params: nil
+#   prints: space-delimited list of users
+#   return: nil
+listUsers() {
+  local -a users home_dirs
+  mapfile -t users < <(cat /etc/passwd | cut -d: -f1)
+  mapfile -t home_dirs < <(dir -1 /home/)
+  for user in "${users[@]}"; do
+    for home_dir in "${home_dirs[@]}"; do
+      [[ "${user}" == "${home_dir}" ]] && echo "${user}"
+    done
+  done
+}
+
+# MAIN
+
+# need global template file
+if ! [ -e "${global_template_filepath}" ]; then
+  echo "$self: cannot update local template: missing ${global_template_filepath}" 1>&2
+  exit 1
+fi
+
+# cycle through users
+mapfile -t users < <(listUsers)
+for user in "${users[@]}"; do
+
+  # skip to next user if local pandoc templates directory is missing
+  local_template_directory="${local_template_directory_stencil//USER/${user}}"
+  [[ -d "${local_template_directory}" ]] || continue
+
+  # skip to next user if local template file present and identical to global
+  local_template_filepath="${local_template_filepath_stencil//USER/${user}}"
+  [[ -e "${local_template_filepath}" ]] &&
+    diff "${local_template_filepath}" "${global_template_filepath}" &>/dev/null &&
+    continue
+
+  # copy global template to local template directory
+  if runuser "${user}" -c "cp -f \"${global_template_filepath}\" \"${local_template_filepath}\""; then
+    echo "$self: updated local pandoc template: ${local_template_filepath}"
+  else
+    echo "$self: unable to update local pandoc template: ${local_template_filepath}" 1>&2
+  fi
+done

@@ -21,7 +21,7 @@ package-name pander
 # Package version
 # Version number for package.
 # Required. One only.
-version 1.22
+version 1.23
 
 # Script and binary files
 # Executable files to be packaged.
@@ -44,6 +44,7 @@ man-file pander.1
 # Optional. Multiple allowed.
 data-file keyword-table
 data-file keyword-table.1
+data-file my-metajson.tpl
 
 # Icon file
 # Icon file to package.
@@ -75,7 +76,7 @@ data-file keyword-table.1
 # Executable programs run by other programs.
 # Default value in built deb package: /usr/libexec/\$(PACKAGE).
 # Optional. Multiple allowed.
-#libexec-file
+libexec-file pander-add-local-template
 
 # Library data files
 # Data files used by other programs.
@@ -105,7 +106,7 @@ data-file keyword-table.1
 # Debian build system post-install file
 # In final package is named 'PACKAGE.postint'
 # Optional. One only
-#postinstall-file
+postinstall-file post-install
 
 # Pre-remove file
 # Debian build system pre-remove file
