@@ -1,3 +1,10 @@
+dn-mc-conf (3.6-2) UNRELEASED; urgency=low
+
+  * fix linter warnings in install script
+  * install script changed from sh to bash
+
+ -- David Nebauer <david@nebauer.org>  Sat, 30 May 2026 16:49:12 +0930
+
 dn-mc-conf (3.6-1) UNRELEASED; urgency=low
 
   * add 'g' menu option to open gunzipped file in vim

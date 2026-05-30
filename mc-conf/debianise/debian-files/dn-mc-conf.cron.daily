@@ -1,14 +1,22 @@
-#!/bin/sh
+#!/bin/bash
 
 # Generate local mc configuration files for each user
 
-
 # VARIABLES
 
-self="$( basename ${0} )"
-bool_true=$( true ; echo ${?} )
-bool_false=$( false ; echo ${?} )
-use_logger=$( which logger &>/dev/null ; echo ${?} )
+self="$(basename "${0}")"
+bool_true=$(
+  true
+  echo ${?}
+)
+bool_false=$(
+  false
+  echo ${?}
+)
+use_logger=$(
+  which logger 2>&1 >/dev/null
+  echo ${?}
+)
 local_conf_dir_template="/home/USER/.config/mc"
 ext_file_global="/etc/mc/mc.ext.ini"
 ext_file_local_template="${local_conf_dir_template}/mc.ext.ini"
@@ -19,7 +27,6 @@ menu_file_global="/etc/mc/mc.menu"
 menu_file_local_template="${local_conf_dir_template}/menu"
 menu_file_pkg="/usr/share/dn-mc-conf/menu"
 
-
 # PROCEDURES
 
 # Function: confFilesPresent
@@ -27,36 +34,36 @@ menu_file_pkg="/usr/share/dn-mc-conf/menu"
 #   params: nil
 #   prints: nil
 #   return: boolean
-confFilesPresent () {
-    # extension files
-    # - global
-    if ! [ -e ${ext_file_global} ] ; then
-        logErr "cannot generate local extension file" \
-              "no global extension file '${ext_file_global}'"
-        return ${bool_false}
+confFilesPresent() {
+  # extension files
+  # - global
+  if ! [ -e ${ext_file_global} ]; then
+    logErr "cannot generate local extension file" \
+      "no global extension file '${ext_file_global}'"
+    return "${bool_false}"
+  fi
+  # - package
+  for file in "${ext_file_pkg_pre}" "${ext_file_pkg_post}"; do
+    if ! [ -e ${file} ]; then
+      logErr "cannot generate local extension file" \
+        "no package extension file '${file}'"
+      return "${bool_false}"
     fi
-    # - package
-    for file in "${ext_file_pkg_pre}" "${ext_file_pkg_post}" ; do
-        if ! [ -e ${file} ] ; then
-            logErr "cannot generate local extension file" \
-                  "no package extension file '${file}'"
-            return ${bool_false}
-        fi
-    done
-    # menu files
-    # - global
-    if ! [ -e ${menu_file_global} ] ; then
-        logErr "cannot generate local menu file" \
-              "no global menu file '${menu_file_global}'"
-        return ${bool_false}
-    fi
-    # - package
-    if ! [ -e ${menu_file_pkg} ] ; then
-        logErr "cannot generate local menu file" \
-              "no package menu file '${menu_file_pkg}'"
-        return ${bool_false}
-    fi
-    return ${bool_true}
+  done
+  # menu files
+  # - global
+  if ! [ -e ${menu_file_global} ]; then
+    logErr "cannot generate local menu file" \
+      "no global menu file '${menu_file_global}'"
+    return "${bool_false}"
+  fi
+  # - package
+  if ! [ -e ${menu_file_pkg} ]; then
+    logErr "cannot generate local menu file" \
+      "no package menu file '${menu_file_pkg}'"
+    return "${bool_false}"
+  fi
+  return "${bool_true}"
 }
 # Function: substituteUser
 #   intent: substitute user for token 'USER' in a string
@@ -64,109 +71,111 @@ confFilesPresent () {
 #           2 - user
 #   prints: string
 #   return: nil
-substituteUser () {
-    echo "$( echo "${1}" | sed -e "s/USER/${2}/" )"
+substituteUser() {
+  echo "${1//USER/${2}}"
 }
 # Function: localConfigDirPresent
 #   intent: check local mc configuration directory is present
 #   params: 1 - user
 #   prints: nil
 #   return: boolean
-localConfigDirPresent () {
-    # variables
-    local dir="$( substituteUser "${local_conf_dir_template}" "${1}" )"
-    # local configuration directory
-    if ! [ -d ${dir} ] ; then
-        logErr "cannot generate local config files for user '${1}'" \
-              "no local config directory '${dir}'"
-        return ${bool_false}
-    fi
-    return ${bool_true}
+localConfigDirPresent() {
+  # variables
+  local dir
+  dir="$(substituteUser "${local_conf_dir_template}" "${1}")"
+  # local configuration directory
+  if ! [ -d "${dir}" ]; then
+    logErr "cannot generate local config files for user '${1}'" \
+      "no local config directory '${dir}'"
+    return "${bool_false}"
+  fi
+  return "${bool_true}"
 }
 # Function: listUsers
 #   intent: list users with accounts and a home directory
 #   params: nil
 #   prints: space-delimited list of users
 #   return: nil
-listUsers () {
-    echo "$( for user in $( cat /etc/passwd | cut -d: -f1 ) ; do \
-                 echo "$( dir -1 /home/ )" | grep "\b${user}\b" ; \
-             done \
-    )"
+listUsers() {
+  local -a users home_dirs
+  mapfile -t users < <(cat /etc/passwd | cut -d: -f1)
+  mapfile -t home_dirs < <(dir -1 /home/)
+  for user in "${users[@]}"; do
+    for home_dir in "${home_dirs[@]}"; do
+      [[ "${user}" == "${home_dir}" ]] && echo "${user}"
+    done
+  done
 }
 # Function: logMsg, logErr
 #   intent: write log message/error to system log
 #   params: 1+ - message part
 #   prints: nil
 #   return: nil
-logMsg () {
-    while [ -n "${1}" ] ; do
-        if flagTrue ${use_logger} ; then
-            logger -p user.info -t "${self}" "${1}"
-        else
-            echo "${self}: ${1}"
-        fi
-        shift
-    done
+logMsg() {
+  while [ -n "${1}" ]; do
+    if flagTrue "${use_logger}"; then
+      logger -p user.info -t "${self}" "${1}"
+    else
+      echo "${self}: ${1}"
+    fi
+    shift
+  done
 }
-logErr () {
-    while [ -n "${1}" ] ; do
-        if flagTrue ${use_logger} ; then
-            logger -p user.err -t "${self}" "${1}"
-        else
-            echo "${self}: ERROR: ${1}" > /dev/stderr
-        fi
-        shift
-    done
+logErr() {
+  while [ -n "${1}" ]; do
+    if flagTrue "${use_logger}"; then
+      logger -p user.err -t "${self}" "${1}"
+    else
+      echo "${self}: ERROR: ${1}" >/dev/stderr
+    fi
+    shift
+  done
 }
 # Function: flagTrue
 #   intent: check if flag variable equal to true/zero
 #   params: 1 - flag variable
 #   prints: nil
 #   return: boolean
-flagTrue () {
-    [ -n "${1}" ] || return 1  # empty flag variable is false
-    return ${1}
+flagTrue() {
+  [ -n "${1}" ] || return 1 # empty flag variable is false
+  return "${1}"
 }
-
 
 # MAIN
 
 # make sure requirements are in place
-confFilesPresent || exit ${bool_false}
+confFilesPresent || exit "${bool_false}"
 
 # cycle through list of users
-users="$( listUsers )"
-for user in ${users} ; do
-    # need local mc config directory
-    localConfigDirPresent "${user}" || continue
-    # generate local extension file
-    ext_file_local="$( substituteUser "${ext_file_local_template}" "${user}" )"
-    # - prepend pkg file to global file because first match is used
-    if cat  "${ext_file_pkg_pre}"  \
-            "${ext_file_global}"   \
-            "${ext_file_pkg_post}" \
-            > "${ext_file_local}"
-    then
-        logMsg "generated local mc extension file for user '${user}'"
-        chown ${user} "${ext_file_local}"
-    else
-        logErr "cannot generate local extension file for user '${user}'" \
-              "cannot concatenate global and package files"
-    fi
-    # generate local menu file
-    menu_file_local="$(substituteUser "${menu_file_local_template}" "${user}")"
-    # - append pkg file to global file because first line of global menu file
-    #   is an instruction that is misinterpreted if it is on any other line
-    #   in the file
-    if cat "${menu_file_global}" \
-            "${menu_file_pkg}"   \
-            > "${menu_file_local}"
-    then
-        logMsg "generated local mc menu file for user '${user}'"
-        chown ${user} "${menu_file_local}"
-    else
-        logErr "cannot generate local menu file for user '${user}'" \
-              "cannot concatenate global and package files"
-    fi
+mapfile -t users < <(listUsers)
+for user in "${users[@]}"; do
+  # need local mc config directory
+  localConfigDirPresent "${user}" || continue
+  # generate local extension file
+  ext_file_local="$(substituteUser "${ext_file_local_template}" "${user}")"
+  # - prepend pkg file to global file because first match is used
+  if cat "${ext_file_pkg_pre}" \
+    "${ext_file_global}" \
+    "${ext_file_pkg_post}" \
+    >"${ext_file_local}"; then
+    logMsg "generated local mc extension file for user '${user}'"
+    chown "${user}" "${ext_file_local}"
+  else
+    logErr "cannot generate local extension file for user '${user}'" \
+      "cannot concatenate global and package files"
+  fi
+  # generate local menu file
+  menu_file_local="$(substituteUser "${menu_file_local_template}" "${user}")"
+  # - append pkg file to global file because first line of global menu file
+  #   is an instruction that is misinterpreted if it is on any other line
+  #   in the file
+  if cat "${menu_file_global}" \
+    "${menu_file_pkg}" \
+    >"${menu_file_local}"; then
+    logMsg "generated local mc menu file for user '${user}'"
+    chown "${user}" "${menu_file_local}"
+  else
+    logErr "cannot generate local menu file for user '${user}'" \
+      "cannot concatenate global and package files"
+  fi
 done
