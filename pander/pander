@@ -286,7 +286,7 @@ local keyword_actions_data = {
 		},
 		html = {
 			metadata = {
-				css = "/home/david/.local/share/pandoc/templates/my-css/buttondown.css",
+				css = "/home/david/.local/share/pandoc/templates/buttondown.css",
 			},
 		},
 		latex = {
@@ -419,7 +419,7 @@ local keyword_actions_data = {
 		},
 		html = {
 			metadata = {
-				css = "/home/david/.local/share/pandoc/templates/my-css/buttondown.css",
+				css = "/home/david/.local/share/pandoc/templates/buttondown.css",
 			},
 		},
 		latex = {
@@ -562,7 +562,6 @@ local keyword_actions_data = {
 		},
 	},
 }
-
 -- luacheck: pop
 
 -- keyword_conflict_data    {{{1

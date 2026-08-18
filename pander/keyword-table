@@ -481,7 +481,7 @@ local keyword_data = {
 			},
 			html = {
 				metadata = {
-					css = datadir .. "/templates/my-css/buttondown.css",
+					css = datadir .. "/templates/buttondown.css",
 				},
 			},
 			latex = {
@@ -681,7 +681,7 @@ local keyword_data = {
 			},
 			html = {
 				metadata = {
-					css = datadir .. "/templates/my-css/buttondown.css",
+					css = datadir .. "/templates/buttondown.css",
 				},
 			},
 			latex = {
