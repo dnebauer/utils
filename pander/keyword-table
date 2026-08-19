@@ -325,7 +325,68 @@ local keyword_data = {
 			"fonts",
 			"theme",
 		},
-		actions = {},
+		actions = {
+			all = {
+				metadata = {
+					lang = "en-AU",
+					numbersections = false,
+					figPrefix = {
+						"figure",
+						"figures",
+					},
+					eqnPrefix = {
+						"equation",
+						"equations",
+					},
+					tblPrefix = {
+						"table",
+						"tables",
+					},
+					lstPrefix = {
+						"list",
+						"lists",
+					},
+					secPrefix = {
+						"section",
+						"sections",
+					},
+					cref = true,
+				},
+				extensions = {
+					"+footnotes",
+					"+inline_notes",
+					"+smart",
+				},
+				options = {
+					["--embed-resources"] = true,
+					["--standalone"] = true,
+				},
+				filters = {
+					"pandoc-crossref",
+				},
+			},
+			context = {
+				metadata = {
+					linkcolor = "gray",
+					microtypeoptions = "babel",
+					["header-includes"] = {
+						"\\usepackage{xcolor}",
+						"\\usepackage{fontspec}",
+						"\\setmainfont{Libertinus Serif}",
+						"\\newfontfamily\\myregularfont{Libertinus Serif}",
+						"\\newfontfamily\\mychinesefont{IPAexMincho}",
+						"\\usepackage[CJK]{ucharclasses}",
+						"\\setTransitionsForCJK{\\mychinesefont}" .. "{\\myregularfont}",
+					},
+				},
+			},
+			latex = {
+				-- metadata provided in yaml metadata by function MULetterYaml
+				options = {
+					["--template"] = "my-letter.tex",
+				},
+			},
+		},
 	},
 
 	-- Libertinus:   use libertinus/xecjk latex font packages    {{{2

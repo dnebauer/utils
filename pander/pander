@@ -161,7 +161,67 @@ local keyword_actions_data = {
 			},
 		},
 	},
-	Letter = {},
+	Letter = {
+		all = {
+			extensions = {
+				"+footnotes",
+				"+inline_notes",
+				"+smart",
+			},
+			filters = {
+				"pandoc-crossref",
+			},
+			metadata = {
+				cref = true,
+				eqnPrefix = {
+					"equation",
+					"equations",
+				},
+				figPrefix = {
+					"figure",
+					"figures",
+				},
+				lang = "en-AU",
+				lstPrefix = {
+					"list",
+					"lists",
+				},
+				numbersections = false,
+				secPrefix = {
+					"section",
+					"sections",
+				},
+				tblPrefix = {
+					"table",
+					"tables",
+				},
+			},
+			options = {
+				["--embed-resources"] = true,
+				["--standalone"] = true,
+			},
+		},
+		context = {
+			metadata = {
+				["header-includes"] = {
+					"\\usepackage{xcolor}",
+					"\\usepackage{fontspec}",
+					"\\setmainfont{Libertinus Serif}",
+					"\\newfontfamily\\myregularfont{Libertinus Serif}",
+					"\\newfontfamily\\mychinesefont{IPAexMincho}",
+					"\\usepackage[CJK]{ucharclasses}",
+					"\\setTransitionsForCJK{\\mychinesefont}{\\myregularfont}",
+				},
+				linkcolor = "gray",
+				microtypeoptions = "babel",
+			},
+		},
+		latex = {
+			options = {
+				["--template"] = "my-letter.tex",
+			},
+		},
+	},
 	Libertinus = {
 		context = {
 			metadata = {
