@@ -218,7 +218,7 @@ local keyword_actions_data = {
 		},
 		latex = {
 			options = {
-				["--template"] = "my-letter.tex",
+				["--template"] = "my-letter.latex",
 			},
 		},
 	},

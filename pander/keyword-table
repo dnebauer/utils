@@ -383,7 +383,7 @@ local keyword_data = {
 			latex = {
 				-- metadata provided in yaml metadata by function MULetterYaml
 				options = {
-					["--template"] = "my-letter.tex",
+					["--template"] = "my-letter.latex",
 				},
 			},
 		},
