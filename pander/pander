@@ -161,48 +161,7 @@ local keyword_actions_data = {
 			},
 		},
 	},
-	Letter = {
-		all = {
-			latex = {
-				filters = {
-					"heading2bold.py",
-				},
-				metadata = {
-					classoption = {
-						"LFCS",
-					},
-					documentclass = "infletr",
-					fontfamily = "txfonts",
-					fontsize = "11pt",
-					graphics = true,
-				},
-				template = "UoE-letter.latex",
-			},
-			metadata = {
-				cc = false,
-				closing = "Yours sincerely,",
-				incl = false,
-				letterhead = {
-					address = {
-						"Royal Darwin Hospital",
-						"105 Rocklands Drive",
-						"Tiwi NT 0810",
-					},
-					affiliation = "Government and Consumer Relations Unit",
-					email = "david.nebauer@nt.gov.au",
-					image = "/home/david/.local/share/pandoc/template/img/eulogo.pdf",
-					name = "Mr David Nebauer",
-					phone = "+61 (0)8 8922 8631",
-					position = "Senior Complaints Officer",
-					website = "www.health.nt.gov.au",
-				},
-				opening = false,
-				ps = false,
-				signature = "/home/david/.local/share/pandoc/resources/signature.png",
-				signed = true,
-			},
-		},
-	},
+	Letter = {},
 	Libertinus = {
 		context = {
 			metadata = {
