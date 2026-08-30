@@ -327,31 +327,7 @@ local keyword_data = {
 		},
 		actions = {
 			all = {
-				metadata = {
-					lang = "en-AU",
-					numbersections = false,
-					figPrefix = {
-						"figure",
-						"figures",
-					},
-					eqnPrefix = {
-						"equation",
-						"equations",
-					},
-					tblPrefix = {
-						"table",
-						"tables",
-					},
-					lstPrefix = {
-						"list",
-						"lists",
-					},
-					secPrefix = {
-						"section",
-						"sections",
-					},
-					cref = true,
-				},
+				metadata = {},
 				extensions = {
 					"+footnotes",
 					"+inline_notes",
@@ -361,9 +337,7 @@ local keyword_data = {
 					["--embed-resources"] = true,
 					["--standalone"] = true,
 				},
-				filters = {
-					"pandoc-crossref",
-				},
+				filters = {},
 			},
 			context = {
 				metadata = {

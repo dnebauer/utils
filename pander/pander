@@ -168,34 +168,8 @@ local keyword_actions_data = {
 				"+inline_notes",
 				"+smart",
 			},
-			filters = {
-				"pandoc-crossref",
-			},
-			metadata = {
-				cref = true,
-				eqnPrefix = {
-					"equation",
-					"equations",
-				},
-				figPrefix = {
-					"figure",
-					"figures",
-				},
-				lang = "en-AU",
-				lstPrefix = {
-					"list",
-					"lists",
-				},
-				numbersections = false,
-				secPrefix = {
-					"section",
-					"sections",
-				},
-				tblPrefix = {
-					"table",
-					"tables",
-				},
-			},
+			filters = {},
+			metadata = {},
 			options = {
 				["--embed-resources"] = true,
 				["--standalone"] = true,
