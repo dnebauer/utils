@@ -262,7 +262,8 @@ fi
 # crop image   {{{1
 cp "$img_current" "$img_cropped" || dnAbort 'Unable to copy to cropped image'
 dnInfo 'Crop image and save as current file [shotwell IMG]' \
-  '• shotwell crop shortcut = Ctrl-o'
+  '• shotwell crop shortcut = Ctrl-o' \
+  "• set crop type to 'Unconstrained'"
 echo "$dn_divider_top"
 if shotwell "$img_cropped"; then
   echo "$dn_divider_bottom"
