@@ -133,23 +133,101 @@ Numbered list:
 .B "\-h"
 .YS
 .SH "DESCRIPTION"
-\*[self] uses
+\*[self] automates the common use case of scanning a document, deskewing it,
+cropping it, reducing file size/image resolution, saving to disk as a png file,
+and creating a pdf version of the image file.
+.PP
+Here is more detail about each step.
+.PP
+.IP \fB1.\fP 3
+.B "scan document"
+.IP \[bu] 3
+uses
 .I "scanimage"
-to perform a scan. The user then has the opportunity to perform the following
-operations on the resulting image: deskew (using ImageMagick), crop (using
-shotwell), reduce file size/image resolutione (using ImageMagick).
-.PP
-The image is then saved to disk. The default directory path is "~/Downloads/"
-but this can be changed with the
-.I "-f"
-option. The default filename is "image.png" but the file basename ran be
-changed with the
-.I "-b"
-option. Note that filename collisions are avoided by adding a unique number to
-the end of the basename.
-.PP
-Finally, the user is given an opportunity to request a pdf version of the final
-image.
+.IP \[bu] 3
+the command is:
+.RS 5
+.EX
+scanimage --format=png --resolution=300 --progress
+.EE
+.RE
+.IP \fB2.\fP 3
+.B "deskew document"
+.IP \[bu] 3
+uses
+.I "ImageMagick"
+.IP \[bu] 3
+the command is:
+.RS 5
+.EX
+convert ORIG -deskew 80% +repage DESKEWED
+.EE
+.RE
+.IP \[bu] 3
+the user can reject the results of deskewing
+.IP \fB3.\fP 3
+.B "crop document"
+.IP \[bu] 3
+uses
+.I "shotwell"
+.IP \[bu] 3
+the user does not have to crop the image
+.IP \[bu] 3
+the shortcut for cropping is
+.I "Ctrl-o"
+.IP \[bu] 3
+the crop type should be set to
+.I "Unconstrained"
+.IP \[bu] 3
+the user can reject the results of cropping
+.IP \fB4.\fP 3
+.B "resize image resolution"
+.IP \[bu] 3
+uses
+.I "ImageMagick"
+.IP \[bu] 3
+this is an optional step
+.IP \[bu] 3
+the command is:
+.RS 5
+.EX
+convert ORIG -resize 40% RESIZED
+.EE
+.RE
+.IP \fB5.\fP 3
+.B "save image file"
+.IP \[bu] 3
+the default directory path is
+.I "~/Downloads/"
+but this can be changed with
+the
+.B "-f"
+option
+.IP \[bu] 3
+the default filename is
+.I "image.png"
+but the file basename ran be changed with the
+.B "-b"
+option
+.IP \[bu] 3
+filename collisions are avoided by adding a unique number to the end of the
+basename
+.IP \fB6.\fP 3
+.B "create pdf file"
+.IP \[bu] 3
+uses
+.I "ImageMagick"
+.IP \[bu] 3
+this is an optional step
+.IP \[bu] 3
+the created file has the same stem and directory path as the image file
+.IP \[bu] 3
+the command is:
+.RS 5
+.EX
+convert ORIG.png ORIG.pdf
+.EE
+.RE
 .SH "OPTIONS"
 .TP
 .BI "\-f  \-\-folder " "dir_path"
