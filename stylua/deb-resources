@@ -21,7 +21,7 @@ package-name stylua
 # Package version
 # Version number for package.
 # Required. One only.
-version 2.5.2
+version 2.6.0
 
 # Script and binary files
 # Executable files to be packaged.

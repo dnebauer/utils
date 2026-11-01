@@ -1,4 +1,4 @@
-stylua 2.5.2
+stylua 2.6.0
 A utility to format Lua code
 
 USAGE:
@@ -75,8 +75,8 @@ FORMATTING OPTIONS:
             [possible values: Always, NoSingleString, NoSingleTable, None, Input]
 
         --collapse-simple-statement <COLLAPSE_SIMPLE_STATEMENT>
-            Specify whether to collapse simple statements [possible values: Never, FunctionOnly,
-            ConditionalOnly, Always]
+            Specify whether to collapse simple statements [possible values: Never, Input,
+            FunctionOnly, ConditionalOnly, Always]
 
         --column-width <COLUMN_WIDTH>
             The column width to use to attempt to wrap lines
