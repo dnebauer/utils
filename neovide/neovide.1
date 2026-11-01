@@ -189,6 +189,9 @@ and floating blur). [env: NEOVIDE_NO_MULTIGRID=]
 Do not request sRGB when initializing the window. May help with GPUs with weird
 pixel formats. Default on Linux and macOS.
 .TP
+.B "\-\-no\-startup\-message\-capture"
+Do not temporarily capture startup messages before the first grid render.
+.TP
 .B "\-\-no\-tabs"
 Disable opening multiple files in tabs. They're still buffers.
 .TP
@@ -204,6 +207,10 @@ The size of the window in pixels. [env: NEOVIDE_SIZE=]
 .B "\-\-srgb"
 Request sRGB when initializing the window. May help with GPUs with weird pixel
 formats. Default on Windows. [env: NEOVIDE_SRGB=]
+.TP
+.B "\-\-startup\-message\-capture"
+Temporarily capture startup messages before the first grid render. Default.
+[env: NEOVIDE_STARTUP_MESSAGE_CAPTURE=]
 .TP
 .B "\-\-tabs"
 Enable opening multiple files in tabs. Default. [env: NEOVIDE_TABS=]
