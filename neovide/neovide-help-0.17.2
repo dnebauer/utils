@@ -39,9 +39,13 @@ Options:
           Request VSync on the window [DEFAULT] [env: NEOVIDE_VSYNC=]
       --no-vsync
           Do not try to request VSync on the window
+      --startup-message-capture
+          Temporarily capture startup messages before the first grid render [DEFAULT] [env: NEOVIDE_STARTUP_MESSAGE_CAPTURE=]
+      --no-startup-message-capture
+          Do not temporarily capture startup messages before the first grid render
       --neovim-bin <NEOVIM_BIN>
           Which NeoVim binary to invoke headlessly instead of `nvim` found on $PATH [env: NEOVIM_BIN=/usr/local/bin/nvim.appimage]
-      --wayland_app_id <WAYLAND_APP_ID>
+      --wayland-app-id <WAYLAND_APP_ID>
           The app ID to show to the compositor (Wayland only, useful for setting WM rules) [env: NEOVIDE_APP_ID=] [default: neovide]
       --x11-wm-class <X11_WM_CLASS>
           The class part of the X11 WM_CLASS property (X only, useful for setting WM rules) [env: NEOVIDE_WM_CLASS=] [default: neovide]
